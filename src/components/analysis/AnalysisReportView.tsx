@@ -343,8 +343,12 @@ export default function AnalysisReportView({
       startTransition(() => {
         router.refresh();
       });
-    } catch (error: any) {
-      setRequestError(error?.message || "분석 요청에 실패했습니다.");
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error && typeof error.message === "string"
+          ? error.message
+          : "분석 요청에 실패했습니다.";
+      setRequestError(message);
     } finally {
       setIsSubmitting(false);
     }
