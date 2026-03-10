@@ -1,0 +1,190 @@
+---
+alwaysApply: true
+---
+
+# TubeWatch Coding Conventions
+
+## Purpose
+
+This rule file defines the coding style conventions used in the TubeWatch project.
+
+All generated code must follow these conventions to ensure consistency, readability, and maintainability.
+
+---
+
+## Language
+
+All source code must be written in TypeScript.
+
+Do not generate JavaScript unless explicitly instructed.
+
+---
+
+## Naming Conventions
+
+### File Names
+
+Use camelCase for file names.
+
+Examples:
+
+normalizeVideoMetrics.ts  
+buildChannelFeatures.ts  
+featureScoring.ts  
+
+Avoid:
+
+- PascalCase filenames
+- snake_case filenames
+
+---
+
+### Function Names
+
+Use camelCase for function names.
+
+Examples:
+
+fetchChannelData  
+normalizeVideoMetrics  
+buildChannelFeatures  
+featureScoring  
+
+Function names should describe the action clearly.
+
+---
+
+### Variable Names
+
+Use descriptive variable names.
+
+Examples:
+
+videoMetrics  
+channelFeatures  
+engagementRate  
+
+Avoid single-letter variable names unless inside short loops.
+
+---
+
+### Constants
+
+Constants should use UPPER_CASE with underscores.
+
+Example:
+
+MAX_VIDEO_FETCH_COUNT  
+DEFAULT_ANALYSIS_LIMIT
+
+---
+
+## Function Structure
+
+Functions should be small and focused.
+
+Each function should perform one clear responsibility.
+
+Example:
+
+Correct:
+
+normalizeVideoMetrics  
+buildChannelFeatures  
+
+Avoid creating large multi-purpose functions.
+
+---
+
+## Export Rules
+
+Prefer named exports.
+
+Example:
+
+export function buildChannelFeatures()
+
+Avoid default exports unless necessary.
+
+---
+
+## Import Rules
+
+Imports should be grouped logically.
+
+Order:
+
+1. external libraries  
+2. internal modules  
+3. types
+
+Example:
+
+import { something } from "library"
+
+import { buildChannelFeatures } from "@/features/feature-engine"
+
+import type { ChannelFeature } from "@/types"
+
+---
+
+## Comments
+
+Comments should explain **why something exists**, not obvious behavior.
+
+Example:
+
+Correct:
+
+// normalize metrics so AI can compare channels consistently
+
+Avoid:
+
+// increment counter
+
+---
+
+## Code Clarity
+
+Code should prioritize readability over cleverness.
+
+Prefer simple and clear logic.
+
+Avoid unnecessary abstractions.
+
+---
+
+## Formatting
+
+Follow consistent formatting.
+
+Guidelines:
+
+- consistent indentation
+- clear spacing between logical blocks
+- avoid overly long lines
+
+---
+
+## Module Responsibility
+
+Each file should have a single responsibility.
+
+Examples:
+
+normalizeVideoMetrics.ts → metric normalization  
+featureScoring.ts → scoring logic
+
+Avoid mixing multiple unrelated responsibilities in the same file.
+
+---
+
+## Rule Summary
+
+All generated code must be:
+
+- readable
+- modular
+- clearly named
+- consistent with project structure
+

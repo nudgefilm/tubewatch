@@ -1,0 +1,150 @@
+---
+alwaysApply: true
+---
+
+# TubeWatch Block Development Rules
+
+## Purpose
+
+This rule file defines how development must be performed in the TubeWatch project.
+
+TubeWatch uses a Block Development Architecture.
+
+All implementation work must follow block boundaries and preserve independent module responsibilities.
+
+---
+
+## Core Principle
+
+Develop one block at a time.
+
+Do not implement multiple blocks in the same task unless explicitly instructed.
+
+Do not expand the task scope beyond the requested block.
+
+---
+
+## Block List
+
+TubeWatch blocks are defined as follows.
+
+- Block A — Feature Engine
+- Block B — Gemini AI Engine
+- Block C — YouTube Data Fetch
+- Block D — Storage Layer
+- Block E — Worker
+- Block F — UI Layer
+
+Each block has a specific role in the system pipeline.
+
+---
+
+## Block Isolation Rules
+
+When implementing a block:
+
+- work only inside the requested block
+- do not modify unrelated blocks
+- do not include logic from future blocks
+- do not mix responsibilities across blocks
+
+Examples:
+
+- Block A must not include AI logic
+- Block B must not include database storage logic
+- Block C must not include UI logic
+- Block D must not include YouTube fetch logic
+- Block E should orchestrate modules, not contain internal logic of other blocks
+- Block F must only handle presentation and interaction
+
+---
+
+## Scope Control
+
+For every task:
+
+- clearly identify the current block
+- identify the functions included in the block
+- define the required files
+- keep the implementation focused on the requested scope
+
+Do not add speculative abstractions or unrelated helper modules unless they are necessary for the requested block.
+
+---
+
+## File Creation Order
+
+When generating files for a block, follow this order:
+
+1. utility files
+2. type files
+3. block entry files
+
+This order improves clarity and reduces implementation confusion.
+
+---
+
+## Output Rules
+
+When responding to a block implementation task, always provide:
+
+1. implementation scope
+2. created file list
+3. modified file list
+4. full code for each file
+5. integration notes
+6. validation checklist
+
+Do not provide incomplete code fragments unless explicitly requested.
+
+---
+
+## Integration Rules
+
+Blocks should integrate only through clear outputs.
+
+Examples:
+
+- Block C outputs raw data for Block A
+- Block A outputs structured features for Block B
+- Block B outputs AI insights for Block D
+- Block E orchestrates the full pipeline
+- Block F reads stored results for presentation
+
+Use clear interfaces between blocks.
+
+---
+
+## Modification Rules
+
+When updating existing code during block work:
+
+- change only files required by the block
+- avoid broad refactoring
+- preserve unrelated logic
+- keep backward compatibility when possible
+
+---
+
+## Validation Rules
+
+Before completing a task, verify:
+
+- only the requested block was implemented
+- no unrelated block was modified
+- file order and responsibility are clear
+- integration points are predictable
+- the implementation follows the system pipeline
+
+---
+
+## Rule Summary
+
+Always preserve:
+
+- one block at a time
+- clear scope boundaries
+- modular file creation
+- predictable integration
+- minimal unrelated changes
+

@@ -1,0 +1,149 @@
+---
+alwaysApply: true
+---
+
+# TubeWatch TypeScript Quality Rules
+
+## Purpose
+
+This rule file defines TypeScript quality standards for the TubeWatch project.
+
+All generated code must follow strict typing practices to ensure stability and maintainability.
+
+---
+
+## Strict Typing
+
+Always use strict TypeScript typing.
+
+Avoid the use of `any` unless absolutely necessary.
+
+Prefer explicit type definitions.
+
+---
+
+## Function Return Types
+
+All exported functions must define explicit return types.
+
+Example:
+
+export function buildChannelFeatures(): ChannelFeatures
+
+Avoid implicit return types for exported functions.
+
+---
+
+## Interface and Type Usage
+
+Use interfaces or types to define structured data.
+
+Example:
+
+interface VideoMetrics {
+  views: number
+  likes: number
+  comments: number
+}
+
+This ensures consistent data structures across modules.
+
+---
+
+## Block-Level Types
+
+Each block should define its own type definitions when appropriate.
+
+Example:
+
+src/features/feature-engine/types.ts
+
+This keeps type definitions close to the related logic.
+
+---
+
+## Avoid Any
+
+Avoid using:
+
+any
+
+If a type is unknown, prefer:
+
+unknown
+
+Or define a more specific type.
+
+---
+
+## Optional Fields
+
+Use optional fields only when necessary.
+
+Example:
+
+interface ChannelData {
+  title: string
+  subscriberCount?: number
+}
+
+Avoid excessive optional typing.
+
+---
+
+## Type Safety
+
+All function inputs and outputs should be typed.
+
+Example:
+
+function normalizeVideoMetrics(videos: Video[]): NormalizedVideoMetrics[]
+
+Avoid untyped parameters.
+
+---
+
+## Reusable Types
+
+If a type is shared across multiple modules, place it in:
+
+src/types/
+
+Example:
+
+ChannelData  
+VideoData  
+AnalysisResult
+
+---
+
+## Type Imports
+
+Use type imports when importing types.
+
+Example:
+
+import type { VideoMetrics } from "@/types"
+
+This avoids unnecessary runtime imports.
+
+---
+
+## Type Clarity
+
+Types should be descriptive and easy to understand.
+
+Avoid overly complex generic types unless required.
+
+---
+
+## Rule Summary
+
+TypeScript code must:
+
+- avoid any
+- use explicit return types
+- define clear interfaces
+- keep types modular
+- ensure predictable data structures
+

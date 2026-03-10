@@ -1,0 +1,174 @@
+---
+alwaysApply: true
+---
+
+# TubeWatch Project Architecture Rules
+
+## Purpose
+
+This rule file defines the required project architecture for TubeWatch.
+
+All generated code must follow the documented project structure and preserve block-based modularity.
+
+Do not restructure the project unless explicitly instructed.
+
+---
+
+## Architecture Model
+
+TubeWatch uses a Block Development Architecture.
+
+Main blocks:
+
+- Block A — Feature Engine
+- Block B — Gemini AI Engine
+- Block C — YouTube Data Fetch
+- Block D — Storage Layer
+- Block E — Worker
+- Block F — UI Layer
+
+Each block has a clearly defined responsibility.
+
+---
+
+## Required Separation of Concerns
+
+Keep each block isolated.
+
+Do not mix the following responsibilities in the same module unless explicitly instructed:
+
+- YouTube data fetching
+- feature generation
+- AI analysis
+- database storage
+- UI rendering
+
+Examples:
+
+- Feature Engine must not perform database writes
+- AI Engine must not fetch YouTube data
+- UI must not contain analysis logic
+- Storage Layer must not generate AI insights
+
+---
+
+## Preferred Project Structure
+
+Use the existing project structure unless instructed otherwise.
+
+Preferred directories:
+
+- src/app
+- src/components
+- src/features
+- src/lib
+- src/types
+- docs
+- .cursor/rules
+
+Use feature-based grouping where appropriate.
+
+---
+
+## File Placement Rules
+
+Place files according to responsibility.
+
+Examples:
+
+- feature logic → src/features/
+- shared UI components → src/components/
+- route handlers → src/app/api/
+- app pages → src/app/
+- shared utility logic → src/lib/
+- shared types → src/types/ or block-local types files
+
+Do not place unrelated logic in the wrong directory.
+
+---
+
+## Block Boundary Rules
+
+When implementing a block:
+
+- work only inside the requested block
+- do not modify unrelated blocks
+- do not anticipate future blocks unless explicitly requested
+- keep interfaces between blocks clear and minimal
+
+Each block should expose only the functions needed by downstream modules.
+
+---
+
+## Pipeline Architecture
+
+All analysis-related code must follow this pipeline:
+
+YouTube Fetch  
+↓  
+Feature Engine  
+↓  
+Gemini AI Analysis  
+↓  
+Storage Layer  
+↓  
+UI Layer
+
+Do not bypass this pipeline without explicit instruction.
+
+---
+
+## Dependency Rules
+
+Dependencies should follow the pipeline direction.
+
+Allowed pattern:
+
+- Fetch → Feature
+- Feature → AI
+- AI → Storage
+- Storage → UI read path through backend/API
+
+Avoid reverse coupling.
+
+Examples of disallowed coupling:
+
+- Feature Engine importing UI modules
+- UI importing worker logic
+- AI Engine directly depending on page components
+
+---
+
+## Modification Rules
+
+Before modifying existing files:
+
+- check whether the file belongs to the current block
+- preserve existing architecture unless the task requires change
+- avoid broad refactors during block implementation
+- prefer minimal, targeted modifications
+
+---
+
+## Architecture Validation
+
+Before completing a task, verify:
+
+- files are placed in the correct folders
+- block boundaries are preserved
+- unrelated modules are untouched
+- pipeline order is respected
+- no responsibility leakage exists across layers
+
+---
+
+## Rule Summary
+
+Always preserve:
+
+- block isolation
+- folder responsibility
+- pipeline consistency
+- modular structure
+- predictable integration boundaries
+

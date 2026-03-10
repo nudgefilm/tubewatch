@@ -1,0 +1,140 @@
+---
+alwaysApply: true
+---
+
+# TubeWatch File Generation Rules
+
+## Purpose
+
+This rule file defines how Cursor should generate files when implementing code for the TubeWatch project.
+
+These rules ensure consistent output structure and prevent incomplete or fragmented code generation.
+
+---
+
+## Full File Output
+
+Always return complete file contents.
+
+Do not return partial code fragments.
+
+Avoid patch-style edits unless explicitly requested.
+
+---
+
+## Output Order
+
+When implementing tasks, always respond in the following order:
+
+1. implementation scope
+2. created file list
+3. modified file list
+4. full code for each file
+5. integration notes
+6. validation checklist
+
+This structure improves clarity and reviewability.
+
+---
+
+## File Creation Order
+
+When generating files for a block, use this order:
+
+1. utility files  
+2. type files  
+3. block entry files  
+
+Example for Feature Engine:
+
+types.ts  
+normalizeVideoMetrics.ts  
+buildChannelFeatures.ts  
+featureScoring.ts  
+index.ts
+
+---
+
+## File Placement
+
+Generated files must be placed in the correct directories.
+
+Examples:
+
+Feature Engine:
+
+src/features/feature-engine/
+
+Worker:
+
+src/app/api/worker/
+
+UI pages:
+
+src/app/
+
+Shared utilities:
+
+src/lib/
+
+Shared types:
+
+src/types/
+
+Do not place files in incorrect directories.
+
+---
+
+## Avoid File Overwrites
+
+Do not overwrite existing files unless the task explicitly requires modification.
+
+If modification is needed, clearly list the modified files.
+
+---
+
+## Module Responsibility
+
+Each generated file must have a single responsibility.
+
+Example:
+
+normalizeVideoMetrics.ts → metric normalization
+
+Avoid creating large files with multiple unrelated responsibilities.
+
+---
+
+## Import Consistency
+
+Generated files must use consistent import paths.
+
+Example:
+
+import { normalizeVideoMetrics } from "@/features/feature-engine"
+
+Avoid relative imports that become fragile as the project grows.
+
+---
+
+## Code Completeness
+
+Before finishing a response, verify:
+
+- all required files are generated
+- imports are valid
+- exports are correct
+- no code is truncated
+
+---
+
+## Rule Summary
+
+Cursor must generate code that is:
+
+- complete
+- correctly ordered
+- placed in the correct directories
+- modular
+- easy to review
+
