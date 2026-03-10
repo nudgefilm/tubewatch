@@ -44,6 +44,24 @@ export type AnalyzeChannelWithGeminiResult =
   | AnalyzeChannelWithGeminiSuccess
   | AnalyzeChannelWithGeminiFailure;
 
+type GeminiCallSuccess = {
+  ok: true;
+  rawText: string;
+  rawBody: string;
+  usage: unknown;
+};
+
+type GeminiCallFailure = {
+  ok: false;
+  rawText: "";
+  rawBody: string;
+  error: string;
+};
+
+type GeminiCallResult = GeminiCallSuccess | GeminiCallFailure;
+
+type JsonObject = Record<string, unknown>;
+
 function sanitizeText(input: string): string {
   return input
     .replace(/```json/gi, "")
@@ -131,10 +149,21 @@ function repairJsonStructure(raw: string): string {
   return result.trim();
 }
 
-function tryParseJson(candidate: string) {
+function tryParseJson(candidate: string): {
+  parsed: JsonObject | null;
+  error: string | null;
+} {
   try {
+    const parsed = JSON.parse(candidate) as unknown;
+    if (!parsed || typeof parsed !== "object") {
+      return {
+        parsed: null,
+        error: "Parsed value is not an object",
+      };
+    }
+
     return {
-      parsed: JSON.parse(candidate) as Record<string, unknown>,
+      parsed: parsed as JsonObject,
       error: null,
     };
   } catch (error) {
@@ -188,9 +217,7 @@ function normalizeConfidence(
   return null;
 }
 
-function normalizeParsedObject(
-  input: Record<string, unknown>
-): TubeWatchAnalysisResult {
+function normalizeParsedObject(input: JsonObject): TubeWatchAnalysisResult {
   return {
     version: pickFirstNonEmptyString(input.version) ?? "1.0",
     channel_summary: pickFirstNonEmptyString(input.channel_summary) ?? "",
@@ -221,7 +248,9 @@ function normalizeParsedObject(
   };
 }
 
-function tryParseGeminiResponse(rawText: string) {
+function tryParseGeminiResponse(
+  rawText: string
+): { parsed: TubeWatchAnalysisResult | null; error: string | null } {
   const attempts = [
     rawText,
     sanitizeText(rawText),
@@ -257,16 +286,35 @@ function tryParseGeminiResponse(rawText: string) {
   };
 }
 
-function extractResponseText(data: any): string {
-  const candidate = data?.candidates?.[0];
-  const parts = candidate?.content?.parts;
+function extractResponseText(data: unknown): string {
+  if (!data || typeof data !== "object") {
+    return "";
+  }
 
-  if (!Array.isArray(parts)) return "";
+  const root = data as { candidates?: unknown };
+  const candidates = root.candidates;
 
-  return parts
-    .map((part: any) => (typeof part?.text === "string" ? part.text : ""))
-    .join("")
-    .trim();
+  if (!Array.isArray(candidates) || candidates.length === 0) {
+    return "";
+  }
+
+  const first = candidates[0] as { content?: { parts?: unknown } };
+  const parts = first.content?.parts;
+
+  if (!Array.isArray(parts)) {
+    return "";
+  }
+
+  const texts = parts.map((part) => {
+    if (!part || typeof part !== "object") {
+      return "";
+    }
+
+    const candidatePart = part as { text?: unknown };
+    return typeof candidatePart.text === "string" ? candidatePart.text : "";
+  });
+
+  return texts.join("").trim();
 }
 
 async function callGemini(
@@ -275,7 +323,7 @@ async function callGemini(
   generationConfig: ReturnType<typeof getGeminiConfig>["generationConfig"],
   prompt: string,
   systemInstruction: string
-) {
+): Promise<GeminiCallResult> {
   const body = {
     systemInstruction: {
       parts: [{ text: systemInstruction }],
@@ -299,24 +347,41 @@ async function callGemini(
   });
 
   const rawBody = await response.text();
-  const data = rawBody ? JSON.parse(rawBody) : null;
+  const parsedBody = rawBody ? (JSON.parse(rawBody) as unknown) : null;
 
   if (!response.ok) {
+    let message = "Gemini API 오류";
+
+    if (parsedBody && typeof parsedBody === "object") {
+      const root = parsedBody as { error?: { message?: unknown } };
+      const candidateMessage = root.error?.message;
+
+      if (typeof candidateMessage === "string" && candidateMessage.length > 0) {
+        message = candidateMessage;
+      }
+    }
+
     return {
       ok: false as const,
       rawText: "",
       rawBody,
-      error: data?.error?.message ?? "Gemini API 오류",
+      error: message,
     };
   }
 
-  const rawText = extractResponseText(data);
+  const rawText = extractResponseText(parsedBody);
+
+  let usage: unknown = undefined;
+  if (parsedBody && typeof parsedBody === "object") {
+    const root = parsedBody as { usageMetadata?: unknown };
+    usage = root.usageMetadata;
+  }
 
   return {
     ok: true as const,
     rawText,
     rawBody,
-    usage: data?.usageMetadata,
+    usage,
   };
 }
 
