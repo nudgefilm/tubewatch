@@ -12,6 +12,9 @@ import {
   ANALYSIS_JOB_STATUS,
   ANALYSIS_RESULT_STATUS,
 } from "@/lib/server/analysis/status";
+import { getRecentVideos, type VideoInfo } from "@/lib/youtube";
+import { saveAnalysisResult } from "@/lib/server/analysis/saveAnalysisResult";
+import type { JsonValue } from "@/lib/server/analysis/storageTypes";
 
 type QueueRow = {
   id: string;
@@ -37,7 +40,7 @@ type AnalysisResultRow = {
   gemini_attempt_count: number | null;
 };
 
-function getRequiredEnv(name: string) {
+function getRequiredEnv(name: string): string {
   const value = process.env[name];
 
   if (!value) {
@@ -56,88 +59,20 @@ function getAdminClient() {
   });
 }
 
-function toNumber(value: unknown): number | null {
-  if (value == null) return null;
-  const num = Number(value);
-  return Number.isFinite(num) ? num : null;
-}
-
-async function fetchRecentVideosFromYouTube(
-  channelId: string,
-  maxResults = 20
-): Promise<ChannelVideoSample[]> {
-  const youtubeApiKey = getRequiredEnv("YOUTUBE_API_KEY");
-
-  const searchUrl = new URL("https://www.googleapis.com/youtube/v3/search");
-  searchUrl.searchParams.set("key", youtubeApiKey);
-  searchUrl.searchParams.set("part", "snippet");
-  searchUrl.searchParams.set("channelId", channelId);
-  searchUrl.searchParams.set("order", "date");
-  searchUrl.searchParams.set("type", "video");
-  searchUrl.searchParams.set("maxResults", String(maxResults));
-
-  const searchRes = await fetch(searchUrl.toString(), {
-    method: "GET",
-    cache: "no-store",
-  });
-
-  if (!searchRes.ok) {
-    const text = await searchRes.text();
-    throw new Error(`YouTube search API failed: ${searchRes.status} ${text}`);
-  }
-
-  const searchJson = await searchRes.json();
-
-  const videoIds: string[] = (searchJson.items || [])
-    .map((item: any) => item?.id?.videoId)
-    .filter(Boolean);
-
-  if (videoIds.length === 0) {
-    return [];
-  }
-
-  const videosUrl = new URL("https://www.googleapis.com/youtube/v3/videos");
-  videosUrl.searchParams.set("key", youtubeApiKey);
-  videosUrl.searchParams.set("part", "snippet,statistics,contentDetails");
-  videosUrl.searchParams.set("id", videoIds.join(","));
-
-  const videosRes = await fetch(videosUrl.toString(), {
-    method: "GET",
-    cache: "no-store",
-  });
-
-  if (!videosRes.ok) {
-    const text = await videosRes.text();
-    throw new Error(`YouTube videos API failed: ${videosRes.status} ${text}`);
-  }
-
-  const videosJson = await videosRes.json();
-
-  const result: ChannelVideoSample[] = (videosJson.items || []).map((item: any) => ({
-    videoId: item.id,
-    title: item?.snippet?.title || "",
-    publishedAt: item?.snippet?.publishedAt || null,
-    viewCount: toNumber(item?.statistics?.viewCount),
-    likeCount: toNumber(item?.statistics?.likeCount),
-    commentCount: toNumber(item?.statistics?.commentCount),
-    duration: item?.contentDetails?.duration || null,
-    description: item?.snippet?.description || "",
-    thumbnail:
-      item?.snippet?.thumbnails?.high?.url ||
-      item?.snippet?.thumbnails?.medium?.url ||
-      item?.snippet?.thumbnails?.default?.url ||
-      null,
-    tags: Array.isArray(item?.snippet?.tags) ? item.snippet.tags : [],
-    categoryId: item?.snippet?.categoryId || null,
+function toChannelVideoSamples(videos: VideoInfo[]): ChannelVideoSample[] {
+  return videos.map((video) => ({
+    videoId: video.video_id,
+    title: video.title,
+    publishedAt: video.published_at,
+    viewCount: video.view_count,
+    likeCount: video.like_count,
+    commentCount: video.comment_count,
+    duration: video.duration,
+    description: video.description,
+    thumbnail: video.thumbnail_url ?? null,
+    tags: video.tags,
+    categoryId: video.category_id,
   }));
-
-  result.sort((a, b) => {
-    const aTime = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
-    const bTime = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
-    return bTime - aTime;
-  });
-
-  return result.slice(0, maxResults);
 }
 
 export async function POST(req: Request) {
@@ -243,7 +178,7 @@ export async function POST(req: Request) {
       throw new Error(channelError?.message || "Channel not found");
     }
 
-    const videos = await fetchRecentVideosFromYouTube(userChannel.channel_id, 20);
+    const youtubeVideos = await getRecentVideos(userChannel.channel_id, 20);
 
     const normalizedDataset = normalizeVideoMetrics({
       channel: {
@@ -255,128 +190,67 @@ export async function POST(req: Request) {
         video_count: null,
         view_count: null,
       },
-      videos: videos.map((video) => ({
-        video_id: video.videoId,
+      videos: youtubeVideos.map((video) => ({
+        video_id: video.video_id,
         title: video.title,
-        description: video.description ?? "",
-        published_at: video.publishedAt,
-        thumbnail: video.thumbnail ?? null,
-        view_count: video.viewCount,
-        like_count: video.likeCount,
-        comment_count: video.commentCount,
+        description: video.description,
+        published_at: video.published_at,
+        thumbnail: video.thumbnail_url,
+        view_count: video.view_count,
+        like_count: video.like_count,
+        comment_count: video.comment_count,
         duration: video.duration,
-        tags: video.tags ?? [],
-        category_id: video.categoryId ?? null,
+        tags: video.tags,
+        category_id: video.category_id,
       })),
     });
 
     const featureMap = buildChannelFeatures(normalizedDataset);
     const scoreResult = featureScoring(featureMap);
 
-    const analysisInsertPayload = {
-      job_id: queueRow.job_id,
-      queue_id: queueRow.id,
-      user_id: queueRow.user_id,
-      user_channel_id: queueRow.user_channel_id,
-      channel_id: userChannel.channel_id,
-      channel_title: userChannel.channel_title,
-      thumbnail_url: userChannel.thumbnail_url,
-      subscriber_count: userChannel.subscriber_count,
-      sample_video_count: videos.length,
-      analysis_confidence:
-        videos.length >= 15 ? "high" : videos.length >= 8 ? "medium" : "low",
-      raw_videos_payload: videos,
-      feature_snapshot: featureMap,
-      feature_total_score: scoreResult.totalScore,
-      feature_section_scores: scoreResult.sectionScores,
-      status: ANALYSIS_RESULT_STATUS.COLLECTED,
-      collected_at: new Date().toISOString(),
-      gemini_status: "pending",
-      gemini_error: null,
-      gemini_skipped_reason: null,
-    };
-
-    const { data: analysisResult, error: analysisInsertError } = await supabase
-      .from("analysis_results")
-      .upsert(analysisInsertPayload, { onConflict: "job_id" })
-      .select("id, job_id, queue_id, gemini_status, gemini_attempt_count")
-      .single<AnalysisResultRow>();
-
-    if (analysisInsertError) {
-      throw new Error(`analysis_results upsert failed: ${analysisInsertError.message}`);
-    }
-
-    if (!analysisResult) {
-      throw new Error("analysis_results upsert returned no row");
-    }
-
-    console.log("[worker.analyze] analysis result upserted", {
-      analysisResultId: analysisResult.id,
-      queueId: queueRow.id,
-      jobId: queueRow.job_id,
-      videoCount: videos.length,
-    });
-
     const gemini = await analyzeChannelWithGemini({
       channelTitle: userChannel.channel_title || "Untitled Channel",
       subscriberCount: userChannel.subscriber_count,
-      videos,
+      videos: toChannelVideoSamples(youtubeVideos),
     });
 
     if (!gemini.ok) {
-      const { error: geminiFailSaveError } = await supabase
-        .from("analysis_results")
-        .update({
-          gemini_status: "failed",
-          gemini_model: gemini.model,
-          gemini_error: gemini.error,
-          gemini_analyzed_at: new Date().toISOString(),
-          gemini_raw_json: gemini.rawJson,
-          gemini_attempt_count: (analysisResult.gemini_attempt_count ?? 0) + 1,
-          gemini_skipped_reason: null,
-          status: ANALYSIS_RESULT_STATUS.FAILED,
-        })
-        .eq("id", analysisResult.id);
-
-      if (geminiFailSaveError) {
-        throw new Error(
-          `analysis_results gemini fail update failed: ${geminiFailSaveError.message}`
-        );
-      }
-
       throw new Error(gemini.error);
     }
 
-    const { error: geminiSaveError } = await supabase
-      .from("analysis_results")
-      .update({
-        gemini_status: "success",
-        gemini_model: gemini.model,
-        gemini_error: null,
-        gemini_analyzed_at: new Date().toISOString(),
-        channel_summary: gemini.result.channel_summary,
-        content_pattern_summary: gemini.result.content_pattern_summary,
-        content_patterns: gemini.result.content_patterns,
-        strengths: gemini.result.strengths,
-        weaknesses: gemini.result.weaknesses,
-        bottlenecks: gemini.result.bottlenecks,
-        recommended_topics: gemini.result.recommended_topics,
-        growth_action_plan: gemini.result.growth_action_plan,
-        target_audience: gemini.result.target_audience,
-        interpretation_mode: gemini.result.interpretation_mode,
-        sample_size_note: gemini.result.sample_size_note,
-        gemini_raw_json: gemini.rawJson,
-        gemini_attempt_count: (analysisResult.gemini_attempt_count ?? 0) + 1,
-        gemini_skipped_reason: null,
-        status: ANALYSIS_RESULT_STATUS.ANALYZED,
-      })
-      .eq("id", analysisResult.id);
-
-    if (geminiSaveError) {
-      throw new Error(`analysis_results gemini update failed: ${geminiSaveError.message}`);
-    }
-
     const finishedAt = new Date().toISOString();
+
+    const featureScores: JsonValue = {
+      totalScore: scoreResult.totalScore,
+      sectionScores: scoreResult.sectionScores as JsonValue,
+      collectedVideoCount: normalizedDataset.collectedVideoCount,
+      sampleVideoCount: youtubeVideos.length,
+    };
+
+    const aiInsights: JsonValue = {
+      channel_summary: gemini.result.channel_summary,
+      content_pattern_summary: gemini.result.content_pattern_summary,
+      content_patterns: gemini.result.content_patterns as JsonValue,
+      strengths: gemini.result.strengths as JsonValue,
+      weaknesses: gemini.result.weaknesses as JsonValue,
+      bottlenecks: gemini.result.bottlenecks as JsonValue,
+      recommended_topics: gemini.result.recommended_topics as JsonValue,
+      growth_action_plan: gemini.result.growth_action_plan as JsonValue,
+      target_audience: gemini.result.target_audience as JsonValue,
+      interpretation_mode: gemini.result.interpretation_mode,
+      sample_size_note: gemini.result.sample_size_note,
+      raw_json: gemini.rawJson,
+      model: gemini.model,
+    };
+
+    const savedResult = await saveAnalysisResult({
+      userId: queueRow.user_id,
+      userChannelId: queueRow.user_channel_id,
+      jobId: queueRow.job_id,
+      featureScores,
+      aiInsights,
+      analysisTimestamp: finishedAt,
+    });
 
     const { error: queueDoneError } = await supabase
       .from("analysis_queue")
@@ -419,25 +293,34 @@ export async function POST(req: Request) {
       queueId: queueRow.id,
       jobId: queueRow.job_id,
       finishedAt,
-      analysisResultId: analysisResult.id,
+      analysisResultId: savedResult.id,
     });
 
     return NextResponse.json({
       ok: true,
       processedJob: queueRow.job_id,
       queueStatusBeforeRun: queueRow.status,
-      videoCount: videos.length,
-      analysisResultId: analysisResult.id,
+      videoCount: youtubeVideos.length,
+      analysisResultId: savedResult.id,
       featureEngine: {
         collectedVideoCount: normalizedDataset.collectedVideoCount,
         totalScore: scoreResult.totalScore,
         sectionScores: scoreResult.sectionScores,
       },
     });
-  } catch (error: any) {
+  } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Worker error full:", error);
-    console.error("Worker error message:", error?.message);
-    console.error("Worker error stack:", error?.stack);
+    // eslint-disable-next-line no-console
+    console.error(
+      "Worker error message:",
+      error instanceof Error ? error.message : String(error)
+    );
+    // eslint-disable-next-line no-console
+    console.error(
+      "Worker error stack:",
+      error instanceof Error ? error.stack : null
+    );
 
     try {
       if (runningQueueId && runningJobId) {
@@ -447,7 +330,10 @@ export async function POST(req: Request) {
           .from("analysis_queue")
           .update({
             status: ANALYSIS_QUEUE_STATUS.FAILED,
-            error_message: error?.message || "Unknown worker error",
+            error_message:
+              error instanceof Error
+                ? error.message
+                : "Unknown worker error",
             finished_at: new Date().toISOString(),
           })
           .eq("id", runningQueueId);
@@ -456,37 +342,31 @@ export async function POST(req: Request) {
           .from("analysis_jobs")
           .update({
             status: ANALYSIS_JOB_STATUS.FAILED,
-            error_message: error?.message || "Unknown worker error",
+            error_message:
+              error instanceof Error
+                ? error.message
+                : "Unknown worker error",
             finished_at: new Date().toISOString(),
           })
           .eq("id", runningJobId);
-
-        const { data: resultRow } = await supabase
-          .from("analysis_results")
-          .select("id")
-          .eq("job_id", runningJobId)
-          .maybeSingle();
-
-        if (resultRow?.id) {
-          await supabase
-            .from("analysis_results")
-            .update({
-              gemini_status: "failed",
-              gemini_error: error?.message || "Unknown worker error",
-              status: ANALYSIS_RESULT_STATUS.FAILED,
-            })
-            .eq("id", resultRow.id);
-        }
       }
     } catch (rollbackError) {
+      // eslint-disable-next-line no-console
       console.error("Worker rollback error:", rollbackError);
     }
+
+    const message =
+      error instanceof Error ? error.message : "Worker failed: unknown error";
+    const stack =
+      error instanceof Error && process.env.NODE_ENV === "development"
+        ? error.stack
+        : undefined;
 
     return NextResponse.json(
       {
         ok: false,
-        error: error?.message || "Worker failed",
-        stack: process.env.NODE_ENV === "development" ? error?.stack : undefined,
+        error: message,
+        stack,
       },
       { status: 500 }
     );
