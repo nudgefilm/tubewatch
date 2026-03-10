@@ -1,0 +1,218 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { UserChannelRow } from "@/lib/analysis/getAnalysisPageData";
+
+type ChannelSidebarProps = {
+  channels: UserChannelRow[];
+  selectedChannelId?: string | null;
+};
+
+const COOLDOWN_HOURS = 72;
+const COOLDOWN_MS = COOLDOWN_HOURS * 60 * 60 * 1000;
+
+function formatSubscriberCount(value: number | null | undefined) {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return "구독자 정보 없음";
+  }
+
+  return `구독자 ${value.toLocaleString()}명`;
+}
+
+function getChannelBaseTime(channel: UserChannelRow) {
+  return (
+    channel.last_analysis_requested_at ??
+    channel.last_analyzed_at ??
+    null
+  );
+}
+
+function getChannelStatus(channel: UserChannelRow) {
+  const baseTime = getChannelBaseTime(channel);
+
+  if (!baseTime) {
+    return {
+      label: "분석 가능",
+      tone: "ready" as const,
+    };
+  }
+
+  const baseDate = new Date(baseTime);
+
+  if (Number.isNaN(baseDate.getTime())) {
+    return {
+      label: "분석 가능",
+      tone: "ready" as const,
+    };
+  }
+
+  const nextAvailableAt = baseDate.getTime() + COOLDOWN_MS;
+  const remainingMs = nextAvailableAt - Date.now();
+
+  if (remainingMs > 0) {
+    return {
+      label: "쿨다운 중",
+      tone: "cooldown" as const,
+    };
+  }
+
+  return {
+    label: "분석 가능",
+    tone: "ready" as const,
+  };
+}
+
+function getStatusBadgeClassName(isActive: boolean, tone: "ready" | "cooldown") {
+  if (isActive) {
+    return tone === "cooldown"
+      ? "border-white/15 bg-white/10 text-amber-200"
+      : "border-white/15 bg-white/10 text-emerald-200";
+  }
+
+  return tone === "cooldown"
+    ? "border-amber-200 bg-amber-50 text-amber-700"
+    : "border-emerald-200 bg-emerald-50 text-emerald-700";
+}
+
+function getStatusDotClassName(isActive: boolean, tone: "ready" | "cooldown") {
+  if (isActive) {
+    return tone === "cooldown" ? "bg-amber-300" : "bg-emerald-300";
+  }
+
+  return tone === "cooldown" ? "bg-amber-500" : "bg-emerald-500";
+}
+
+export default function ChannelSidebar({
+  channels,
+  selectedChannelId,
+}: ChannelSidebarProps) {
+  const pathname = usePathname();
+
+  return (
+    <aside className="w-full shrink-0 border-r border-gray-200 bg-white lg:sticky lg:top-0 lg:h-[calc(100vh-80px)] lg:max-w-[300px]">
+      <div className="border-b border-gray-200 px-5 py-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-400">
+          Analysis
+        </p>
+        <h2 className="mt-1 text-lg font-bold text-gray-900">내 채널</h2>
+        <p className="mt-1 text-sm text-gray-500">
+          등록된 채널을 선택해 분석 리포트를 확인하세요.
+        </p>
+      </div>
+
+      <div className="flex flex-col lg:h-[calc(100%-89px)]">
+        <nav className="flex flex-col gap-2 overflow-y-auto p-3">
+          {channels.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-4 py-5 text-sm text-gray-500">
+              등록된 채널이 없습니다.
+            </div>
+          ) : (
+            channels.map((channel) => {
+              const isActive =
+                channel.id === selectedChannelId ||
+                pathname === `/analysis/${channel.id}`;
+
+              const href = `/analysis/${channel.id}`;
+              const status = getChannelStatus(channel);
+
+              return (
+                <Link
+                  key={channel.id}
+                  href={href}
+                  aria-current={isActive ? "page" : undefined}
+                  prefetch={false}
+                  className={[
+                    "group rounded-2xl border px-3 py-3 transition",
+                    isActive
+                      ? "border-gray-900 bg-gray-900 text-white shadow-sm"
+                      : "border-gray-200 bg-white text-gray-900 hover:border-gray-300 hover:bg-gray-50",
+                  ].join(" ")}
+                  onClick={(event) => {
+                    if (isActive) {
+                      event.preventDefault();
+                    }
+                  }}
+                >
+                  <div className="flex items-start gap-3">
+                    {channel.thumbnail_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={channel.thumbnail_url}
+                        alt={channel.channel_title ?? "채널 썸네일"}
+                        className="h-11 w-11 rounded-full border border-black/5 object-cover"
+                      />
+                    ) : (
+                      <div
+                        className={[
+                          "flex h-11 w-11 items-center justify-center rounded-full text-sm font-bold",
+                          isActive
+                            ? "bg-white/15 text-white"
+                            : "bg-gray-100 text-gray-500",
+                        ].join(" ")}
+                      >
+                        {(channel.channel_title ?? "C").slice(0, 1).toUpperCase()}
+                      </div>
+                    )}
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <p
+                          className={[
+                            "truncate text-sm font-semibold",
+                            isActive ? "text-white" : "text-gray-900",
+                          ].join(" ")}
+                        >
+                          {channel.channel_title ?? "채널명 없음"}
+                        </p>
+
+                        <span
+                          className={[
+                            "inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold",
+                            getStatusBadgeClassName(isActive, status.tone),
+                          ].join(" ")}
+                        >
+                          <span
+                            className={[
+                              "h-1.5 w-1.5 rounded-full",
+                              getStatusDotClassName(isActive, status.tone),
+                            ].join(" ")}
+                          />
+                          {status.label}
+                        </span>
+                      </div>
+
+                      <p
+                        className={[
+                          "mt-1 text-xs",
+                          isActive ? "text-gray-300" : "text-gray-500",
+                        ].join(" ")}
+                      >
+                        {formatSubscriberCount(channel.subscriber_count)}
+                      </p>
+
+                      {isActive ? (
+                        <p className="mt-2 text-[11px] font-medium text-gray-300">
+                          현재 보고 있는 채널
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
+                </Link>
+              );
+            })
+          )}
+        </nav>
+
+        <div className="border-t border-gray-200 px-3 py-3">
+          <Link
+            href="/channels"
+            className="flex items-center justify-center rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+          >
+            채널 관리로 이동
+          </Link>
+        </div>
+      </div>
+    </aside>
+  );
+}
