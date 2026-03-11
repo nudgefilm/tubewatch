@@ -7,6 +7,9 @@ import {
 import { normalizeVideoMetrics } from "@/lib/analysis/engine/normalizeVideoMetrics";
 import { buildChannelFeatures } from "@/lib/analysis/engine/buildChannelFeatures";
 import { featureScoring } from "@/lib/analysis/engine/featureScoring";
+import { computeChannelMetrics } from "@/lib/analysis/engine/computeChannelMetrics";
+import { detectPatterns } from "@/lib/analysis/engine/detectPatterns";
+import { buildAnalysisContext } from "@/lib/analysis/engine/buildAnalysisContext";
 import {
   ANALYSIS_QUEUE_STATUS,
   ANALYSIS_JOB_STATUS,
@@ -21,6 +24,8 @@ type QueueRow = {
   job_id: string;
   user_id: string;
   user_channel_id: string;
+  channel_id: string;
+  channel_url: string | null;
   status: string;
 };
 
@@ -101,7 +106,7 @@ export async function POST(req: Request) {
 
     const { data: queueRow, error: queueError } = await supabase
       .from("analysis_queue")
-      .select("id, job_id, user_id, user_channel_id, status")
+      .select("id, job_id, user_id, user_channel_id, channel_id, channel_url, status")
       .in("status", [
         ANALYSIS_QUEUE_STATUS.QUEUED,
         ANALYSIS_QUEUE_STATUS.PENDING,
@@ -156,7 +161,7 @@ export async function POST(req: Request) {
     const { error: jobRunningError } = await supabase
       .from("analysis_jobs")
       .update({
-        status: ANALYSIS_JOB_STATUS.PROCESSING,
+        status: ANALYSIS_JOB_STATUS.RUNNING,
         started_at: startedAt,
         error_message: null,
       })
@@ -208,10 +213,19 @@ export async function POST(req: Request) {
     const featureMap = buildChannelFeatures(normalizedDataset);
     const scoreResult = featureScoring(featureMap);
 
+    const channelMetrics = computeChannelMetrics(normalizedDataset);
+    const channelPatterns = detectPatterns(channelMetrics, featureMap);
+    const analysisContext = buildAnalysisContext(
+      channelMetrics,
+      channelPatterns,
+      scoreResult
+    );
+
     const gemini = await analyzeChannelWithGemini({
       channelTitle: userChannel.channel_title || "Untitled Channel",
       subscriberCount: userChannel.subscriber_count,
       videos: toChannelVideoSamples(youtubeVideos),
+      analysisContext,
     });
 
     if (!gemini.ok) {
@@ -220,36 +234,49 @@ export async function POST(req: Request) {
 
     const finishedAt = new Date().toISOString();
 
-    const featureScores: JsonValue = {
-      totalScore: scoreResult.totalScore,
-      sectionScores: scoreResult.sectionScores as JsonValue,
-      collectedVideoCount: normalizedDataset.collectedVideoCount,
-      sampleVideoCount: youtubeVideos.length,
-    };
-
-    const aiInsights: JsonValue = {
-      channel_summary: gemini.result.channel_summary,
-      content_pattern_summary: gemini.result.content_pattern_summary,
-      content_patterns: gemini.result.content_patterns as JsonValue,
-      strengths: gemini.result.strengths as JsonValue,
-      weaknesses: gemini.result.weaknesses as JsonValue,
-      bottlenecks: gemini.result.bottlenecks as JsonValue,
-      recommended_topics: gemini.result.recommended_topics as JsonValue,
-      growth_action_plan: gemini.result.growth_action_plan as JsonValue,
-      target_audience: gemini.result.target_audience as JsonValue,
-      interpretation_mode: gemini.result.interpretation_mode,
-      sample_size_note: gemini.result.sample_size_note,
-      raw_json: gemini.rawJson,
-      model: gemini.model,
-    };
-
     const savedResult = await saveAnalysisResult({
       userId: queueRow.user_id,
       userChannelId: queueRow.user_channel_id,
       jobId: queueRow.job_id,
-      featureScores,
-      aiInsights,
-      analysisTimestamp: finishedAt,
+
+      channelId: queueRow.channel_id,
+      channelUrl:
+        queueRow.channel_url ||
+        `https://www.youtube.com/channel/${queueRow.channel_id}`,
+      channelTitle: userChannel.channel_title,
+      thumbnailUrl: userChannel.thumbnail_url,
+
+      sampleVideoCount: youtubeVideos.length,
+      analysisConfidence: gemini.result.analysis_confidence,
+
+      status: ANALYSIS_RESULT_STATUS.ANALYZED,
+
+      geminiModel: gemini.model,
+      geminiStatus: "success",
+      geminiAnalyzedAt: finishedAt,
+      geminiRawJson: gemini.rawJson,
+      geminiAttemptCount: 1,
+
+      channelSummary: gemini.result.channel_summary,
+      contentPatternSummary: gemini.result.content_pattern_summary,
+      contentPatterns: gemini.result.content_patterns,
+      strengths: gemini.result.strengths,
+      weaknesses: gemini.result.weaknesses,
+      bottlenecks: gemini.result.bottlenecks,
+      recommendedTopics: gemini.result.recommended_topics,
+      growthActionPlan: gemini.result.growth_action_plan,
+      targetAudience: gemini.result.target_audience,
+      sampleSizeNote: gemini.result.sample_size_note,
+      interpretationMode: gemini.result.interpretation_mode,
+
+      featureSnapshot: {
+        collectedVideoCount: normalizedDataset.collectedVideoCount,
+        sampleVideoCount: youtubeVideos.length,
+        metrics: channelMetrics,
+        patterns: channelPatterns.flags,
+      } as JsonValue,
+      featureTotalScore: scoreResult.totalScore,
+      featureSectionScores: scoreResult.sectionScores as JsonValue,
     });
 
     const { error: queueDoneError } = await supabase

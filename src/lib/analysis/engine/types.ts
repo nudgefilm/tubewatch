@@ -101,3 +101,44 @@ export type NormalizedVideo = {
     };
     items: FeatureScoreItem[];
   };
+
+  export type ChannelMetrics = {
+    avgViewCount: number;
+    medianViewCount: number;
+    avgLikeRatio: number;
+    avgCommentRatio: number;
+    avgVideoDuration: number;
+    avgUploadIntervalDays: number;
+    recent30dUploadCount: number;
+    avgTitleLength: number;
+    avgTagCount: number;
+  };
+
+  export type ChannelPatternFlag =
+    | "low_upload_frequency"
+    | "irregular_upload_interval"
+    | "short_video_dominant"
+    | "long_video_dominant"
+    | "high_view_variance"
+    | "repeated_topic_pattern"
+    | "low_tag_usage";
+
+  export type ChannelPatterns = {
+    flags: ChannelPatternFlag[];
+    details: Record<ChannelPatternFlag, boolean>;
+  };
+
+  export type AnalysisContextScores = {
+    totalScore: number;
+    channelActivityScore: number;
+    contentStructureScore: number;
+    seoScore: number;
+    audienceResponseScore: number;
+    growthPotentialScore: number;
+  };
+
+  export type AnalysisContext = {
+    metrics: ChannelMetrics;
+    patterns: ChannelPatterns;
+    scores: AnalysisContextScores;
+  };

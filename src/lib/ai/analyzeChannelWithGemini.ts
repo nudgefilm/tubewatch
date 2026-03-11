@@ -2,6 +2,7 @@ import {
   getGeminiConfig,
   type TubeWatchAnalysisResult,
 } from "@/lib/ai/getGeminiConfig";
+import type { AnalysisContext } from "@/lib/analysis/engine/types";
 
 export type ChannelVideoSample = {
   videoId: string;
@@ -22,6 +23,7 @@ export type AnalyzeChannelWithGeminiArgs = {
   channelTitle: string;
   subscriberCount: number | null;
   videos: ChannelVideoSample[];
+  analysisContext?: AnalysisContext;
 };
 
 export type AnalyzeChannelWithGeminiSuccess = {
@@ -390,6 +392,53 @@ function formatNumber(value: number | null): string {
   return new Intl.NumberFormat("en-US").format(value);
 }
 
+function formatRatio(value: number): string {
+  return (value * 100).toFixed(2) + "%";
+}
+
+function formatSeconds(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = Math.round(seconds % 60);
+  return `${m}m ${s}s`;
+}
+
+function buildContextSection(ctx: AnalysisContext): string {
+  const m = ctx.metrics;
+  const metricsBlock = [
+    `[사전 분석 메트릭]`,
+    `avg_view_count: ${formatNumber(m.avgViewCount)}`,
+    `median_view_count: ${formatNumber(m.medianViewCount)}`,
+    `avg_like_ratio: ${formatRatio(m.avgLikeRatio)}`,
+    `avg_comment_ratio: ${formatRatio(m.avgCommentRatio)}`,
+    `avg_video_duration: ${formatSeconds(m.avgVideoDuration)}`,
+    `avg_upload_interval_days: ${m.avgUploadIntervalDays.toFixed(1)}`,
+    `recent_30d_upload_count: ${m.recent30dUploadCount}`,
+    `avg_title_length: ${m.avgTitleLength.toFixed(1)}`,
+    `avg_tag_count: ${m.avgTagCount.toFixed(1)}`,
+  ].join("\n");
+
+  const patternsBlock =
+    ctx.patterns.flags.length > 0
+      ? [
+          `[감지된 패턴]`,
+          ...ctx.patterns.flags.map((f) => `- ${f}`),
+        ].join("\n")
+      : `[감지된 패턴]\n- 특이 패턴 없음`;
+
+  const s = ctx.scores;
+  const scoresBlock = [
+    `[섹션 스코어 (0~100)]`,
+    `channel_activity_score: ${s.channelActivityScore.toFixed(1)}`,
+    `content_structure_score: ${s.contentStructureScore.toFixed(1)}`,
+    `seo_score: ${s.seoScore.toFixed(1)}`,
+    `audience_response_score: ${s.audienceResponseScore.toFixed(1)}`,
+    `growth_potential_score: ${s.growthPotentialScore.toFixed(1)}`,
+    `total_score: ${s.totalScore.toFixed(1)}`,
+  ].join("\n");
+
+  return [metricsBlock, "", patternsBlock, "", scoresBlock].join("\n");
+}
+
 function buildPrompt(args: AnalyzeChannelWithGeminiArgs): string {
   const videoLines = args.videos.map((video, index) => {
     return [
@@ -402,10 +451,14 @@ function buildPrompt(args: AnalyzeChannelWithGeminiArgs): string {
     ].join("\n");
   });
 
+  const contextBlock = args.analysisContext
+    ? buildContextSection(args.analysisContext) + "\n\n"
+    : "";
+
   return `
 당신은 YouTube 채널 성장 분석가입니다.
 
-아래 채널 데이터만 근거로 보수적으로 분석하세요.
+아래 채널 데이터와 사전 분석 결과를 근거로 보수적으로 분석하세요.
 데이터가 부족하면 확정적으로 말하지 말고 관찰 기반으로 서술하세요.
 출력은 반드시 JSON만 반환하세요.
 
@@ -414,10 +467,14 @@ channel_title: ${args.channelTitle}
 subscriber_count: ${formatNumber(args.subscriberCount)}
 sample_video_count: ${args.videos.length}
 
-[최근 영상 샘플]
+${contextBlock}[최근 영상 샘플]
 ${videoLines.join("\n\n")}
 
 [작성 규칙]
+- 위 메트릭과 패턴, 스코어를 근거로 분석하세요
+- 메트릭 수치를 구체적으로 인용하세요
+- 감지된 패턴이 있으면 해당 패턴을 분석에 반영하세요
+- 스코어가 낮은 영역의 개선점을 우선 제시하세요
 - 과장 금지
 - 확인되지 않은 추정 금지
 - 표본이 적으면 analysis_confidence를 낮게 설정

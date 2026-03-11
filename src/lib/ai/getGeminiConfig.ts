@@ -27,7 +27,6 @@ export type TubeWatchAnalysisResult = {
   
     const responseSchema = {
       type: "object",
-      additionalProperties: false,
       required: [
         "version",
         "channel_summary",
@@ -141,10 +140,9 @@ export type TubeWatchAnalysisResult = {
         temperature: 0.2,
         topK: 24,
         topP: 0.8,
-        maxOutputTokens: 1400,
+        maxOutputTokens: 4096,
         responseMimeType: "application/json",
-        responseJsonSchema: responseSchema,
+        responseSchema,
       },
-      responseSchema,
     };
   }

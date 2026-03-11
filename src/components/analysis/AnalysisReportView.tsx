@@ -2,6 +2,10 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import {
+  StatusBadge,
+  toStatusBadgeStatus,
+} from "@/components/ui/StatusBadge";
 
 type SelectedChannel = {
   id: string;
@@ -86,36 +90,6 @@ function getConfidenceClassName(value: string | null | undefined) {
 
   if (value === "medium") {
     return "border-amber-200 bg-amber-50 text-amber-700";
-  }
-
-  return "border-gray-200 bg-gray-100 text-gray-700";
-}
-
-function getStatusLabel(
-  status: string | null | undefined,
-  geminiStatus: string | null | undefined
-) {
-  if (status === "analyzed" || geminiStatus === "success") {
-    return "분석 완료";
-  }
-
-  if (status === "failed" || geminiStatus === "failed") {
-    return "분석 실패";
-  }
-
-  return "분석 진행 중";
-}
-
-function getStatusClassName(
-  status: string | null | undefined,
-  geminiStatus: string | null | undefined
-) {
-  if (status === "analyzed" || geminiStatus === "success") {
-    return "border-blue-200 bg-blue-50 text-blue-700";
-  }
-
-  if (status === "failed" || geminiStatus === "failed") {
-    return "border-red-200 bg-red-50 text-red-700";
   }
 
   return "border-gray-200 bg-gray-100 text-gray-700";
@@ -283,16 +257,6 @@ export default function AnalysisReportView({
     latestResult.gemini_analyzed_at ?? latestResult.created_at
   );
 
-  const statusLabel = getStatusLabel(
-    latestResult.status,
-    latestResult.gemini_status
-  );
-
-  const statusClassName = getStatusClassName(
-    latestResult.status,
-    latestResult.gemini_status
-  );
-
   const confidenceLabel = getConfidenceLabel(latestResult.analysis_confidence);
   const confidenceClassName = getConfidenceClassName(
     latestResult.analysis_confidence
@@ -387,14 +351,12 @@ export default function AnalysisReportView({
 
           <div className="flex flex-col items-start gap-3 lg:items-end">
             <div className="flex flex-wrap gap-2">
-              <span
-                className={[
-                  "inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold",
-                  statusClassName,
-                ].join(" ")}
-              >
-                {statusLabel}
-              </span>
+              <StatusBadge
+                status={toStatusBadgeStatus(
+                  latestResult.status,
+                  latestResult.gemini_status
+                )}
+              />
 
               <span
                 className={[

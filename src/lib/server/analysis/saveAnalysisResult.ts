@@ -12,22 +12,75 @@ export async function saveAnalysisResult(
     user_id: payload.userId,
     user_channel_id: payload.userChannelId,
     job_id: payload.jobId,
-    feature_scores: payload.featureScores,
-    ai_insights: payload.aiInsights,
-    analysis_timestamp: payload.analysisTimestamp,
+    channel_id: payload.channelId,
+    channel_url: payload.channelUrl,
+    channel_title: payload.channelTitle,
+    thumbnail_url: payload.thumbnailUrl,
+    sample_video_count: payload.sampleVideoCount,
+    analysis_confidence: payload.analysisConfidence,
+    status: payload.status,
+    gemini_model: payload.geminiModel,
+    gemini_status: payload.geminiStatus,
+    gemini_analyzed_at: payload.geminiAnalyzedAt,
+    gemini_raw_json: payload.geminiRawJson,
+    gemini_attempt_count: payload.geminiAttemptCount,
+    channel_summary: payload.channelSummary,
+    content_pattern_summary: payload.contentPatternSummary,
+    content_patterns: payload.contentPatterns,
+    strengths: payload.strengths,
+    weaknesses: payload.weaknesses,
+    bottlenecks: payload.bottlenecks,
+    recommended_topics: payload.recommendedTopics,
+    growth_action_plan: payload.growthActionPlan,
+    target_audience: payload.targetAudience,
+    sample_size_note: payload.sampleSizeNote,
+    feature_snapshot: payload.featureSnapshot,
+    feature_total_score: payload.featureTotalScore,
+    feature_section_scores: payload.featureSectionScores,
   };
 
   const { data, error } = await supabaseAdmin
-    .from<AnalysisResultRecord>("analysis_results")
+    .from("analysis_results")
     .upsert(insertPayload, { onConflict: "job_id" })
     .select(
-      "id, user_id, user_channel_id, job_id, feature_scores, ai_insights, analysis_timestamp, created_at"
+      [
+        "id",
+        "user_id",
+        "user_channel_id",
+        "job_id",
+        "channel_id",
+        "channel_url",
+        "channel_title",
+        "thumbnail_url",
+        "sample_video_count",
+        "analysis_confidence",
+        "status",
+        "gemini_model",
+        "gemini_status",
+        "gemini_analyzed_at",
+        "gemini_raw_json",
+        "gemini_attempt_count",
+        "channel_summary",
+        "content_pattern_summary",
+        "content_patterns",
+        "strengths",
+        "weaknesses",
+        "bottlenecks",
+        "recommended_topics",
+        "growth_action_plan",
+        "target_audience",
+        "sample_size_note",
+        "feature_snapshot",
+        "feature_total_score",
+        "feature_section_scores",
+        "created_at",
+      ].join(", ")
     )
     .single();
 
   if (error) {
     logStorageError({
-      operation: "analysis_results.insert",
+      operation: "analysis_results.upsert",
       table: "analysis_results",
       error,
       extra: {
@@ -37,12 +90,14 @@ export async function saveAnalysisResult(
       },
     });
 
-    throw new Error(`Storage error (analysis_results.upsert): ${error.message}`);
+    throw new Error(
+      `Storage error (analysis_results.upsert): ${error.message}`
+    );
   }
 
   if (!data) {
     throw new Error("Storage error (analysis_results.upsert): no data");
   }
 
-  return data;
+  return data as unknown as AnalysisResultRecord;
 }

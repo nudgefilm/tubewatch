@@ -3,6 +3,10 @@ import { createClient } from "@/lib/supabase/server";
 
 import AnalysisShell from "@/components/analysis/AnalysisShell";
 import AnalysisReportView from "@/components/analysis/AnalysisReportView";
+import {
+  StatusBadge,
+  toStatusBadgeStatus,
+} from "@/components/ui/StatusBadge";
 
 type UserChannel = {
   id: string;
@@ -300,10 +304,18 @@ export default async function AnalysisChannelPage({
             </p>
           </div>
 
-          <div
-            className={`inline-flex w-fit items-center rounded-full border px-3 py-1 text-sm font-semibold ${cooldown.statusTone}`}
-          >
-            {cooldown.statusLabel}
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusBadge
+              status={toStatusBadgeStatus(
+                latestResult?.status,
+                latestResult?.gemini_status
+              )}
+            />
+            <span
+              className={`inline-flex w-fit items-center rounded-full border px-3 py-1 text-sm font-semibold ${cooldown.statusTone}`}
+            >
+              {cooldown.statusLabel}
+            </span>
           </div>
         </div>
 

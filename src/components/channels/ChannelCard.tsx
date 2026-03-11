@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 
 type Channel = {
   id: string
@@ -64,10 +63,10 @@ function formatDateTime(value: string | null | undefined) {
   }).format(date)
 }
 
-function getRemainingCooldownHours(lastRequestedAt: string | null | undefined) {
-  if (!lastRequestedAt) return 0
+function getRemainingCooldownHours(lastAnalyzedAt: string | null | undefined) {
+  if (!lastAnalyzedAt) return 0
 
-  const last = new Date(lastRequestedAt)
+  const last = new Date(lastAnalyzedAt)
   if (Number.isNaN(last.getTime())) return 0
 
   const now = new Date()
@@ -83,7 +82,6 @@ export default function ChannelCard({
   channel,
   onRefresh,
 }: ChannelCardProps) {
-  const supabase = createClient()
   const router = useRouter()
 
   const [isRequesting, setIsRequesting] = useState(false)
@@ -91,7 +89,7 @@ export default function ChannelCard({
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const remainingCooldownHours = getRemainingCooldownHours(
-    channel.last_analysis_requested_at
+    channel.last_analyzed_at
   )
   const isCooldownActive = remainingCooldownHours > 0
 
@@ -108,29 +106,12 @@ export default function ChannelCard({
       setMessage(null)
       setErrorMessage(null)
 
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession()
-
-      if (sessionError) {
-        setErrorMessage('세션 정보를 가져오지 못했습니다.')
-        return
-      }
-
-      const accessToken = session?.access_token
-
-      if (!accessToken) {
-        setErrorMessage('로그인이 만료되었습니다. 다시 로그인해 주세요.')
-        return
-      }
-
       const response = await fetch('/api/analysis/request', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
         },
+        credentials: 'include',
         body: JSON.stringify({
           user_channel_id: channel.id,
         }),
@@ -165,19 +146,15 @@ export default function ChannelCard({
         return
       }
 
-      setMessage(
-        result.message ||
-          '분석 요청이 접수되었습니다. 잠시 후 상태를 확인해 주세요.'
-      )
+      setMessage('분석 요청이 접수되었습니다. 자동으로 분석을 진행합니다.')
 
-      if (onRefresh) {
-        await onRefresh()
-      } else {
-        router.refresh()
-        setTimeout(() => {
-          window.location.reload()
-        }, 300)
-      }
+      setTimeout(() => {
+        if (onRefresh) {
+          void onRefresh()
+        } else {
+          router.refresh()
+        }
+      }, 3000)
     } catch (error) {
       console.error('handleRequestAnalysis error:', error)
       setErrorMessage('분석 요청 중 오류가 발생했습니다.')
@@ -259,7 +236,7 @@ export default function ChannelCard({
         <button
           type="button"
           onClick={handleRequestAnalysis}
-          disabled={isRequesting}
+          disabled={isRequesting || isCooldownActive}
           className="inline-flex items-center justify-center rounded-lg bg-black px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isRequesting ? '분석 요청 중...' : '분석 요청'}

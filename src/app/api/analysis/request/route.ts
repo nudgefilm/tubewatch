@@ -18,8 +18,7 @@ const ACTIVE_QUEUE_STATUSES = [
 
 const ACTIVE_JOB_STATUSES = [
   ANALYSIS_JOB_STATUS.QUEUED,
-  ANALYSIS_JOB_STATUS.PENDING,
-  ANALYSIS_JOB_STATUS.PROCESSING,
+  ANALYSIS_JOB_STATUS.RUNNING,
 ];
 
 function createSupabaseServerClient() {
@@ -111,7 +110,7 @@ export async function POST(req: Request) {
         channel_id,
         channel_url,
         channel_title,
-        last_analysis_requested_at
+        last_analyzed_at
       `)
       .eq("id", userChannelId)
       .eq("user_id", user.id)
@@ -151,7 +150,7 @@ export async function POST(req: Request) {
     }
 
     const remainingHours = getRemainingCooldownHours(
-      channel.last_analysis_requested_at
+      channel.last_analyzed_at
     );
 
     if (remainingHours > 0) {
@@ -313,10 +312,53 @@ export async function POST(req: Request) {
       );
     }
 
+    let workerTriggered = false;
+
+    try {
+      const workerSecret = process.env.WORKER_SECRET;
+
+      if (workerSecret) {
+        const baseUrl =
+          process.env.NEXT_PUBLIC_SITE_URL ??
+          (process.env.VERCEL_URL
+            ? `https://${process.env.VERCEL_URL}`
+            : "http://127.0.0.1:3000");
+
+        const workerResponse = await fetch(
+          `${baseUrl}/api/worker/analyze`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${workerSecret}`,
+            },
+          }
+        );
+
+        workerTriggered = workerResponse.ok;
+
+        console.log("[analysis.request] worker trigger", {
+          status: workerResponse.status,
+          ok: workerResponse.ok,
+          jobId: jobRow.id,
+        });
+      }
+    } catch (workerError) {
+      console.error("[analysis.request] worker trigger failed", {
+        jobId: jobRow.id,
+        error:
+          workerError instanceof Error
+            ? workerError.message
+            : "unknown",
+      });
+    }
+
     return NextResponse.json({
       success: true,
       ok: true,
-      message: "분석 요청이 접수되었습니다. 잠시 후 상태를 확인해 주세요.",
+      message: workerTriggered
+        ? "분석 요청이 접수되었습니다. 잠시 후 상태를 확인해 주세요."
+        : "분석 요청이 접수되었습니다. 처리까지 약간의 시간이 걸릴 수 있습니다.",
       data: {
         job_id: jobRow.id,
         queue_id: queueRow.id,
@@ -325,6 +367,7 @@ export async function POST(req: Request) {
         user_channel_id: userChannelId,
         channel_title: channel.channel_title,
         status: queueRow.status,
+        worker_triggered: workerTriggered,
       },
     });
   } catch (err: any) {
