@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import TubeWatchLogo from "@/components/branding/TubeWatchLogo";
 
 const NAV_ITEMS = [
   {
@@ -26,16 +27,8 @@ export default function LandingHeader(): JSX.Element {
     <header className="border-b border-[#e5e6e1] bg-[#f7f7f5]">
       <div className="mx-auto flex h-[72px] max-w-[1180px] items-center justify-between px-6">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/logo.png"
-            alt="TubeWatch"
-            className="h-7 w-auto"
-          />
-          <span className="text-[16px] font-semibold text-[#161616]">
-            Tube Watch
-          </span>
+        <Link href="/" className="flex items-center">
+          <TubeWatchLogo size={28} animated showWordmark />
         </Link>
 
         {/* Nav */}

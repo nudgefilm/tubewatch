@@ -20,4 +20,10 @@
 body {
   color: var(--foreground);
   background: var(--background);
+  letter-spacing: -0.01em;
+  line-height: 1.6;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }

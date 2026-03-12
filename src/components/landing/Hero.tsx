@@ -1,5 +1,6 @@
 import Link from "next/link";
 import GoogleLoginButton from "@/components/landing/GoogleLoginButton";
+import TubeWatchLogo from "@/components/branding/TubeWatchLogo";
 
 type HeroProps = {
   isAuthenticated?: boolean;
@@ -10,6 +11,9 @@ export default function Hero({ isAuthenticated = false }: HeroProps): JSX.Elemen
     <section className="bg-[#f7f7f5] pb-20 pt-20 sm:pb-28 sm:pt-28">
       <div className="mx-auto max-w-[1100px] px-6">
         <div className="mx-auto max-w-2xl text-center">
+          <div className="mb-6 flex justify-center">
+            <TubeWatchLogo size={48} animated={false} />
+          </div>
           <p className="mb-5 text-[12px] font-medium uppercase tracking-[0.18em] text-[#8b8e84]">
             YouTube Channel Growth Analysis
           </p>
