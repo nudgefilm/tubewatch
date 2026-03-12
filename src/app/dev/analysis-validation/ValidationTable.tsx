@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import type {
-  ValidationResult,
   ValidationIssue,
   ValidationIssueType,
 } from "@/lib/analysis/validation/analysisQualityCheck";
+import type { EnrichedValidationResult } from "./page";
 
 type ValidationTableProps = {
-  results: ValidationResult[];
+  results: EnrichedValidationResult[];
 };
 
 const ISSUE_TYPE_LABEL: Record<ValidationIssueType, string> = {
@@ -37,6 +37,18 @@ function getScoreBg(score: number): string {
   if (score >= 80) return "bg-emerald-50";
   if (score >= 50) return "bg-amber-50";
   return "bg-red-50";
+}
+
+function getConfBadgeClass(level: string): string {
+  if (level === "high") return "bg-emerald-50 text-emerald-700";
+  if (level === "medium") return "bg-amber-50 text-amber-700";
+  return "bg-red-50 text-red-700";
+}
+
+function getConfLabel(level: string): string {
+  if (level === "high") return "높음";
+  if (level === "medium") return "보통";
+  return "낮음";
 }
 
 function formatDate(value: string | null): string {
@@ -86,10 +98,11 @@ export default function ValidationTable({ results }: ValidationTableProps): JSX.
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
       {/* Header */}
-      <div className="hidden grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)_80px_80px_minmax(0,2fr)] gap-3 border-b border-gray-100 bg-gray-50 px-5 py-3 text-xs font-semibold text-gray-500 sm:grid">
+      <div className="hidden grid-cols-[minmax(0,2fr)_minmax(0,1.2fr)_72px_72px_72px_minmax(0,2fr)] gap-3 border-b border-gray-100 bg-gray-50 px-5 py-3 text-xs font-semibold text-gray-500 sm:grid">
         <span>채널</span>
         <span>분석 일시</span>
         <span className="text-center">점수</span>
+        <span className="text-center">신뢰도</span>
         <span className="text-center">이슈</span>
         <span>이슈 요약</span>
       </div>
@@ -110,8 +123,15 @@ export default function ValidationTable({ results }: ValidationTableProps): JSX.
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold text-gray-900">
                     {result.channel_title}
+                    {result.lowConfidenceWarning ? (
+                      <span className="ml-1.5 inline-flex items-center rounded bg-red-100 px-1 py-0.5 text-[9px] font-bold text-red-600">
+                        경고
+                      </span>
+                    ) : null}
                   </p>
-                  <p className="mt-0.5 text-xs text-gray-400">{formatDate(result.created_at)}</p>
+                  <p className="mt-0.5 text-xs text-gray-400">
+                    {formatDate(result.created_at)} · 신뢰도 {getConfLabel(result.confidence.confidenceLevel)} ({result.confidence.confidenceScore})
+                  </p>
                 </div>
                 <div className="ml-3 flex items-center gap-2">
                   <span
@@ -141,9 +161,14 @@ export default function ValidationTable({ results }: ValidationTableProps): JSX.
               </div>
 
               {/* Desktop layout */}
-              <div className="hidden grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)_80px_80px_minmax(0,2fr)] items-center gap-3 sm:grid">
-                <span className="truncate text-sm font-semibold text-gray-900">
+              <div className="hidden grid-cols-[minmax(0,2fr)_minmax(0,1.2fr)_72px_72px_72px_minmax(0,2fr)] items-center gap-3 sm:grid">
+                <span className="flex items-center gap-1.5 truncate text-sm font-semibold text-gray-900">
                   {result.channel_title}
+                  {result.lowConfidenceWarning ? (
+                    <span className="inline-flex items-center rounded bg-red-100 px-1 py-0.5 text-[9px] font-bold text-red-600">
+                      경고
+                    </span>
+                  ) : null}
                 </span>
                 <span className="text-sm text-gray-500">{formatDate(result.created_at)}</span>
                 <span className="text-center">
@@ -151,6 +176,13 @@ export default function ValidationTable({ results }: ValidationTableProps): JSX.
                     className={`inline-flex h-7 w-9 items-center justify-center rounded-md text-sm font-bold tabular-nums ${getScoreBg(result.score)} ${getScoreColor(result.score)}`}
                   >
                     {result.score}
+                  </span>
+                </span>
+                <span className="text-center">
+                  <span
+                    className={`inline-flex h-7 min-w-[36px] items-center justify-center rounded-md text-[11px] font-bold tabular-nums ${getConfBadgeClass(result.confidence.confidenceLevel)}`}
+                  >
+                    {result.confidence.confidenceScore}
                   </span>
                 </span>
                 <span className="text-center">
@@ -184,10 +216,45 @@ export default function ValidationTable({ results }: ValidationTableProps): JSX.
             {/* Expanded detail */}
             {isExpanded ? (
               <div className="border-t border-gray-100 bg-gray-50/50 px-5 py-4">
-                <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
-                  Analysis ID
-                </p>
-                <p className="mb-4 font-mono text-xs text-gray-500">{result.analysis_id}</p>
+                <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:gap-8">
+                  <div>
+                    <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                      Analysis ID
+                    </p>
+                    <p className="font-mono text-xs text-gray-500">{result.analysis_id}</p>
+                  </div>
+                  <div>
+                    <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                      신뢰도
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      <span className={`font-bold ${getConfBadgeClass(result.confidence.confidenceLevel)} rounded px-1.5 py-0.5`}>
+                        {getConfLabel(result.confidence.confidenceLevel)} ({result.confidence.confidenceScore})
+                      </span>
+                    </p>
+                  </div>
+                </div>
+
+                {result.lowConfidenceWarning ? (
+                  <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-700">
+                    신뢰도가 낮지만 인사이트에서 강한 결론을 제시하고 있습니다. 리뷰가 필요합니다.
+                  </div>
+                ) : null}
+
+                {result.confidence.reasons.length > 0 ? (
+                  <div className="mb-4">
+                    <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                      신뢰도 근거
+                    </p>
+                    <ul className="space-y-1">
+                      {result.confidence.reasons.map((reason, i) => (
+                        <li key={i} className="text-xs leading-relaxed text-gray-600">
+                          · {reason}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
 
                 {result.issues.length === 0 ? (
                   <p className="text-sm text-emerald-600">모든 검증 항목을 통과했습니다.</p>

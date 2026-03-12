@@ -144,6 +144,14 @@ export type NormalizedVideo = {
     | "growth_stage_pattern_based"
     | "scale_stage_optimization";
 
+  export type ConfidenceLevel = "low" | "medium" | "high";
+
+  export type AnalysisContextConfidence = {
+    confidenceScore: number;
+    confidenceLevel: ConfidenceLevel;
+    confidenceReasons: string[];
+  };
+
   export type AnalysisContext = {
     metrics: ChannelMetrics;
     patterns: ChannelPatterns;
@@ -151,4 +159,5 @@ export type NormalizedVideo = {
     channelSizeTier: ChannelSizeTier;
     interpretationMode: InterpretationMode;
     interpretationHints: string[];
+    confidence: AnalysisContextConfidence;
   };

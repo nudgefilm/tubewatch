@@ -219,7 +219,11 @@ export async function POST(req: Request) {
       channelMetrics,
       channelPatterns,
       scoreResult,
-      userChannel.subscriber_count ?? undefined
+      {
+        subscriberCount: userChannel.subscriber_count ?? undefined,
+        sampleVideoCount: youtubeVideos.length,
+        collectedVideoCount: normalizedDataset.collectedVideoCount,
+      }
     );
 
     const gemini = await analyzeChannelWithGemini({

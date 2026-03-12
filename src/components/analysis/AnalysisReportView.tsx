@@ -8,7 +8,12 @@ import {
 } from "@/components/ui/StatusBadge";
 import BenchmarkRadar from "@/components/analysis/BenchmarkRadar";
 import NextTrend from "@/components/analysis/NextTrend";
-import type { ChannelSizeTier } from "@/lib/analysis/engine/types";
+import type { ChannelSizeTier, ConfidenceLevel } from "@/lib/analysis/engine/types";
+import {
+  computeAnalysisConfidence,
+  computeMetricsCompleteness,
+  type AnalysisConfidence,
+} from "@/lib/analysis/confidence/computeAnalysisConfidence";
 
 // ── Types ──
 
@@ -262,16 +267,50 @@ function normalizeItems(items: string[] | null | undefined): string[] {
     });
 }
 
-function getConfidenceLabel(value: string | null | undefined): string {
-  if (value === "high") return "신뢰도 높음";
-  if (value === "medium") return "신뢰도 보통";
+function getConfidenceLevelLabel(level: ConfidenceLevel): string {
+  if (level === "high") return "신뢰도 높음";
+  if (level === "medium") return "신뢰도 보통";
   return "신뢰도 낮음";
 }
 
-function getConfidenceClassName(value: string | null | undefined): string {
-  if (value === "high") return "border-emerald-200 bg-emerald-50 text-emerald-700";
-  if (value === "medium") return "border-amber-200 bg-amber-50 text-amber-700";
-  return "border-gray-200 bg-gray-100 text-gray-700";
+function getConfidenceLevelClassName(level: ConfidenceLevel): string {
+  if (level === "high") return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  if (level === "medium") return "border-amber-200 bg-amber-50 text-amber-700";
+  return "border-red-200 bg-red-50 text-red-700";
+}
+
+function computeConfidenceFromSnapshot(
+  snapshot: Record<string, unknown> | null,
+  subscriberCount: number | null | undefined,
+  sampleVideoCount: number | null | undefined
+): AnalysisConfidence {
+  const metricsRaw = snapshot && typeof snapshot === "object"
+    ? snapshot.metrics as Record<string, unknown> | null
+    : null;
+  const patternsRaw = snapshot && typeof snapshot === "object"
+    ? snapshot.patterns
+    : null;
+
+  const metricsCompleteness = computeMetricsCompleteness(metricsRaw);
+  const patternCount = Array.isArray(patternsRaw) ? patternsRaw.length : 0;
+  const snapshotSampleCount =
+    snapshot && typeof snapshot === "object" && typeof snapshot.sampleVideoCount === "number"
+      ? snapshot.sampleVideoCount
+      : 0;
+  const snapshotCollectedCount =
+    snapshot && typeof snapshot === "object" && typeof snapshot.collectedVideoCount === "number"
+      ? snapshot.collectedVideoCount
+      : 0;
+
+  const tier = getChannelSizeTier(subscriberCount);
+
+  return computeAnalysisConfidence({
+    sampleVideoCount: typeof sampleVideoCount === "number" ? sampleVideoCount : snapshotSampleCount,
+    collectedVideoCount: snapshotCollectedCount,
+    channelSizeTier: tier,
+    metricsCompleteness,
+    patternCount,
+  });
 }
 
 function formatRemaining(ms: number): string {
@@ -553,6 +592,18 @@ export default function AnalysisReportView({
     [latestResult]
   );
 
+  const confidence = useMemo(
+    () =>
+      latestResult
+        ? computeConfidenceFromSnapshot(
+            latestResult.feature_snapshot,
+            selectedChannel.subscriber_count,
+            latestResult.sample_video_count
+          )
+        : null,
+    [latestResult, selectedChannel.subscriber_count]
+  );
+
   if (!latestResult) {
     return (
       <section className="rounded-2xl border border-gray-200 bg-white p-6 text-sm text-gray-600 shadow-sm">
@@ -574,8 +625,9 @@ export default function AnalysisReportView({
     isSubmitting || isRefreshing || localPending || isBackendRunning || cooldown.isCooldownActive;
 
   const analyzedAt = formatDateTime(latestResult.gemini_analyzed_at ?? latestResult.created_at);
-  const confidenceLabel = getConfidenceLabel(latestResult.analysis_confidence);
-  const confidenceClassName = getConfidenceClassName(latestResult.analysis_confidence);
+  const confidenceLevel = confidence?.confidenceLevel ?? "low";
+  const confidenceLabel = getConfidenceLevelLabel(confidenceLevel);
+  const confidenceClassName = getConfidenceLevelClassName(confidenceLevel);
 
   const totalScore = latestResult.feature_total_score;
   const sectionScores = latestResult.feature_section_scores;
@@ -669,9 +721,26 @@ export default function AnalysisReportView({
                 status={toStatusBadgeStatus(latestResult.status, latestResult.gemini_status)}
               />
               <span
-                className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${confidenceClassName}`}
+                className={`group relative inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${confidenceClassName}`}
               >
                 {confidenceLabel}
+                {confidence ? (
+                  <span className="tabular-nums">({confidence.confidenceScore})</span>
+                ) : null}
+
+                {confidence && confidence.reasons.length > 0 ? (
+                  <span className="pointer-events-none absolute right-0 top-full z-20 mt-2 hidden w-64 rounded-xl border border-gray-200 bg-white p-3 text-left text-xs font-normal text-gray-700 shadow-lg group-hover:block">
+                    <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                      신뢰도 근거
+                    </span>
+                    {confidence.reasons.map((r, i) => (
+                      <span key={i} className="mb-1 block leading-relaxed">{r}</span>
+                    ))}
+                    <span className="mt-2 block border-t border-gray-100 pt-2 text-[10px] text-gray-400">
+                      분석 신뢰도는 데이터 표본과 지표 완전성을 기반으로 계산됩니다.
+                    </span>
+                  </span>
+                ) : null}
               </span>
             </div>
 

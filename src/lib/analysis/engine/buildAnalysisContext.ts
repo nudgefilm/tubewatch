@@ -6,6 +6,10 @@ import type {
   FeatureScoreResult,
   InterpretationMode,
 } from "./types";
+import {
+  computeAnalysisConfidence,
+  computeMetricsCompleteness,
+} from "@/lib/analysis/confidence/computeAnalysisConfidence";
 
 export function determineChannelSizeTier(subscriberCount: number): ChannelSizeTier {
   if (subscriberCount >= 100_000) return "large";
@@ -53,15 +57,38 @@ function buildInterpretationHints(tier: ChannelSizeTier): string[] {
   }
 }
 
+export interface BuildAnalysisContextOptions {
+  subscriberCount?: number;
+  sampleVideoCount?: number;
+  collectedVideoCount?: number;
+}
+
 export function buildAnalysisContext(
   metrics: ChannelMetrics,
   patterns: ChannelPatterns,
   scoreResult: FeatureScoreResult,
-  subscriberCount?: number
+  subscriberCountOrOptions?: number | BuildAnalysisContextOptions
 ): AnalysisContext {
-  const tier = determineChannelSizeTier(subscriberCount ?? 0);
+  const opts: BuildAnalysisContextOptions =
+    typeof subscriberCountOrOptions === "number"
+      ? { subscriberCount: subscriberCountOrOptions }
+      : subscriberCountOrOptions ?? {};
+
+  const tier = determineChannelSizeTier(opts.subscriberCount ?? 0);
   const interpretationMode = determineInterpretationMode(tier);
   const interpretationHints = buildInterpretationHints(tier);
+
+  const metricsCompleteness = computeMetricsCompleteness(
+    metrics as unknown as Record<string, unknown>
+  );
+
+  const confidence = computeAnalysisConfidence({
+    sampleVideoCount: opts.sampleVideoCount ?? 0,
+    collectedVideoCount: opts.collectedVideoCount ?? 0,
+    channelSizeTier: tier,
+    metricsCompleteness,
+    patternCount: patterns.flags.length,
+  });
 
   return {
     metrics,
@@ -77,5 +104,10 @@ export function buildAnalysisContext(
     channelSizeTier: tier,
     interpretationMode,
     interpretationHints,
+    confidence: {
+      confidenceScore: confidence.confidenceScore,
+      confidenceLevel: confidence.confidenceLevel,
+      confidenceReasons: confidence.reasons,
+    },
   };
 }

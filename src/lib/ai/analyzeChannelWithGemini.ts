@@ -554,7 +554,20 @@ function buildContextSection(ctx: AnalysisContext): string {
     ...ctx.interpretationHints.map((h) => `- ${h}`),
   ].join("\n");
 
-  return [metricsBlock, "", patternsBlock, "", scoresBlock, "", channelSizeBlock].join("\n");
+  const c = ctx.confidence;
+  const confidenceLevelKo: Record<string, string> = {
+    high: "높음",
+    medium: "보통",
+    low: "낮음",
+  };
+  const confidenceBlock = [
+    `[분석 신뢰도]`,
+    `confidence_score: ${c.confidenceScore}`,
+    `confidence_level: ${c.confidenceLevel} (${confidenceLevelKo[c.confidenceLevel] ?? c.confidenceLevel})`,
+    ...c.confidenceReasons.map((r) => `- ${r}`),
+  ].join("\n");
+
+  return [metricsBlock, "", patternsBlock, "", scoresBlock, "", channelSizeBlock, "", confidenceBlock].join("\n");
 }
 
 function buildPrompt(args: AnalyzeChannelWithGeminiArgs): string {

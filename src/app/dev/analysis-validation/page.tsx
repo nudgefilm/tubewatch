@@ -6,7 +6,18 @@ import {
   type ValidationResult,
   type ValidationIssueType,
 } from "@/lib/analysis/validation/analysisQualityCheck";
+import {
+  computeAnalysisConfidence,
+  computeMetricsCompleteness,
+  type AnalysisConfidence,
+} from "@/lib/analysis/confidence/computeAnalysisConfidence";
+import { determineChannelSizeTier } from "@/lib/analysis/engine/buildAnalysisContext";
 import ValidationTable from "./ValidationTable";
+
+export type EnrichedValidationResult = ValidationResult & {
+  confidence: AnalysisConfidence;
+  lowConfidenceWarning: boolean;
+};
 
 const QUERY_FIELDS = [
   "id",
@@ -88,7 +99,41 @@ export default async function AnalysisValidationPage(): Promise<JSX.Element> {
 
   const analysisRows = (rows ?? []) as unknown as AnalysisRow[];
   const validationResults = validateMultipleResults(analysisRows);
-  const summary = computeSummary(validationResults);
+
+  const enrichedResults: EnrichedValidationResult[] = validationResults.map((result, i) => {
+    const row = analysisRows[i];
+    const snapshot = row?.feature_snapshot;
+    const metricsRaw =
+      snapshot && typeof snapshot === "object"
+        ? (snapshot.metrics as Record<string, unknown> | null)
+        : null;
+    const patternsRaw =
+      snapshot && typeof snapshot === "object" ? snapshot.patterns : null;
+    const sampleCount =
+      snapshot && typeof snapshot === "object" && typeof snapshot.sampleVideoCount === "number"
+        ? snapshot.sampleVideoCount
+        : (row?.sample_video_count ?? 0);
+    const collectedCount =
+      snapshot && typeof snapshot === "object" && typeof snapshot.collectedVideoCount === "number"
+        ? snapshot.collectedVideoCount
+        : 0;
+
+    const confidence = computeAnalysisConfidence({
+      sampleVideoCount: sampleCount,
+      collectedVideoCount: collectedCount,
+      channelSizeTier: determineChannelSizeTier(row?.subscriber_count ?? 0),
+      metricsCompleteness: computeMetricsCompleteness(metricsRaw),
+      patternCount: Array.isArray(patternsRaw) ? patternsRaw.length : 0,
+    });
+
+    const hasStrongConclusion =
+      (row?.strengths?.length ?? 0) >= 3 || (row?.growth_action_plan?.length ?? 0) >= 3;
+    const lowConfidenceWarning = confidence.confidenceScore < 40 && hasStrongConclusion;
+
+    return { ...result, confidence, lowConfidenceWarning };
+  });
+
+  const summary = computeSummary(enrichedResults);
 
   return (
     <main className="mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
@@ -105,7 +150,7 @@ export default async function AnalysisValidationPage(): Promise<JSX.Element> {
       </div>
 
       {/* Summary cards */}
-      <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <SummaryCard
           label="검증 대상"
           value={`${summary.total}건`}
@@ -122,8 +167,13 @@ export default async function AnalysisValidationPage(): Promise<JSX.Element> {
           tone={summary.issueBreakdown.inconsistency > 0 ? "text-red-500" : "text-gray-900"}
         />
         <SummaryCard
+          label="저신뢰도 경고"
+          value={`${enrichedResults.filter((r) => r.lowConfidenceWarning).length}건`}
+          tone={enrichedResults.some((r) => r.lowConfidenceWarning) ? "text-red-500" : "text-gray-900"}
+        />
+        <SummaryCard
           label="총 이슈"
-          value={`${validationResults.reduce((s, r) => s + r.issues.length, 0)}건`}
+          value={`${enrichedResults.reduce((s, r) => s + r.issues.length, 0)}건`}
           tone="text-gray-900"
         />
       </div>
@@ -131,7 +181,7 @@ export default async function AnalysisValidationPage(): Promise<JSX.Element> {
       {/* Issue type breakdown */}
       <div className="mb-8 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
         <h2 className="mb-3 text-sm font-semibold text-gray-700">이슈 유형 분포</h2>
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
           <IssueBadge
             label="메트릭 누락"
             count={summary.issueBreakdown.missing_metric}
@@ -152,16 +202,21 @@ export default async function AnalysisValidationPage(): Promise<JSX.Element> {
             count={summary.issueBreakdown.generic_text}
             tone="bg-violet-50 text-violet-700 border-violet-200"
           />
+          <IssueBadge
+            label="채널 규모 불일치"
+            count={summary.issueBreakdown.channel_size_mismatch}
+            tone="bg-sky-50 text-sky-700 border-sky-200"
+          />
         </div>
       </div>
 
       {/* Results table */}
-      {validationResults.length === 0 ? (
+      {enrichedResults.length === 0 ? (
         <div className="rounded-2xl border border-gray-200 bg-white p-6 text-center text-sm text-gray-400 shadow-sm">
           검증 대상 분석 결과가 없습니다.
         </div>
       ) : (
-        <ValidationTable results={validationResults} />
+        <ValidationTable results={enrichedResults} />
       )}
     </main>
   );
