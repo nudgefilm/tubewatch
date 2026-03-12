@@ -9,7 +9,7 @@ export const ANALYSIS_QUEUE_STATUS = {
 export const ANALYSIS_JOB_STATUS = {
   QUEUED: "queued",
   RUNNING: "running",
-  SUCCESS: "success",
+  COMPLETED: "completed",
   FAILED: "failed",
 } as const;
 

@@ -45,6 +45,10 @@ type AnalysisResult = {
   gemini_analyzed_at: string | null;
   gemini_error?: string | null;
 
+  feature_snapshot: Record<string, unknown> | null;
+  feature_total_score: number | null;
+  feature_section_scores: Record<string, number> | null;
+
   created_at: string | null;
 };
 
