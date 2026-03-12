@@ -39,33 +39,33 @@ const FEATURES = [
 
 export default function ReportPreview(): JSX.Element {
   return (
-    <section className="border-t border-white/[0.04] bg-[#08090d] py-24 sm:py-32">
-      <div className="mx-auto max-w-5xl px-6">
+    <section className="border-t border-[#e5e6e1] bg-white py-20 sm:py-28">
+      <div className="mx-auto max-w-[1100px] px-6">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="mb-4 text-[13px] font-medium uppercase tracking-[0.2em] text-violet-400/80">
+          <p className="mb-4 text-[12px] font-medium uppercase tracking-[0.18em] text-[#8b8e84]">
             Analysis Report
           </p>
-          <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+          <h2 className="text-[1.75rem] font-semibold leading-snug text-[#161616] sm:text-3xl">
             분석 리포트에서 확인할 수 있는 것
           </h2>
-          <p className="mt-4 text-[15px] leading-relaxed text-gray-500">
+          <p className="mt-3 text-[14px] leading-[1.7] text-[#5f6158]">
             하나의 리포트에서 채널의 현재 상태와 성장 전략을 모두 확인할 수 있습니다.
           </p>
         </div>
 
-        <div className="mt-14 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((feature) => (
             <div
               key={feature.title}
-              className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-6"
+              className="rounded-xl border border-[#e5e6e1] bg-white p-6"
             >
-              <span className="text-[11px] font-medium uppercase tracking-wider text-gray-600">
+              <span className="text-[11px] font-medium uppercase tracking-wider text-[#8b8e84]">
                 {feature.label}
               </span>
-              <h3 className="mt-2 text-[15px] font-semibold text-white">
+              <h3 className="mt-2 text-[15px] font-semibold text-[#161616]">
                 {feature.title}
               </h3>
-              <p className="mt-2 text-[13px] leading-relaxed text-gray-500">
+              <p className="mt-2 text-[13px] leading-[1.65] text-[#5f6158]">
                 {feature.description}
               </p>
             </div>

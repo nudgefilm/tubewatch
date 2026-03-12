@@ -33,38 +33,38 @@ const STEPS = [
 
 export default function HowItWorks(): JSX.Element {
   return (
-    <section id="how-it-works" className="border-t border-white/[0.04] bg-[#0b0c11] py-24 sm:py-32">
-      <div className="mx-auto max-w-5xl px-6">
+    <section id="how-it-works" className="bg-[#f7f7f5] py-20 sm:py-28">
+      <div className="mx-auto max-w-[1100px] px-6">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="mb-4 text-[13px] font-medium uppercase tracking-[0.2em] text-indigo-400/80">
+          <p className="mb-4 text-[12px] font-medium uppercase tracking-[0.18em] text-[#8b8e84]">
             How It Works
           </p>
-          <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+          <h2 className="text-[1.75rem] font-semibold leading-snug text-[#161616] sm:text-3xl">
             TubeWatch 분석 과정
           </h2>
-          <p className="mt-4 text-[15px] leading-relaxed text-gray-500">
+          <p className="mt-3 text-[14px] leading-[1.7] text-[#5f6158]">
             채널 등록부터 전략 리포트까지, 5단계로 데이터 기반 분석을 완성합니다.
           </p>
         </div>
 
-        <div className="mt-14 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {STEPS.map((step, i) => (
             <div key={step.step} className="relative flex flex-col">
-              <div className="flex h-full flex-col rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
-                <span className="mb-3 text-[11px] font-semibold tabular-nums tracking-wide text-indigo-400/70">
+              <div className="flex h-full flex-col rounded-xl border border-[#e5e6e1] bg-white p-5">
+                <span className="mb-3 text-[11px] font-semibold tabular-nums tracking-wide text-[#8b8e84]">
                   STEP {step.step}
                 </span>
-                <h3 className="text-[15px] font-semibold text-white">
+                <h3 className="text-[15px] font-semibold text-[#161616]">
                   {step.title}
                 </h3>
-                <p className="mt-2 text-[13px] leading-relaxed text-gray-500">
+                <p className="mt-2 text-[13px] leading-[1.65] text-[#5f6158]">
                   {step.description}
                 </p>
               </div>
 
               {i < STEPS.length - 1 ? (
                 <div className="mx-auto mt-2 hidden items-center justify-center lg:flex">
-                  <span className="text-[10px] text-white/10">→</span>
+                  <span className="text-[10px] text-[#c8c9c3]">→</span>
                 </div>
               ) : null}
             </div>

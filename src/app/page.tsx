@@ -19,7 +19,7 @@ export default async function LandingPage(): Promise<JSX.Element> {
   }
 
   return (
-    <main className="min-h-screen bg-[#08090d]">
+    <main className="min-h-screen bg-[#f7f7f5]">
       <Hero isAuthenticated={isAuthenticated} />
       <ProblemSection />
       <HowItWorks />
@@ -28,9 +28,9 @@ export default async function LandingPage(): Promise<JSX.Element> {
       <ForWho />
       <CTASection isAuthenticated={isAuthenticated} />
 
-      <footer className="border-t border-white/[0.04] bg-[#08090d] py-10">
-        <div className="mx-auto max-w-5xl px-6 text-center">
-          <p className="text-[13px] text-gray-600">
+      <footer className="border-t border-[#e5e6e1] bg-[#f7f7f5] py-10">
+        <div className="mx-auto max-w-[1100px] px-6 text-center">
+          <p className="text-[13px] text-[#8b8e84]">
             TubeWatch — 데이터로 설계하는 유튜브 성장 전략
           </p>
         </div>
