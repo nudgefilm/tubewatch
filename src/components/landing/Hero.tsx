@@ -7,7 +7,7 @@ type HeroProps = {
 
 export default function Hero({ isAuthenticated = false }: HeroProps): JSX.Element {
   return (
-    <section className="bg-[#f7f7f5] pb-20 pt-28 sm:pb-28 sm:pt-36">
+    <section className="bg-[#f7f7f5] pb-20 pt-20 sm:pb-28 sm:pt-28">
       <div className="mx-auto max-w-[1100px] px-6">
         <div className="mx-auto max-w-2xl text-center">
           <p className="mb-5 text-[12px] font-medium uppercase tracking-[0.18em] text-[#8b8e84]">

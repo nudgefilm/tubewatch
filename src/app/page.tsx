@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import LandingHeader from "@/components/landing/LandingHeader";
 import Hero from "@/components/landing/Hero";
 import ProblemSection from "@/components/landing/ProblemSection";
 import HowItWorks from "@/components/landing/HowItWorks";
@@ -20,6 +21,7 @@ export default async function LandingPage(): Promise<JSX.Element> {
 
   return (
     <main className="min-h-screen bg-[#f7f7f5]">
+      <LandingHeader />
       <Hero isAuthenticated={isAuthenticated} />
       <ProblemSection />
       <HowItWorks />
