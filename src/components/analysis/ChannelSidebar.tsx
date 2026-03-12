@@ -95,7 +95,7 @@ export default function ChannelSidebar({
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-400">
           Analysis
         </p>
-        <h2 className="mt-1 text-lg font-bold text-gray-900">내 채널</h2>
+        <h2 className="mt-1 text-lg font-semibold text-gray-900">내 채널</h2>
         <p className="mt-1 text-sm text-gray-500">
           등록된 채널을 선택해 분석 리포트를 확인하세요.
         </p>
@@ -104,7 +104,7 @@ export default function ChannelSidebar({
       <div className="flex flex-col lg:h-[calc(100%-89px)]">
         <nav className="flex flex-col gap-2 overflow-y-auto p-3">
           {channels.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-4 py-5 text-sm text-gray-500">
+            <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-5 text-sm text-gray-500">
               등록된 채널이 없습니다.
             </div>
           ) : (
@@ -123,9 +123,9 @@ export default function ChannelSidebar({
                   aria-current={isActive ? "page" : undefined}
                   prefetch={false}
                   className={[
-                    "group rounded-2xl border px-3 py-3 transition",
+                    "group rounded-xl border px-3 py-3 transition",
                     isActive
-                      ? "border-gray-900 bg-gray-900 text-white shadow-sm"
+                      ? "border-indigo-600 bg-indigo-600 text-white shadow-sm"
                       : "border-gray-200 bg-white text-gray-900 hover:border-gray-300 hover:bg-gray-50",
                   ].join(" ")}
                   onClick={(event) => {
@@ -145,7 +145,7 @@ export default function ChannelSidebar({
                     ) : (
                       <div
                         className={[
-                          "flex h-11 w-11 items-center justify-center rounded-full text-sm font-bold",
+                          "flex h-11 w-11 items-center justify-center rounded-full text-sm font-semibold",
                           isActive
                             ? "bg-white/15 text-white"
                             : "bg-gray-100 text-gray-500",
@@ -207,7 +207,7 @@ export default function ChannelSidebar({
         <div className="border-t border-gray-200 px-3 py-3">
           <Link
             href="/channels"
-            className="flex items-center justify-center rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+            className="flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
           >
             채널 관리로 이동
           </Link>

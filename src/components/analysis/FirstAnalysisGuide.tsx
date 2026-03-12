@@ -41,13 +41,13 @@ export default function FirstAnalysisGuide(): JSX.Element | null {
   if (dismissed) return null;
 
   return (
-    <section className="rounded-2xl border border-blue-200 bg-blue-50/50 p-5 shadow-sm sm:p-6">
+    <section className="rounded-xl border border-indigo-200 bg-indigo-50/50 p-5 shadow-sm sm:p-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-blue-600">
+          <p className="text-xs font-semibold uppercase tracking-widest text-indigo-600">
             Getting Started
           </p>
-          <h2 className="mt-1 text-lg font-bold text-gray-900">
+          <h2 className="mt-1 text-lg font-semibold text-gray-900">
             분석 리포트 보는 방법
           </h2>
           <p className="mt-1.5 text-sm text-gray-500">
@@ -70,11 +70,11 @@ export default function FirstAnalysisGuide(): JSX.Element | null {
         {GUIDE_ITEMS.map((item) => (
           <div
             key={item.title}
-            className="rounded-xl border border-blue-100 bg-white p-4"
+            className="rounded-xl border border-indigo-100 bg-white p-4"
           >
             <div className="flex items-center gap-2.5">
               <span className="text-lg">{item.icon}</span>
-              <h3 className="text-sm font-bold text-gray-900">{item.title}</h3>
+              <h3 className="text-sm font-semibold text-gray-900">{item.title}</h3>
             </div>
             <p className="mt-2 text-xs leading-relaxed text-gray-500">
               {item.description}

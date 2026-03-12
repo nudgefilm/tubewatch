@@ -4,6 +4,7 @@ import { createServerClient } from "@supabase/ssr";
 import {
   ANALYSIS_QUEUE_STATUS,
   ANALYSIS_JOB_STATUS,
+  ACTIVE_JOB_STATUSES,
 } from "@/lib/server/analysis/status";
 import { canBypassCooldown } from "@/lib/admin/adminTools";
 
@@ -15,11 +16,6 @@ const COOLDOWN_HOURS = 72;
 const ACTIVE_QUEUE_STATUSES = [
   ANALYSIS_QUEUE_STATUS.PENDING,
   ANALYSIS_QUEUE_STATUS.PROCESSING,
-];
-
-const ACTIVE_JOB_STATUSES = [
-  ANALYSIS_JOB_STATUS.QUEUED,
-  ANALYSIS_JOB_STATUS.RUNNING,
 ];
 
 function createSupabaseServerClient() {

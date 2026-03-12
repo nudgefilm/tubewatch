@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { formatDateTime } from '@/lib/format/formatDateTime'
 
 type Channel = {
@@ -44,25 +45,20 @@ type AnalysisResponse = {
 
 const COOLDOWN_HOURS = 72
 
-function formatNumber(value: number | null | undefined) {
-  if (value === null || value === undefined) return '-'
+function formatSubscribers(value: number | null | undefined): string {
+  if (value == null) return '-'
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`
+  if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`
   return new Intl.NumberFormat('ko-KR').format(value)
 }
 
-// formatDateTime imported from @/lib/format/formatDateTime
-
-function getRemainingCooldownHours(lastAnalyzedAt: string | null | undefined) {
+function getRemainingCooldownHours(lastAnalyzedAt: string | null | undefined): number {
   if (!lastAnalyzedAt) return 0
-
   const last = new Date(lastAnalyzedAt)
   if (Number.isNaN(last.getTime())) return 0
-
-  const now = new Date()
-  const diffMs = now.getTime() - last.getTime()
+  const diffMs = Date.now() - last.getTime()
   const diffHours = diffMs / (1000 * 60 * 60)
-
   if (diffHours >= COOLDOWN_HOURS) return 0
-
   return Math.ceil(COOLDOWN_HOURS - diffHours)
 }
 
@@ -70,26 +66,18 @@ export default function ChannelCard({
   channel,
   onRefresh,
   isAdmin = false,
-}: ChannelCardProps) {
+}: ChannelCardProps): JSX.Element {
   const router = useRouter()
 
   const [isRequesting, setIsRequesting] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  const remainingCooldownHours = getRemainingCooldownHours(
-    channel.last_analyzed_at
-  )
+  const remainingCooldownHours = getRemainingCooldownHours(channel.last_analyzed_at)
   const isCooldownActive = !isAdmin && remainingCooldownHours > 0
+  const hasAnalysis = !!channel.last_analyzed_at
 
-  async function handleRequestAnalysis() {
-    console.log('handleRequestAnalysis clicked', {
-      channelId: channel.id,
-      channelTitle: channel.channel_title,
-      isCooldownActive,
-      remainingCooldownHours,
-    })
-
+  async function handleRequestAnalysis(): Promise<void> {
     try {
       setIsRequesting(true)
       setMessage(null)
@@ -97,22 +85,12 @@ export default function ChannelCard({
 
       const response = await fetch('/api/analysis/request', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({
-          user_channel_id: channel.id,
-        }),
+        body: JSON.stringify({ user_channel_id: channel.id }),
       })
 
       const result: AnalysisResponse = await response.json()
-
-      console.log('analysis request response:', {
-        status: response.status,
-        ok: response.ok,
-        result,
-      })
 
       if (!response.ok) {
         if (result.code === 'COOLDOWN_ACTIVE') {
@@ -122,20 +100,17 @@ export default function ChannelCard({
           )
           return
         }
-
         if (result.code === 'ANALYSIS_ALREADY_ACTIVE') {
           setErrorMessage(
-            result.error ||
-              '이미 진행 중이거나 대기 중인 분석 요청이 있습니다.'
+            result.error || '이미 진행 중이거나 대기 중인 분석 요청이 있습니다.'
           )
           return
         }
-
         setErrorMessage(result.error || '분석 요청에 실패했습니다.')
         return
       }
 
-      setMessage('분석 요청이 접수되었습니다. 자동으로 분석을 진행합니다.')
+      setMessage('분석 요청이 접수되었습니다.')
 
       setTimeout(() => {
         if (onRefresh) {
@@ -153,88 +128,95 @@ export default function ChannelCard({
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-      <div className="flex items-start gap-4">
+    <div className="rounded-xl border border-gray-200 bg-white shadow-sm transition hover:border-gray-300">
+      <div className="flex items-start gap-4 p-5">
+        {/* Thumbnail */}
         {channel.thumbnail_url ? (
           <img
             src={channel.thumbnail_url}
             alt={channel.channel_title ?? '채널 썸네일'}
-            className="h-16 w-16 rounded-full border border-gray-200 object-cover"
+            className="h-12 w-12 flex-shrink-0 rounded-full border border-gray-100 object-cover"
           />
         ) : (
-          <div className="flex h-16 w-16 items-center justify-center rounded-full border border-gray-200 bg-gray-100 text-sm text-gray-500">
-            No Img
+          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs text-gray-400">
+            Ch
           </div>
         )}
 
+        {/* Info */}
         <div className="min-w-0 flex-1">
-          <h3 className="truncate text-lg font-semibold text-gray-900">
-            {channel.channel_title || '제목 없는 채널'}
-          </h3>
+          <div className="flex items-center gap-2">
+            <h3 className="truncate text-base font-semibold text-gray-900">
+              {channel.channel_title || '제목 없는 채널'}
+            </h3>
+            {hasAnalysis ? (
+              <span className="flex-shrink-0 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700">
+                분석 완료
+              </span>
+            ) : (
+              <span className="flex-shrink-0 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold text-gray-500">
+                미분석
+              </span>
+            )}
+          </div>
 
-          <p className="mt-1 truncate text-sm text-gray-600">
-            {channel.channel_url || '-'}
-          </p>
-
-          <div className="mt-3 grid gap-2 text-sm text-gray-700">
-            <div>
-              <span className="font-medium">채널 ID:</span>{' '}
-              {channel.channel_id || '-'}
-            </div>
-            <div>
-              <span className="font-medium">구독자 수:</span>{' '}
-              {formatNumber(channel.subscriber_count)}
-            </div>
-            <div>
-              <span className="font-medium">최근 분석 요청:</span>{' '}
-              {formatDateTime(channel.last_analysis_requested_at)}
-            </div>
-            <div>
-              <span className="font-medium">최근 분석 완료:</span>{' '}
-              {formatDateTime(channel.last_analyzed_at)}
-            </div>
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
+            <span>구독자 {formatSubscribers(channel.subscriber_count)}</span>
+            <span>최근 분석 {formatDateTime(channel.last_analyzed_at)}</span>
           </div>
         </div>
       </div>
 
-      <div className="mt-5 rounded-lg bg-gray-50 p-3 text-sm text-gray-700">
-        {isAdmin && remainingCooldownHours > 0 ? (
-          <p className="text-indigo-600">
-            관리자 계정: 쿨다운 바이패스 활성
-            <span className="ml-1 text-indigo-400">(일반 유저 기준 {remainingCooldownHours}시간 남음)</span>
-          </p>
-        ) : isCooldownActive ? (
-          <p>
-            현재 쿨다운이 적용 중입니다. 약{' '}
-            <span className="font-semibold">{remainingCooldownHours}시간</span>{' '}
-            후 다시 요청할 수 있습니다.
-          </p>
-        ) : (
-          <p>지금 분석 요청이 가능합니다.</p>
-        )}
-      </div>
+      {/* Cooldown notice */}
+      {isAdmin && remainingCooldownHours > 0 ? (
+        <div className="border-t border-gray-100 px-5 py-2.5 text-xs text-indigo-600">
+          관리자: 쿨다운 바이패스 활성
+          <span className="ml-1 text-indigo-400">(일반 기준 {remainingCooldownHours}h 남음)</span>
+        </div>
+      ) : isCooldownActive ? (
+        <div className="border-t border-gray-100 px-5 py-2.5 text-xs text-amber-600">
+          쿨다운 중 — 약 {remainingCooldownHours}시간 후 재요청 가능
+        </div>
+      ) : null}
 
-      {message && (
-        <div className="mt-4 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+      {/* Messages */}
+      {message ? (
+        <div className="mx-5 mb-3 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-xs text-green-700">
           {message}
         </div>
-      )}
-
-      {errorMessage && (
-        <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+      ) : null}
+      {errorMessage ? (
+        <div className="mx-5 mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
           {errorMessage}
         </div>
-      )}
+      ) : null}
 
-      <div className="mt-5 flex items-center gap-3">
+      {/* Actions */}
+      <div className="flex items-center gap-2 border-t border-gray-100 px-5 py-3">
         <button
           type="button"
           onClick={handleRequestAnalysis}
           disabled={isRequesting || isCooldownActive}
-          className="inline-flex items-center justify-center rounded-lg bg-black px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center rounded-lg bg-indigo-600 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {isRequesting ? '분석 요청 중...' : '분석 요청'}
+          {isRequesting ? '요청 중...' : '분석 요청'}
         </button>
+
+        {hasAnalysis ? (
+          <Link
+            href={`/analysis/${channel.id}`}
+            className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-xs font-semibold text-gray-700 transition hover:bg-gray-50"
+          >
+            분석 결과 보기
+          </Link>
+        ) : (
+          <Link
+            href={`/analysis/${channel.id}`}
+            className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-xs font-semibold text-gray-400 transition hover:bg-gray-50"
+          >
+            분석 페이지
+          </Link>
+        )}
       </div>
     </div>
   )

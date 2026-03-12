@@ -1,6 +1,11 @@
 import Link from "next/link";
+import GoogleLoginButton from "@/components/landing/GoogleLoginButton";
 
-export default function Hero(): JSX.Element {
+type HeroProps = {
+  isAuthenticated?: boolean;
+};
+
+export default function Hero({ isAuthenticated = false }: HeroProps): JSX.Element {
   return (
     <section className="relative overflow-hidden bg-gray-950 text-white">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/30 via-gray-950 to-gray-950" />
@@ -23,12 +28,19 @@ export default function Hero(): JSX.Element {
         </p>
 
         <div className="mt-10 flex flex-wrap gap-4">
-          <Link
-            href="/channels"
-            className="inline-flex items-center rounded-xl bg-blue-600 px-7 py-3.5 text-base font-semibold text-white transition hover:bg-blue-500"
-          >
-            내 채널 분석하기
-          </Link>
+          {isAuthenticated ? (
+            <Link
+              href="/channels"
+              className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-7 py-3.5 text-base font-semibold text-white transition hover:bg-indigo-500"
+            >
+              대시보드로 이동
+            </Link>
+          ) : (
+            <GoogleLoginButton
+              className="inline-flex items-center gap-2.5 rounded-xl bg-white px-7 py-3.5 text-base font-semibold text-gray-900 transition hover:bg-gray-100 disabled:opacity-60"
+              label="Google로 시작하기"
+            />
+          )}
           <a
             href="#how-it-works"
             className="inline-flex items-center rounded-xl border border-gray-700 px-7 py-3.5 text-base font-semibold text-gray-300 transition hover:border-gray-500 hover:text-white"

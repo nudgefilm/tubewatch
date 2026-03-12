@@ -44,7 +44,7 @@ function SubSection({
             key={i}
             className="flex items-start gap-2.5 rounded-lg border border-gray-100 bg-gray-50 px-3.5 py-2.5 text-sm leading-relaxed text-gray-700"
           >
-            <span className="mt-[9px] block h-1.5 w-1.5 flex-shrink-0 rounded-full bg-blue-400" />
+            <span className="mt-[9px] block h-1.5 w-1.5 flex-shrink-0 rounded-full bg-indigo-400" />
             <span>{item}</span>
           </li>
         ))}
@@ -72,7 +72,7 @@ export default function NextTrend({
 
   if (!hasAny) {
     return (
-      <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+      <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
         <p className="rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-400">
           추천 콘텐츠 방향을 생성할 데이터가 충분하지 않습니다.
         </p>
@@ -81,7 +81,7 @@ export default function NextTrend({
   }
 
   return (
-    <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+    <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
       <div className="space-y-5">
         <SubSection title="추천 주제" icon="💡" items={topics} />
         <SubSection title="타겟 시청자 시그널" icon="🎯" items={audience} />

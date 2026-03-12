@@ -453,7 +453,7 @@ function Section({
   children: React.ReactNode;
 }): JSX.Element {
   return (
-    <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+    <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
       <div className="mb-4">
         <h3 className="flex items-center gap-2 text-base font-semibold text-gray-900 sm:text-lg">
           {icon ? <span className="text-base">{icon}</span> : null}
@@ -518,7 +518,7 @@ function MetricCard({
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-3.5 transition-shadow hover:shadow-md sm:p-4">
       <p className="text-[11px] font-medium text-gray-500 sm:text-xs">{label}</p>
-      <p className="mt-1 text-lg font-bold tabular-nums text-gray-900 sm:mt-1.5 sm:text-xl">
+      <p className="mt-1 text-lg font-semibold tabular-nums text-gray-900 sm:mt-1.5 sm:text-xl">
         {value}
       </p>
       <p className="mt-0.5 text-[11px] text-gray-400 sm:mt-1 sm:text-xs">{description}</p>
@@ -674,10 +674,10 @@ export default function AnalysisReportView({
     return (
       <div className="space-y-6">
         <FirstAnalysisGuide />
-        <section className="rounded-2xl border border-gray-200 bg-white p-6 text-center shadow-sm">
+        <section className="rounded-xl border border-gray-200 bg-white p-6 text-center shadow-sm">
           <div className="mx-auto max-w-sm">
             <p className="text-3xl">📋</p>
-            <h2 className="mt-3 text-lg font-bold text-gray-900">
+            <h2 className="mt-3 text-lg font-semibold text-gray-900">
               아직 분석 결과가 없습니다
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-gray-500">
@@ -756,12 +756,20 @@ export default function AnalysisReportView({
     }
   }
 
+  const firstSentence = latestResult.channel_summary
+    ? latestResult.channel_summary.split(/(?<=[.!?])\s+/)[0] ?? null
+    : null;
+
+  const topStrength = normalizeItems(latestResult.strengths)[0] ?? null;
+  const topWeakness = normalizeItems(latestResult.weaknesses)[0] ?? null;
+
   return (
     <div className="space-y-8">
-      {/* ═══ Channel Header ═══ */}
-      <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+      {/* ═══ Hero ═══ */}
+      <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-          <div className="flex items-center gap-4">
+          {/* Left: identity + score */}
+          <div className="flex items-start gap-4">
             {selectedChannel.thumbnail_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -774,12 +782,11 @@ export default function AnalysisReportView({
                 {(selectedChannel.channel_title ?? "C").slice(0, 1).toUpperCase()}
               </div>
             )}
-            <div>
-              <p className="text-sm font-medium text-gray-500">채널 리포트</p>
-              <h1 className="mt-1 text-xl font-bold text-gray-900 sm:text-2xl">
+            <div className="min-w-0">
+              <h1 className="truncate text-xl font-semibold text-gray-900 sm:text-2xl">
                 {selectedChannel.channel_title ?? "채널명 없음"}
               </h1>
-              <p className="mt-1.5 flex items-center gap-2 text-sm text-gray-500">
+              <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm text-gray-500">
                 <span>구독자 {formatNumber(selectedChannel.subscriber_count)}명</span>
                 {(() => {
                   const tier = getChannelSizeTier(selectedChannel.subscriber_count);
@@ -792,117 +799,143 @@ export default function AnalysisReportView({
                     </span>
                   );
                 })()}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-col items-start gap-3 lg:items-end">
-            <div className="flex flex-wrap gap-2">
-              <StatusBadge
-                status={toStatusBadgeStatus(latestResult.status, latestResult.gemini_status)}
-              />
-              <span
-                className={`group relative inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${confidenceClassName}`}
-              >
-                {confidenceLabel}
-                {confidence ? (
-                  <span className="tabular-nums">({confidence.confidenceScore})</span>
-                ) : null}
-
-                {confidence && confidence.reasons.length > 0 ? (
-                  <span className="pointer-events-none absolute right-0 top-full z-20 mt-2 hidden w-64 rounded-xl border border-gray-200 bg-white p-3 text-left text-xs font-normal text-gray-700 shadow-lg group-hover:block">
-                    <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-                      신뢰도 근거
+                <StatusBadge
+                  status={toStatusBadgeStatus(latestResult.status, latestResult.gemini_status)}
+                />
+                <span
+                  className={`group relative inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${confidenceClassName}`}
+                >
+                  {confidenceLabel}
+                  {confidence && confidence.reasons.length > 0 ? (
+                    <span className="pointer-events-none absolute left-0 top-full z-20 mt-2 hidden w-64 rounded-xl border border-gray-200 bg-white p-3 text-left text-xs font-normal text-gray-700 shadow-lg group-hover:block">
+                      <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                        신뢰도 근거
+                      </span>
+                      {confidence.reasons.map((r, i) => (
+                        <span key={i} className="mb-1 block leading-relaxed">{r}</span>
+                      ))}
                     </span>
-                    {confidence.reasons.map((r, i) => (
-                      <span key={i} className="mb-1 block leading-relaxed">{r}</span>
-                    ))}
-                    <span className="mt-2 block border-t border-gray-100 pt-2 text-[10px] text-gray-400">
-                      분석 신뢰도는 데이터 표본과 지표 완전성을 기반으로 계산됩니다.
-                    </span>
-                  </span>
-                ) : null}
-              </span>
-            </div>
-
-            <div className="flex w-full flex-col items-start gap-2 lg:items-end">
-              <button
-                type="button"
-                onClick={handleRequestAnalysis}
-                disabled={isRequestLocked}
-                className={[
-                  "inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold transition",
-                  isRequestLocked
-                    ? "cursor-not-allowed bg-gray-100 text-gray-400"
-                    : "bg-gray-900 text-white hover:bg-gray-800",
-                ].join(" ")}
-              >
-                {getRequestButtonLabel()}
-              </button>
-
-              <div className="min-h-[20px] text-sm">
-                {requestError ? (
-                  <p className="text-red-600">{requestError}</p>
-                ) : requestMessage ? (
-                  <p className="text-emerald-600">{requestMessage}</p>
-                ) : isAdmin && cooldown.isCooldownActive ? (
-                  <p className="text-indigo-600">
-                    Admin: 쿨다운 바이패스 활성 · 즉시 재분석 가능
-                  </p>
-                ) : isCooldownBlocked ? (
-                  <p className="text-amber-700">
-                    {cooldown.remainingText} · 다음 가능 시각 {cooldown.nextAvailableAtText}
-                  </p>
-                ) : isBackendRunning ? (
-                  <p className="text-gray-600">현재 분석이 진행 중입니다.</p>
-                ) : (
-                  <p className="text-gray-500">
-                    새 분석을 요청하면 최신 데이터로 다시 리포트를 생성합니다.
-                  </p>
-                )}
+                  ) : null}
+                </span>
               </div>
             </div>
           </div>
+
+          {/* Right: total score */}
+          {totalScore != null ? (
+            <div className="flex flex-shrink-0 flex-col items-center lg:items-end">
+              <span className={`text-4xl font-extrabold tabular-nums leading-none ${getScoreColor(totalScore)}`}>
+                {Math.round(totalScore)}
+              </span>
+              <span className={`mt-1 text-xs font-semibold ${getScoreColor(totalScore)}`}>
+                {getScoreLabel(totalScore)}
+              </span>
+              <span className="text-[10px] text-gray-400">종합 점수</span>
+            </div>
+          ) : null}
         </div>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-xl bg-gray-50 px-4 py-3">
-            <p className="text-xs font-medium text-gray-500">최근 분석 시각</p>
-            <p className="mt-1 text-sm font-semibold text-gray-900">{analyzedAt}</p>
-          </div>
-          <div className="rounded-xl bg-gray-50 px-4 py-3">
-            <p className="text-xs font-medium text-gray-500">분석 영상 수</p>
-            <p className="mt-1 text-sm font-semibold text-gray-900">
-              {formatNumber(latestResult.sample_video_count)}개
-            </p>
-          </div>
-          <div className="rounded-xl bg-gray-50 px-4 py-3">
-            <p className="text-xs font-medium text-gray-500">분석 모델</p>
-            <p className="mt-1 text-sm font-semibold text-gray-900">
-              {latestResult.gemini_model ?? "-"}
-            </p>
-          </div>
-        </div>
-
-        {latestResult.sample_size_note ? (
-          <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800">
-            {latestResult.sample_size_note}
+        {/* Diagnosis strip */}
+        {(firstSentence || topStrength || topWeakness) ? (
+          <div className="mt-4 space-y-2">
+            {firstSentence ? (
+              <p className="text-sm leading-relaxed text-gray-700">{firstSentence}</p>
+            ) : null}
+            <div className="flex flex-col gap-1.5 sm:flex-row sm:gap-4">
+              {topStrength ? (
+                <span className="inline-flex items-start gap-1.5 text-xs text-gray-600">
+                  <span className="mt-0.5 block h-1.5 w-1.5 flex-shrink-0 rounded-full bg-emerald-500" />
+                  <span className="line-clamp-1">{topStrength}</span>
+                </span>
+              ) : null}
+              {topWeakness ? (
+                <span className="inline-flex items-start gap-1.5 text-xs text-gray-600">
+                  <span className="mt-0.5 block h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-500" />
+                  <span className="line-clamp-1">{topWeakness}</span>
+                </span>
+              ) : null}
+            </div>
           </div>
         ) : null}
 
-        {isAdmin ? (
-          <AdminResetPanel
-            userChannelId={selectedChannel.id}
-            onReset={() => {
-              startTransition(() => { router.refresh(); });
-            }}
-          />
-        ) : null}
+        {/* CTA + cooldown */}
+        <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <button
+            type="button"
+            onClick={handleRequestAnalysis}
+            disabled={isRequestLocked}
+            className={[
+              "inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition",
+              isRequestLocked
+                ? "cursor-not-allowed bg-gray-100 text-gray-400"
+                : "bg-indigo-600 text-white hover:bg-indigo-700",
+            ].join(" ")}
+          >
+            {getRequestButtonLabel()}
+          </button>
+
+          <div className="min-h-[20px] text-xs">
+            {requestError ? (
+              <p className="text-red-600">{requestError}</p>
+            ) : requestMessage ? (
+              <p className="text-emerald-600">{requestMessage}</p>
+            ) : isAdmin && cooldown.isCooldownActive ? (
+              <p className="text-indigo-600">Admin: 쿨다운 바이패스 · 즉시 재분석 가능</p>
+            ) : isCooldownBlocked ? (
+              <p className="text-amber-700">{cooldown.remainingText}</p>
+            ) : isBackendRunning ? (
+              <p className="text-gray-600">분석 진행 중</p>
+            ) : (
+              <p className="text-gray-400">최근 분석: {analyzedAt}</p>
+            )}
+          </div>
+        </div>
       </section>
+
+      {/* ═══ Meta (demoted) ═══ */}
+      <div className="grid gap-2 sm:grid-cols-4">
+        <div className="rounded-lg bg-gray-50 px-3 py-2">
+          <p className="text-[10px] font-medium text-gray-400">분석 시각</p>
+          <p className="mt-0.5 text-xs font-semibold tabular-nums text-gray-700">{analyzedAt}</p>
+        </div>
+        <div className="rounded-lg bg-gray-50 px-3 py-2">
+          <p className="text-[10px] font-medium text-gray-400">분석 영상</p>
+          <p className="mt-0.5 text-xs font-semibold tabular-nums text-gray-700">
+            {formatNumber(latestResult.sample_video_count)}개
+          </p>
+        </div>
+        <div className="rounded-lg bg-gray-50 px-3 py-2">
+          <p className="text-[10px] font-medium text-gray-400">AI 모델</p>
+          <p className="mt-0.5 text-xs font-semibold text-gray-700">
+            {latestResult.gemini_model ?? "-"}
+          </p>
+        </div>
+        <div className="rounded-lg bg-gray-50 px-3 py-2">
+          <p className="text-[10px] font-medium text-gray-400">다음 분석</p>
+          <p className="mt-0.5 text-xs font-semibold text-gray-700">
+            {cooldown.isCooldownActive ? cooldown.nextAvailableAtText : "가능"}
+          </p>
+        </div>
+      </div>
+
+      {latestResult.sample_size_note ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs leading-5 text-amber-800">
+          {latestResult.sample_size_note}
+        </div>
+      ) : null}
+
+      {isAdmin ? (
+        <AdminResetPanel
+          userChannelId={selectedChannel.id}
+          onReset={() => {
+            startTransition(() => { router.refresh(); });
+          }}
+        />
+      ) : null}
 
       {!isAnalyzed ? (
         <div className="space-y-4">
-          <section className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm leading-6 text-amber-800 shadow-sm">
+          <section className="rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm leading-6 text-amber-800 shadow-sm">
             <p className="font-semibold">분석이 진행 중입니다</p>
             <p className="mt-1 text-amber-700">
               데이터 수집과 AI 분석이 완료되면 아래에 리포트가 표시됩니다. 약 1~2분 후 페이지를 새로고침해 주세요.
@@ -938,35 +971,24 @@ export default function AnalysisReportView({
           ) : null}
 
           {/* Channel Score */}
-          {totalScore != null && sectionScores ? (
-            <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+          {sectionScores ? (
+            <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
               <SectionHeader
                 title="Channel Score"
-                subtitle="5개 영역의 종합 채널 점수입니다."
+                subtitle="5개 영역별 세부 점수입니다."
               />
-              <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-                <div className="flex flex-col items-center justify-center lg:w-40">
-                  <span className={`text-5xl font-extrabold tabular-nums ${getScoreColor(totalScore)}`}>
-                    {Math.round(totalScore)}
-                  </span>
-                  <span className={`mt-1 text-sm font-semibold ${getScoreColor(totalScore)}`}>
-                    {getScoreLabel(totalScore)}
-                  </span>
-                  <span className="mt-0.5 text-xs text-gray-400">종합 점수</span>
-                </div>
-                <div className="flex-1 space-y-3">
-                  {Object.entries(sectionScores).map(([key, score]) => {
-                    if (typeof score !== "number") return null;
-                    return (
-                      <ScoreBar
-                        key={key}
-                        label={SECTION_SCORE_LABELS[key] ?? key}
-                        score={score}
-                        colorClass={SECTION_SCORE_COLORS[key] ?? "bg-gray-500"}
-                      />
-                    );
-                  })}
-                </div>
+              <div className="space-y-3">
+                {Object.entries(sectionScores).map(([key, score]) => {
+                  if (typeof score !== "number") return null;
+                  return (
+                    <ScoreBar
+                      key={key}
+                      label={SECTION_SCORE_LABELS[key] ?? key}
+                      score={score}
+                      colorClass={SECTION_SCORE_COLORS[key] ?? "bg-gray-500"}
+                    />
+                  );
+                })}
               </div>
             </section>
           ) : null}
@@ -1088,7 +1110,7 @@ export default function AnalysisReportView({
             subtitle="분석 점수의 변화 추이를 확인합니다."
           />
 
-          <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+          <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
             <SectionHeader title="성장 추이" subtitle="최근 분석 기록 기반 점수 변화" />
             <div className="mt-4">
               <GrowthTrendChart points={analysisHistory} />
@@ -1099,7 +1121,7 @@ export default function AnalysisReportView({
             title="Analysis Compare"
             subtitle="이전 분석 결과와 현재를 비교합니다."
           />
-          <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+          <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
             <SectionHeader title="분석 비교" subtitle="직전 분석 대비 점수 변화" />
             <div className="mt-4">
               <AnalysisCompareCard
@@ -1127,7 +1149,7 @@ export default function AnalysisReportView({
             title="Analysis History"
             subtitle="이 채널의 과거 분석 기록입니다."
           />
-          <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+          <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
             <SectionHeader title="분석 이력" subtitle="최근 20건의 분석 기록" />
             <div className="mt-4">
               <AnalysisHistoryList

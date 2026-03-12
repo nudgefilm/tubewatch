@@ -34,20 +34,20 @@ function getScore(
 function DeltaBadge({ diff }: { diff: number }): JSX.Element {
   if (diff > 0) {
     return (
-      <span className="inline-flex items-center gap-0.5 rounded-md bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700">
+      <span className="inline-flex items-center gap-0.5 rounded-md bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">
         ▲ +{diff}
       </span>
     );
   }
   if (diff < 0) {
     return (
-      <span className="inline-flex items-center gap-0.5 rounded-md bg-red-100 px-2 py-0.5 text-xs font-bold text-red-700">
+      <span className="inline-flex items-center gap-0.5 rounded-md bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
         ▼ {diff}
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center rounded-md bg-gray-100 px-2 py-0.5 text-xs font-bold text-gray-500">
+    <span className="inline-flex items-center rounded-md bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-500">
       — 0
     </span>
   );
@@ -99,7 +99,7 @@ export default function AnalysisCompareCard({
               <span
                 className={[
                   "text-sm",
-                  isTotal ? "font-bold text-gray-900" : "font-medium text-gray-700",
+                  isTotal ? "font-semibold text-gray-900" : "font-medium text-gray-700",
                 ].join(" ")}
               >
                 {label}

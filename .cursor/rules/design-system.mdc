@@ -1,0 +1,107 @@
+# TubeWatch Design System
+
+## Purpose
+
+This rule defines the global UI design system for TubeWatch.
+All pages must follow this system for visual consistency.
+The style is Light SaaS UI inspired by Linear.
+
+---
+
+## Background
+
+- Page background: bg-white
+- Section panel: bg-gray-50
+- Admin sidebar: bg-gray-50
+
+---
+
+## Card
+
+- bg-white
+- border border-gray-200
+- rounded-xl
+- shadow-sm
+- padding: p-5 or p-6
+
+Do not use rounded-2xl for cards. Always use rounded-xl.
+
+---
+
+## Typography
+
+Page title: text-2xl font-semibold text-gray-900
+Section title: text-lg font-semibold text-gray-900
+Body text: text-sm text-gray-600
+Meta text: text-xs text-gray-500
+
+Do not use font-bold for titles. Always use font-semibold.
+
+---
+
+## Button Hierarchy
+
+Primary action:
+- bg-indigo-600 hover:bg-indigo-700 text-white
+- rounded-lg px-4 py-2
+
+Secondary action:
+- border border-gray-300 bg-white hover:bg-gray-50 text-gray-700
+- rounded-lg px-4 py-2
+
+Do not use bg-blue-600, bg-gray-900, or bg-black for primary buttons.
+The canonical primary color is indigo-600.
+
+---
+
+## Input Focus
+
+- focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500
+
+Do not use blue for focus rings.
+
+---
+
+## Status Badges
+
+Success: bg-emerald-100 text-emerald-700
+Warning: bg-amber-100 text-amber-700
+Error: bg-red-100 text-red-700
+Neutral: bg-gray-100 text-gray-600
+Admin: bg-indigo-100 text-indigo-700
+
+Badge shape: rounded px-1.5 py-0.5 text-[10px] font-semibold
+
+---
+
+## Table Style
+
+Container: bg-white border border-gray-200 rounded-xl
+Header: bg-gray-50 text-gray-500 text-xs font-medium
+Row: hover:bg-gray-50
+Numbers: tabular-nums
+Text overflow: truncate + title attribute for hover
+
+---
+
+## Spacing
+
+Section spacing: space-y-8 or mt-8
+Card padding: p-5 or p-6
+Card list gap: space-y-4 or gap-4
+
+---
+
+## Page Layout Pattern
+
+Page Header → Status Cards → Main Content → Data Table / Card List → Primary Action
+
+---
+
+## Accent Colors
+
+Progress indicators: bg-indigo-500 or bg-indigo-600
+Active state: bg-indigo-50 text-indigo-700
+Empty state icons: bg-indigo-50 text-indigo-500
+
+Do not use blue-500 or blue-600 for accents. Use indigo consistently.

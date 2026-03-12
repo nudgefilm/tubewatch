@@ -14,7 +14,7 @@ export default function AnalysisShell({
   children,
 }: AnalysisShellProps) {
   return (
-    <div className="min-h-[calc(100vh-80px)] bg-gray-50">
+    <div className="min-h-[calc(100vh-80px)] bg-white">
       <div className="mx-auto flex w-full max-w-7xl flex-col lg:flex-row">
         <ChannelSidebar
           channels={channels}

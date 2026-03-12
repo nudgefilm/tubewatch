@@ -1,0 +1,24 @@
+const STATUS_COLORS: Record<string, string> = {
+  queued: "bg-amber-100 text-amber-700",
+  running: "bg-blue-100 text-blue-700",
+  success: "bg-emerald-100 text-emerald-700",
+  failed: "bg-red-100 text-red-700",
+};
+
+type AdminStatusBadgeProps = {
+  status: string | null;
+};
+
+export default function AdminStatusBadge({
+  status,
+}: AdminStatusBadgeProps): JSX.Element {
+  if (!status) return <span className="text-gray-300">—</span>;
+  const color = STATUS_COLORS[status] ?? "bg-gray-100 text-gray-600";
+  return (
+    <span
+      className={`inline-block whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold ${color}`}
+    >
+      {status}
+    </span>
+  );
+}

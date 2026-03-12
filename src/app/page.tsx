@@ -1,3 +1,4 @@
+import { createClient } from "@/lib/supabase/server";
 import Hero from "@/components/landing/Hero";
 import ProblemSection from "@/components/landing/ProblemSection";
 import HowItWorks from "@/components/landing/HowItWorks";
@@ -6,16 +7,26 @@ import TrustSection from "@/components/landing/TrustSection";
 import ForWho from "@/components/landing/ForWho";
 import CTASection from "@/components/landing/CTASection";
 
-export default function LandingPage(): JSX.Element {
+export default async function LandingPage(): Promise<JSX.Element> {
+  let isAuthenticated = false;
+
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    isAuthenticated = !!user;
+  } catch {
+    // auth check failure is non-critical for the landing page
+  }
+
   return (
     <main className="min-h-screen">
-      <Hero />
+      <Hero isAuthenticated={isAuthenticated} />
       <ProblemSection />
       <HowItWorks />
       <ReportPreview />
       <TrustSection />
       <ForWho />
-      <CTASection />
+      <CTASection isAuthenticated={isAuthenticated} />
 
       <footer className="border-t border-gray-200 bg-white py-8">
         <div className="mx-auto max-w-6xl px-6 text-center">

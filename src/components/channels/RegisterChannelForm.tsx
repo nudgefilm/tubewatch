@@ -32,7 +32,7 @@ export default function RegisterChannelForm({
   currentCount = 0,
   maxCount = 3,
   isAdmin = false,
-}: RegisterChannelFormProps) {
+}: RegisterChannelFormProps): JSX.Element {
   const supabase = createClient()
 
   const [channelUrl, setChannelUrl] = useState('')
@@ -40,9 +40,9 @@ export default function RegisterChannelForm({
   const [message, setMessage] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  const isLimitReached = currentCount >= maxCount
+  const isLimitReached = !isAdmin && currentCount >= maxCount
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault()
 
     if (isLimitReached) {
@@ -83,9 +83,7 @@ export default function RegisterChannelForm({
           'Content-Type': 'application/json',
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({
-          channel_url: channelUrl.trim(),
-        }),
+        body: JSON.stringify({ channel_url: channelUrl.trim() }),
       })
 
       const result: RegisterChannelResponse = await response.json()
@@ -98,7 +96,6 @@ export default function RegisterChannelForm({
       setMessage(result.message || '채널이 등록되었습니다.')
       setChannelUrl('')
 
-      // 가장 단순하고 확실한 방식: 목록 새로고침
       window.location.reload()
     } catch (error) {
       console.error('RegisterChannelForm error:', error)
@@ -108,56 +105,66 @@ export default function RegisterChannelForm({
     }
   }
 
+  if (isLimitReached) {
+    return (
+      <div className="rounded-xl border border-gray-200 bg-gray-50 p-5">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-100">
+            <svg className="h-4 w-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m0 0v2m0-2h2m-2 0H10m-4.93 2.07A10 10 0 1121.07 5.93 10 10 0 015.07 18.07z" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-900">
+              채널 등록 슬롯을 모두 사용했습니다
+            </p>
+            <p className="mt-0.5 text-xs text-gray-500">
+              최대 {maxCount}개 채널까지 등록할 수 있습니다. 등록된 채널에서 분석을 진행하세요.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-      <h2 className="text-2xl font-bold text-gray-900">채널 등록</h2>
+    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+      <form onSubmit={handleSubmit}>
+        <div className="flex gap-2">
+          <input
+            type="url"
+            value={channelUrl}
+            onChange={(e) => setChannelUrl(e.target.value)}
+            placeholder="https://www.youtube.com/@채널명"
+            className="min-w-0 flex-1 rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+            disabled={isSubmitting}
+          />
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="flex-shrink-0 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isSubmitting ? '등록 중...' : '채널 등록'}
+          </button>
+        </div>
 
-      <p className="mt-3 text-base text-gray-600">
-        유튜브 채널 URL을 등록하세요.
-        {isAdmin
-          ? " 관리자 계정은 제한 없이 채널을 등록할 수 있습니다."
-          : ` 최대 ${maxCount}개까지 등록할 수 있습니다.`}
-      </p>
+        <p className="mt-2.5 text-xs text-gray-400">
+          {isAdmin
+            ? "관리자 계정 — 제한 없이 채널을 등록할 수 있습니다."
+            : `유튜브 채널 URL을 입력하세요. ${maxCount}개 중 ${maxCount - currentCount}개 슬롯 남음.`}
+        </p>
 
-      <p className="mt-2 text-sm text-gray-500">
-        현재 등록 수: {currentCount}
-        {isAdmin ? "개" : `/${maxCount}`}
-        {isAdmin ? (
-          <span className="ml-2 rounded bg-indigo-100 px-1.5 py-0.5 text-xs font-semibold text-indigo-700">
-            무제한
-          </span>
-        ) : null}
-      </p>
-
-      <form onSubmit={handleSubmit} className="mt-6">
-        <input
-          type="url"
-          value={channelUrl}
-          onChange={(e) => setChannelUrl(e.target.value)}
-          placeholder="https://www.youtube.com/@채널명"
-          className="w-full rounded-xl border border-gray-300 px-4 py-4 text-base text-gray-900 outline-none transition focus:border-gray-500"
-          disabled={isSubmitting || isLimitReached}
-        />
-
-        {message && (
-          <div className="mt-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+        {message ? (
+          <div className="mt-3 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-xs text-green-700">
             {message}
           </div>
-        )}
+        ) : null}
 
-        {errorMessage && (
-          <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        {errorMessage ? (
+          <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
             {errorMessage}
           </div>
-        )}
-
-        <button
-          type="submit"
-          disabled={isSubmitting || isLimitReached}
-          className="mt-5 inline-flex items-center justify-center rounded-xl bg-blue-600 px-6 py-3 text-base font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {isSubmitting ? '채널 등록 중...' : '채널 등록'}
-        </button>
+        ) : null}
       </form>
     </div>
   )

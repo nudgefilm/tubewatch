@@ -19,7 +19,7 @@ export default function SkeletonCard({
 
   return (
     <div
-      className={`rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6 ${className}`}
+      className={`rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6 ${className}`}
     >
       <div className="mb-4 h-4 w-1/3 animate-pulse rounded-md bg-gray-200" />
       <div className="space-y-3">
@@ -50,7 +50,7 @@ export function SkeletonMetricsGrid(): JSX.Element {
 
 export function SkeletonScoreSection(): JSX.Element {
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
       <div className="mb-4 h-4 w-28 animate-pulse rounded bg-gray-200" />
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         <div className="flex flex-col items-center lg:w-40">
@@ -75,7 +75,7 @@ export function SkeletonScoreSection(): JSX.Element {
 
 export function SkeletonRadar(): JSX.Element {
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
       <div className="mb-4 h-4 w-32 animate-pulse rounded bg-gray-200" />
       <div className="mx-auto h-64 w-64 animate-pulse rounded-full bg-gray-100 sm:h-80 sm:w-80" />
     </div>
@@ -84,7 +84,7 @@ export function SkeletonRadar(): JSX.Element {
 
 export function SkeletonInsightSection(): JSX.Element {
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
       <div className="mb-4 h-4 w-24 animate-pulse rounded bg-gray-200" />
       <div className="space-y-2.5">
         {Array.from({ length: 3 }, (_, i) => (

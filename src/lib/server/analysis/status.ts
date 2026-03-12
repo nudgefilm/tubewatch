@@ -9,10 +9,15 @@ export const ANALYSIS_QUEUE_STATUS = {
 export const ANALYSIS_JOB_STATUS = {
   QUEUED: "queued",
   RUNNING: "running",
-  COMPLETED: "completed",
+  SUCCESS: "success",
   FAILED: "failed",
 } as const;
 
 export const ANALYSIS_RESULT_STATUS = {
   ANALYZED: "analyzed",
 } as const;
+
+export const ACTIVE_JOB_STATUSES: readonly string[] = [
+  ANALYSIS_JOB_STATUS.QUEUED,
+  ANALYSIS_JOB_STATUS.RUNNING,
+];

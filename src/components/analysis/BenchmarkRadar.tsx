@@ -141,7 +141,7 @@ export default function BenchmarkRadar({ metrics }: BenchmarkRadarProps): JSX.El
   const benchmarkValues = RADAR_AXES.map((axis) => axis.benchmark);
 
   return (
-    <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+    <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
       <h2 className="mb-1 text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
         Benchmark Radar
       </h2>
@@ -195,8 +195,8 @@ export default function BenchmarkRadar({ metrics }: BenchmarkRadarProps): JSX.El
           {/* Channel data polygon */}
           <polygon
             points={buildPolygonPoints(channelValues)}
-            fill="rgba(59, 130, 246, 0.15)"
-            stroke="#3b82f6"
+            fill="rgba(99, 102, 241, 0.15)"
+            stroke="#6366f1"
             strokeWidth={2}
           />
 
@@ -209,7 +209,7 @@ export default function BenchmarkRadar({ metrics }: BenchmarkRadarProps): JSX.El
                 cx={p.x}
                 cy={p.y}
                 r={3.5}
-                fill="#3b82f6"
+                fill="#6366f1"
                 stroke="#ffffff"
                 strokeWidth={2}
               />
@@ -238,7 +238,7 @@ export default function BenchmarkRadar({ metrics }: BenchmarkRadarProps): JSX.El
       {/* Legend */}
       <div className="mt-2 flex items-center justify-center gap-6 text-xs text-gray-500">
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-2.5 w-2.5 rounded-sm bg-blue-500/80" />
+          <span className="inline-block h-2.5 w-2.5 rounded-sm bg-indigo-500/80" />
           채널 현재 수준
         </span>
         <span className="flex items-center gap-1.5">
@@ -263,7 +263,7 @@ export default function BenchmarkRadar({ metrics }: BenchmarkRadarProps): JSX.El
               <p className="text-[10px] font-medium text-gray-500">
                 {axis.label}
               </p>
-              <p className="mt-0.5 text-sm font-bold tabular-nums text-gray-900">
+              <p className="mt-0.5 text-sm font-semibold tabular-nums text-gray-900">
                 {score}
               </p>
               <p className={`text-[10px] font-semibold tabular-nums ${diffColor}`}>
