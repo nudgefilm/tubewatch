@@ -27,19 +27,12 @@ export default function LandingHeader(): JSX.Element {
       <div className="mx-auto flex h-[72px] max-w-[1180px] items-center justify-between px-6">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5">
-          <svg
-            width="28"
-            height="28"
-            viewBox="0 0 32 32"
-            fill="none"
-            aria-hidden="true"
-          >
-            <rect width="32" height="32" rx="8" fill="#161616" />
-            <path
-              d="M12.5 10.5v11l9-5.5-9-5.5z"
-              fill="#fff"
-            />
-          </svg>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo.png"
+            alt="TubeWatch"
+            className="h-7 w-auto"
+          />
           <span className="text-[16px] font-semibold text-[#161616]">
             Tube Watch
           </span>
