@@ -45,12 +45,12 @@ export type TubeWatchAnalysisResult = {
       properties: {
         version: {
           type: "string",
-          description: "분석 스키마 버전. 예: 1.0",
+          description: "분석 스키마 버전. 항상 1.0을 반환",
         },
         channel_summary: {
           type: "string",
           description:
-            "채널의 현재 상태를 2~3문장으로 요약. 과장 금지. 데이터가 부족하면 보수적으로 서술",
+            "채널의 현재 상태를 2~3문장으로 요약. 메트릭 수치를 구체적으로 인용. 과장 금지. 데이터가 부족하면 보수적으로 서술",
         },
         content_pattern_summary: {
           type: "string",
@@ -63,7 +63,7 @@ export type TubeWatchAnalysisResult = {
           maxItems: 4,
           items: { type: "string" },
           description:
-            "반복적으로 보이는 콘텐츠 패턴. 각 항목은 짧고 완결된 문장",
+            "반복적으로 보이는 콘텐츠 패턴. 각 항목은 번호나 기호 없이 한 문장(120자 이내)으로 작성. 메트릭 수치를 인용할 것",
         },
         target_audience: {
           type: "array",
@@ -71,7 +71,7 @@ export type TubeWatchAnalysisResult = {
           maxItems: 4,
           items: { type: "string" },
           description:
-            "현재 콘텐츠를 실제로 선호할 가능성이 높은 시청자군. 추상적 표현 금지",
+            "현재 콘텐츠를 실제로 선호할 가능성이 높은 시청자군. 각 항목은 번호나 기호 없이 한 문장(120자 이내)으로 작성",
         },
         strengths: {
           type: "array",
@@ -79,7 +79,7 @@ export type TubeWatchAnalysisResult = {
           maxItems: 4,
           items: { type: "string" },
           description:
-            "데이터상 확인 가능한 강점만 작성. 근거가 약하면 강점으로 쓰지 말 것",
+            "데이터상 확인 가능한 강점만 작성. 각 항목은 번호나 기호 없이 한 문장(120자 이내). 메트릭 수치를 인용할 것",
         },
         weaknesses: {
           type: "array",
@@ -87,15 +87,15 @@ export type TubeWatchAnalysisResult = {
           maxItems: 4,
           items: { type: "string" },
           description:
-            "현재 성장 저해 요소. 회피 표현 없이 구체적으로 작성",
+            "현재 성장 저해 요소. 각 항목은 번호나 기호 없이 한 문장(120자 이내). 메트릭 수치를 인용하여 구체적으로 작성",
         },
         bottlenecks: {
           type: "array",
           minItems: 2,
-          maxItems: 4,
+          maxItems: 3,
           items: { type: "string" },
           description:
-            "성장 병목 요인. 약점보다 조금 더 구조적 관점으로 작성",
+            "성장 병목 요인. 약점보다 구조적 관점으로 작성. 각 항목은 번호나 기호 없이 한 문장(120자 이내)",
         },
         recommended_topics: {
           type: "array",
@@ -103,7 +103,7 @@ export type TubeWatchAnalysisResult = {
           maxItems: 4,
           items: { type: "string" },
           description:
-            "다음 콘텐츠 기획 후보 주제. 현재 채널 규모와 맥락에 맞게 현실적으로 작성",
+            "다음 콘텐츠 기획 후보 주제. 각 항목은 번호나 기호 없이 한 문장(120자 이내). 현재 채널 규모와 맥락에 맞게 현실적으로 작성",
         },
         growth_action_plan: {
           type: "array",
@@ -111,7 +111,7 @@ export type TubeWatchAnalysisResult = {
           maxItems: 5,
           items: { type: "string" },
           description:
-            "바로 실행 가능한 액션 플랜. 추상적 조언보다 실행 문장 우선",
+            "바로 실행 가능한 액션 플랜. 각 항목은 번호나 기호 없이 한 문장(120자 이내). 추상적 조언 금지, 실행 문장으로 작성",
         },
         analysis_confidence: {
           type: "string",

@@ -294,16 +294,16 @@ export default async function AnalysisChannelPage({
       channels={channels as UserChannel[]}
       selectedChannelId={selectedChannel.id}
     >
-      <section className="mb-6 rounded-2xl border bg-white p-6">
+      <section className="mb-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
               Analysis Status
             </p>
-            <h1 className="text-2xl font-bold text-slate-900">
+            <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">
               {selectedChannel.channel_title ?? "채널 분석 리포트"}
             </h1>
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-gray-500">
               최근 성공 분석 기준으로 72시간 쿨다운 상태를 표시합니다.
             </p>
           </div>
@@ -323,24 +323,24 @@ export default async function AnalysisChannelPage({
           </div>
         </div>
 
-        <div className="mt-5 grid gap-3 md:grid-cols-3">
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-xs font-medium text-slate-500">마지막 성공 분석 시각</p>
-            <p className="mt-2 text-sm font-semibold text-slate-900">
+        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+            <p className="text-xs font-medium text-gray-500">마지막 성공 분석 시각</p>
+            <p className="mt-2 text-sm font-semibold text-gray-900">
               {cooldown.lastActionAtText}
             </p>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-xs font-medium text-slate-500">다음 분석 가능 시각</p>
-            <p className="mt-2 text-sm font-semibold text-slate-900">
+          <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+            <p className="text-xs font-medium text-gray-500">다음 분석 가능 시각</p>
+            <p className="mt-2 text-sm font-semibold text-gray-900">
               {cooldown.nextAvailableAtText}
             </p>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-xs font-medium text-slate-500">남은 시간</p>
-            <p className="mt-2 text-sm font-semibold text-slate-900">
+          <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+            <p className="text-xs font-medium text-gray-500">남은 시간</p>
+            <p className="mt-2 text-sm font-semibold text-gray-900">
               {cooldown.remainingText}
             </p>
           </div>

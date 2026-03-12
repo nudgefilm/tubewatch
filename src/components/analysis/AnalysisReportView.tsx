@@ -6,6 +6,10 @@ import {
   StatusBadge,
   toStatusBadgeStatus,
 } from "@/components/ui/StatusBadge";
+import BenchmarkRadar from "@/components/analysis/BenchmarkRadar";
+import NextTrend from "@/components/analysis/NextTrend";
+
+// ── Types ──
 
 type SelectedChannel = {
   id: string;
@@ -75,6 +79,8 @@ type PatternFlag =
   | "high_view_variance"
   | "repeated_topic_pattern"
   | "low_tag_usage";
+
+// ── Constants ──
 
 const COOLDOWN_HOURS = 72;
 const COOLDOWN_MS = COOLDOWN_HOURS * 60 * 60 * 1000;
@@ -177,6 +183,8 @@ const SECTION_SCORE_COLORS: Record<string, string> = {
   growthMomentum: "bg-rose-500",
 };
 
+// ── Formatters ──
+
 function formatCompact(value: number): string {
   if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
   if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`;
@@ -210,9 +218,20 @@ function formatDateTime(value: string | null | undefined): string {
   }).format(date);
 }
 
+// ── Data helpers ──
+
 function normalizeItems(items: string[] | null | undefined): string[] {
   if (!Array.isArray(items)) return [];
-  return items.filter((v) => typeof v === "string" && v.trim().length > 0);
+  const seen = new Set<string>();
+  return items
+    .map((v) => (typeof v === "string" ? v.trim() : ""))
+    .filter((v) => {
+      if (v.length === 0) return false;
+      const key = v.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 }
 
 function getConfidenceLabel(value: string | null | undefined): string {
@@ -323,6 +342,37 @@ function getScoreLabel(score: number): string {
   return "개선 필요";
 }
 
+// ── Reusable UI primitives ──
+
+function SectionHeader({
+  title,
+  subtitle,
+}: {
+  title: string;
+  subtitle: string;
+}): JSX.Element {
+  return (
+    <div className="mb-3">
+      <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
+        {title}
+      </h2>
+      <p className="mt-0.5 text-sm text-gray-400">{subtitle}</p>
+    </div>
+  );
+}
+
+function GroupDivider({ title, subtitle }: { title: string; subtitle: string }): JSX.Element {
+  return (
+    <div className="relative pt-2">
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
+      <h2 className="pt-3 text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
+        {title}
+      </h2>
+      <p className="mt-0.5 text-sm text-gray-400">{subtitle}</p>
+    </div>
+  );
+}
+
 function Section({
   title,
   description,
@@ -335,12 +385,12 @@ function Section({
   children: React.ReactNode;
 }): JSX.Element {
   return (
-    <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+    <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
       <div className="mb-4">
-        <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+        <h3 className="flex items-center gap-2 text-base font-semibold text-gray-900 sm:text-lg">
           {icon ? <span className="text-base">{icon}</span> : null}
           {title}
-        </h2>
+        </h3>
         {description ? (
           <p className="mt-1 text-sm text-gray-500">{description}</p>
         ) : null}
@@ -350,19 +400,29 @@ function Section({
   );
 }
 
-function List({ items, emptyText = "데이터 없음" }: { items: string[] | null; emptyText?: string }): JSX.Element {
+function List({
+  items,
+  emptyText = "분석 데이터가 충분하지 않아 인사이트를 생성하지 못했습니다.",
+}: {
+  items: string[] | null;
+  emptyText?: string;
+}): JSX.Element {
   const safe = normalizeItems(items);
   if (safe.length === 0) {
-    return <p className="text-sm text-gray-400">{emptyText}</p>;
+    return (
+      <p className="rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-400">
+        {emptyText}
+      </p>
+    );
   }
   return (
     <ul className="space-y-2">
       {safe.map((item, i) => (
         <li
           key={i}
-          className="flex items-start gap-3 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm leading-6 text-gray-800"
+          className="flex items-start gap-3 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm leading-relaxed text-gray-800"
         >
-          <span className="mt-1 block h-1.5 w-1.5 flex-shrink-0 rounded-full bg-gray-400" />
+          <span className="mt-[9px] block h-1.5 w-1.5 flex-shrink-0 rounded-full bg-gray-400" />
           <span>{item}</span>
         </li>
       ))}
@@ -370,17 +430,43 @@ function List({ items, emptyText = "데이터 없음" }: { items: string[] | nul
   );
 }
 
-function MetricCard({ label, value, description }: { label: string; value: string; description: string }): JSX.Element {
+function EmptyState({ message }: { message: string }): JSX.Element {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4 transition-shadow hover:shadow-md">
-      <p className="text-xs font-medium text-gray-500">{label}</p>
-      <p className="mt-1.5 text-xl font-bold tabular-nums text-gray-900">{value}</p>
-      <p className="mt-1 text-xs text-gray-400">{description}</p>
+    <p className="rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-400">
+      {message}
+    </p>
+  );
+}
+
+function MetricCard({
+  label,
+  value,
+  description,
+}: {
+  label: string;
+  value: string;
+  description: string;
+}): JSX.Element {
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-3.5 transition-shadow hover:shadow-md sm:p-4">
+      <p className="text-[11px] font-medium text-gray-500 sm:text-xs">{label}</p>
+      <p className="mt-1 text-lg font-bold tabular-nums text-gray-900 sm:mt-1.5 sm:text-xl">
+        {value}
+      </p>
+      <p className="mt-0.5 text-[11px] text-gray-400 sm:mt-1 sm:text-xs">{description}</p>
     </div>
   );
 }
 
-function ScoreBar({ label, score, colorClass }: { label: string; score: number; colorClass: string }): JSX.Element {
+function ScoreBar({
+  label,
+  score,
+  colorClass,
+}: {
+  label: string;
+  score: number;
+  colorClass: string;
+}): JSX.Element {
   const clamped = Math.max(0, Math.min(100, Math.round(score)));
   return (
     <div>
@@ -409,6 +495,8 @@ function PatternBadge({ flag }: { flag: PatternFlag }): JSX.Element {
     </span>
   );
 }
+
+// ── Main component ──
 
 export default function AnalysisReportView({
   selectedChannel,
@@ -439,7 +527,7 @@ export default function AnalysisReportView({
 
   if (!latestResult) {
     return (
-      <section className="rounded-2xl border bg-white p-6 text-sm text-gray-600 shadow-sm">
+      <section className="rounded-2xl border border-gray-200 bg-white p-6 text-sm text-gray-600 shadow-sm">
         아직 분석 결과가 없습니다.
       </section>
     );
@@ -508,9 +596,9 @@ export default function AnalysisReportView({
   }
 
   return (
-    <div className="space-y-6">
-      {/* ── Channel Header ── */}
-      <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+    <div className="space-y-8">
+      {/* ═══ Channel Header ═══ */}
+      <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-center gap-4">
             {selectedChannel.thumbnail_url ? (
@@ -518,19 +606,19 @@ export default function AnalysisReportView({
               <img
                 src={selectedChannel.thumbnail_url}
                 alt={selectedChannel.channel_title ?? "channel"}
-                className="h-16 w-16 rounded-full border border-black/5 object-cover"
+                className="h-14 w-14 rounded-full border border-black/5 object-cover sm:h-16 sm:w-16"
               />
             ) : (
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-base font-semibold text-gray-500">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-base font-semibold text-gray-500 sm:h-16 sm:w-16">
                 {(selectedChannel.channel_title ?? "C").slice(0, 1).toUpperCase()}
               </div>
             )}
             <div>
               <p className="text-sm font-medium text-gray-500">채널 리포트</p>
-              <h1 className="mt-1 text-2xl font-bold text-gray-900">
+              <h1 className="mt-1 text-xl font-bold text-gray-900 sm:text-2xl">
                 {selectedChannel.channel_title ?? "채널명 없음"}
               </h1>
-              <p className="mt-2 text-sm text-gray-500">
+              <p className="mt-1.5 text-sm text-gray-500">
                 구독자 {formatNumber(selectedChannel.subscriber_count)}명
               </p>
             </div>
@@ -584,7 +672,7 @@ export default function AnalysisReportView({
           </div>
         </div>
 
-        <div className="mt-5 grid gap-3 md:grid-cols-3">
+        <div className="mt-5 grid gap-3 sm:grid-cols-3">
           <div className="rounded-xl bg-gray-50 px-4 py-3">
             <p className="text-xs font-medium text-gray-500">최근 분석 시각</p>
             <p className="mt-1 text-sm font-semibold text-gray-900">{analyzedAt}</p>
@@ -611,18 +699,21 @@ export default function AnalysisReportView({
       </section>
 
       {!isAnalyzed ? (
-        <section className="rounded-2xl border bg-white p-6 text-sm text-gray-700 shadow-sm">
-          분석 진행 중입니다.
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 text-sm text-gray-700 shadow-sm">
+          분석 진행 중입니다. 잠시 후 페이지를 새로고침해주세요.
         </section>
       ) : (
         <>
-          {/* ── Metrics Cards ── */}
+          {/* ═══ Data Overview ═══ */}
+
+          {/* Channel Metrics */}
           {metrics ? (
             <section>
-              <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
-                Channel Metrics
-              </h2>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+              <SectionHeader
+                title="Channel Metrics"
+                subtitle="최근 분석 영상 기반의 핵심 수치입니다."
+              />
+              <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
                 {(Object.keys(METRIC_META) as (keyof ChannelMetrics)[]).map((key) => {
                   const meta = METRIC_META[key];
                   return (
@@ -638,12 +729,13 @@ export default function AnalysisReportView({
             </section>
           ) : null}
 
-          {/* ── Score Overview ── */}
+          {/* Channel Score */}
           {totalScore != null && sectionScores ? (
-            <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
-                Channel Score
-              </h2>
+            <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+              <SectionHeader
+                title="Channel Score"
+                subtitle="5개 영역의 종합 채널 점수입니다."
+              />
               <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
                 <div className="flex flex-col items-center justify-center lg:w-40">
                   <span className={`text-5xl font-extrabold tabular-nums ${getScoreColor(totalScore)}`}>
@@ -671,32 +763,42 @@ export default function AnalysisReportView({
             </section>
           ) : null}
 
-          {/* ── Detected Patterns ── */}
-          {patterns.length > 0 ? (
-            <section>
-              <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
-                Detected Patterns
-              </h2>
+          {/* Benchmark Radar */}
+          {metrics ? (
+            <BenchmarkRadar metrics={metrics} />
+          ) : null}
+
+          {/* Detected Patterns */}
+          <section>
+            <SectionHeader
+              title="Detected Patterns"
+              subtitle="분석 데이터에서 감지된 채널 패턴입니다."
+            />
+            {patterns.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {patterns.map((flag) => (
                   <PatternBadge key={flag} flag={flag} />
                 ))}
               </div>
-            </section>
-          ) : null}
+            ) : (
+              <EmptyState message="감지된 특이 패턴이 없습니다. 전반적으로 안정적인 채널 구조입니다." />
+            )}
+          </section>
 
-          {/* ── AI Insights ── */}
-          <div className="relative">
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
-            <h2 className="pb-1 pt-4 text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
-              AI Insights
-            </h2>
-          </div>
+          {/* ═══ AI Insights ═══ */}
+          <GroupDivider
+            title="AI Insights"
+            subtitle="Gemini 분석 엔진이 생성한 인사이트입니다."
+          />
 
           <Section title="채널 요약" icon="📋">
-            <p className="text-sm leading-7 text-gray-800">
-              {latestResult.channel_summary ?? "요약 없음"}
-            </p>
+            {latestResult.channel_summary ? (
+              <p className="text-sm leading-7 text-gray-800">
+                {latestResult.channel_summary}
+              </p>
+            ) : (
+              <EmptyState message="채널 요약을 생성하지 못했습니다." />
+            )}
           </Section>
 
           <Section
@@ -706,34 +808,68 @@ export default function AnalysisReportView({
               latestResult.content_pattern_summary ?? "반복적으로 보이는 콘텐츠 흐름입니다."
             }
           >
-            <List items={latestResult.content_patterns} />
+            <List
+              items={latestResult.content_patterns}
+              emptyText="콘텐츠 패턴을 분석하기에 데이터가 부족합니다."
+            />
           </Section>
 
           <div className="grid gap-6 xl:grid-cols-2">
             <Section title="강점" icon="💪">
-              <List items={latestResult.strengths} />
+              <List
+                items={latestResult.strengths}
+                emptyText="현재 데이터에서 뚜렷한 강점을 도출하지 못했습니다."
+              />
             </Section>
             <Section title="약점" icon="⚠️">
-              <List items={latestResult.weaknesses} />
+              <List
+                items={latestResult.weaknesses}
+                emptyText="현재 데이터에서 뚜렷한 약점을 도출하지 못했습니다."
+              />
             </Section>
           </div>
 
           <div className="grid gap-6 xl:grid-cols-2">
             <Section title="병목 요인" icon="🚧">
-              <List items={latestResult.bottlenecks} />
+              <List
+                items={latestResult.bottlenecks}
+                emptyText="뚜렷한 병목 요인이 감지되지 않았습니다."
+              />
             </Section>
             <Section title="타겟 시청자" icon="🎯">
-              <List items={latestResult.target_audience} />
+              <List
+                items={latestResult.target_audience}
+                emptyText="타겟 시청자 정보가 충분하지 않습니다."
+              />
             </Section>
           </div>
 
           <Section title="추천 콘텐츠" icon="💡">
-            <List items={latestResult.recommended_topics} />
+            <List
+              items={latestResult.recommended_topics}
+              emptyText="추천 콘텐츠 주제를 생성하지 못했습니다."
+            />
           </Section>
 
           <Section title="성장 액션 플랜" icon="🚀">
-            <List items={latestResult.growth_action_plan} />
+            <List
+              items={latestResult.growth_action_plan}
+              emptyText="실행 가능한 액션 플랜을 생성하지 못했습니다."
+            />
           </Section>
+
+          {/* ═══ Strategy ═══ */}
+          <GroupDivider
+            title="Next Trend"
+            subtitle="채널 데이터를 기반으로 향후 시도해볼 콘텐츠 방향입니다."
+          />
+
+          <NextTrend
+            recommendedTopics={latestResult.recommended_topics}
+            contentPatterns={latestResult.content_patterns}
+            growthActionPlan={latestResult.growth_action_plan}
+            targetAudience={latestResult.target_audience}
+          />
         </>
       )}
     </div>
