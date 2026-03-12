@@ -51,15 +51,36 @@ interface ChannelsResponse {
   items?: ChannelsResponseItem[];
 }
 
-async function resolveChannelId(
-  input: ChannelLookupInput,
+async function resolveChannelIdByHandle(
+  handle: string,
   apiKey: string
-): Promise<string> {
-  if (input.type === "channelId") {
-    return input.value;
-  }
+): Promise<string | null> {
+  const handleParam = handle.startsWith("@") ? handle : `@${handle}`;
 
-  const query = `@${input.value}`;
+  const url =
+    "https://www.googleapis.com/youtube/v3/channels" +
+    `?part=id&forHandle=${encodeURIComponent(handleParam)}` +
+    `&key=${encodeURIComponent(apiKey)}`;
+
+  try {
+    const data = await fetchJsonWithRetry<ChannelsResponse>(url, {
+      label: "YOUTUBE_API_CHANNELS_FOR_HANDLE",
+    });
+    return data.items?.[0]?.id ?? null;
+  } catch (error) {
+    console.warn("[getChannelInfo] forHandle lookup failed, will try search fallback", {
+      handle,
+      error: error instanceof Error ? error.message : "unknown",
+    });
+    return null;
+  }
+}
+
+async function resolveChannelIdBySearch(
+  handle: string,
+  apiKey: string
+): Promise<string | null> {
+  const query = `@${handle}`;
 
   const url =
     "https://www.googleapis.com/youtube/v3/search" +
@@ -69,13 +90,36 @@ async function resolveChannelId(
   const data = await fetchJsonWithRetry<SearchResponse>(url, {
     label: "YOUTUBE_API_SEARCH_CHANNEL",
   });
-  const channelId = data.items?.[0]?.id?.channelId;
 
-  if (!channelId) {
-    throw new Error("CHANNEL_NOT_FOUND_BY_HANDLE");
+  return data.items?.[0]?.id?.channelId ?? null;
+}
+
+async function resolveChannelId(
+  input: ChannelLookupInput,
+  apiKey: string
+): Promise<string> {
+  if (input.type === "channelId") {
+    return input.value;
   }
 
-  return channelId;
+  const handle = input.value;
+
+  // 1차: forHandle (정확한 매칭)
+  const byHandle = await resolveChannelIdByHandle(handle, apiKey);
+  if (byHandle) {
+    console.log("[getChannelInfo] resolved via forHandle", { handle, channelId: byHandle });
+    return byHandle;
+  }
+
+  // 2차: search fallback (fuzzy)
+  console.log("[getChannelInfo] trying search fallback", { handle });
+  const bySearch = await resolveChannelIdBySearch(handle, apiKey);
+  if (bySearch) {
+    console.log("[getChannelInfo] resolved via search", { handle, channelId: bySearch });
+    return bySearch;
+  }
+
+  throw new Error("CHANNEL_NOT_FOUND_BY_HANDLE");
 }
 
 async function fetchChannelInfoById(

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { formatDateTime } from '@/lib/format/formatDateTime'
 
 type Channel = {
   id: string
@@ -48,21 +49,7 @@ function formatNumber(value: number | null | undefined) {
   return new Intl.NumberFormat('ko-KR').format(value)
 }
 
-function formatDateTime(value: string | null | undefined) {
-  if (!value) return '-'
-
-  const date = new Date(value)
-
-  if (Number.isNaN(date.getTime())) return '-'
-
-  return new Intl.DateTimeFormat('ko-KR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(date)
-}
+// formatDateTime imported from @/lib/format/formatDateTime
 
 function getRemainingCooldownHours(lastAnalyzedAt: string | null | undefined) {
   if (!lastAnalyzedAt) return 0

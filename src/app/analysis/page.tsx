@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 import AnalysisShell from "@/components/analysis/AnalysisShell";
+import { formatDateTime } from "@/lib/format/formatDateTime";
 
 type UserChannel = {
   id: string;
@@ -19,14 +20,7 @@ function formatNumber(value: number | null | undefined) {
   return new Intl.NumberFormat("ko-KR").format(value);
 }
 
-function formatDateTime(value: string | null | undefined) {
-  if (!value) return "-";
-
-  return new Intl.DateTimeFormat("ko-KR", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
-}
+// formatDateTime imported from @/lib/format/formatDateTime
 
 export default async function AnalysisPage() {
   const supabase = await createClient();

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { parseChannelUrl } from '@/lib/youtube/parseChannelUrl'
 import { getChannelInfo } from '@/lib/youtube/getChannelInfo'
-import { getChannelLimit } from '@/lib/admin/adminTools'
+import { getChannelLimit, isAdminUser } from '@/lib/admin/adminTools'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -52,9 +52,10 @@ export async function POST(request: NextRequest) {
     }
 
     const parsed = parseChannelUrl(channelUrl)
-    console.log('parsed:', parsed)
+    console.log('[channels.register] parsed:', parsed)
 
     if (!parsed) {
+      console.warn('[channels.register] INVALID_URL:', channelUrl)
       return NextResponse.json(
         {
           error:
@@ -151,8 +152,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    console.log('[channels.register] resolving channel...', { type: parsed.type, value: parsed.value })
     const info = await getChannelInfo(parsed)
-    console.log('channel info:', info)
+    console.log('[channels.register] resolved:', { channelId: info.channelId, title: info.title })
 
     const { data: existingChannel, error: existingError } = await adminSupabase
       .from('user_channels')
@@ -176,11 +178,19 @@ export async function POST(request: NextRequest) {
     }
 
     if (existingChannel) {
+      console.warn('[channels.register] DUPLICATE:', { userId: user.id, channelId: info.channelId })
       return NextResponse.json(
         { error: '이미 등록된 채널입니다.' },
         { status: 409 }
       )
     }
+
+    const admin = isAdminUser(user.email)
+    console.log('[channels.register] inserting...', {
+      userId: user.id,
+      admin,
+      channelId: info.channelId,
+    })
 
     const { data, error: insertError } = await adminSupabase
       .from('user_channels')
@@ -209,32 +219,48 @@ export async function POST(request: NextRequest) {
       )
       .single()
 
-    console.log('insertError:', insertError)
-    console.log('inserted data:', data)
-
     if (insertError) {
+      const detail = insertError.message ?? ''
+      const isLimitError = detail.includes('CHANNEL_LIMIT_EXCEEDED')
+
+      console.error('[channels.register] INSERT_FAILED:', {
+        message: detail,
+        isLimitError,
+        admin,
+      })
+
+      if (isLimitError) {
+        return NextResponse.json(
+          { error: '채널은 최대 3개까지 등록할 수 있습니다.' },
+          { status: 400 }
+        )
+      }
+
       return NextResponse.json(
         {
           error: '채널 등록에 실패했습니다.',
-          detail: insertError.message ?? null,
-          raw: insertError,
+          detail,
         },
         { status: 500 }
       )
     }
 
+    console.log('[channels.register] INSERT_SUCCESS:', {
+      id: data?.id,
+      admin,
+    })
+
     return NextResponse.json(
       {
         success: true,
-        message: '채널이 등록되었습니다.',
+        message: admin ? '채널이 등록되었습니다. (Admin)' : '채널이 등록되었습니다.',
         data,
       },
       { status: 200 }
     )
   } catch (error) {
-    console.error('channels POST fatal error:', error)
-
     const message = error instanceof Error ? error.message : 'UNKNOWN_ERROR'
+    console.error('[channels.register] FATAL:', message)
 
     if (message === 'YOUTUBE_API_KEY_MISSING') {
       return NextResponse.json(
@@ -253,7 +279,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (message.startsWith('YOUTUBE_API_ERROR:')) {
+    if (message.includes('YOUTUBE_API_ERROR')) {
       return NextResponse.json(
         {
           error: 'YouTube API 호출에 실패했습니다.',

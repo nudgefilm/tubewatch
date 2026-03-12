@@ -8,6 +8,7 @@ import {
   toStatusBadgeStatus,
 } from "@/components/ui/StatusBadge";
 import { isAdminUser } from "@/lib/admin/adminTools";
+import { formatDateTime } from "@/lib/format/formatDateTime";
 
 type UserChannel = {
   id: string;
@@ -84,22 +85,7 @@ function hasUsableAnalysis(result: AnalysisResult | null | undefined) {
   return channelSummaryOk && populatedSections >= 3;
 }
 
-function formatDateTime(value: string | null | undefined) {
-  if (!value) return "-";
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "-";
-
-  return new Intl.DateTimeFormat("ko-KR", {
-    timeZone: "Asia/Seoul",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).format(date);
-}
+// formatDateTime imported from @/lib/format/formatDateTime
 
 function formatRemaining(ms: number) {
   if (ms <= 0) return "지금 분석 가능";
@@ -270,8 +256,9 @@ export default async function AnalysisChannelPage({
     ? (successfulResults as AnalysisResult[])
     : [];
 
-  const latestUsableSuccessfulResult =
-    successfulRows.find((row) => hasUsableAnalysis(row)) ?? null;
+  const usableSuccessfulRows = successfulRows.filter((row) => hasUsableAnalysis(row));
+  const latestUsableSuccessfulResult = usableSuccessfulRows[0] ?? null;
+  const previousUsableSuccessfulResult = usableSuccessfulRows[1] ?? null;
 
   const { data: latestResults, error: latestResultsError } = await supabase
     .from("analysis_results")
@@ -305,6 +292,15 @@ export default async function AnalysisChannelPage({
 
   const latestResult =
     latestUsableSuccessfulResult ?? latestAnyResult ?? null;
+
+  const { data: historyRows } = await supabase
+    .from("analysis_results")
+    .select("id, job_id, created_at, feature_total_score, status, gemini_status")
+    .eq("user_channel_id", selectedChannel.id)
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  const analysisHistory = Array.isArray(historyRows) ? historyRows : [];
 
   const cooldown = buildCooldownState(selectedChannel as UserChannel, latestResult);
 
@@ -369,7 +365,9 @@ export default async function AnalysisChannelPage({
       <AnalysisReportView
         selectedChannel={selectedChannel}
         latestResult={latestResult}
+        previousResult={previousUsableSuccessfulResult}
         isAdmin={isAdminUser(user.email)}
+        analysisHistory={analysisHistory}
       />
     </AnalysisShell>
   );

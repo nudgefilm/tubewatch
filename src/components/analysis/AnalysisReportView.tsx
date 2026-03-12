@@ -16,6 +16,11 @@ import {
   computeMetricsCompleteness,
   type AnalysisConfidence,
 } from "@/lib/analysis/confidence/computeAnalysisConfidence";
+import { formatDateTime } from "@/lib/format/formatDateTime";
+import AnalysisHistoryList from "@/components/analysis/AnalysisHistoryList";
+import type { AnalysisHistoryItem } from "@/components/analysis/AnalysisHistoryList";
+import GrowthTrendChart from "@/components/analysis/GrowthTrendChart";
+import AnalysisCompareCard from "@/components/analysis/AnalysisCompareCard";
 
 // ── Types ──
 
@@ -65,7 +70,9 @@ type AnalysisResult = {
 type AnalysisReportViewProps = {
   selectedChannel: SelectedChannel;
   latestResult: AnalysisResult | null;
+  previousResult?: AnalysisResult | null;
   isAdmin?: boolean;
+  analysisHistory?: AnalysisHistoryItem[];
 };
 
 type ChannelMetrics = {
@@ -243,16 +250,7 @@ function formatNumber(value: number | null | undefined): string {
   return new Intl.NumberFormat("ko-KR").format(value);
 }
 
-function formatDateTime(value: string | null | undefined): string {
-  if (!value) return "-";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "-";
-  return new Intl.DateTimeFormat("ko-KR", {
-    timeZone: "Asia/Seoul",
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
-}
+// formatDateTime imported from @/lib/format/formatDateTime
 
 // ── Data helpers ──
 
@@ -633,7 +631,9 @@ function AdminResetPanel({
 export default function AnalysisReportView({
   selectedChannel,
   latestResult,
+  previousResult = null,
   isAdmin = false,
+  analysisHistory = [],
 }: AnalysisReportViewProps): JSX.Element {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -1080,6 +1080,64 @@ export default function AnalysisReportView({
           />
         </>
       )}
+
+      {analysisHistory.length > 0 ? (
+        <>
+          <GroupDivider
+            title="Growth Trend"
+            subtitle="분석 점수의 변화 추이를 확인합니다."
+          />
+
+          <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+            <SectionHeader title="성장 추이" subtitle="최근 분석 기록 기반 점수 변화" />
+            <div className="mt-4">
+              <GrowthTrendChart points={analysisHistory} />
+            </div>
+          </section>
+
+          <GroupDivider
+            title="Analysis Compare"
+            subtitle="이전 분석 결과와 현재를 비교합니다."
+          />
+          <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+            <SectionHeader title="분석 비교" subtitle="직전 분석 대비 점수 변화" />
+            <div className="mt-4">
+              <AnalysisCompareCard
+                current={{
+                  id: latestResult?.id ?? "",
+                  created_at: latestResult?.created_at ?? null,
+                  feature_total_score: latestResult?.feature_total_score ?? null,
+                  feature_section_scores: latestResult?.feature_section_scores ?? null,
+                }}
+                previous={
+                  previousResult
+                    ? {
+                        id: previousResult.id,
+                        created_at: previousResult.created_at,
+                        feature_total_score: previousResult.feature_total_score,
+                        feature_section_scores: previousResult.feature_section_scores,
+                      }
+                    : null
+                }
+              />
+            </div>
+          </section>
+
+          <GroupDivider
+            title="Analysis History"
+            subtitle="이 채널의 과거 분석 기록입니다."
+          />
+          <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+            <SectionHeader title="분석 이력" subtitle="최근 20건의 분석 기록" />
+            <div className="mt-4">
+              <AnalysisHistoryList
+                items={analysisHistory}
+                currentResultId={latestResult?.id}
+              />
+            </div>
+          </section>
+        </>
+      ) : null}
     </div>
   );
 }
