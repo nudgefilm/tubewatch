@@ -7,6 +7,7 @@ import {
   StatusBadge,
   toStatusBadgeStatus,
 } from "@/components/ui/StatusBadge";
+import { isAdminUser } from "@/lib/admin/adminTools";
 
 type UserChannel = {
   id: string;
@@ -368,6 +369,7 @@ export default async function AnalysisChannelPage({
       <AnalysisReportView
         selectedChannel={selectedChannel}
         latestResult={latestResult}
+        isAdmin={isAdminUser(user.email)}
       />
     </AnalysisShell>
   );

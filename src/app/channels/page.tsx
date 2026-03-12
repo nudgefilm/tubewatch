@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import RegisterChannelForm from '@/components/channels/RegisterChannelForm'
 import ChannelCard from '@/components/channels/ChannelCard'
 import { createClient } from '@/lib/supabase/server'
+import { isAdminUser, getChannelLimit } from '@/lib/admin/adminTools'
 
 type UserChannel = {
   id: string
@@ -53,19 +54,27 @@ export default async function ChannelsPage() {
 
   const safeChannels: UserChannel[] = channels ?? []
   const currentCount = safeChannels.length
-  const maxCount = 3
+  const admin = isAdminUser(user.email)
+  const maxCount = getChannelLimit(user.email)
 
   return (
     <main className="mx-auto max-w-6xl p-6">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900">내 채널</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-4xl font-bold text-gray-900">내 채널</h1>
+          {admin ? (
+            <span className="rounded-md bg-indigo-100 px-2 py-1 text-xs font-semibold text-indigo-700">
+              Admin
+            </span>
+          ) : null}
+        </div>
         <p className="mt-3 text-lg text-gray-600">
           등록된 채널을 관리하고 분석 요청을 진행할 수 있습니다.
         </p>
       </div>
 
       <section className="mb-10">
-        <RegisterChannelForm currentCount={currentCount} maxCount={maxCount} />
+        <RegisterChannelForm currentCount={currentCount} maxCount={maxCount} isAdmin={admin} />
       </section>
 
       <section>
@@ -76,7 +85,7 @@ export default async function ChannelsPage() {
         ) : (
           <div className="grid gap-6">
             {safeChannels.map((channel) => (
-              <ChannelCard key={channel.id} channel={channel} />
+              <ChannelCard key={channel.id} channel={channel} isAdmin={admin} />
             ))}
           </div>
         )}

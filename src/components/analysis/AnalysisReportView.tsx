@@ -65,6 +65,7 @@ type AnalysisResult = {
 type AnalysisReportViewProps = {
   selectedChannel: SelectedChannel;
   latestResult: AnalysisResult | null;
+  isAdmin?: boolean;
 };
 
 type ChannelMetrics = {
@@ -565,11 +566,74 @@ function PatternBadge({ flag }: { flag: PatternFlag }): JSX.Element {
   );
 }
 
+function AdminResetPanel({
+  userChannelId,
+  onReset,
+}: {
+  userChannelId: string;
+  onReset: () => void;
+}): JSX.Element {
+  const [isResetting, setIsResetting] = useState(false);
+  const [resetMessage, setResetMessage] = useState<string | null>(null);
+
+  async function handleReset(): Promise<void> {
+    if (isResetting) return;
+    try {
+      setIsResetting(true);
+      setResetMessage(null);
+
+      const res = await fetch("/api/admin/reset-analysis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_channel_id: userChannelId }),
+      });
+      const json = await res.json().catch(() => null);
+
+      if (!res.ok || !json?.ok) {
+        setResetMessage(json?.error ?? "리셋에 실패했습니다.");
+        return;
+      }
+
+      setResetMessage("분석 상태가 초기화되었습니다. 즉시 재분석이 가능합니다.");
+      onReset();
+    } catch {
+      setResetMessage("리셋 요청 중 오류가 발생했습니다.");
+    } finally {
+      setIsResetting(false);
+    }
+  }
+
+  return (
+    <div className="mt-4 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold text-indigo-700">Admin Tools</p>
+          <p className="mt-0.5 text-xs text-indigo-600">
+            분석 타임스탬프를 초기화하여 즉시 재분석을 허용합니다.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleReset}
+          disabled={isResetting}
+          className="flex-shrink-0 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-indigo-500 disabled:opacity-50"
+        >
+          {isResetting ? "초기화 중..." : "분석 리셋"}
+        </button>
+      </div>
+      {resetMessage ? (
+        <p className="mt-2 text-xs text-indigo-700">{resetMessage}</p>
+      ) : null}
+    </div>
+  );
+}
+
 // ── Main component ──
 
 export default function AnalysisReportView({
   selectedChannel,
   latestResult,
+  isAdmin = false,
 }: AnalysisReportViewProps): JSX.Element {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -636,8 +700,10 @@ export default function AnalysisReportView({
     latestResult.status === "running" ||
     latestResult.gemini_status === "processing";
 
+  const isCooldownBlocked = isAdmin ? false : cooldown.isCooldownActive;
+
   const isRequestLocked =
-    isSubmitting || isRefreshing || localPending || isBackendRunning || cooldown.isCooldownActive;
+    isSubmitting || isRefreshing || localPending || isBackendRunning || isCooldownBlocked;
 
   const analyzedAt = formatDateTime(latestResult.gemini_analyzed_at ?? latestResult.created_at);
   const confidenceLevel = confidence?.confidenceLevel ?? "low";
@@ -652,7 +718,7 @@ export default function AnalysisReportView({
     if (isRefreshing) return "상태 반영 중...";
     if (localPending) return "분석 요청됨";
     if (isBackendRunning) return "분석 진행 중";
-    if (cooldown.isCooldownActive) return "72시간 쿨다운 적용 중";
+    if (isCooldownBlocked) return "72시간 쿨다운 적용 중";
     if (latestResult?.status === "failed" || latestResult?.gemini_status === "failed") {
       return "다시 분석 요청";
     }
@@ -779,7 +845,11 @@ export default function AnalysisReportView({
                   <p className="text-red-600">{requestError}</p>
                 ) : requestMessage ? (
                   <p className="text-emerald-600">{requestMessage}</p>
-                ) : cooldown.isCooldownActive ? (
+                ) : isAdmin && cooldown.isCooldownActive ? (
+                  <p className="text-indigo-600">
+                    Admin: 쿨다운 바이패스 활성 · 즉시 재분석 가능
+                  </p>
+                ) : isCooldownBlocked ? (
                   <p className="text-amber-700">
                     {cooldown.remainingText} · 다음 가능 시각 {cooldown.nextAvailableAtText}
                   </p>
@@ -818,6 +888,15 @@ export default function AnalysisReportView({
           <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800">
             {latestResult.sample_size_note}
           </div>
+        ) : null}
+
+        {isAdmin ? (
+          <AdminResetPanel
+            userChannelId={selectedChannel.id}
+            onReset={() => {
+              startTransition(() => { router.refresh(); });
+            }}
+          />
         ) : null}
       </section>
 

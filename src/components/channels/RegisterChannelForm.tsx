@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 type RegisterChannelFormProps = {
   currentCount?: number
   maxCount?: number
+  isAdmin?: boolean
 }
 
 type RegisterChannelResponse = {
@@ -30,6 +31,7 @@ type RegisterChannelResponse = {
 export default function RegisterChannelForm({
   currentCount = 0,
   maxCount = 3,
+  isAdmin = false,
 }: RegisterChannelFormProps) {
   const supabase = createClient()
 
@@ -111,11 +113,20 @@ export default function RegisterChannelForm({
       <h2 className="text-2xl font-bold text-gray-900">채널 등록</h2>
 
       <p className="mt-3 text-base text-gray-600">
-        유튜브 채널 URL을 등록하세요. 최대 {maxCount}개까지 등록할 수 있습니다.
+        유튜브 채널 URL을 등록하세요.
+        {isAdmin
+          ? " 관리자 계정은 제한 없이 채널을 등록할 수 있습니다."
+          : ` 최대 ${maxCount}개까지 등록할 수 있습니다.`}
       </p>
 
       <p className="mt-2 text-sm text-gray-500">
-        현재 등록 수: {currentCount}/{maxCount}
+        현재 등록 수: {currentCount}
+        {isAdmin ? "개" : `/${maxCount}`}
+        {isAdmin ? (
+          <span className="ml-2 rounded bg-indigo-100 px-1.5 py-0.5 text-xs font-semibold text-indigo-700">
+            무제한
+          </span>
+        ) : null}
       </p>
 
       <form onSubmit={handleSubmit} className="mt-6">

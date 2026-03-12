@@ -19,6 +19,7 @@ type Channel = {
 type ChannelCardProps = {
   channel: Channel
   onRefresh?: () => Promise<void> | void
+  isAdmin?: boolean
 }
 
 type AnalysisResponse = {
@@ -81,6 +82,7 @@ function getRemainingCooldownHours(lastAnalyzedAt: string | null | undefined) {
 export default function ChannelCard({
   channel,
   onRefresh,
+  isAdmin = false,
 }: ChannelCardProps) {
   const router = useRouter()
 
@@ -91,7 +93,7 @@ export default function ChannelCard({
   const remainingCooldownHours = getRemainingCooldownHours(
     channel.last_analyzed_at
   )
-  const isCooldownActive = remainingCooldownHours > 0
+  const isCooldownActive = !isAdmin && remainingCooldownHours > 0
 
   async function handleRequestAnalysis() {
     console.log('handleRequestAnalysis clicked', {
@@ -209,7 +211,12 @@ export default function ChannelCard({
       </div>
 
       <div className="mt-5 rounded-lg bg-gray-50 p-3 text-sm text-gray-700">
-        {isCooldownActive ? (
+        {isAdmin && remainingCooldownHours > 0 ? (
+          <p className="text-indigo-600">
+            관리자 계정: 쿨다운 바이패스 활성
+            <span className="ml-1 text-indigo-400">(일반 유저 기준 {remainingCooldownHours}시간 남음)</span>
+          </p>
+        ) : isCooldownActive ? (
           <p>
             현재 쿨다운이 적용 중입니다. 약{' '}
             <span className="font-semibold">{remainingCooldownHours}시간</span>{' '}

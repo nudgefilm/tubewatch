@@ -5,6 +5,7 @@ import {
   ANALYSIS_QUEUE_STATUS,
   ANALYSIS_JOB_STATUS,
 } from "@/lib/server/analysis/status";
+import { canBypassCooldown } from "@/lib/admin/adminTools";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -149,21 +150,25 @@ export async function POST(req: Request) {
       );
     }
 
-    const remainingHours = getRemainingCooldownHours(
-      channel.last_analyzed_at
-    );
+    const adminBypass = canBypassCooldown(user.email);
 
-    if (remainingHours > 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          ok: false,
-          code: "COOLDOWN_ACTIVE",
-          error: `현재 쿨다운이 적용 중입니다. 약 ${remainingHours}시간 후 다시 요청할 수 있습니다.`,
-          remaining_hours: remainingHours,
-        },
-        { status: 409 }
+    if (!adminBypass) {
+      const remainingHours = getRemainingCooldownHours(
+        channel.last_analyzed_at
       );
+
+      if (remainingHours > 0) {
+        return NextResponse.json(
+          {
+            success: false,
+            ok: false,
+            code: "COOLDOWN_ACTIVE",
+            error: `현재 쿨다운이 적용 중입니다. 약 ${remainingHours}시간 후 다시 요청할 수 있습니다.`,
+            remaining_hours: remainingHours,
+          },
+          { status: 409 }
+        );
+      }
     }
 
     const { data: activeQueueRow, error: activeQueueError } = await supabase

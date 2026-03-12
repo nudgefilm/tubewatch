@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { parseChannelUrl } from '@/lib/youtube/parseChannelUrl'
 import { getChannelInfo } from '@/lib/youtube/getChannelInfo'
+import { getChannelLimit } from '@/lib/admin/adminTools'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -141,10 +142,11 @@ export async function POST(request: NextRequest) {
     }
 
     const count = userRows?.length ?? 0
+    const maxChannels = getChannelLimit(user.email)
 
-    if (count >= 3) {
+    if (count >= maxChannels) {
       return NextResponse.json(
-        { error: '채널은 최대 3개까지 등록할 수 있습니다.' },
+        { error: `채널은 최대 ${maxChannels}개까지 등록할 수 있습니다.` },
         { status: 400 }
       )
     }
