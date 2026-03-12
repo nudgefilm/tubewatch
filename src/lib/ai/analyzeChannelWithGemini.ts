@@ -538,7 +538,23 @@ function buildContextSection(ctx: AnalysisContext): string {
     `total_score: ${s.totalScore.toFixed(1)}`,
   ].join("\n");
 
-  return [metricsBlock, "", patternsBlock, "", scoresBlock].join("\n");
+  const tierLabel: Record<string, string> = {
+    micro: "Micro (구독자 1,000명 미만)",
+    small: "Small (구독자 1,000~10,000명)",
+    medium: "Medium (구독자 10,000~100,000명)",
+    large: "Large (구독자 100,000명 이상)",
+  };
+
+  const channelSizeBlock = [
+    `[채널 규모 정보]`,
+    `channel_size_tier: ${ctx.channelSizeTier} — ${tierLabel[ctx.channelSizeTier] ?? ctx.channelSizeTier}`,
+    `interpretation_mode: ${ctx.interpretationMode}`,
+    ``,
+    `[분석 해석 가이드]`,
+    ...ctx.interpretationHints.map((h) => `- ${h}`),
+  ].join("\n");
+
+  return [metricsBlock, "", patternsBlock, "", scoresBlock, "", channelSizeBlock].join("\n");
 }
 
 function buildPrompt(args: AnalyzeChannelWithGeminiArgs): string {

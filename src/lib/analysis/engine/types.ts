@@ -137,8 +137,18 @@ export type NormalizedVideo = {
     growthPotentialScore: number;
   };
 
+  export type ChannelSizeTier = "micro" | "small" | "medium" | "large";
+
+  export type InterpretationMode =
+    | "early_stage_signal_based"
+    | "growth_stage_pattern_based"
+    | "scale_stage_optimization";
+
   export type AnalysisContext = {
     metrics: ChannelMetrics;
     patterns: ChannelPatterns;
     scores: AnalysisContextScores;
+    channelSizeTier: ChannelSizeTier;
+    interpretationMode: InterpretationMode;
+    interpretationHints: string[];
   };

@@ -43,6 +43,7 @@ function computeSummary(results: ValidationResult[]): {
     empty_insight: 0,
     inconsistency: 0,
     generic_text: 0,
+    channel_size_mismatch: 0,
   };
 
   for (const result of results) {

@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/StatusBadge";
 import BenchmarkRadar from "@/components/analysis/BenchmarkRadar";
 import NextTrend from "@/components/analysis/NextTrend";
+import type { ChannelSizeTier } from "@/lib/analysis/engine/types";
 
 // ── Types ──
 
@@ -166,6 +167,33 @@ const PATTERN_META: Record<PatternFlag, { label: string; tone: string }> = {
     tone: "border-orange-300 bg-orange-50 text-orange-800",
   },
 };
+
+const CHANNEL_SIZE_TIER_META: Record<ChannelSizeTier, { label: string; className: string }> = {
+  micro: {
+    label: "Micro",
+    className: "border-gray-300 bg-gray-50 text-gray-700",
+  },
+  small: {
+    label: "Small",
+    className: "border-sky-300 bg-sky-50 text-sky-700",
+  },
+  medium: {
+    label: "Medium",
+    className: "border-violet-300 bg-violet-50 text-violet-700",
+  },
+  large: {
+    label: "Large",
+    className: "border-amber-300 bg-amber-50 text-amber-700",
+  },
+};
+
+function getChannelSizeTier(subscriberCount: number | null | undefined): ChannelSizeTier {
+  const count = subscriberCount ?? 0;
+  if (count >= 100_000) return "large";
+  if (count >= 10_000) return "medium";
+  if (count >= 1_000) return "small";
+  return "micro";
+}
 
 const SECTION_SCORE_LABELS: Record<string, string> = {
   channelActivity: "채널 활동",
@@ -618,8 +646,19 @@ export default function AnalysisReportView({
               <h1 className="mt-1 text-xl font-bold text-gray-900 sm:text-2xl">
                 {selectedChannel.channel_title ?? "채널명 없음"}
               </h1>
-              <p className="mt-1.5 text-sm text-gray-500">
-                구독자 {formatNumber(selectedChannel.subscriber_count)}명
+              <p className="mt-1.5 flex items-center gap-2 text-sm text-gray-500">
+                <span>구독자 {formatNumber(selectedChannel.subscriber_count)}명</span>
+                {(() => {
+                  const tier = getChannelSizeTier(selectedChannel.subscriber_count);
+                  const meta = CHANNEL_SIZE_TIER_META[tier];
+                  return (
+                    <span
+                      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold leading-none ${meta.className}`}
+                    >
+                      {meta.label}
+                    </span>
+                  );
+                })()}
               </p>
             </div>
           </div>

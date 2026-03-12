@@ -218,7 +218,8 @@ export async function POST(req: Request) {
     const analysisContext = buildAnalysisContext(
       channelMetrics,
       channelPatterns,
-      scoreResult
+      scoreResult,
+      userChannel.subscriber_count ?? undefined
     );
 
     const gemini = await analyzeChannelWithGemini({

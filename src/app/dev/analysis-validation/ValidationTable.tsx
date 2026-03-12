@@ -16,6 +16,7 @@ const ISSUE_TYPE_LABEL: Record<ValidationIssueType, string> = {
   empty_insight: "인사이트 누락",
   inconsistency: "불일치",
   generic_text: "추상적 표현",
+  channel_size_mismatch: "규모 불일치",
 };
 
 const ISSUE_TYPE_STYLE: Record<ValidationIssueType, string> = {
@@ -23,6 +24,7 @@ const ISSUE_TYPE_STYLE: Record<ValidationIssueType, string> = {
   empty_insight: "bg-amber-100 text-amber-700",
   inconsistency: "bg-red-100 text-red-700",
   generic_text: "bg-violet-100 text-violet-700",
+  channel_size_mismatch: "bg-sky-100 text-sky-700",
 };
 
 function getScoreColor(score: number): string {

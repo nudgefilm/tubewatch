@@ -4,7 +4,8 @@ export type ValidationIssueType =
   | "missing_metric"
   | "empty_insight"
   | "inconsistency"
-  | "generic_text";
+  | "generic_text"
+  | "channel_size_mismatch";
 
 export interface ValidationIssue {
   type: ValidationIssueType;
@@ -36,6 +37,7 @@ export interface AnalysisRow {
   recommended_topics: string[] | null;
   target_audience: string[] | null;
   created_at: string | null;
+  subscriber_count?: number | null;
 }
 
 type ChannelMetricsPartial = {
@@ -54,6 +56,7 @@ const PENALTY: Record<ValidationIssueType, number> = {
   empty_insight: 10,
   inconsistency: 15,
   generic_text: 5,
+  channel_size_mismatch: 10,
 };
 
 // ── Metric extraction ──
@@ -256,6 +259,60 @@ function checkGenericText(row: AnalysisRow): ValidationIssue[] {
   return issues;
 }
 
+// ── Check E: Channel size mismatch ──
+
+import { determineChannelSizeTier } from "@/lib/analysis/engine/buildAnalysisContext";
+import type { ChannelSizeTier } from "@/lib/analysis/engine/types";
+
+interface SizeMismatchRule {
+  tier: ChannelSizeTier;
+  conflictPatterns: RegExp[];
+  message: string;
+}
+
+const SIZE_MISMATCH_RULES: SizeMismatchRule[] = [
+  {
+    tier: "micro",
+    conflictPatterns: [/대규모\s*채널/, /대형\s*채널/, /높은\s*구독자\s*기반/, /대규모\s*시청자/],
+    message: "micro 채널이지만 인사이트에서 대규모/대형 채널 표현을 사용합니다.",
+  },
+  {
+    tier: "small",
+    conflictPatterns: [/대규모\s*채널/, /대형\s*채널/, /높은\s*구독자\s*기반/],
+    message: "small 채널이지만 인사이트에서 대규모/대형 채널 표현을 사용합니다.",
+  },
+  {
+    tier: "large",
+    conflictPatterns: [/초기\s*채널/, /신규\s*채널/, /입문\s*단계/, /초보\s*채널/],
+    message: "large 채널이지만 인사이트에서 초기/신규 채널 표현을 사용합니다.",
+  },
+];
+
+function checkChannelSizeMismatch(row: AnalysisRow): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+  const subCount = row.subscriber_count;
+
+  if (subCount == null) return issues;
+
+  const tier = determineChannelSizeTier(subCount);
+  const allText = joinAllInsights(row).join(" ");
+  if (allText.length === 0) return issues;
+
+  for (const rule of SIZE_MISMATCH_RULES) {
+    if (rule.tier !== tier) continue;
+
+    const hasConflict = rule.conflictPatterns.some((p) => p.test(allText));
+    if (hasConflict) {
+      issues.push({
+        type: "channel_size_mismatch",
+        message: rule.message,
+      });
+    }
+  }
+
+  return issues;
+}
+
 // ── Main validation entry ──
 
 export function validateAnalysisResult(row: AnalysisRow): ValidationResult {
@@ -264,6 +321,7 @@ export function validateAnalysisResult(row: AnalysisRow): ValidationResult {
     ...checkInsightCompleteness(row),
     ...checkMetricsInsightConsistency(row),
     ...checkGenericText(row),
+    ...checkChannelSizeMismatch(row),
   ];
 
   let score = 100;
