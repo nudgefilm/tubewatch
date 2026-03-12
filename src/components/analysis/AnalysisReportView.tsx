@@ -8,6 +8,8 @@ import {
 } from "@/components/ui/StatusBadge";
 import BenchmarkRadar from "@/components/analysis/BenchmarkRadar";
 import NextTrend from "@/components/analysis/NextTrend";
+import FirstAnalysisGuide from "@/components/analysis/FirstAnalysisGuide";
+import { AnalysisReportSkeleton } from "@/components/ui/SkeletonCard";
 import type { ChannelSizeTier, ConfidenceLevel } from "@/lib/analysis/engine/types";
 import {
   computeAnalysisConfidence,
@@ -606,9 +608,22 @@ export default function AnalysisReportView({
 
   if (!latestResult) {
     return (
-      <section className="rounded-2xl border border-gray-200 bg-white p-6 text-sm text-gray-600 shadow-sm">
-        아직 분석 결과가 없습니다.
-      </section>
+      <div className="space-y-6">
+        <FirstAnalysisGuide />
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 text-center shadow-sm">
+          <div className="mx-auto max-w-sm">
+            <p className="text-3xl">📋</p>
+            <h2 className="mt-3 text-lg font-bold text-gray-900">
+              아직 분석 결과가 없습니다
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-gray-500">
+              위 헤더의 분석 요청 버튼을 눌러 첫 분석을 시작해 보세요.
+              <br />
+              분석에는 약 1~2분이 소요됩니다.
+            </p>
+          </div>
+        </section>
+      </div>
     );
   }
 
@@ -807,9 +822,15 @@ export default function AnalysisReportView({
       </section>
 
       {!isAnalyzed ? (
-        <section className="rounded-2xl border border-gray-200 bg-white p-6 text-sm text-gray-700 shadow-sm">
-          분석 진행 중입니다. 잠시 후 페이지를 새로고침해주세요.
-        </section>
+        <div className="space-y-4">
+          <section className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm leading-6 text-amber-800 shadow-sm">
+            <p className="font-semibold">분석이 진행 중입니다</p>
+            <p className="mt-1 text-amber-700">
+              데이터 수집과 AI 분석이 완료되면 아래에 리포트가 표시됩니다. 약 1~2분 후 페이지를 새로고침해 주세요.
+            </p>
+          </section>
+          <AnalysisReportSkeleton />
+        </div>
       ) : (
         <>
           {/* ═══ Data Overview ═══ */}

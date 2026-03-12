@@ -47,8 +47,26 @@ export default async function AnalysisPage() {
 
   if (!channels || channels.length === 0) {
     return (
-      <main className="p-10">
-        <p>분석 가능한 채널이 없습니다.</p>
+      <main className="flex min-h-[70vh] items-center justify-center p-8">
+        <div className="mx-auto max-w-md text-center">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-3xl">
+            📊
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            채널 분석을 시작해 보세요
+          </h1>
+          <p className="mt-3 text-sm leading-relaxed text-gray-500">
+            TubeWatch는 채널 데이터를 기반으로 성장 신호를 분석합니다.
+            <br />
+            먼저 분석하고 싶은 YouTube 채널을 등록해 주세요.
+          </p>
+          <Link
+            href="/channels"
+            className="mt-6 inline-flex items-center justify-center rounded-xl bg-gray-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-gray-800"
+          >
+            채널 등록하기
+          </Link>
+        </div>
       </main>
     );
   }

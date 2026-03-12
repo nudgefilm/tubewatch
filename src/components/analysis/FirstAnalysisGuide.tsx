@@ -1,0 +1,87 @@
+"use client";
+
+import { useState } from "react";
+
+const GUIDE_ITEMS = [
+  {
+    icon: "📊",
+    title: "Channel Metrics",
+    description: "채널의 핵심 성과 지표입니다. 평균 조회수, 좋아요 비율, 업로드 주기 등을 한눈에 확인할 수 있습니다.",
+  },
+  {
+    icon: "🏆",
+    title: "Channel Score",
+    description: "채널 활동, 시청자 반응, 콘텐츠 구조, SEO, 성장 모멘텀 5개 영역을 기반으로 계산된 종합 점수입니다.",
+  },
+  {
+    icon: "📐",
+    title: "Benchmark Radar",
+    description: "성장 채널 기준값과 비교해 현재 채널의 위치를 레이더 차트로 시각화합니다.",
+  },
+  {
+    icon: "🤖",
+    title: "AI Insights",
+    description: "데이터를 기반으로 채널의 강점, 약점, 병목 요인을 분석하고 성장 액션 플랜을 제시합니다.",
+  },
+  {
+    icon: "🚀",
+    title: "Next Trend",
+    description: "분석 결과를 바탕으로 다음에 시도해볼 콘텐츠 방향과 추천 주제를 제안합니다.",
+  },
+  {
+    icon: "🛡️",
+    title: "Analysis Confidence",
+    description: "데이터 표본과 지표 완전성을 기반으로 분석의 신뢰도를 표시합니다.",
+  },
+];
+
+export default function FirstAnalysisGuide(): JSX.Element | null {
+  const [dismissed, setDismissed] = useState(false);
+
+  if (dismissed) return null;
+
+  return (
+    <section className="rounded-2xl border border-blue-200 bg-blue-50/50 p-5 shadow-sm sm:p-6">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-blue-600">
+            Getting Started
+          </p>
+          <h2 className="mt-1 text-lg font-bold text-gray-900">
+            분석 리포트 보는 방법
+          </h2>
+          <p className="mt-1.5 text-sm text-gray-500">
+            아래 각 섹션이 리포트에서 어떤 정보를 제공하는지 확인해 보세요.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setDismissed(true)}
+          className="flex-shrink-0 rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-200 hover:text-gray-600"
+          aria-label="가이드 닫기"
+        >
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {GUIDE_ITEMS.map((item) => (
+          <div
+            key={item.title}
+            className="rounded-xl border border-blue-100 bg-white p-4"
+          >
+            <div className="flex items-center gap-2.5">
+              <span className="text-lg">{item.icon}</span>
+              <h3 className="text-sm font-bold text-gray-900">{item.title}</h3>
+            </div>
+            <p className="mt-2 text-xs leading-relaxed text-gray-500">
+              {item.description}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
