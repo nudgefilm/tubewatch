@@ -4,6 +4,8 @@ type EmptyStateProps = {
   icon?: React.ReactNode;
   dashed?: boolean;
   action?: React.ReactNode;
+  /** App-style slate palette; default keeps existing gray/indigo */
+  variant?: "default" | "app";
 };
 
 export default function EmptyState({
@@ -12,25 +14,45 @@ export default function EmptyState({
   icon,
   dashed = false,
   action,
+  variant = "default",
 }: EmptyStateProps): JSX.Element {
+  const isApp = variant === "app";
   return (
     <div
       className={[
         "rounded-xl bg-white px-6 py-10 text-center",
         dashed
-          ? "border-2 border-dashed border-gray-200"
-          : "border border-gray-200 shadow-sm",
+          ? "border-2 border-dashed border-slate-200"
+          : "border border-slate-200 shadow-sm",
       ].join(" ")}
     >
       {icon ? (
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-indigo-50">
+        <div
+          className={
+            isApp
+              ? "mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-500"
+              : "mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-indigo-50 text-indigo-500"
+          }
+        >
           {icon}
         </div>
       ) : null}
       {title ? (
-        <h3 className="text-base font-semibold text-gray-900">{title}</h3>
+        <h3
+          className={
+            isApp
+              ? "text-base font-semibold text-slate-900"
+              : "text-base font-semibold text-gray-900"
+          }
+        >
+          {title}
+        </h3>
       ) : null}
-      <p className={`${title ? "mt-2" : ""} mx-auto max-w-xs text-sm text-gray-500`}>
+      <p
+        className={`${title ? "mt-2" : ""} mx-auto max-w-xs text-sm ${
+          isApp ? "text-slate-500" : "text-gray-500"
+        }`}
+      >
         {message}
       </p>
       {action ? <div className="mt-5">{action}</div> : null}
