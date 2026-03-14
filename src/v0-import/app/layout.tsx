@@ -21,9 +21,31 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'TubeWatch - Platform to Create',
-  description: 'The creative platform for teams who ship. Build, deploy, and scale with unprecedented velocity.',
+  title: 'TubeWatch™ - 데이터로 설계하는 유튜브 성장전략 플랫폼',
+  description: '채널 데이터를 기반으로 당신의 성장 전략을 찾아갑니다. 채널 분석, Action Plan, SEO 최적화, 벤치마크 비교까지.',
   generator: 'v0.app',
+  openGraph: {
+    title: 'TubeWatch™ - 데이터로 설계하는 유튜브 성장전략 플랫폼',
+    description: '채널 데이터를 기반으로 당신의 성장 전략을 찾아갑니다.',
+    url: 'https://tubewatch.app',
+    siteName: 'TubeWatch',
+    images: [
+      {
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'TubeWatch - YouTube Growth Platform',
+      },
+    ],
+    locale: 'ko_KR',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'TubeWatch™ - 데이터로 설계하는 유튜브 성장전략 플랫폼',
+    description: '채널 데이터를 기반으로 당신의 성장 전략을 찾아갑니다.',
+    images: ['/og-image.jpg'],
+  },
 }
 
 export default function RootLayout({

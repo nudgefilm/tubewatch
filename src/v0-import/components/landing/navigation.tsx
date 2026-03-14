@@ -1,15 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 
 const navLinks = [
-  { name: "Channel Analysis", href: "/analysis", description: "내 채널, 지금 몇점일까?" },
-  { name: "Action Plan", href: "/action-plan", description: "그래서 오늘 뭐하면 돼?" },
-  { name: "SEO Lab", href: "/seo-lab", description: "조회수 터지는 태그 좀 알려줘" },
-  { name: "Benchmark", href: "/benchmark", description: "잘 나가는 쟤는 비결이 뭐야?" },
+  { name: "Channel Analysis", href: "#features", description: "내 채널, 지금 몇점일까?" },
+  { name: "Action Plan", href: "#how-it-works", description: "그래서 오늘 뭐하면 돼?" },
+  { name: "SEO Lab", href: "#developers", description: "조회수 터지는 태그 좀 알려줘" },
+  { name: "Benchmark", href: "#pricing", description: "잘 나가는 쟤는 비결이 뭐야?" },
 ];
 
 export function Navigation() {
@@ -45,14 +44,14 @@ export function Navigation() {
           }`}
         >
           {/* Logo */}
-          <Link href="/" className="flex items-center group">
+          <a href="#" className="flex items-center group">
             <span className={`font-display tracking-tight transition-all duration-500 ${isScrolled ? "text-xl" : "text-2xl"}`}>TubeWatch™</span>
-          </Link>
+          </a>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-12">
             {navLinks.map((link) => (
-              <Link
+              <a
                 key={link.name}
                 href={link.href}
                 className="text-sm text-foreground/70 hover:text-foreground transition-colors duration-300 relative group"
@@ -62,21 +61,20 @@ export function Navigation() {
                 <span className="absolute left-1/2 -translate-x-1/2 top-full mt-2 px-3 py-1.5 bg-foreground text-background text-xs rounded-lg whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 pointer-events-none">
                   {link.description}
                 </span>
-              </Link>
+              </a>
             ))}
           </div>
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-4">
-            <Link href="/login" className={`text-foreground/70 hover:text-foreground transition-all duration-500 ${isScrolled ? "text-xs" : "text-sm"}`}>
+            <a href="#" className={`text-foreground/70 hover:text-foreground transition-all duration-500 ${isScrolled ? "text-xs" : "text-sm"}`}>
               Sign in
-            </Link>
+            </a>
             <Button
               size="sm"
-              asChild
               className={`bg-foreground hover:bg-foreground/90 text-background rounded-full transition-all duration-500 ${isScrolled ? "px-4 h-8 text-xs" : "px-6"}`}
             >
-              <Link href="/login">Sign Up</Link>
+              Sign Up
             </Button>
           </div>
 
@@ -135,16 +133,16 @@ export function Navigation() {
           >
             <Button 
               variant="outline" 
-              asChild
               className="flex-1 rounded-full h-14 text-base"
+              onClick={() => setIsMobileMenuOpen(false)}
             >
-              <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>Sign in</Link>
+              Sign in
             </Button>
             <Button 
-              asChild
               className="flex-1 bg-foreground text-background rounded-full h-14 text-base"
+              onClick={() => setIsMobileMenuOpen(false)}
             >
-              <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>Sign Up</Link>
+              Sign Up
             </Button>
           </div>
         </div>

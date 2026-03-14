@@ -33,7 +33,7 @@ export function AnimatedSphere() {
 
       const centerX = rect.width / 2;
       const centerY = rect.height / 2;
-      const radius = Math.min(rect.width, rect.height) * 0.525;
+      const radius = Math.min(rect.width, rect.height) * 0.4;
 
       ctx.font = "12px monospace";
       ctx.textAlign = "center";
