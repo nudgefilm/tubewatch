@@ -144,9 +144,10 @@ export function HeroSection() {
             <Button 
               size="lg" 
               variant="outline" 
+              asChild
               className="h-14 px-8 text-base rounded-full border-foreground/20 hover:bg-foreground/5"
             >
-              튜브워치 작동 방식
+              <Link href="/login">튜브워치 작동 방식</Link>
             </Button>
           </div>
         </div>

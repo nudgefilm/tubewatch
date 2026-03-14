@@ -16,10 +16,22 @@ export function FooterSection() {
         <div className="py-5 lg:py-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             {/* Brand Column */}
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-4">
+                <Link href="/" className="inline-flex items-center">
+                  <span className="text-2xl font-display">TubeWatch™</span>
+                </Link>
+              </div>
+              <nav className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                <Link href="/login" className="hover:text-foreground transition-colors">Login</Link>
+                <Link href="/analysis" className="hover:text-foreground transition-colors">Channel Analysis</Link>
+                <Link href="/action-plan" className="hover:text-foreground transition-colors">Action Plan</Link>
+                <Link href="/seo-lab" className="hover:text-foreground transition-colors">SEO Lab</Link>
+                <Link href="/benchmark" className="hover:text-foreground transition-colors">Benchmark</Link>
+                <Link href="/next-trend" className="hover:text-foreground transition-colors">Next Trend</Link>
+              </nav>
+            </div>
             <div className="flex items-center gap-4">
-              <a href="#" className="inline-flex items-center">
-                <span className="text-2xl font-display">TubeWatch™</span>
-              </a>
               <p className="text-xs text-muted-foreground/70 font-mono">
                 Built with AI for Creators.
               </p>
