@@ -17,6 +17,7 @@ import {
 } from "@/lib/server/analysis/status";
 import { getRecentVideos, type VideoInfo } from "@/lib/youtube";
 import { saveAnalysisResult } from "@/lib/server/analysis/saveAnalysisResult";
+import { incrementCreditsUsed } from "@/lib/server/analysis/checkUserCredits";
 import type { JsonValue } from "@/lib/server/analysis/storageTypes";
 
 type QueueRow = {
@@ -321,6 +322,21 @@ export async function POST(req: Request) {
       );
     }
 
+    try {
+      await incrementCreditsUsed(supabase, queueRow.user_id);
+    } catch (creditError) {
+      console.error("[worker.analyze] credit increment failed", {
+        userId: queueRow.user_id,
+        error: creditError instanceof Error ? creditError.message : String(creditError),
+      });
+    }
+
+    console.log("[QA] analysis completed", {
+      queueId: queueRow.id,
+      jobId: queueRow.job_id,
+      finishedAt,
+      analysisResultId: savedResult.id,
+    });
     console.log("[worker.analyze] finished", {
       queueId: queueRow.id,
       jobId: queueRow.job_id,
@@ -341,6 +357,11 @@ export async function POST(req: Request) {
       },
     });
   } catch (error) {
+    console.error("[QA] analysis failed", {
+      error: error instanceof Error ? error.message : String(error),
+      queueId: runningQueueId,
+      jobId: runningJobId,
+    });
     // eslint-disable-next-line no-console
     console.error("Worker error full:", error);
     // eslint-disable-next-line no-console

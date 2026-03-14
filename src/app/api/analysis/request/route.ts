@@ -5,18 +5,20 @@ import {
   ANALYSIS_QUEUE_STATUS,
   ANALYSIS_JOB_STATUS,
   ACTIVE_JOB_STATUSES,
+  ACTIVE_QUEUE_STATUSES,
 } from "@/lib/server/analysis/status";
-import { canBypassCooldown } from "@/lib/admin/adminTools";
+import {
+  assertAnalysisCostGuard,
+  AnalysisCostGuardError,
+} from "@/lib/server/analysis/analysisCostGuard";
+import {
+  assertUserHasCredit,
+  UserCreditsExhaustedError,
+} from "@/lib/server/analysis/checkUserCredits";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const COOLDOWN_HOURS = 72;
-
-const ACTIVE_QUEUE_STATUSES = [
-  ANALYSIS_QUEUE_STATUS.PENDING,
-  ANALYSIS_QUEUE_STATUS.PROCESSING,
-];
 
 function createSupabaseServerClient() {
   const cookieStore = cookies();
@@ -36,7 +38,7 @@ function createSupabaseServerClient() {
   );
 }
 
-async function safeReadJsonBody(req: Request): Promise<any> {
+async function safeReadJsonBody(req: Request): Promise<{ user_channel_id?: string }> {
   const raw = await req.text();
 
   if (!raw || raw.trim().length === 0) {
@@ -44,25 +46,10 @@ async function safeReadJsonBody(req: Request): Promise<any> {
   }
 
   try {
-    return JSON.parse(raw);
+    return JSON.parse(raw) as { user_channel_id?: string };
   } catch {
     throw new Error("요청 JSON 형식이 올바르지 않습니다.");
   }
-}
-
-function getRemainingCooldownHours(lastRequestedAt: string | null | undefined) {
-  if (!lastRequestedAt) return 0;
-
-  const last = new Date(lastRequestedAt);
-  if (Number.isNaN(last.getTime())) return 0;
-
-  const now = new Date();
-  const diffMs = now.getTime() - last.getTime();
-  const diffHours = diffMs / (1000 * 60 * 60);
-
-  if (diffHours >= COOLDOWN_HOURS) return 0;
-
-  return Math.ceil(COOLDOWN_HOURS - diffHours);
 }
 
 export async function POST(req: Request) {
@@ -107,7 +94,7 @@ export async function POST(req: Request) {
         channel_id,
         channel_url,
         channel_title,
-        last_analyzed_at
+        last_analysis_requested_at
       `)
       .eq("id", userChannelId)
       .eq("user_id", user.id)
@@ -146,26 +133,13 @@ export async function POST(req: Request) {
       );
     }
 
-    const adminBypass = canBypassCooldown(user.email);
+    await assertUserHasCredit(supabaseAdmin, user.id, user.email);
 
-    if (!adminBypass) {
-      const remainingHours = getRemainingCooldownHours(
-        channel.last_analyzed_at
-      );
-
-      if (remainingHours > 0) {
-        return NextResponse.json(
-          {
-            success: false,
-            ok: false,
-            code: "COOLDOWN_ACTIVE",
-            error: `현재 쿨다운이 적용 중입니다. 약 ${remainingHours}시간 후 다시 요청할 수 있습니다.`,
-            remaining_hours: remainingHours,
-          },
-          { status: 409 }
-        );
-      }
-    }
+    await assertAnalysisCostGuard(supabaseAdmin, {
+      userId: user.id,
+      userEmail: user.email,
+      lastAnalysisRequestedAt: channel.last_analysis_requested_at,
+    });
 
     const { data: activeQueueRow, error: activeQueueError } = await supabase
       .from("analysis_queue")
@@ -250,6 +224,12 @@ export async function POST(req: Request) {
       );
     }
 
+    console.log("[QA] analysis requested", {
+      userId: user.id,
+      userChannelId,
+      jobId: jobRow.id,
+      status: jobRow.status,
+    });
     console.log("[analysis.request] job created", {
       userId: user.id,
       userChannelId,
@@ -371,14 +351,40 @@ export async function POST(req: Request) {
         worker_triggered: workerTriggered,
       },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("POST /api/analysis/request error:", err);
 
+    if (err instanceof UserCreditsExhaustedError) {
+      return NextResponse.json(
+        {
+          success: false,
+          ok: false,
+          code: "CREDITS_EXHAUSTED",
+          error: err.message,
+        },
+        { status: 403 }
+      );
+    }
+
+    if (err instanceof AnalysisCostGuardError) {
+      return NextResponse.json(
+        {
+          success: false,
+          ok: false,
+          code: err.code,
+          error: err.message,
+        },
+        { status: 409 }
+      );
+    }
+
+    const message =
+      err instanceof Error ? err.message : "분석 요청 처리 중 오류가 발생했습니다.";
     return NextResponse.json(
       {
         success: false,
         ok: false,
-        error: err.message || "분석 요청 처리 중 오류가 발생했습니다.",
+        error: message,
       },
       { status: 500 }
     );

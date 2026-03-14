@@ -11,12 +11,6 @@ type ChannelLookupInput =
   | { type: "handle"; value: string }
   | { type: "channelId"; value: string };
 
-interface LegacyChannelInfo {
-  channelId: string;
-  title: string | null;
-  thumbnailUrl: string | null;
-  subscriberCount: number | null;
-}
 
 interface SearchResponseItem {
   id?: {
@@ -163,10 +157,10 @@ export async function getChannelInfo(
 ): Promise<ChannelInfo>;
 export async function getChannelInfo(
   input: ChannelLookupInput
-): Promise<LegacyChannelInfo>;
+): Promise<ChannelInfo>;
 export async function getChannelInfo(
   input: string | ChannelLookupInput
-): Promise<ChannelInfo | LegacyChannelInfo> {
+): Promise<ChannelInfo> {
   const apiKey = getYouTubeApiKey();
 
   if (typeof input === "string") {
@@ -174,12 +168,5 @@ export async function getChannelInfo(
   }
 
   const resolvedChannelId = await resolveChannelId(input, apiKey);
-  const core = await fetchChannelInfoById(resolvedChannelId, apiKey);
-
-  return {
-    channelId: core.channel_id,
-    title: core.channel_title,
-    thumbnailUrl: core.thumbnail_url,
-    subscriberCount: core.subscriber_count,
-  };
+  return fetchChannelInfoById(resolvedChannelId, apiKey);
 }

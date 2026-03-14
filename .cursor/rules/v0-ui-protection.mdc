@@ -1,0 +1,82 @@
+---
+alwaysApply: true
+---
+
+# TubeWatch v0 UI Protection Rules
+
+## Purpose
+
+v0에서 생성된 UI 컴포넌트는 기능 개발 과정에서 **절대 변경되지 않도록** 보호한다.
+Cursor가 임의로 디자인·구조를 바꾸지 못하도록 코드 레벨 규칙을 적용한다.
+
+---
+
+## Protected Directories (수정 금지)
+
+다음 디렉토리는 **v0 UI 원본**으로 간주한다.
+
+- `src/components/analysis/`
+- `src/components/channels/`
+- `src/components/layout/`
+- `src/components/ui/`
+
+**위 디렉토리 내부 파일은 기능 개발 작업에서 수정 금지.**
+
+---
+
+## Protection Rules
+
+1. **위 디렉토리 내부 파일은 기능 개발 작업에서 수정 금지.**
+2. UI 컴포넌트 수정이 필요한 경우 **반드시 wrapper 방식** 사용.
+3. 데이터 연결은 **page** 또는 **server loader**에서만 처리.
+4. UI 컴포넌트에는 **DB 로직 추가 금지.**
+5. **UI 스타일 변경 금지.**
+6. **레이아웃 구조 변경 금지.**
+7. **className 변경 금지.**
+8. **UI 컴포넌트 내부 로직 수정 금지.**
+
+---
+
+## Allowed Modifications (예외 허용)
+
+다음 경우**만** 예외적으로 허용한다.
+
+1. TypeScript 타입 오류 수정
+2. import 경로 수정
+3. props 타입 추가
+4. eslint / build 오류 수정
+
+**단, UI 구조와 스타일은 절대 변경 금지.**
+
+---
+
+## New Feature Implementation
+
+신규 기능은 다음 구조로만 개발한다.
+
+- **server**: `src/lib/server/*`
+- **page**: `src/app/*/page.tsx`
+- **view wrapper**: `src/components/<feature>/*`
+
+기존 v0 UI 컴포넌트는 **import 해서 사용하는 방식만** 허용.
+
+### Good
+
+```tsx
+<ActionPlanView>
+  <AnalysisReportView data={data} />
+</ActionPlanView>
+```
+
+### Bad
+
+- `AnalysisReportView.tsx` 내부 로직 수정
+- 보호 대상 컴포넌트의 className/구조/스타일 변경
+
+---
+
+## Rule Summary
+
+- v0 UI 디렉토리(`analysis/`, `channels/`, `layout/`, `ui/`) 내 파일 **수정 금지**
+- 기능 추가 시 **wrapper + server/page** 구조만 사용
+- 타입/import/build 수정만 예외 허용, **UI 구조·스타일 변경 금지**

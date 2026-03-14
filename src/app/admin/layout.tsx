@@ -18,7 +18,7 @@ export default async function AdminLayout({
   } = await supabase.auth.getUser();
 
   if (!user || !isAdmin(user.email)) {
-    redirect("/channels");
+    redirect("/");
   }
 
   return (

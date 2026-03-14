@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { parseChannelUrl } from '@/lib/youtube/parseChannelUrl'
 import { getChannelInfo } from '@/lib/youtube/getChannelInfo'
-import { getChannelLimit, isAdminUser } from '@/lib/admin/adminTools'
+import { getUserChannelLimit, isAdminUser } from '@/lib/admin/adminTools'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -143,7 +143,11 @@ export async function POST(request: NextRequest) {
     }
 
     const count = userRows?.length ?? 0
-    const maxChannels = getChannelLimit(user.email)
+    const maxChannels = await getUserChannelLimit(
+      adminSupabase,
+      user.id,
+      user.email
+    )
 
     if (count >= maxChannels) {
       return NextResponse.json(
@@ -154,13 +158,13 @@ export async function POST(request: NextRequest) {
 
     console.log('[channels.register] resolving channel...', { type: parsed.type, value: parsed.value })
     const info = await getChannelInfo(parsed)
-    console.log('[channels.register] resolved:', { channelId: info.channelId, title: info.title })
+    console.log('[channels.register] resolved:', { channel_id: info.channel_id, channel_title: info.channel_title })
 
     const { data: existingChannel, error: existingError } = await adminSupabase
       .from('user_channels')
       .select('id')
       .eq('user_id', user.id)
-      .eq('channel_id', info.channelId)
+      .eq('channel_id', info.channel_id)
       .maybeSingle()
 
     console.log('existingError:', existingError)
@@ -178,7 +182,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (existingChannel) {
-      console.warn('[channels.register] DUPLICATE:', { userId: user.id, channelId: info.channelId })
+      console.warn('[channels.register] DUPLICATE:', { userId: user.id, channel_id: info.channel_id })
       return NextResponse.json(
         { error: '이미 등록된 채널입니다.' },
         { status: 409 }
@@ -189,7 +193,7 @@ export async function POST(request: NextRequest) {
     console.log('[channels.register] inserting...', {
       userId: user.id,
       admin,
-      channelId: info.channelId,
+      channel_id: info.channel_id,
     })
 
     const { data, error: insertError } = await adminSupabase
@@ -197,10 +201,11 @@ export async function POST(request: NextRequest) {
       .insert({
         user_id: user.id,
         channel_url: channelUrl,
-        channel_id: info.channelId,
-        channel_title: info.title,
-        thumbnail_url: info.thumbnailUrl,
-        subscriber_count: info.subscriberCount,
+        channel_id: info.channel_id,
+        channel_title: info.channel_title,
+        thumbnail_url: info.thumbnail_url,
+        subscriber_count: info.subscriber_count,
+        video_count: info.video_count,
       })
       .select(
         `
@@ -211,6 +216,7 @@ export async function POST(request: NextRequest) {
         channel_title,
         thumbnail_url,
         subscriber_count,
+        video_count,
         last_analysis_requested_at,
         last_analyzed_at,
         created_at,

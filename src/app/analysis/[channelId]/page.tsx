@@ -6,6 +6,11 @@ import AnalysisReportView from "@/components/analysis/AnalysisReportView";
 import { isAdminUser } from "@/lib/admin/adminTools";
 import AppShell from "@/components/app/AppShell";
 import PageContainer from "@/components/app/PageContainer";
+import {
+  mapRowToHistoryItem,
+  enrichRowScores,
+  type AnalysisResultRowForMap,
+} from "@/lib/server/analysis/mapAnalysisHistoryAndCompare";
 
 type UserChannel = {
   id: string;
@@ -20,6 +25,7 @@ type UserChannel = {
 type AnalysisResult = {
   id: string;
   user_channel_id: string;
+  job_id?: string | null;
 
   status: string | null;
   sample_video_count: number | null;
@@ -47,37 +53,12 @@ type AnalysisResult = {
   feature_snapshot: Record<string, unknown> | null;
   feature_total_score: number | null;
   feature_section_scores: Record<string, number> | null;
+  total_score?: number | null;
+  overall_score?: number | null;
+  section_scores?: Record<string, number> | null;
 
   created_at: string | null;
 };
-
-function countNonEmpty(items: string[] | null | undefined): number {
-  if (!Array.isArray(items)) return 0;
-  return items.filter((item) => typeof item === "string" && item.trim().length > 0)
-    .length;
-}
-
-function hasUsableAnalysis(result: AnalysisResult | null | undefined): boolean {
-  if (!result) return false;
-  if (!(result.status === "analyzed" && result.gemini_status === "success")) {
-    return false;
-  }
-
-  const channelSummaryOk =
-    typeof result.channel_summary === "string" &&
-    result.channel_summary.trim().length > 0;
-
-  const populatedSections =
-    countNonEmpty(result.content_patterns) +
-    countNonEmpty(result.strengths) +
-    countNonEmpty(result.weaknesses) +
-    countNonEmpty(result.bottlenecks) +
-    countNonEmpty(result.recommended_topics) +
-    countNonEmpty(result.growth_action_plan) +
-    countNonEmpty(result.target_audience);
-
-  return channelSummaryOk && populatedSections >= 3;
-}
 
 export default async function AnalysisChannelPage({
   params,
@@ -149,11 +130,12 @@ export default async function AnalysisChannelPage({
     await supabase
       .from("analysis_results")
       .select("*")
+      .eq("user_id", user.id)
       .eq("user_channel_id", selectedChannel.id)
       .eq("status", "analyzed")
       .eq("gemini_status", "success")
       .order("created_at", { ascending: false })
-      .limit(20);
+      .limit(5);
 
   if (successfulResultsError) {
     console.error(
@@ -178,60 +160,23 @@ export default async function AnalysisChannelPage({
     );
   }
 
-  const successfulRows = Array.isArray(successfulResults)
+  const successfulRows: AnalysisResult[] = Array.isArray(successfulResults)
     ? (successfulResults as AnalysisResult[])
     : [];
 
-  const usableSuccessfulRows = successfulRows.filter((row) => hasUsableAnalysis(row));
-  const latestUsableSuccessfulResult = usableSuccessfulRows[0] ?? null;
-  const previousUsableSuccessfulResult = usableSuccessfulRows[1] ?? null;
-
-  const { data: latestResults, error: latestResultsError } = await supabase
-    .from("analysis_results")
-    .select("*")
-    .eq("user_channel_id", selectedChannel.id)
-    .order("created_at", { ascending: false })
-    .limit(1);
-
-  if (latestResultsError) {
-    console.error(
-      "[analysis/[channelId]] latest results query error:",
-      latestResultsError
-    );
-
-    return (
-      <AppShell
-        title="채널 진단"
-        description={selectedChannel.channel_title ?? "분석 리포트"}
-      >
-        <AnalysisShell
-          channels={channels as UserChannel[]}
-          selectedChannelId={selectedChannel.id}
-        >
-          <section className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">
-            분석 결과를 불러오는 중 오류가 발생했습니다.
-          </section>
-        </AnalysisShell>
-      </AppShell>
-    );
-  }
-
-  const latestAnyResult =
-    Array.isArray(latestResults) && latestResults.length > 0
-      ? (latestResults[0] as AnalysisResult)
+  const latestResult =
+    successfulRows[0] != null
+      ? (enrichRowScores(successfulRows[0] as unknown as AnalysisResultRowForMap) as AnalysisResult)
       : null;
 
-  const latestResult =
-    latestUsableSuccessfulResult ?? latestAnyResult ?? null;
+  const previousResult =
+    successfulRows[1] != null
+      ? (enrichRowScores(successfulRows[1] as unknown as AnalysisResultRowForMap) as AnalysisResult)
+      : null;
 
-  const { data: historyRows } = await supabase
-    .from("analysis_results")
-    .select("id, job_id, created_at, feature_total_score, status, gemini_status")
-    .eq("user_channel_id", selectedChannel.id)
-    .order("created_at", { ascending: false })
-    .limit(20);
-
-  const analysisHistory = Array.isArray(historyRows) ? historyRows : [];
+  const analysisHistory = successfulRows.map((row) =>
+    mapRowToHistoryItem(row as unknown as AnalysisResultRowForMap)
+  );
 
   return (
     <AppShell
@@ -245,7 +190,7 @@ export default async function AnalysisChannelPage({
         <AnalysisReportView
           selectedChannel={selectedChannel}
           latestResult={latestResult}
-          previousResult={previousUsableSuccessfulResult}
+          previousResult={previousResult}
           isAdmin={isAdminUser(user.email)}
           analysisHistory={analysisHistory}
         />

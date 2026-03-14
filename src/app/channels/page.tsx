@@ -3,7 +3,7 @@ import Link from "next/link";
 import RegisterChannelForm from "@/components/channels/RegisterChannelForm";
 import ChannelCard from "@/components/channels/ChannelCard";
 import { createClient } from "@/lib/supabase/server";
-import { isAdminUser, getChannelLimit } from "@/lib/admin/adminTools";
+import { isAdminUser, getUserChannelLimit } from "@/lib/admin/adminTools";
 import AppShell from "@/components/app/AppShell";
 import PageContainer from "@/components/app/PageContainer";
 import EmptyState from "@/components/ui/EmptyState";
@@ -16,6 +16,7 @@ type UserChannel = {
   channel_title: string | null
   thumbnail_url: string | null
   subscriber_count: number | null
+  video_count: number | null
   last_analysis_requested_at: string | null
   last_analyzed_at: string | null
   created_at: string
@@ -121,6 +122,7 @@ export default async function ChannelsPage(): Promise<JSX.Element> {
       channel_title,
       thumbnail_url,
       subscriber_count,
+      video_count,
       last_analysis_requested_at,
       last_analyzed_at,
       created_at,
@@ -136,7 +138,7 @@ export default async function ChannelsPage(): Promise<JSX.Element> {
   const safeChannels: UserChannel[] = channels ?? []
   const currentCount = safeChannels.length
   const admin = isAdminUser(user.email)
-  const maxCount = getChannelLimit(user.email)
+  const maxCount = await getUserChannelLimit(supabase, user.id, user.email)
 
   const hasChannels = currentCount > 0
   const hasAnalyzed = safeChannels.some((ch) => ch.last_analyzed_at)
@@ -192,7 +194,14 @@ export default async function ChannelsPage(): Promise<JSX.Element> {
         {/* Channel Status + Register */}
         <section>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-slate-900">내 채널</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-semibold text-slate-900">내 채널</h2>
+              {admin ? (
+                <span className="rounded bg-slate-900 px-2 py-1 text-xs font-medium text-white">
+                  Admin
+                </span>
+              ) : null}
+            </div>
             <StatusPill
               current={currentCount}
               max={maxCount}
@@ -207,8 +216,13 @@ export default async function ChannelsPage(): Promise<JSX.Element> {
           />
         </section>
 
-        {/* Channel List */}
+        {/* Channel List (Admin: Test Channels 섹션) */}
         <section>
+          {admin && hasChannels ? (
+            <h2 className="mb-4 text-lg font-semibold text-slate-800">
+              Test Channels
+            </h2>
+          ) : null}
           {!hasChannels ? (
             <EmptyState
               variant="app"

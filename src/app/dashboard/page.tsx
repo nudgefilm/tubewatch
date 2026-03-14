@@ -1,6 +1,20 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import LogoutButton from '@/components/LogoutButton'
+import {
+  getEffectiveLimits,
+  type EffectivePlanId,
+} from '@/lib/server/subscription/getEffectiveLimits'
+import { isAdmin } from '@/lib/config/admin'
+import { ADMIN_CHANNEL_LIMIT } from '@/lib/admin/adminTools'
+import { BILLING_PLANS } from '@/components/billing/types'
+
+function planDisplayLabel(planId: EffectivePlanId, isAdminUser: boolean): string {
+  if (isAdminUser) return '관리자 계정'
+  if (planId === 'free') return 'Free'
+  const plan = BILLING_PLANS.find((p) => p.id === planId)
+  return plan?.name ?? planId
+}
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -12,6 +26,15 @@ export default async function DashboardPage() {
   if (!user) {
     redirect('/login')
   }
+
+  const limits = await getEffectiveLimits(supabase, user.id)
+  const isAdminUser = isAdmin(user.email)
+  const planLabel = planDisplayLabel(limits.planId, isAdminUser)
+  const statusLabel =
+    typeof limits.subscriptionStatus === 'string' &&
+    limits.subscriptionStatus.trim() !== ''
+      ? limits.subscriptionStatus
+      : null
 
   const userName =
     user.user_metadata?.name ||
@@ -95,8 +118,22 @@ export default async function DashboardPage() {
         </div>
 
         <div className="p-4 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm">
-          <p className="text-sm text-slate-500 dark:text-slate-400">활성 구독</p>
-          <p className="text-2xl font-semibold mt-1">—</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">현재 플랜</p>
+          <p className="text-2xl font-semibold mt-1">{planLabel}</p>
+          {statusLabel ? (
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              상태: {statusLabel}
+            </p>
+          ) : null}
+          {!isAdminUser ? (
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              채널 {limits.channelLimit}개 · 월 분석 {limits.monthlyAnalysisLimit}회
+            </p>
+          ) : (
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              채널 {ADMIN_CHANNEL_LIMIT}개 · 테스트
+            </p>
+          )}
         </div>
       </div>
     </div>
