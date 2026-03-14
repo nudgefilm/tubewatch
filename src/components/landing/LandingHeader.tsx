@@ -2,23 +2,11 @@
 
 import Link from "next/link";
 
-const NAV_ITEMS = [
-  {
-    label: "채널 진단",
-    tooltip: "🔒 내 채널, 지금 몇점일까?",
-  },
-  {
-    label: "액션 플랜",
-    tooltip: "🔒 그래서 오늘 뭐하면 돼?",
-  },
-  {
-    label: "SEO 랩",
-    tooltip: "🔒 조회수 터지는 태그 좀 알려줘",
-  },
-  {
-    label: "벤치마킹",
-    tooltip: "🔒 잘 나가는 쟤는 비결이 뭐야?",
-  },
+const NAV_ITEMS: { label: string; href: string; tooltip: string }[] = [
+  { label: "채널 진단", href: "/analysis", tooltip: "🔒 내 채널, 지금 몇점일까?" },
+  { label: "액션 플랜", href: "/action-plan", tooltip: "🔒 그래서 오늘 뭐하면 돼?" },
+  { label: "SEO 랩", href: "/seo-lab", tooltip: "🔒 조회수 터지는 태그 좀 알려줘" },
+  { label: "벤치마킹", href: "/benchmark", tooltip: "🔒 잘 나가는 쟤는 비결이 뭐야?" },
 ];
 
 export default function LandingHeader(): JSX.Element {
@@ -36,12 +24,12 @@ export default function LandingHeader(): JSX.Element {
         <nav className="hidden items-center gap-1 md:flex">
           {NAV_ITEMS.map((item) => (
             <div key={item.label} className="group relative">
-              <button
-                type="button"
+              <Link
+                href={item.href}
                 className="rounded-lg px-3 py-2 text-[14px] font-medium text-[#5f6158] transition hover:text-[#161616]"
               >
                 {item.label}
-              </button>
+              </Link>
 
               {/* Tooltip */}
               <div className="pointer-events-none absolute left-1/2 top-full z-50 mt-1.5 -translate-x-1/2 opacity-0 transition-all duration-150 ease-out group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100 translate-y-1">

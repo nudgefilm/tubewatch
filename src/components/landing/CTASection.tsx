@@ -1,5 +1,4 @@
 import Link from "next/link";
-import GoogleLoginButton from "@/components/landing/GoogleLoginButton";
 
 type CTASectionProps = {
   isAuthenticated?: boolean;
@@ -27,10 +26,12 @@ export default function CTASection({ isAuthenticated = false }: CTASectionProps)
               </Link>
             ) : (
               <>
-                <GoogleLoginButton
+                <Link
+                  href="/login"
                   className="inline-flex items-center gap-2.5 rounded-[10px] bg-[#161616] px-7 py-3 text-[15px] font-semibold text-white transition hover:bg-[#2a2a2a] disabled:opacity-50"
-                  label="Google로 시작하기"
-                />
+                >
+                  Google로 시작하기
+                </Link>
                 <Link
                   href="/channels"
                   className="inline-flex items-center rounded-[10px] px-5 py-3 text-[14px] font-medium text-[#8b8e84] transition hover:text-[#5f6158]"

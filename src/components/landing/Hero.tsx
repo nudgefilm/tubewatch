@@ -1,5 +1,4 @@
 import Link from "next/link";
-import GoogleLoginButton from "@/components/landing/GoogleLoginButton";
 
 type HeroProps = {
   isAuthenticated?: boolean;
@@ -36,10 +35,12 @@ export default function Hero({ isAuthenticated = false }: HeroProps): JSX.Elemen
                 <span aria-hidden="true" className="text-white/40">→</span>
               </Link>
             ) : (
-              <GoogleLoginButton
+              <Link
+                href="/login"
                 className="inline-flex items-center gap-2.5 rounded-[10px] bg-[#161616] px-6 py-3 text-[15px] font-semibold text-white transition hover:bg-[#2a2a2a] disabled:opacity-50"
-                label="Google로 시작하기"
-              />
+              >
+                Google로 시작하기
+              </Link>
             )}
             <a
               href="#how-it-works"
