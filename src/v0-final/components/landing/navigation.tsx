@@ -79,7 +79,7 @@ export function Navigation() {
               }}
               className={`text-foreground/70 hover:text-foreground transition-all duration-500 cursor-pointer ${isScrolled ? "text-xs" : "text-sm"}`}
             >
-              Sign in
+              Sign In
             </button>
             <Button
               size="sm"
@@ -159,7 +159,7 @@ export function Navigation() {
                 variant="outline" 
                 className="w-full rounded-full h-14 text-base cursor-pointer"
               >
-                Sign in
+                Sign In
               </Button>
             </button>
             <button
