@@ -45,7 +45,7 @@ export function Navigation() {
           }`}
         >
           {/* Logo */}
-          <a href="#" className="flex items-center group">
+          <a href="/landing" className="flex items-center group">
             <span className={`font-display tracking-tight transition-all duration-500 ${isScrolled ? "text-xl" : "text-2xl"}`}>TubeWatch™</span>
           </a>
 
@@ -68,10 +68,10 @@ export function Navigation() {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-4">
-            <a href="/channels" className={`text-foreground/70 hover:text-foreground transition-all duration-500 cursor-pointer ${isScrolled ? "text-xs" : "text-sm"}`}>
+            <a href="/login" className={`text-foreground/70 hover:text-foreground transition-all duration-500 cursor-pointer ${isScrolled ? "text-xs" : "text-sm"}`}>
               Sign in
             </a>
-            <a href="/channels">
+            <a href="/login">
               <Button
                 size="sm"
                 className={`bg-foreground hover:bg-foreground/90 text-background rounded-full transition-all duration-500 cursor-pointer ${isScrolled ? "px-4 h-8 text-xs" : "px-6"}`}
@@ -134,7 +134,7 @@ export function Navigation() {
           }`}
           style={{ transitionDelay: isMobileMenuOpen ? "300ms" : "0ms" }}
           >
-            <a href="/channels" className="flex-1" onClick={() => setIsMobileMenuOpen(false)}>
+            <a href="/login" className="flex-1" onClick={() => setIsMobileMenuOpen(false)}>
               <Button 
                 variant="outline" 
                 className="w-full rounded-full h-14 text-base cursor-pointer"
@@ -142,7 +142,7 @@ export function Navigation() {
                 Sign in
               </Button>
             </a>
-            <a href="/channels" className="flex-1" onClick={() => setIsMobileMenuOpen(false)}>
+            <a href="/login" className="flex-1" onClick={() => setIsMobileMenuOpen(false)}>
               <Button 
                 className="w-full bg-foreground text-background rounded-full h-14 text-base cursor-pointer"
               >

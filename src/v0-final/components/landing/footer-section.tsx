@@ -63,7 +63,7 @@ export function FooterSection() {
           </div>
 
           <p className="text-sm text-muted-foreground">
-            Copyright <a href="/admin" className="hover:text-foreground transition-colors cursor-pointer">©</a> 2026 TubeWatch™ All rights reserved.
+            Copyright © 2026 TubeWatch™ All rights reserved.
           </p>
         </div>
       </div>
