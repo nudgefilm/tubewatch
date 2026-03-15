@@ -10,7 +10,7 @@ import { FloatingTubeTalk } from "@/v0-final/components/landing/floating-tube-ta
 
 export default function LandingPage(): JSX.Element {
   return (
-    <>
+    <main className="relative min-h-screen overflow-x-hidden noise-overlay v0-landing-theme">
       <Navigation />
       <HeroSection />
       <FeaturesSection />
@@ -20,6 +20,6 @@ export default function LandingPage(): JSX.Element {
       <CtaSection />
       <FooterSection />
       <FloatingTubeTalk />
-    </>
+    </main>
   );
 }

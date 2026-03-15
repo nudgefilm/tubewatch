@@ -73,7 +73,7 @@ export function TestimonialsSection() {
               }`}
             >
               <p className="font-display text-4xl md:text-5xl lg:text-6xl leading-[1.1] tracking-tight text-foreground">
-                "{activeTestimonial.quote}"
+                &quot;{activeTestimonial.quote}&quot;
               </p>
             </blockquote>
 
