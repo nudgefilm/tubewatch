@@ -173,7 +173,7 @@ export function PricingSection() {
         {/* Bottom Note */}
         <p className="mt-12 text-center text-sm text-muted-foreground">
           All plans include automatic updates, HTTPS, and DDoS protection.{" "}
-          <a href="#" className="underline underline-offset-4 hover:text-foreground transition-colors">
+          <a href="/channels" className="underline underline-offset-4 hover:text-foreground transition-colors">
             Compare all features
           </a>
         </p>

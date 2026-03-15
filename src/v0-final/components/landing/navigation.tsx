@@ -3,6 +3,13 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/v0-final/components/ui/button";
 import { Menu, X } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/v0-final/components/ui/dialog";
 
 const navLinks = [
   { name: "Channel Analysis", href: "/channels", description: "내 채널, 지금 몇점일까?" },
@@ -15,6 +22,7 @@ const navLinks = [
 export function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -68,17 +76,20 @@ export function Navigation() {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-4">
-            <a href="/login" className={`text-foreground/70 hover:text-foreground transition-all duration-500 cursor-pointer ${isScrolled ? "text-xs" : "text-sm"}`}>
+            <button
+              type="button"
+              onClick={() => setAuthOpen(true)}
+              className={`text-foreground/70 hover:text-foreground transition-all duration-500 cursor-pointer ${isScrolled ? "text-xs" : "text-sm"}`}
+            >
               Sign in
-            </a>
-            <a href="/login">
-              <Button
-                size="sm"
-                className={`bg-foreground hover:bg-foreground/90 text-background rounded-full transition-all duration-500 cursor-pointer ${isScrolled ? "px-4 h-8 text-xs" : "px-6"}`}
-              >
-                Sign Up
-              </Button>
-            </a>
+            </button>
+            <Button
+              size="sm"
+              className={`bg-foreground hover:bg-foreground/90 text-background rounded-full transition-all duration-500 cursor-pointer ${isScrolled ? "px-4 h-8 text-xs" : "px-6"}`}
+              onClick={() => setAuthOpen(true)}
+            >
+              Sign Up
+            </Button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -134,24 +145,53 @@ export function Navigation() {
           }`}
           style={{ transitionDelay: isMobileMenuOpen ? "300ms" : "0ms" }}
           >
-            <a href="/login" className="flex-1" onClick={() => setIsMobileMenuOpen(false)}>
+            <button
+              type="button"
+              className="flex-1"
+              onClick={() => {
+                setAuthOpen(true);
+                setIsMobileMenuOpen(false);
+              }}
+            >
               <Button 
                 variant="outline" 
                 className="w-full rounded-full h-14 text-base cursor-pointer"
               >
                 Sign in
               </Button>
-            </a>
-            <a href="/login" className="flex-1" onClick={() => setIsMobileMenuOpen(false)}>
+            </button>
+            <button
+              type="button"
+              className="flex-1"
+              onClick={() => {
+                setAuthOpen(true);
+                setIsMobileMenuOpen(false);
+              }}
+            >
               <Button 
                 className="w-full bg-foreground text-background rounded-full h-14 text-base cursor-pointer"
               >
                 Sign Up
               </Button>
-            </a>
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Auth Dialog */}
+      <Dialog open={authOpen} onOpenChange={setAuthOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>로그인</DialogTitle>
+            <DialogDescription>Google 계정으로 TubeWatch에 로그인합니다.</DialogDescription>
+          </DialogHeader>
+          <a href="/login">
+            <Button className="w-full bg-foreground hover:bg-foreground/90 text-background rounded-full cursor-pointer">
+              Google로 로그인
+            </Button>
+          </a>
+        </DialogContent>
+      </Dialog>
     </header>
   );
 }
