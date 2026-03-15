@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/v0-final/components/ui/button";
 import { Menu, X } from "lucide-react";
-import { AuthModal } from "@/v0-final/components/auth/auth-modal";
+import { AuthModal, type AuthMode } from "@/v0-final/components/auth/auth-modal";
 
 const navLinks = [
   { name: "Channel Analysis", href: "/channels", description: "내 채널, 지금 몇점일까?" },
@@ -17,6 +17,7 @@ export function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<AuthMode>("signin");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -72,7 +73,10 @@ export function Navigation() {
           <div className="hidden md:flex items-center gap-4">
             <button
               type="button"
-              onClick={() => setAuthOpen(true)}
+              onClick={() => {
+                setAuthMode("signin");
+                setAuthOpen(true);
+              }}
               className={`text-foreground/70 hover:text-foreground transition-all duration-500 cursor-pointer ${isScrolled ? "text-xs" : "text-sm"}`}
             >
               Sign in
@@ -80,7 +84,10 @@ export function Navigation() {
             <Button
               size="sm"
               className={`bg-foreground hover:bg-foreground/90 text-background rounded-full transition-all duration-500 cursor-pointer ${isScrolled ? "px-4 h-8 text-xs" : "px-6"}`}
-              onClick={() => setAuthOpen(true)}
+              onClick={() => {
+                setAuthMode("signup");
+                setAuthOpen(true);
+              }}
             >
               Sign Up
             </Button>
@@ -143,6 +150,7 @@ export function Navigation() {
               type="button"
               className="flex-1"
               onClick={() => {
+                setAuthMode("signin");
                 setAuthOpen(true);
                 setIsMobileMenuOpen(false);
               }}
@@ -158,6 +166,7 @@ export function Navigation() {
               type="button"
               className="flex-1"
               onClick={() => {
+                setAuthMode("signup");
                 setAuthOpen(true);
                 setIsMobileMenuOpen(false);
               }}
@@ -172,7 +181,7 @@ export function Navigation() {
         </div>
       </div>
 
-      <AuthModal open={authOpen} onOpenChange={setAuthOpen} />
+      <AuthModal open={authOpen} onOpenChange={setAuthOpen} mode={authMode} />
     </header>
   );
 }
