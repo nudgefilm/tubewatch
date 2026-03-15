@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import {
   Tv2,
   BarChart3,
@@ -26,6 +26,7 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from "@/v0-final/components/ui/sidebar"
+import { createClient } from "@/lib/supabase/client"
 
 const menuItems = [
   {
@@ -78,20 +79,24 @@ const bottomMenuItems = [
   },
 ]
 
-const logoutItem = {
-  title: "로그아웃",
-  url: "/logout",
-  icon: LogOut,
-}
+
 
 export function AppSidebar() {
   const pathname = usePathname()
+  const router = useRouter()
 
   const isActive = (url: string) => {
     if (url === "/analysis") {
       return pathname.startsWith("/analysis")
     }
     return pathname === url
+  }
+
+  const handleLogout = async () => {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push("/")
+    router.refresh()
   }
 
   return (
@@ -136,11 +141,9 @@ export function AppSidebar() {
                 </SidebarMenuItem>
               ))}
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === logoutItem.url}>
-                  <Link href={logoutItem.url}>
-                    <logoutItem.icon className="size-4" />
-                    <span>{logoutItem.title}</span>
-                  </Link>
+                <SidebarMenuButton onClick={handleLogout} className="cursor-pointer">
+                  <LogOut className="size-4" />
+                  <span>로그아웃</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

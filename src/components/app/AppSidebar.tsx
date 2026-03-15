@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 const MAIN_NAV = [
   { label: "내 채널", href: "/channels" },
@@ -16,7 +17,6 @@ const BOTTOM_NAV = [
   { label: "고객 지원", href: "/support" },
   { label: "마이페이지", href: "/mypage" },
   { label: "설정", href: "/settings" },
-  { label: "로그아웃", href: "/" },
 ] as const;
 
 function isActivePath(pathname: string, href: string): boolean {
@@ -31,6 +31,14 @@ function isActivePath(pathname: string, href: string): boolean {
 
 export default function AppSidebar(): JSX.Element {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/");
+    router.refresh();
+  };
 
   return (
     <aside className="fixed left-0 top-0 z-30 flex h-screen w-64 flex-col border-r border-slate-200 bg-white">
@@ -84,6 +92,13 @@ export default function AppSidebar(): JSX.Element {
             </Link>
           );
         })}
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
+        >
+          로그아웃
+        </button>
       </div>
     </aside>
   );

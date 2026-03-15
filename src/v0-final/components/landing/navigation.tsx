@@ -48,7 +48,7 @@ export function Navigation() {
           }`}
         >
           {/* Logo */}
-          <a href="/landing" className="flex items-center group">
+          <a href="/" className="flex items-center group">
             <span className={`font-display tracking-tight transition-all duration-500 ${isScrolled ? "text-xl" : "text-2xl"}`}>TubeWatch™</span>
           </a>
 

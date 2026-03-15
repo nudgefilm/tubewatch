@@ -7,7 +7,9 @@ export function FloatingTubeTalk() {
 
   return (
     <a
-      href="/channels"
+      href="https://t.me/tubewatch"
+      target="_blank"
+      rel="noopener noreferrer"
       className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3 bg-black hover:bg-neutral-800 text-white rounded-lg shadow-lg transition-all duration-300 animate-float cursor-pointer ${
         isHovered ? "scale-105 shadow-xl" : ""
       }`}
