@@ -3,13 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/v0-final/components/ui/button";
 import { Menu, X } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/v0-final/components/ui/dialog";
+import { AuthModal } from "@/v0-final/components/auth/auth-modal";
 
 const navLinks = [
   { name: "Channel Analysis", href: "/channels", description: "내 채널, 지금 몇점일까?" },
@@ -178,20 +172,7 @@ export function Navigation() {
         </div>
       </div>
 
-      {/* Auth Dialog */}
-      <Dialog open={authOpen} onOpenChange={setAuthOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>로그인</DialogTitle>
-            <DialogDescription>Google 계정으로 TubeWatch에 로그인합니다.</DialogDescription>
-          </DialogHeader>
-          <a href="/login">
-            <Button className="w-full bg-foreground hover:bg-foreground/90 text-background rounded-full cursor-pointer">
-              Google로 로그인
-            </Button>
-          </a>
-        </DialogContent>
-      </Dialog>
+      <AuthModal open={authOpen} onOpenChange={setAuthOpen} />
     </header>
   );
 }
