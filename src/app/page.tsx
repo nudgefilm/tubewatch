@@ -1,18 +1,19 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import LandingHeader from "@/components/landing/LandingHeader";
-import Hero from "@/components/landing/Hero";
-import ProblemSection from "@/components/landing/ProblemSection";
-import HowItWorks from "@/components/landing/HowItWorks";
-import ReportPreview from "@/components/landing/ReportPreview";
-import TrustSection from "@/components/landing/TrustSection";
-import ForWho from "@/components/landing/ForWho";
-import CTASection from "@/components/landing/CTASection";
+import { Navigation } from "@/v0-final/components/landing/navigation";
+import { HeroSection } from "@/v0-final/components/landing/hero-section";
+import { FeaturesSection } from "@/v0-final/components/landing/features-section";
+import { HowItWorksSection } from "@/v0-final/components/landing/how-it-works-section";
+import { InfrastructureSection } from "@/v0-final/components/landing/infrastructure-section";
+import { SecuritySection } from "@/v0-final/components/landing/security-section";
+import { CtaSection } from "@/v0-final/components/landing/cta-section";
+import { FooterSection } from "@/v0-final/components/landing/footer-section";
+import { FloatingTubeTalk } from "@/v0-final/components/landing/floating-tube-talk";
 
 type UserChannelRow = { id: string };
 type LatestAnalysisRow = { user_channel_id: string };
 
-export default async function LandingPage(): Promise<JSX.Element> {
+export default async function HomePage(): Promise<JSX.Element> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -48,26 +49,17 @@ export default async function LandingPage(): Promise<JSX.Element> {
     }
   }
 
-  const isAuthenticated = !!user;
-
   return (
-    <main className="min-h-screen bg-[#f7f7f5]">
-      <LandingHeader />
-      <Hero isAuthenticated={isAuthenticated} />
-      <ProblemSection />
-      <HowItWorks />
-      <ReportPreview />
-      <TrustSection />
-      <ForWho />
-      <CTASection isAuthenticated={isAuthenticated} />
-
-      <footer className="border-t border-[#e5e6e1] bg-[#f7f7f5] py-10">
-        <div className="mx-auto max-w-[1100px] px-6 text-center">
-          <p className="text-[13px] text-[#8b8e84]">
-            TubeWatch — 데이터로 설계하는 유튜브 성장 전략
-          </p>
-        </div>
-      </footer>
+    <main className="relative min-h-screen overflow-x-hidden noise-overlay v0-landing-theme">
+      <Navigation />
+      <HeroSection />
+      <FeaturesSection />
+      <HowItWorksSection />
+      <InfrastructureSection />
+      <SecuritySection />
+      <CtaSection />
+      <FooterSection />
+      <FloatingTubeTalk />
     </main>
   );
 }
