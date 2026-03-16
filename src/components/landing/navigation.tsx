@@ -7,6 +7,11 @@ import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { AuthModal } from "./auth-modal";
 
+type NavigationProps = {
+  authModal?: string;
+  next?: string;
+};
+
 const navLinks = [
   { name: "Channel Analysis", href: "/channels", description: "내 채널, 지금 몇점일까?" },
   { name: "Action Plan", href: "/action-plan", description: "그래서 오늘 뭐하면 돼?" },
@@ -15,7 +20,7 @@ const navLinks = [
   { name: "Next Trend", href: "/channels", description: "다음 영상, 뭐 찍을건데 !" },
 ];
 
-export function Navigation() {
+export function Navigation({ authModal }: NavigationProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -40,6 +45,12 @@ export function Navigation() {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
+
+  useEffect(() => {
+    if (authModal === "1") {
+      setIsAuthModalOpen(true);
+    }
+  }, [authModal]);
 
   return (
     <header
@@ -86,7 +97,11 @@ export function Navigation() {
             
             <button 
               onClick={() => {
-                router.push("/login?next=/channels");
+                if (isAuthenticated) {
+                  router.push("/channels");
+                  return;
+                }
+                setIsAuthModalOpen(true);
               }}
               className={`text-foreground/70 hover:text-foreground transition-all duration-500 cursor-pointer ${isScrolled ? "text-xs" : "text-sm"}`}
             >
@@ -96,7 +111,11 @@ export function Navigation() {
               size="sm"
               className={`bg-black hover:bg-neutral-800 text-white rounded-lg shadow-lg transition-all duration-500 cursor-pointer ${isScrolled ? "px-4 h-8 text-xs" : "px-5 h-9"}`}
               onClick={() => {
-                router.push("/login?next=/channels");
+                if (isAuthenticated) {
+                  router.push("/channels");
+                  return;
+                }
+                setIsAuthModalOpen(true);
               }}
             >
               Sign Up
@@ -161,7 +180,11 @@ export function Navigation() {
               className="flex-1 rounded-lg h-14 text-base cursor-pointer"
               onClick={() => {
                 setIsMobileMenuOpen(false);
-                router.push("/login?next=/channels");
+                if (isAuthenticated) {
+                  router.push("/channels");
+                  return;
+                }
+                setIsAuthModalOpen(true);
               }}
             >
               Sign In
@@ -170,7 +193,11 @@ export function Navigation() {
               className="flex-1 bg-black text-white rounded-lg h-14 text-base shadow-lg cursor-pointer"
               onClick={() => {
                 setIsMobileMenuOpen(false);
-                router.push("/login?next=/channels");
+                if (isAuthenticated) {
+                  router.push("/channels");
+                  return;
+                }
+                setIsAuthModalOpen(true);
               }}
             >
               Sign Up

@@ -24,7 +24,7 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/login')
+    redirect('/?authModal=1&next=/dashboard')
   }
 
   const limits = await getEffectiveLimits(supabase, user.id)
