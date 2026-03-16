@@ -4,4 +4,4 @@
  * Protected UI Layer
  */
 
-export { Button, buttonVariants } from "@/v0-import/components/ui/button";
+export { Button, buttonVariants } from "@/v0-final/components/ui/button";

@@ -40,18 +40,29 @@ export default function AccountMenu(): JSX.Element {
   const handleLogout = async (): Promise<void> => {
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push("/login");
+    setAccount(null);
+    setOpen(false);
+    router.push("/");
     router.refresh();
   };
 
-  const label = account?.email ?? "계정";
-  const initial = account?.email?.[0]?.toUpperCase() ?? "U";
+  const isLoggedIn = !!account?.email;
+  const label = isLoggedIn ? account.email ?? "Account" : "Sign In";
+  const initial = isLoggedIn
+    ? account.email?.[0]?.toUpperCase() ?? "A"
+    : "S";
 
   return (
     <div className="relative">
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => {
+          if (!isLoggedIn) {
+            router.push("/login");
+            return;
+          }
+          setOpen((v) => !v);
+        }}
         className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 shadow-sm transition hover:bg-slate-50"
       >
         <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-800 text-xs font-semibold text-white">
@@ -60,14 +71,14 @@ export default function AccountMenu(): JSX.Element {
         <span className="max-w-[140px] truncate text-xs font-medium">
           {label}
         </span>
-        {account?.isAdmin ? (
+        {isLoggedIn && account?.isAdmin ? (
           <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-700">
             Admin
           </span>
         ) : null}
       </button>
 
-      {open ? (
+      {open && isLoggedIn ? (
         <div className="absolute right-0 top-full z-40 mt-2 w-56 rounded-xl border border-slate-200 bg-white py-2 text-sm text-slate-700 shadow-lg">
           <div className="px-3 pb-2">
             <p className="truncate text-xs font-medium text-slate-900">

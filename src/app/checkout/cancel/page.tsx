@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { Navigation } from "@/v0-import/components/landing/navigation";
-import { FooterSection } from "@/v0-import/components/landing/footer-section";
+import { Navigation } from "@/components/landing/navigation";
+import { FooterSection } from "@/components/landing/footer-section";
 
 export default function CheckoutCancelPage(): JSX.Element {
   return (

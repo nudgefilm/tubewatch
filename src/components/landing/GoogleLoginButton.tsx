@@ -20,11 +20,12 @@ export default function GoogleLoginButton({
     setIsLoading(true);
     const supabase = createClient();
     const origin = window.location.origin;
+    const search = window.location.search;
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${origin}/auth/callback`,
+        redirectTo: `${origin}/auth/callback${search}`,
       },
     });
 

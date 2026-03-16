@@ -109,7 +109,7 @@ export default async function ChannelsPage(): Promise<JSX.Element> {
   } = await supabase.auth.getUser()
 
   if (userError || !user) {
-    redirect('/login')
+    redirect('/login?next=/channels')
   }
 
   const { data: channels, error: channelsError } = await supabase

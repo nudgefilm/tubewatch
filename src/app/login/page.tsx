@@ -7,11 +7,12 @@ export default function LoginPage() {
     const supabase = createClient()
 
     const origin = window.location.origin
+    const search = window.location.search
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${origin}/auth/callback`,
+        redirectTo: `${origin}/auth/callback${search}`,
       },
     })
 

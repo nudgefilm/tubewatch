@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { Navigation } from "@/v0-import/components/landing/navigation";
-import { FooterSection } from "@/v0-import/components/landing/footer-section";
+import { Navigation } from "@/components/landing/navigation";
+import { FooterSection } from "@/components/landing/footer-section";
 import { PricingPlanCard } from "@/components/billing/PricingPlanCard";
 import { BILLING_PLANS } from "@/components/billing/types";
 import SectionCard from "@/components/ui/SectionCard";

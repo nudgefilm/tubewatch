@@ -6,8 +6,8 @@
 
 import type { ReactNode } from "react";
 
-import { Navigation } from "@/v0-import/components/landing/navigation";
-import { FooterSection } from "@/v0-import/components/landing/footer-section";
+import { Navigation } from "@/components/landing/navigation";
+import { FooterSection } from "@/components/landing/footer-section";
 
 export interface MarketingShellProps {
   children: ReactNode;

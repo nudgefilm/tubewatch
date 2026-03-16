@@ -34,5 +34,36 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.redirect(new URL('/', request.url))
+  const rawNext = requestUrl.searchParams.get('next')
+
+  const allowedPrefixes: string[] = [
+    '/channels',
+    '/analysis',
+    '/action-plan',
+    '/seo-lab',
+    '/benchmark',
+    '/next-trend',
+    '/',
+  ]
+
+  let nextPath = '/channels'
+
+  if (rawNext && rawNext.startsWith('/')) {
+    const isUnsafeDoubleSlash = rawNext.startsWith('//')
+    const isUnsafeProtocolLike =
+      rawNext.startsWith('/http:') || rawNext.startsWith('/https:')
+
+    if (!isUnsafeDoubleSlash && !isUnsafeProtocolLike) {
+      const isAllowed = allowedPrefixes.some(
+        (prefix) =>
+          rawNext === prefix || (prefix !== '/' && rawNext.startsWith(`${prefix}/`)),
+      )
+
+      if (isAllowed) {
+        nextPath = rawNext
+      }
+    }
+  }
+
+  return NextResponse.redirect(new URL(nextPath, request.url))
 }
