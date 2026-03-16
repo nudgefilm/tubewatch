@@ -82,7 +82,13 @@ export function Navigation({ authModal }: NavigationProps) {
             {navLinks.map((link) => (
               <a
                 key={link.name}
-                href={link.href}
+                href={isAuthenticated ? link.href : "#"}
+                onClick={(event) => {
+                  if (!isAuthenticated) {
+                    event.preventDefault();
+                    setIsAuthModalOpen(true);
+                  }
+                }}
                 className="text-sm text-foreground/70 hover:text-foreground transition-colors duration-300 relative group cursor-pointer"
               >
                 {link.name}
@@ -153,8 +159,16 @@ export function Navigation({ authModal }: NavigationProps) {
             {navLinks.map((link, i) => (
               <a
                 key={link.name}
-                href={link.href}
-                onClick={() => setIsMobileMenuOpen(false)}
+                href={isAuthenticated ? link.href : "#"}
+                onClick={(event) => {
+                  if (!isAuthenticated) {
+                    event.preventDefault();
+                    setIsMobileMenuOpen(false);
+                    setIsAuthModalOpen(true);
+                    return;
+                  }
+                  setIsMobileMenuOpen(false);
+                }}
                 className={`text-5xl font-display text-foreground hover:text-muted-foreground transition-all duration-500 cursor-pointer ${
                   isMobileMenuOpen 
                     ? "opacity-100 translate-y-0" 
