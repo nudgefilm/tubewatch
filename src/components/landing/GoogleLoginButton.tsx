@@ -6,11 +6,13 @@ import { createClient } from "@/lib/supabase/client";
 type GoogleLoginButtonProps = {
   className?: string;
   label?: string;
+  next?: string;
 };
 
 export default function GoogleLoginButton({
   className = "",
   label = "Google로 시작하기",
+  next = "/channels",
 }: GoogleLoginButtonProps): JSX.Element {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -20,7 +22,9 @@ export default function GoogleLoginButton({
     setIsLoading(true);
     const supabase = createClient();
     const origin = window.location.origin;
-    const search = window.location.search;
+    const url = new URL(window.location.href);
+    url.searchParams.set("next", next);
+    const search = url.search;
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
