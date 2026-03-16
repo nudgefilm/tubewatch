@@ -73,7 +73,7 @@ export default async function AnalysisChannelPage({
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    redirect("/login");
+    redirect(`/?authModal=1&next=/analysis/${params.channelId}`);
   }
 
   const { data: channels, error: channelsError } = await supabase

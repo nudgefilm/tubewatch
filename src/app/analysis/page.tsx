@@ -39,7 +39,7 @@ export default async function AnalysisPage(): Promise<JSX.Element> {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) redirect("/login");
+  if (!user) redirect("/?authModal=1&next=/analysis");
 
   const { data: channels } = await supabase
     .from("user_channels")

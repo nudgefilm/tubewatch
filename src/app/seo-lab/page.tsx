@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import AppShell from "@/components/app/AppShell";
 import PageContainer from "@/components/app/PageContainer";
 import { getSeoLabPageData } from "@/lib/server/seo-lab/getSeoLabPageData";
@@ -20,12 +19,10 @@ export default async function SeoLabPage({
         : undefined;
   const data = await getSeoLabPageData(channelId);
 
-  if (!data) {
-    redirect("/login");
-  }
-
   const showEmpty =
-    data.channels.length === 0 || data.latestResult === null;
+    !data ||
+    data.channels.length === 0 ||
+    data.latestResult === null;
 
   return (
     <AppShell
