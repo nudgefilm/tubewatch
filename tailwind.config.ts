@@ -12,8 +12,6 @@ const config: Config = {
     extend: {
       fontFamily: {
         sans: [
-          "var(--font-instrument)",
-          '"Instrument Sans"',
           '"Pretendard Variable"',
           "Pretendard",
           "-apple-system",
@@ -24,6 +22,7 @@ const config: Config = {
           '"Segoe UI"',
           '"Apple SD Gothic Neo"',
           '"Noto Sans KR"',
+          '"Malgun Gothic"',
           "sans-serif",
         ],
         display: [

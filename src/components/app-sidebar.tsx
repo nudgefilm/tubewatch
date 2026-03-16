@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import {
   Tv2,
   BarChart3,
@@ -26,6 +26,7 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from "@/components/ui/sidebar"
+import { createClient } from "@/lib/supabase/client"
 
 const menuItems = [
   { title: "내 채널", url: "/channels", icon: Tv2 },
@@ -37,18 +38,25 @@ const menuItems = [
 ]
 
 const bottomMenuItems = [
-  { title: "고객 지원", url: "/support", icon: HelpCircle },
-  { title: "마이페이지", url: "/mypage", icon: User },
-  { title: "설정", url: "/settings", icon: Settings },
+  { title: "고객 지원", url: "/guest-report", icon: HelpCircle },
+  { title: "마이페이지", url: "/dashboard", icon: User },
+  { title: "설정", url: "/dashboard/settings", icon: Settings },
 ]
 
-const logoutItem = { title: "로그아웃", url: "/logout", icon: LogOut }
+const logoutItem = { title: "로그아웃", icon: LogOut }
 
 export function AppSidebar(): React.ReactElement {
   const pathname = usePathname()
+  const router = useRouter()
   const isActive = (url: string): boolean => {
     if (url === "/analysis") return pathname.startsWith("/analysis")
     return pathname === url
+  }
+  const handleLogout = async (): Promise<void> => {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push("/")
+    router.refresh()
   }
   return (
     <Sidebar>
@@ -100,14 +108,9 @@ export function AppSidebar(): React.ReactElement {
                 </SidebarMenuItem>
               ))}
               <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname === logoutItem.url}
-                >
-                  <Link href={logoutItem.url}>
-                    <logoutItem.icon className="size-4" />
-                    <span>{logoutItem.title}</span>
-                  </Link>
+                <SidebarMenuButton isActive={false} onClick={handleLogout}>
+                  <logoutItem.icon className="size-4" />
+                  <span>{logoutItem.title}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
