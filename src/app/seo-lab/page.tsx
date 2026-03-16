@@ -1,8 +1,8 @@
 import AppShell from "@/components/app/AppShell";
 import PageContainer from "@/components/app/PageContainer";
 import { getSeoLabPageData } from "@/lib/server/seo-lab/getSeoLabPageData";
-import SeoLabView from "@/components/seo-lab/SeoLabView";
 import SeoLabEmptyState from "@/components/seo-lab/SeoLabEmptyState";
+import SeoLabV2View from "@/components/seo-lab/SeoLabV2View";
 
 type SearchParams = { channelId?: string | string[] };
 
@@ -33,7 +33,7 @@ export default async function SeoLabPage({
         {showEmpty ? (
           <SeoLabEmptyState />
         ) : (
-          <SeoLabView data={data} />
+          <SeoLabV2View data={data} />
         )}
       </PageContainer>
     </AppShell>

@@ -1,8 +1,8 @@
 import AppShell from "@/components/app/AppShell";
 import PageContainer from "@/components/app/PageContainer";
 import { getBenchmarkPageData } from "@/lib/server/benchmark/getBenchmarkPageData";
-import BenchmarkView from "@/components/benchmark/BenchmarkView";
 import BenchmarkEmptyState from "@/components/benchmark/BenchmarkEmptyState";
+import BenchmarkV2View from "@/components/benchmark/BenchmarkV2View";
 
 type SearchParams = { channelId?: string | string[] };
 
@@ -33,7 +33,7 @@ export default async function BenchmarkPage({
         {showEmpty ? (
           <BenchmarkEmptyState />
         ) : (
-          <BenchmarkView data={data} />
+          <BenchmarkV2View data={data} />
         )}
       </PageContainer>
     </AppShell>

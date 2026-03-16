@@ -1,8 +1,8 @@
 import AppShell from "@/components/app/AppShell";
 import PageContainer from "@/components/app/PageContainer";
 import { getActionPlanPageData } from "@/lib/server/action-plan/getActionPlanPageData";
-import ActionPlanView from "@/components/action-plan/ActionPlanView";
 import ActionPlanEmptyState from "@/components/action-plan/ActionPlanEmptyState";
+import ActionPlanV2View from "@/components/action-plan/ActionPlanV2View";
 
 type SearchParams = { channelId?: string | string[] };
 
@@ -33,7 +33,7 @@ export default async function ActionPlanPage({
         {showEmpty ? (
           <ActionPlanEmptyState />
         ) : (
-          <ActionPlanView data={data} />
+          <ActionPlanV2View data={data} />
         )}
       </PageContainer>
     </AppShell>
