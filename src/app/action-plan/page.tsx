@@ -1,4 +1,5 @@
 import { getActionPlanPageData } from "@/lib/server/action-plan/getActionPlanPageData";
+import { AppFrameZip } from "@/components/app/AppFrameZip";
 import ActionPlanZipView from "@/components/action-plan/ActionPlanZipView";
 
 type SearchParams = { channelId?: string | string[] };
@@ -16,5 +17,9 @@ export default async function ActionPlanPage({
         : undefined;
   const data = await getActionPlanPageData(channelId);
 
-  return <ActionPlanZipView data={data} />;
+  return (
+    <AppFrameZip>
+      <ActionPlanZipView data={data} />
+    </AppFrameZip>
+  );
 }
