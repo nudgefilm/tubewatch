@@ -1,5 +1,17 @@
 import type { Metadata } from "next";
+import { Instrument_Sans, Instrument_Serif } from "next/font/google";
 import "./globals.css";
+
+const instrumentSans = Instrument_Sans({
+  subsets: ["latin"],
+  variable: "--font-instrument",
+});
+
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-instrument-serif",
+});
 
 export const metadata: Metadata = {
   title: "TubeWatch — 데이터로 설계하는 유튜브 성장 전략",
@@ -24,7 +36,11 @@ export default function RootLayout({
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
         />
       </head>
-      <body className="font-sans antialiased">{children}</body>
+      <body
+        className={`${instrumentSans.variable} ${instrumentSerif.variable} font-sans antialiased`}
+      >
+        {children}
+      </body>
     </html>
   );
 }
