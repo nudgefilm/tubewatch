@@ -36,6 +36,16 @@ type RegisterChannelResponse = {
   }
 }
 
+function normalizeChannelUrl(input: string): string {
+  let url = input.trim()
+
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    url = 'https://' + url
+  }
+
+  return url
+}
+
 export default function RegisterChannelForm({
   currentCount = 0,
   maxCount = 3,
@@ -86,13 +96,15 @@ export default function RegisterChannelForm({
         return
       }
 
+      const normalizedUrl = normalizeChannelUrl(channelUrl)
+
       const response = await fetch('/api/channels', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({ channel_url: channelUrl.trim() }),
+        body: JSON.stringify({ channel_url: normalizedUrl }),
       })
 
       const result: RegisterChannelResponse = await response.json()

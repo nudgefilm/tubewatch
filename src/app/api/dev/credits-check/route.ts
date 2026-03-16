@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/config/admin";
+import { getEffectiveLimits } from "@/lib/server/subscription/getEffectiveLimits";
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +33,7 @@ export async function GET(): Promise<NextResponse> {
 
     const { data: row, error } = await supabase
       .from("user_credits")
-      .select("user_id, monthly_limit, credits_used, period_start, period_end")
+      .select("user_id, credits_used, period_start, period_end")
       .eq("user_id", user.id)
       .order("period_end", { ascending: false })
       .limit(1)
@@ -52,13 +53,13 @@ export async function GET(): Promise<NextResponse> {
       return NextResponse.json(body);
     }
 
-    const monthlyLimit = Number(row.monthly_limit) ?? 0;
-    const creditsUsed = Number(row.credits_used) ?? 0;
-    const remainingCredits = Math.max(0, monthlyLimit - creditsUsed);
+    const { monthlyAnalysisLimit } = await getEffectiveLimits(supabase, user.id);
+    const creditsUsed = Number((row as any).credits_used) ?? 0;
+    const remainingCredits = Math.max(0, monthlyAnalysisLimit - creditsUsed);
 
     const body: CreditsCheckResponse = {
       userId: user.id,
-      monthlyLimit,
+      monthlyLimit: monthlyAnalysisLimit,
       creditsUsed,
       remainingCredits,
       periodStart: String(row.period_start ?? ""),

@@ -7,7 +7,6 @@ const FREE_MONTHLY_LIMIT = 5;
 export type UserCreditsRow = {
   id: string;
   user_id: string;
-  monthly_limit: number;
   credits_used: number;
   period_start: string;
   period_end: string;
@@ -51,7 +50,7 @@ export async function getOrCreateUserCredits(
 
   const { data: existing, error: selectError } = await supabase
     .from("user_credits")
-    .select("id, user_id, monthly_limit, credits_used, period_start, period_end")
+    .select("id, user_id, credits_used, period_start, period_end")
     .eq("user_id", userId)
     .order("period_end", { ascending: false })
     .limit(1)
@@ -68,12 +67,11 @@ export async function getOrCreateUserCredits(
       .from("user_credits")
       .insert({
         user_id: userId,
-        monthly_limit: effectiveLimit,
         credits_used: 0,
         period_start: periodStart,
         period_end: periodEnd,
       })
-      .select("id, user_id, monthly_limit, credits_used, period_start, period_end")
+      .select("id, user_id, credits_used, period_start, period_end")
       .single();
 
     if (insertError) {
@@ -92,13 +90,12 @@ export async function getOrCreateUserCredits(
     const { data: updated, error: updateError } = await supabase
       .from("user_credits")
       .update({
-        monthly_limit: effectiveLimit,
         credits_used: 0,
         period_start: periodStart,
         period_end: periodEnd,
       })
       .eq("id", row.id)
-      .select("id, user_id, monthly_limit, credits_used, period_start, period_end")
+      .select("id, user_id, credits_used, period_start, period_end")
       .single();
 
     if (updateError) {
@@ -108,23 +105,6 @@ export async function getOrCreateUserCredits(
     }
 
     return updated as unknown as UserCreditsRow;
-  }
-
-  if (row.monthly_limit !== effectiveLimit) {
-    const { data: synced, error: syncError } = await supabase
-      .from("user_credits")
-      .update({ monthly_limit: effectiveLimit })
-      .eq("id", row.id)
-      .select("id, user_id, monthly_limit, credits_used, period_start, period_end")
-      .single();
-
-    if (syncError) {
-      throw new Error(
-        `user_credits limit sync failed: ${syncError.message}`
-      );
-    }
-
-    return synced as unknown as UserCreditsRow;
   }
 
   return row;
@@ -144,8 +124,9 @@ export async function assertUserHasCredit(
   }
 
   const credits = await getOrCreateUserCredits(supabase, userId);
+  const limits = await getEffectiveLimits(supabase, userId);
 
-  if (credits.credits_used >= credits.monthly_limit) {
+  if (credits.credits_used >= limits.monthlyAnalysisLimit) {
     throw new UserCreditsExhaustedError(
       "이번 달 분석 크레딧을 모두 사용했습니다."
     );
