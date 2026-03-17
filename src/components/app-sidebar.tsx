@@ -62,7 +62,7 @@ export function AppSidebar(): React.ReactElement {
     <Sidebar>
       <SidebarHeader className="p-4">
         <Link href="/" className="flex flex-col">
-          <span className="text-xl font-display tracking-tight">
+          <span className="text-2xl font-display tracking-tight">
             TubeWatch™
           </span>
           <span className="text-xs text-muted-foreground">
