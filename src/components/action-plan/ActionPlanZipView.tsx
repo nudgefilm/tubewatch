@@ -375,7 +375,7 @@ export default function ActionPlanZipView({
             <SummaryCard summary={summary} />
 
             <section>
-              <h2 className="mb-4 text-xl font-semibold">우선순위 액션</h2>
+            <h2 className="mb-4 text-xl font-display font-semibold">우선순위 액션</h2>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {priorityActions.map((action, index) => (
                   <PriorityActionCard
@@ -388,7 +388,7 @@ export default function ActionPlanZipView({
             </section>
 
             <section>
-              <h2 className="mb-4 text-xl font-semibold">카테고리별 액션</h2>
+              <h2 className="mb-4 text-xl font-display font-semibold">카테고리별 액션</h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 {Object.entries(categoryActions).map(([key, category]) => (
                   <CategorySection

@@ -62,7 +62,7 @@ function BenchmarkCard({
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
             {item.status_label}
           </p>
-          <h3 className="text-sm font-semibold text-slate-900 break-words">
+          <h3 className="text-sm font-display font-semibold text-slate-900 break-words">
             {item.title}
           </h3>
         </div>
@@ -71,7 +71,7 @@ function BenchmarkCard({
 
       <div className="mt-4 flex items-end gap-4">
         <div className="flex items-baseline gap-1">
-          <span className="text-2xl font-semibold text-slate-900">
+          <span className="text-2xl font-display font-semibold text-slate-900">
             {item.current_score}
           </span>
           <span className="text-xs text-slate-500">/ 100</span>
@@ -114,7 +114,7 @@ export default function BenchmarkV2View({
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
               벤치마킹
             </p>
-            <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">
+            <h2 className="text-lg font-display font-semibold text-slate-900 sm:text-xl">
               경쟁 채널 대비 현재 위치
             </h2>
             <p className="text-xs text-slate-500 sm:text-sm">

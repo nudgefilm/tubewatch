@@ -55,7 +55,7 @@ export default function SeoLabV2View({
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
               SEO 랩
             </p>
-            <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">
+            <h2 className="text-lg font-display font-semibold text-slate-900 sm:text-xl">
               제목 · 설명 · 태그 진단
             </h2>
             <p className="text-xs text-slate-500 sm:text-sm">

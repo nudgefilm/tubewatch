@@ -12,10 +12,7 @@ const config: Config = {
     extend: {
       fontFamily: {
         sans: [
-          "var(--font-instrument)",
-          '"Instrument Sans"',
-          "system-ui",
-          "sans-serif",
+          "var(--font-body)",
         ],
         mono: [
           "var(--font-jetbrains)",
@@ -23,10 +20,7 @@ const config: Config = {
           "monospace",
         ],
         display: [
-          "var(--font-instrument-serif)",
-          '"Instrument Serif"',
-          "Georgia",
-          "serif",
+          "var(--font-display)",
         ],
       },
       colors: {

@@ -14,7 +14,7 @@ export default function HomePage({
   searchParams: { authModal?: string; next?: string };
 }): JSX.Element {
   return (
-    <main className="relative min-h-screen overflow-x-hidden noise-overlay v0-landing-theme">
+    <main className="relative min-h-screen overflow-x-hidden noise-overlay">
       <Navigation authModal={searchParams.authModal} next={searchParams.next} />
       <HeroSection />
       <FeaturesSection />

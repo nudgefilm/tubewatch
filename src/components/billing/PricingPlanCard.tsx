@@ -51,7 +51,7 @@ export function PricingPlanCard({ plan }: PricingPlanCardProps): JSX.Element {
   return (
     <div id={plan.id}>
       <SectionCard className="flex flex-col">
-        <h3 className="text-xl font-semibold text-gray-900">{plan.name}</h3>
+        <h3 className="text-xl font-display font-semibold text-gray-900">{plan.name}</h3>
         <p className="mt-2 text-2xl font-bold text-gray-900">
           ${plan.priceUsd}
           <span className="text-sm font-normal text-gray-500">/월</span>
