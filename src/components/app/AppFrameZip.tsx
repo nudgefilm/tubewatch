@@ -18,7 +18,7 @@ export function AppFrameZip({ children }: AppFrameZipProps): React.ReactElement 
       <SidebarInset className="md:pl-[var(--sidebar-width)]">
         <header className="flex h-14 items-center gap-2 border-b px-4 md:hidden">
           <SidebarTrigger />
-          <span className="text-lg font-display">TubeWatch™</span>
+          <span className="text-lg font-display tracking-tight">TubeWatch™</span>
         </header>
         <main className="flex-1 px-6 md:px-8 lg:px-10 py-6">
           <div className="max-w-[1200px] mx-auto">

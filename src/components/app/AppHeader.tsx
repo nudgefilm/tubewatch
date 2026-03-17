@@ -14,7 +14,7 @@ export default function AppHeader({
   return (
     <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-8">
       <div className="min-w-0">
-        <h1 className="truncate text-lg font-semibold text-slate-900">
+        <h1 className="font-display truncate text-lg font-semibold tracking-tight text-slate-900">
           {title}
         </h1>
         {description ? (

@@ -74,7 +74,9 @@ export function Navigation({ authModal }: NavigationProps) {
         >
           {/* Logo */}
           <a href="/" className="flex items-center group cursor-pointer">
-            <span className={`font-display tracking-tight transition-all duration-500 ${isScrolled ? "text-xl" : "text-2xl"}`}>TubeWatch™</span>
+            <span className="font-display tracking-tight text-2xl transition-all duration-500">
+              TubeWatch™
+            </span>
           </a>
 
           {/* Desktop Navigation + CTA - Right Aligned */}

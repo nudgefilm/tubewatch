@@ -359,7 +359,7 @@ export default function ActionPlanZipView({
     <div className="min-h-screen bg-background">
       <div className="px-6 py-6 lg:px-10 lg:py-8">
         <div className="mb-8">
-          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-black">
+          <h1 className="font-display flex items-center gap-2 text-2xl font-semibold tracking-tight">
             <Zap className="size-6" />
             액션 플랜
           </h1>

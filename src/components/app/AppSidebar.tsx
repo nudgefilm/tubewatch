@@ -50,8 +50,8 @@ export default function AppSidebar(): JSX.Element {
           onClick={() => router.push("/")}
           className="flex items-center"
         >
-          <span className="text-base font-semibold text-slate-900">
-            TubeWatch
+          <span className="text-xl font-display tracking-tight text-slate-900">
+            TubeWatch™
           </span>
         </button>
       </div>
