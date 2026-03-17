@@ -18,12 +18,7 @@ export function AppFrameZip({ children }: AppFrameZipProps): React.ReactElement 
       <SidebarInset className="md:pl-[var(--sidebar-width)]">
         <header className="flex h-14 items-center gap-2 border-b px-4 md:hidden">
           <SidebarTrigger />
-          <span
-          className="text-lg tracking-tight"
-          style={{
-            fontFamily: 'var(--font-instrument-serif), "Instrument Serif", Georgia, serif',
-          }}
-        >
+          <span className="text-lg font-sans tracking-tight font-normal text-black">
           TubeWatch™
         </span>
         </header>
