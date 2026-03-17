@@ -12,18 +12,15 @@ const config: Config = {
     extend: {
       fontFamily: {
         sans: [
-          '"Pretendard Variable"',
-          "Pretendard",
-          "-apple-system",
-          "BlinkMacSystemFont",
+          "var(--font-instrument)",
+          '"Instrument Sans"',
           "system-ui",
-          "Roboto",
-          '"Helvetica Neue"',
-          '"Segoe UI"',
-          '"Apple SD Gothic Neo"',
-          '"Noto Sans KR"',
-          '"Malgun Gothic"',
           "sans-serif",
+        ],
+        mono: [
+          "var(--font-jetbrains)",
+          '"JetBrains Mono"',
+          "monospace",
         ],
         display: [
           "var(--font-instrument-serif)",
