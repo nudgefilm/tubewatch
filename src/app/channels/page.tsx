@@ -108,6 +108,8 @@ export default async function ChannelsPage(): Promise<JSX.Element> {
     error: userError,
   } = await supabase.auth.getUser()
 
+  console.log("CHANNELS_USER", user?.id || null)
+
   if (userError || !user) {
     redirect('/?authModal=1&next=/channels')
   }

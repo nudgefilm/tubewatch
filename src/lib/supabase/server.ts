@@ -1,5 +1,11 @@
-import { createServerClient } from '@supabase/ssr'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+
+type CookieToSet = {
+  name: string
+  value: string
+  options: CookieOptions
+}
 
 function getRequiredEnv(name: string) {
   const value = process.env[name]
@@ -19,11 +25,22 @@ export async function createClient() {
 
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
-      get(name: string) {
-        return cookieStore.get(name)?.value
+      getAll() {
+        return cookieStore.getAll()
       },
-      set() {},
-      remove() {},
+      setAll(cookiesToSet: CookieToSet[]) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            if (value) {
+              cookieStore.set(name, value, options)
+            } else {
+              cookieStore.delete(name)
+            }
+          })
+        } catch {
+          // Server Component 렌더 중 set이 불가할 수 있음 — 미들웨어에서 세션을 갱신합니다.
+        }
+      },
     },
   })
 }

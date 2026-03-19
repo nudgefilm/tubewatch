@@ -7,9 +7,10 @@ import GoogleLoginButton from "@/components/landing/GoogleLoginButton";
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  next?: string;
 }
 
-export function AuthModal({ isOpen, onClose }: AuthModalProps) {
+export function AuthModal({ isOpen, onClose, next }: AuthModalProps) {
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -66,7 +67,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
           {/* Google Login Button */}
           <GoogleLoginButton
-            next="/channels"
+            next={next ?? "/channels"}
             className="w-full flex items-center justify-center gap-3 bg-foreground text-background font-medium py-4 px-6 rounded-xl hover:bg-foreground/90 transition-all duration-300 cursor-pointer group"
             label="Google로 시작하기"
           />

@@ -19,6 +19,7 @@ export default function GoogleLoginButton({
   async function handleLogin(): Promise<void> {
     if (isLoading) return;
 
+    console.log("LOGIN_START");
     setIsLoading(true);
     const supabase = createClient();
     const origin = window.location.origin;
@@ -26,7 +27,7 @@ export default function GoogleLoginButton({
     url.searchParams.set("next", next);
     const search = url.search;
 
-    const { error } = await supabase.auth.signInWithOAuth({
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: `${origin}/auth/callback${search}`,
@@ -36,7 +37,18 @@ export default function GoogleLoginButton({
     if (error) {
       console.error("Google login error:", error);
       setIsLoading(false);
+      return;
     }
+
+    // signInWithOAuth는 data.url을 반환하고, 브라우저 이동이 필요합니다.
+    // (여기서 이동이 누락되면 OAuth 과정이 실제로 시작되지 않습니다.)
+    if (data?.url) {
+      window.location.href = data.url;
+      return;
+    }
+
+    // 예기치 않게 url이 없는 경우를 대비해 로딩만 해제합니다.
+    setIsLoading(false);
   }
 
   return (

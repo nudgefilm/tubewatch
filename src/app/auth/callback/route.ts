@@ -6,6 +6,9 @@ export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
 
+  console.log('CALLBACK_ENTER')
+  console.log('CALLBACK_CODE_EXISTS', Boolean(code))
+
   if (code) {
     const cookieStore = await cookies()
 
@@ -65,5 +68,6 @@ export async function GET(request: Request) {
     }
   }
 
+  console.log('CALLBACK_REDIRECT', nextPath)
   return NextResponse.redirect(new URL(nextPath, request.url))
 }

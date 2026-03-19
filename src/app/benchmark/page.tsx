@@ -1,41 +1,22 @@
-import AppShell from "@/components/app/AppShell";
-import PageContainer from "@/components/app/PageContainer";
-import { getBenchmarkPageData } from "@/lib/server/benchmark/getBenchmarkPageData";
-import BenchmarkEmptyState from "@/components/benchmark/BenchmarkEmptyState";
-import BenchmarkV2View from "@/components/benchmark/BenchmarkV2View";
+import { redirect } from "next/navigation"
+import { createClient } from "@/lib/supabase/server"
+import { V0AppFrame } from "@/components/app/V0AppFrame"
+import V0BenchmarkPage from "@/v0-final/benchmark/page"
 
-type SearchParams = { channelId?: string | string[] };
+export default async function BenchmarkRoute(): Promise<JSX.Element> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser()
 
-export default async function BenchmarkPage({
-  searchParams,
-}: {
-  searchParams: SearchParams;
-}): Promise<JSX.Element> {
-  const channelId =
-    typeof searchParams.channelId === "string"
-      ? searchParams.channelId
-      : Array.isArray(searchParams.channelId)
-        ? searchParams.channelId[0]
-        : undefined;
-  const data = await getBenchmarkPageData(channelId);
-
-  const showEmpty =
-    !data ||
-    data.channels.length === 0 ||
-    data.latestResult === null;
+  if (error || !user) {
+    redirect("/?authModal=1&next=/benchmark")
+  }
 
   return (
-    <AppShell
-      title="벤치마킹"
-      description="최근 분석 결과를 바탕으로 채널의 현재 위치를 핵심 지표 기준으로 비교합니다."
-    >
-      <PageContainer>
-        {showEmpty ? (
-          <BenchmarkEmptyState />
-        ) : (
-          <BenchmarkV2View data={data} />
-        )}
-      </PageContainer>
-    </AppShell>
-  );
+    <V0AppFrame>
+      <V0BenchmarkPage />
+    </V0AppFrame>
+  )
 }

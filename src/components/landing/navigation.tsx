@@ -20,7 +20,7 @@ const navLinks = [
   { name: "Next Trend", href: "/channels", description: "다음 영상, 뭐 찍을건데 !" },
 ];
 
-export function Navigation({ authModal }: NavigationProps) {
+export function Navigation({ authModal, next }: NavigationProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -226,6 +226,7 @@ export function Navigation({ authModal }: NavigationProps) {
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
+        next={next}
       />
     </header>
   );

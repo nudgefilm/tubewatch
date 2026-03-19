@@ -1,41 +1,22 @@
-import AppShell from "@/components/app/AppShell";
-import PageContainer from "@/components/app/PageContainer";
-import { getSeoLabPageData } from "@/lib/server/seo-lab/getSeoLabPageData";
-import SeoLabEmptyState from "@/components/seo-lab/SeoLabEmptyState";
-import SeoLabV2View from "@/components/seo-lab/SeoLabV2View";
+import { redirect } from "next/navigation"
+import { createClient } from "@/lib/supabase/server"
+import { V0AppFrame } from "@/components/app/V0AppFrame"
+import V0SeoLabPage from "@/v0-final/seo-lab/page"
 
-type SearchParams = { channelId?: string | string[] };
+export default async function SeoLabRoute(): Promise<JSX.Element> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser()
 
-export default async function SeoLabPage({
-  searchParams,
-}: {
-  searchParams: SearchParams;
-}): Promise<JSX.Element> {
-  const channelId =
-    typeof searchParams.channelId === "string"
-      ? searchParams.channelId
-      : Array.isArray(searchParams.channelId)
-        ? searchParams.channelId[0]
-        : undefined;
-  const data = await getSeoLabPageData(channelId);
-
-  const showEmpty =
-    !data ||
-    data.channels.length === 0 ||
-    data.latestResult === null;
+  if (error || !user) {
+    redirect("/?authModal=1&next=/seo-lab")
+  }
 
   return (
-    <AppShell
-      title="SEO 랩"
-      description="최근 분석 결과를 바탕으로 제목, 설명, 태그 관점의 개선 포인트를 정리합니다."
-    >
-      <PageContainer>
-        {showEmpty ? (
-          <SeoLabEmptyState />
-        ) : (
-          <SeoLabV2View data={data} />
-        )}
-      </PageContainer>
-    </AppShell>
-  );
+    <V0AppFrame>
+      <V0SeoLabPage />
+    </V0AppFrame>
+  )
 }

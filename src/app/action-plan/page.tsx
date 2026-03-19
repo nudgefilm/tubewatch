@@ -1,25 +1,22 @@
-import { getActionPlanPageData } from "@/lib/server/action-plan/getActionPlanPageData";
-import { AppFrameZip } from "@/components/app/AppFrameZip";
-import ActionPlanZipView from "@/components/action-plan/ActionPlanZipView";
+import { redirect } from "next/navigation"
+import { createClient } from "@/lib/supabase/server"
+import { V0AppFrame } from "@/components/app/V0AppFrame"
+import V0ActionPlanPage from "@/v0-final/action-plan/page"
 
-type SearchParams = { channelId?: string | string[] };
+export default async function ActionPlanRoute(): Promise<JSX.Element> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser()
 
-export default async function ActionPlanPage({
-  searchParams,
-}: {
-  searchParams: SearchParams;
-}): Promise<JSX.Element> {
-  const channelId =
-    typeof searchParams.channelId === "string"
-      ? searchParams.channelId
-      : Array.isArray(searchParams.channelId)
-        ? searchParams.channelId[0]
-        : undefined;
-  const data = await getActionPlanPageData(channelId);
+  if (error || !user) {
+    redirect("/?authModal=1&next=/action-plan")
+  }
 
   return (
-    <AppFrameZip>
-      <ActionPlanZipView data={data} />
-    </AppFrameZip>
-  );
+    <V0AppFrame>
+      <V0ActionPlanPage />
+    </V0AppFrame>
+  )
 }

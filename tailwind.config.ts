@@ -11,17 +11,9 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: [
-          "var(--font-body)",
-        ],
-        mono: [
-          "var(--font-jetbrains)",
-          '"JetBrains Mono"',
-          "monospace",
-        ],
-        display: [
-          "var(--font-display)",
-        ],
+        sans: ["var(--font-body)"],
+        mono: ["var(--font-jetbrains)", '"JetBrains Mono"', "monospace"],
+        display: ["var(--font-display)"],
       },
       colors: {
         border: "var(--border)",
@@ -57,4 +49,5 @@ const config: Config = {
   },
   plugins: [],
 };
+
 export default config;

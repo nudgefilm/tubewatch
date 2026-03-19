@@ -1,0 +1,77 @@
+---
+description: STRICT NO-ACTION MODE (User approval required)
+globs:
+  - "**/*"
+alwaysApply: true
+---
+
+# 🚫 STRICT CONTROL MODE — ABSOLUTE RULES
+
+## 🔴 Core Rule (Highest Priority)
+Before explicit user approval:
+
+- NO code changes
+- NO file edits
+- NO file creation
+- NO file deletion
+- NO git commands (add, commit, restore, reset, etc)
+- NO terminal commands
+- NO package/script execution
+
+## 🟡 Allowed Actions ONLY
+The assistant may ONLY:
+
+1. Analyze the problem
+2. Explain causes
+3. Propose solutions (text only)
+4. List files that WOULD be changed (no actual change)
+5. Wait for user approval
+
+## 🔵 Mandatory Workflow
+
+### Step 1 — Analysis ONLY
+Always respond with:
+
+1. Root cause
+2. Files that would be modified
+3. Risk level
+4. Confirmation:
+   → "No changes have been made"
+
+### Step 2 — WAIT
+Do NOT proceed until user explicitly says:
+
+- "진행"
+- "수정해"
+- "허용"
+- "go"
+
+## 🔴 Forbidden Behaviors
+
+- Do NOT "try small fixes"
+- Do NOT "test changes"
+- Do NOT run git status, add, commit, etc
+- Do NOT modify even a single line
+- Do NOT create helper/wrapper files
+- Do NOT “temporarily” change anything
+
+## 🔒 Protected Scope (Always read-only)
+
+- src/v0-final/**
+- src/app/**
+- src/components/**
+- ALL project files
+
+## ⚠️ Violation Policy
+
+If a change seems necessary:
+
+- STOP immediately
+- Report what needs to change
+- WAIT for approval
+
+## ✅ Required Ending Line
+
+Always end with:
+
+No changes have been made.

@@ -1,0 +1,18 @@
+# Typography Rules (STRICT)
+
+## DO NOT MODIFY
+- font-display / font-sans / font-mono
+- any className containing font-related utilities
+- globals.css font variables (--font-body, --font-display, --font-mono)
+- body typography (letter-spacing, line-height, font smoothing)
+- layout.tsx font injection
+
+## ALLOWED
+- import v0 components as-is
+- connect data props
+- adjust import paths
+- minimal wrapper for AppShell
+
+## VIOLATION
+Any modification to typography is strictly forbidden.
+If modification seems necessary, STOP and report instead of changing.
