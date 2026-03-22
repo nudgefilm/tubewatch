@@ -2,17 +2,18 @@ import type { Config } from "tailwindcss";
 
 const config: Config = {
   content: [
-    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/v0-import/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/v0-final/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/**/*.{js,ts,jsx,tsx}",
+    "./v0-TubewatchUI/app/**/*.{js,ts,jsx,tsx}",
+    "./v0-TubewatchUI/components/**/*.{js,ts,jsx,tsx}",
+    "./v0-TubewatchUI/hooks/**/*.{js,ts,jsx,tsx}",
+    "./v0-TubewatchUI/lib/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-body)"],
-        mono: ["var(--font-jetbrains)", '"JetBrains Mono"', "monospace"],
+        sans: ["var(--font-sans)"],
+        serif: ["var(--font-display)"],
+        mono: ["var(--font-mono)"],
         display: ["var(--font-display)"],
       },
       colors: {

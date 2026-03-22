@@ -1,80 +1,94 @@
+/**
+ * ⚠️ CORE RENDER SOURCE
+ * 메인 로고 및 Auth Modal을 포함한 핵심 UI
+ * 수정 시 반드시 실제 렌더 영향 확인 필요
+ */
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { createClient } from "@/lib/supabase/client";
+import { Menu, X } from "lucide-react";
+
+import { getSafeOAuthReturnPath } from "@/lib/auth/safe-return-path";
 import { AuthModal } from "./auth-modal";
 
-type NavigationProps = {
-  authModal?: string;
-  next?: string;
-};
-
 const navLinks = [
-  { name: "Channel Analysis", href: "/channels", description: "내 채널, 지금 몇점일까?" },
+  { name: "Channel Analysis", href: "/analysis", description: "내 채널, 지금 몇점일까?" },
   { name: "Action Plan", href: "/action-plan", description: "그래서 오늘 뭐하면 돼?" },
   { name: "SEO Lab", href: "/seo-lab", description: "조회수 터지는 태그 좀 알려줘" },
   { name: "Benchmark", href: "/benchmark", description: "잘 나가는 쟤는 비결이 뭐야?" },
-  { name: "Next Trend", href: "/channels", description: "다음 영상, 뭐 찍을건데 !" },
+  { name: "Next Trend", href: "/next-trend", description: "다음 영상, 뭐 찍을건데 !" },
 ];
 
-export function Navigation({ authModal, next }: NavigationProps) {
+export function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const router = useRouter();
+  const [oauthReturnPath, setOauthReturnPath] = useState<string | null>(null);
+  /** lucide SVG는 SSR/클라이언트 DOM 차이로 hydration 불일치가 날 수 있어 마운트 후에만 렌더 */
+  const [iconsMounted, setIconsMounted] = useState(false);
+
+  useEffect(() => {
+    setIconsMounted(true);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
     window.addEventListener("scroll", handleScroll);
-
-    const loadUser = async () => {
-      const supabase = createClient();
-      const { data } = await supabase.auth.getUser();
-      setIsAuthenticated(!!data.user);
-    };
-
-    void loadUser();
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  /** 보호 라우트 등에서 `/?authModal=1&next=...` 로 진입 시 모달 오픈 및 `next` 반영 */
   useEffect(() => {
-    if (authModal === "1") {
-      setIsAuthModalOpen(true);
+    const params = new URLSearchParams(window.location.search);
+    const nextParam = params.get("next");
+    if (nextParam) {
+      setOauthReturnPath(getSafeOAuthReturnPath(nextParam));
     }
-  }, [authModal]);
+
+    if (params.get("authModal") === "1") {
+      setIsAuthModalOpen(true);
+      const url = new URL(window.location.href);
+      url.searchParams.delete("authModal");
+      url.searchParams.delete("next");
+      const qs = url.searchParams.toString();
+      window.history.replaceState(
+        null,
+        "",
+        qs ? `${url.pathname}?${qs}` : url.pathname
+      );
+    }
+  }, []);
 
   return (
     <header
       className={`fixed z-50 transition-all duration-500 ${
-        isScrolled
-          ? "top-4 left-4 right-4"
+        isScrolled 
+          ? "top-4 left-4 right-4" 
           : "top-0 left-0 right-0"
       }`}
     >
-      <nav
+      <nav 
         className={`mx-auto transition-all duration-500 ${
           isScrolled || isMobileMenuOpen
             ? "bg-background/80 backdrop-blur-xl border border-foreground/10 rounded-2xl shadow-lg max-w-[1200px]"
             : "bg-transparent max-w-[1400px]"
         }`}
       >
-        <div
+        <div 
           className={`flex items-center justify-between transition-all duration-500 px-6 lg:px-8 ${
             isScrolled ? "h-14" : "h-20"
           }`}
         >
           {/* Logo */}
           <a href="/" className="flex items-center group cursor-pointer">
-            <span className="font-display tracking-tight text-2xl transition-all duration-500">
+            <span
+              className={`font-heading font-medium leading-none tracking-[-0.01em] transition-all duration-500 ${
+                isScrolled ? "text-[23px] lg:text-[24px]" : "text-[23px] lg:text-[24px]"
+              }`}
+            >
               TubeWatch™
             </span>
           </a>
@@ -84,13 +98,7 @@ export function Navigation({ authModal, next }: NavigationProps) {
             {navLinks.map((link) => (
               <a
                 key={link.name}
-                href={isAuthenticated ? link.href : "#"}
-                onClick={(event) => {
-                  if (!isAuthenticated) {
-                    event.preventDefault();
-                    setIsAuthModalOpen(true);
-                  }
-                }}
+                href={link.href}
                 className="text-sm text-foreground/70 hover:text-foreground transition-colors duration-300 relative group cursor-pointer"
               >
                 {link.name}
@@ -104,29 +112,18 @@ export function Navigation({ authModal, next }: NavigationProps) {
             <span className="w-px h-4 bg-foreground/20" />
             
             <button 
-              onClick={() => {
-                if (isAuthenticated) {
-                  router.push("/channels");
-                  return;
-                }
-                setIsAuthModalOpen(true);
-              }}
+              type="button"
+              onClick={() => setIsAuthModalOpen(true)}
               className={`text-foreground/70 hover:text-foreground transition-all duration-500 cursor-pointer ${isScrolled ? "text-xs" : "text-sm"}`}
             >
-              Sign In
+              로그인
             </button>
             <Button
               size="sm"
               className={`bg-black hover:bg-neutral-800 text-white rounded-lg shadow-lg transition-all duration-500 cursor-pointer ${isScrolled ? "px-4 h-8 text-xs" : "px-5 h-9"}`}
-              onClick={() => {
-                if (isAuthenticated) {
-                  router.push("/channels");
-                  return;
-                }
-                setIsAuthModalOpen(true);
-              }}
+              onClick={() => setIsAuthModalOpen(true)}
             >
-              Sign Up
+              시작하기
             </Button>
           </div>
 
@@ -136,10 +133,14 @@ export function Navigation({ authModal, next }: NavigationProps) {
             className="md:hidden p-2"
             aria-label="Toggle menu"
           >
-            {isMobileMenuOpen ? (
-              <X className="w-6 h-6" />
+            {iconsMounted ? (
+              isMobileMenuOpen ? (
+                <X className="w-6 h-6" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )
             ) : (
-              <Menu className="w-6 h-6" />
+              <span className="inline-block w-6 h-6" aria-hidden />
             )}
           </button>
         </div>
@@ -161,17 +162,9 @@ export function Navigation({ authModal, next }: NavigationProps) {
             {navLinks.map((link, i) => (
               <a
                 key={link.name}
-                href={isAuthenticated ? link.href : "#"}
-                onClick={(event) => {
-                  if (!isAuthenticated) {
-                    event.preventDefault();
-                    setIsMobileMenuOpen(false);
-                    setIsAuthModalOpen(true);
-                    return;
-                  }
-                  setIsMobileMenuOpen(false);
-                }}
-                className={`text-5xl font-display text-foreground hover:text-muted-foreground transition-all duration-500 cursor-pointer ${
+                href={link.href}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`text-5xl font-sans text-foreground hover:text-muted-foreground transition-all duration-500 cursor-pointer ${
                   isMobileMenuOpen 
                     ? "opacity-100 translate-y-0" 
                     : "opacity-0 translate-y-4"
@@ -196,27 +189,19 @@ export function Navigation({ authModal, next }: NavigationProps) {
               className="flex-1 rounded-lg h-14 text-base cursor-pointer"
               onClick={() => {
                 setIsMobileMenuOpen(false);
-                if (isAuthenticated) {
-                  router.push("/channels");
-                  return;
-                }
                 setIsAuthModalOpen(true);
               }}
             >
-              Sign In
+              로그인
             </Button>
             <Button 
               className="flex-1 bg-black text-white rounded-lg h-14 text-base shadow-lg cursor-pointer"
               onClick={() => {
                 setIsMobileMenuOpen(false);
-                if (isAuthenticated) {
-                  router.push("/channels");
-                  return;
-                }
                 setIsAuthModalOpen(true);
               }}
             >
-              Sign Up
+              시작하기
             </Button>
           </div>
         </div>
@@ -226,9 +211,8 @@ export function Navigation({ authModal, next }: NavigationProps) {
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
-        next={next}
+        returnToPath={oauthReturnPath}
       />
     </header>
   );
 }
-

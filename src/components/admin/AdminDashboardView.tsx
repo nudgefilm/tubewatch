@@ -15,7 +15,7 @@ export default function AdminDashboardView({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg font-semibold text-gray-900">Admin Dashboard</h1>
+        <h1 className="text-lg font-heading font-medium tracking-[-0.02em] text-gray-900">Admin Dashboard</h1>
         <p className="mt-0.5 text-xs text-gray-500">운영 상태 요약</p>
       </div>
 
@@ -26,14 +26,14 @@ export default function AdminDashboardView({
       </div>
 
       <section>
-        <h2 className="mb-3 text-sm font-semibold text-gray-700">
+        <h2 className="mb-3 text-sm font-heading font-medium tracking-[-0.01em] text-gray-700">
           최근 분석 요청
         </h2>
         <AdminQueueTable rows={queueRows} />
       </section>
 
       <section>
-        <h2 className="mb-3 text-sm font-semibold text-gray-700">
+        <h2 className="mb-3 text-sm font-heading font-medium tracking-[-0.01em] text-gray-700">
           분석 실패 로그
         </h2>
         <AdminFailureTable rows={failureRows} />

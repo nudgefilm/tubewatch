@@ -8,13 +8,13 @@ import { PrivacyModal } from "./privacy-modal";
 
 const footerLinks = {
   product: [
-    { name: "Channel Analysis", href: "/channels" },
+    { name: "Channel Analysis", href: "/analysis" },
     { name: "Action Plan", href: "/action-plan" },
     { name: "SEO Lab", href: "/seo-lab" },
     { name: "Benchmark", href: "/benchmark" },
   ],
   support: [
-    { name: "문의하기", href: "/billing" },
+    { name: "문의하기", href: "/support" },
     { name: "마이페이지", href: "/mypage" },
     { name: "설정", href: "/settings" },
     { name: "요금제", href: "/billing" },
@@ -39,7 +39,7 @@ export function FooterSection() {
           {/* Brand */}
           <div className="mb-6">
             <a href="/" className="inline-flex items-center cursor-pointer">
-              <span className="text-2xl font-display">TubeWatch™</span>
+              <span className="text-2xl font-heading font-medium tracking-[-0.02em]">TubeWatch™</span>
             </a>
           </div>
 
@@ -53,7 +53,7 @@ export function FooterSection() {
             {/* Row 2 - Business License (left) + Built by (right) */}
             <div className="flex flex-col md:flex-row justify-between gap-1">
               <span>Business License 136-11-23540</span>
-              <span className="text-sm text-muted-foreground">Built by Creators for Creators</span>
+              <span className="text-muted-foreground/70">Built by Creators for Creators</span>
             </div>
             
             {/* Row 3 - Address (left) + Terms (right) */}
@@ -76,7 +76,10 @@ export function FooterSection() {
         <div className="py-4 border-t border-foreground/10 flex flex-col md:flex-row items-center justify-between gap-3">
           {/* Left - System Status */}
           <div className="flex items-center gap-2 text-sm text-muted-foreground order-2 md:order-1">
-            <span className="w-2 h-2 rounded-full bg-green-500" />
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+            </span>
             All systems operational
           </div>
 
@@ -115,4 +118,3 @@ export function FooterSection() {
     </footer>
   );
 }
-

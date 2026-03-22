@@ -1,7 +1,8 @@
-import { getAdminDashboardData } from "@/lib/server/admin/getAdminDashboardData";
-import AdminDashboardView from "@/components/admin/AdminDashboardView";
+import AdminPage from "@/v0-tubewatchui/app/admin/page";
 
-export default async function AdminDashboardPage(): Promise<JSX.Element> {
-  const data = await getAdminDashboardData();
-  return <AdminDashboardView data={data} />;
+import { ensureAdminOrRedirect } from "@/lib/auth/is-admin";
+
+export default async function AdminRoutePage() {
+  await ensureAdminOrRedirect();
+  return <AdminPage />;
 }

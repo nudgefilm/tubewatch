@@ -45,7 +45,11 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  await supabase.auth.getUser();
+  /**
+   * getUser()는 매 요청마다 Auth 서버 검증을 유발해 지연·"The user aborted a request" 로그를 키울 수 있다.
+   * 세션 갱신은 Route Handler·Server Component에서 필요 시 처리하고, 미들웨어는 쿠키 동기화용 getSession만 유지한다.
+   */
+  await supabase.auth.getSession();
 
   return response;
 }

@@ -12,7 +12,7 @@ const steps = [
   {
     number: "01",
     title: "채널 등록",
-    description: "사용자는 자신의 YouTube 채널을 등록합니다.\nTubeWatch™는 YouTube 공식 API를 통해 채널 데이터를 안전하게 수집합니다.",
+    description: "사용자는 자신의 YouTube 채널을 등록합니다.\nTubeWatch는 YouTube 공식 API를 통해 채널 데이터를 안전하게 수집합니다.",
     icon: UserPlus,
     items: ["채널 기본 정보", "최근 업로드 영상", "조회수", "댓글 반응", "업로드 패턴", "영상 메타데이터"],
     label: "수집되는 데이터",
@@ -20,7 +20,7 @@ const steps = [
   {
     number: "02",
     title: "데이터 분석",
-    description: "수집된 데이터를 기반으로 TubeWatch™ 분석 엔진이 채널를 진단합니다.",
+    description: "수집된 데이터를 기반으로 TubeWatch 분석 엔진이 채널을 진단합니다.",
     icon: BarChart3,
     items: ["채널 활동 패턴", "시청자 반응", "콘텐츠 구조", "SEO 최적화", "성장 모멘텀"],
     label: "분석 영역",
@@ -29,7 +29,7 @@ const steps = [
   {
     number: "03",
     title: "전략 인사이트 생성",
-    description: "분석된 데이터를 기반으로 채널 성장 전략 인사이트를 도출합니다.",
+    description: "분석된 데이터를 기반으로 AI가 채널 성장 전략 인사이트를 도출합니다.",
     icon: Lightbulb,
     items: ["콘텐츠 방향", "업로드 전략", "SEO 개선 포인트", "성장 가능성 시나리오"],
     label: "생성되는 전략",
@@ -38,7 +38,7 @@ const steps = [
   {
     number: "04",
     title: "실행 가능한 액션 제공",
-    description: "TubeWatch™는 분석 결과를 기반으로 실행 가능한 전략 도구를 제공합니다.",
+    description: "TubeWatch는 분석 결과를 기반으로 실행 가능한 전략 도구를 제공합니다.",
     icon: Rocket,
     items: ["채널 진단", "Action Plan", "SEO Lab", "Benchmark", "Next Trend"],
     label: "대표 기능",
@@ -96,8 +96,8 @@ export function HowItWorksModal({ isOpen, onClose }: HowItWorksModalProps) {
         <div className="flex items-center justify-between p-6 border-b border-foreground/10">
           <div>
             <span className="font-mono text-xs text-muted-foreground uppercase tracking-widest">How It Works</span>
-            <h2 className="text-2xl font-display mt-1">TubeWatch™ 작동 방식</h2>
-            <p className="text-sm text-muted-foreground mt-1">TubeWatch™는 유튜브 채널 데이터를 기반으로 채널 성장 전략을 찾는 데이터 분석 플랫폼입니다.</p>
+            <h2 className="text-2xl font-heading font-medium tracking-[-0.02em] mt-1">TubeWatch 작동 방식</h2>
+            <p className="text-sm text-muted-foreground mt-1">TubeWatch는 유튜브 채널 데이터를 기반으로 채널 성장 전략을 찾는 데이터 분석 플랫폼입니다.</p>
           </div>
           <button
             onClick={onClose}
@@ -144,7 +144,7 @@ export function HowItWorksModal({ isOpen, onClose }: HowItWorksModalProps) {
                 </div>
                 <div>
                   <span className="font-mono text-xs text-orange-500">STEP {currentStep.number}</span>
-                  <h3 className="text-xl font-display">{currentStep.title}</h3>
+                  <h3 className="text-xl font-heading font-medium tracking-[-0.02em]">{currentStep.title}</h3>
                 </div>
               </div>
 
@@ -183,11 +183,10 @@ export function HowItWorksModal({ isOpen, onClose }: HowItWorksModalProps) {
         {/* Footer */}
         <div className="p-6 border-t border-foreground/10 bg-foreground/[0.02]">
           <p className="text-center text-sm text-muted-foreground">
-            TubeWatch™는 데이터를 기반으로 유튜브 채널 성장 전략을 설계합니다.
+            TubeWatch는 데이터를 기반으로 유튜브 채널 성장 전략을 설계합니다.
           </p>
         </div>
       </div>
     </div>
   );
 }
-

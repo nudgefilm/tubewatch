@@ -97,7 +97,7 @@ export function InfrastructureSection() {
               <span className="w-8 h-px bg-foreground/30" />
               Example Insight
             </span>
-            <h2 className="text-4xl lg:text-6xl font-display tracking-tight mb-8">
+            <h2 className="text-4xl lg:text-6xl font-heading font-medium tracking-[-0.03em] mb-8">
               분석 결과
               <br />
               미리보기
@@ -227,4 +227,3 @@ export function InfrastructureSection() {
     </section>
   );
 }
-

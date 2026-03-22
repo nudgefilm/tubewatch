@@ -1,4 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
+import { buildYoutubeFeatureAccessSnapshot } from "@/lib/auth/featureAccess";
+import type { YoutubeFeatureAccessSnapshot } from "@/lib/auth/youtubeVerificationTypes";
+import {
+  fetchAnalysisRunsForUserChannel,
+  type AnalysisRunRecord,
+} from "@/lib/analysis/analysisRun";
 
 export type UserChannelRow = {
   id: string;
@@ -31,6 +37,13 @@ export type AnalysisPageData = {
   channels: UserChannelRow[];
   selectedChannel: UserChannelRow | null;
   latestResult: AnalysisResultRow | null;
+  /**
+   * `null` — analysis_runs 조회 전이거나 아직 로드하지 않음(placeholder fetch).
+   * `[]` — 조회 완료, 해당 채널에 저장된 run 없음.
+   */
+  analysisRuns: AnalysisRunRecord[] | null;
+  /** YouTube `channels.list?mine=true` 기반 핵심 기능(분석 실행) 가드 */
+  youtubeFeatureAccess: YoutubeFeatureAccessSnapshot;
 };
 
 async function getAuthenticatedUserId() {
@@ -187,6 +200,9 @@ export async function getAnalysisPageData(
     return null;
   }
 
+  const youtubeFeatureAccess = await buildYoutubeFeatureAccessSnapshot();
+  const supabase = await createClient();
+
   const channels = await getUserChannels();
 
   if (channels.length === 0) {
@@ -195,6 +211,8 @@ export async function getAnalysisPageData(
       channels: [],
       selectedChannel: null,
       latestResult: null,
+      analysisRuns: [],
+      youtubeFeatureAccess,
     };
   }
 
@@ -213,10 +231,23 @@ export async function getAnalysisPageData(
     ? await getLatestAnalysisResultByUserChannelId(selectedChannel.id)
     : null;
 
+  const runsRaw = selectedChannel
+    ? await fetchAnalysisRunsForUserChannel(
+        supabase,
+        userId,
+        selectedChannel.id
+      )
+    : null;
+
+  const analysisRuns: AnalysisRunRecord[] | null =
+    runsRaw === null ? null : [...runsRaw];
+
   return {
     userId,
     channels,
     selectedChannel,
     latestResult,
+    analysisRuns,
+    youtubeFeatureAccess,
   };
 }

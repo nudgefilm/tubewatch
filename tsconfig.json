@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
@@ -15,9 +16,15 @@
     "plugins": [{ "name": "next" }],
     "paths": {
       "@/*": ["./src/*"],
-      "@/components/ui/*": ["./src/v0-final/components/ui/*"]
+      "@/v0-tubewatchui/*": ["./v0-TubewatchUI/*"],
+      "@/v0-core/*": ["./src/v0-core/*"],
+      "@/components/landing/*": ["./src/components/landing/*"],
+      "@/components/*": ["./v0-TubewatchUI/components/*", "./src/components/*"],
+      "@/hooks/*": ["./v0-TubewatchUI/hooks/*", "./src/hooks/*"],
+      "@/lib/utils": ["./v0-TubewatchUI/lib/utils.ts", "./src/lib/utils.ts"],
+      "@/lib/*": ["./v0-TubewatchUI/lib/*", "./src/lib/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "src/v0-import", "archive", "TubeUI최종"]
+  "exclude": ["node_modules", "src/v0-import", "src/v0-core", "archive", "TubeUI최종"]
 }

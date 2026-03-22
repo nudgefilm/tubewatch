@@ -92,7 +92,7 @@ export function HowItWorksSection() {
             너무도 간단한 성장 전략 제안
           </span>
           <h2
-            className={`text-4xl lg:text-6xl font-display tracking-tight transition-all duration-700 ${
+            className={`text-4xl lg:text-6xl font-heading font-medium tracking-[-0.03em] transition-all duration-700 ${
               isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
             }`}
           >
@@ -116,7 +116,7 @@ export function HowItWorksSection() {
                 <div className="flex items-start gap-6">
                   <span className="font-display text-3xl text-background/30">{step.number}</span>
                   <div className="flex-1">
-                    <h3 className="text-2xl lg:text-3xl font-display mb-3 group-hover:translate-x-2 transition-transform duration-300">
+                    <h3 className="text-2xl lg:text-3xl font-heading font-medium tracking-[-0.02em] mb-3 group-hover:translate-x-2 transition-transform duration-300">
                       {step.title}
                     </h3>
                     <p className="text-background/60 leading-relaxed whitespace-pre-line">
@@ -228,4 +228,3 @@ export function HowItWorksSection() {
     </section>
   );
 }
-

@@ -6,6 +6,29 @@
       "rules": {
         "react/no-unescaped-entities": "off"
       }
+    },
+    {
+      "files": ["src/v0-core/**/*.{js,jsx,ts,tsx}"],
+      "rules": {
+        "react/no-unescaped-entities": "off"
+      }
+    },
+    {
+      "files": ["src/**/*.{js,jsx,ts,tsx}"],
+      "excludedFiles": ["src/app/**/*"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@/v0-tubewatchui/**"],
+                "message": "Do not import from v0 directly. Use src layer."
+              }
+            ]
+          }
+        ]
+      }
     }
   ]
 }

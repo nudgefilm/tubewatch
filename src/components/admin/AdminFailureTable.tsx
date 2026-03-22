@@ -11,7 +11,7 @@ export default function AdminFailureTable({
   if (rows.length === 0) {
     return (
       <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h3 className="mb-3 text-sm font-semibold text-gray-900">
+        <h3 className="mb-3 text-sm font-heading font-medium tracking-[-0.01em] text-gray-900">
           분석 실패 로그
         </h3>
         <p className="text-xs text-gray-400">데이터가 없습니다.</p>
@@ -22,7 +22,7 @@ export default function AdminFailureTable({
   return (
     <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
       <div className="border-b border-gray-100 px-4 py-3">
-        <h3 className="text-sm font-semibold text-gray-900">
+        <h3 className="text-sm font-heading font-medium tracking-[-0.01em] text-gray-900">
           분석 실패 로그
         </h3>
       </div>

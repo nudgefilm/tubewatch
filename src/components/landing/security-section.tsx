@@ -79,8 +79,8 @@ export function SecuritySection() {
             <span className="w-8 h-px bg-foreground/30" />
             차별점
           </span>
-          <h2 className="text-4xl lg:text-6xl font-display tracking-tight">
-            Why TubeWatch™ ?
+          <h2 className="text-4xl lg:text-6xl font-heading font-medium tracking-[-0.03em]">
+            Why TubeWatch ?
           </h2>
         </div>
 
@@ -143,4 +143,3 @@ export function SecuritySection() {
     </section>
   );
 }
-

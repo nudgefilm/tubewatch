@@ -1,73 +1,27 @@
-import { NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { NextResponse } from "next/server";
+
+import {
+  DEFAULT_POST_LOGIN_PATH,
+  getSafeOAuthReturnPath,
+} from "@/lib/auth/safe-return-path";
+import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: Request) {
-  const requestUrl = new URL(request.url)
-  const code = requestUrl.searchParams.get('code')
-
-  console.log('CALLBACK_ENTER')
-  console.log('CALLBACK_CODE_EXISTS', Boolean(code))
+  const url = new URL(request.url);
+  const code = url.searchParams.get("code");
+  const nextRaw = url.searchParams.get("next");
+  const safeNext = getSafeOAuthReturnPath(nextRaw, DEFAULT_POST_LOGIN_PATH);
 
   if (code) {
-    const cookieStore = await cookies()
+    const supabase = await createClient();
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
 
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options)
-            })
-          },
-        },
-      }
-    )
-
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-
-    if (error) {
-      console.error('exchangeCodeForSession error:', error)
-      return NextResponse.redirect(new URL('/login', request.url))
+    if (!error) {
+      return NextResponse.redirect(new URL(safeNext, url.origin));
     }
   }
 
-  const rawNext = requestUrl.searchParams.get('next')
-
-  const allowedPrefixes: string[] = [
-    '/channels',
-    '/analysis',
-    '/action-plan',
-    '/seo-lab',
-    '/benchmark',
-    '/next-trend',
-    '/',
-  ]
-
-  let nextPath = '/channels'
-
-  if (rawNext && rawNext.startsWith('/')) {
-    const isUnsafeDoubleSlash = rawNext.startsWith('//')
-    const isUnsafeProtocolLike =
-      rawNext.startsWith('/http:') || rawNext.startsWith('/https:')
-
-    if (!isUnsafeDoubleSlash && !isUnsafeProtocolLike) {
-      const isAllowed = allowedPrefixes.some(
-        (prefix) =>
-          rawNext === prefix || (prefix !== '/' && rawNext.startsWith(`${prefix}/`)),
-      )
-
-      if (isAllowed) {
-        nextPath = rawNext
-      }
-    }
-  }
-
-  console.log('CALLBACK_REDIRECT', nextPath)
-  return NextResponse.redirect(new URL(nextPath, request.url))
+  return NextResponse.redirect(
+    new URL(`/?error=${encodeURIComponent("auth")}`, url.origin)
+  );
 }

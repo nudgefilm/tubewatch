@@ -51,15 +51,14 @@ export function CtaSection() {
             <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
               {/* Left content */}
               <div className="flex-1">
-                <h2 className="text-4xl lg:text-6xl font-display tracking-tight mb-8 leading-[1.1]">
+                <h2 className="text-4xl lg:text-6xl font-heading font-medium tracking-[-0.03em] mb-8 leading-[1.1]">
                   최고의 성과를 낼
                   <br />
                   준비가 되셨나요?
                 </h2>
 
                 <p className="text-xl text-muted-foreground mb-12 leading-relaxed max-w-xl">
-                  TubeWatch™와 함께 더 빠르게 앞서 나가세요. 
-                  지금 시작하고 한계 없이 성장하세요.
+                  TubeWatch™와 함께 더 빠르게 앞서 나가세요. 지금 시작하고 한계 없이 성장하세요.
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-start gap-4">
@@ -68,7 +67,7 @@ export function CtaSection() {
                     className="bg-black hover:bg-neutral-800 text-white px-6 h-12 text-base rounded-lg shadow-lg group cursor-pointer"
                     asChild
                   >
-                    <a href="/channels">
+                    <a href="/analysis">
                       무료로 시작하기
                       <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
                     </a>
@@ -95,4 +94,3 @@ export function CtaSection() {
     </section>
   );
 }
-

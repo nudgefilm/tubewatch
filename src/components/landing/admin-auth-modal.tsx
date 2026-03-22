@@ -70,7 +70,7 @@ export function AdminAuthModal({ isOpen, onClose }: AdminAuthModalProps) {
           </div>
 
           {/* Title */}
-          <h2 className="text-2xl font-display font-semibold mb-3">
+          <h2 className="text-2xl font-heading font-medium tracking-[-0.02em] mb-3">
             Admin Access
           </h2>
 
@@ -121,4 +121,3 @@ export function AdminAuthModal({ isOpen, onClose }: AdminAuthModalProps) {
     </div>
   );
 }
-

@@ -42,7 +42,7 @@ export function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
       >
         {/* Header */}
         <div className="sticky top-0 bg-background border-b border-foreground/10 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-xl font-display">TubeWatch™ 개인정보 처리방침</h2>
+          <h2 className="text-xl font-heading font-medium tracking-[-0.02em]">TubeWatch 개인정보 처리방침</h2>
           <button
             onClick={onClose}
             className="p-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
@@ -58,7 +58,7 @@ export function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
 
           <section>
             <h3 className="text-foreground font-medium mb-2">1. 개인정보 수집 항목</h3>
-            <p className="mb-2">TubeWatch™는 다음 정보를 수집할 수 있습니다.</p>
+            <p className="mb-2">TubeWatch는 다음 정보를 수집할 수 있습니다.</p>
             
             <div className="ml-2 space-y-3">
               <div>
@@ -93,7 +93,7 @@ export function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
 
           <section>
             <h3 className="text-foreground font-medium mb-2">3. YouTube API 데이터 사용</h3>
-            <p className="mb-2">TubeWatch™는 YouTube API Services를 사용합니다. YouTube API 사용과 관련하여 다음 정책이 적용됩니다.</p>
+            <p className="mb-2">TubeWatch는 YouTube API Services를 사용합니다. YouTube API 사용과 관련하여 다음 정책이 적용됩니다.</p>
             <ul className="list-disc list-inside space-y-1 ml-2">
               <li>
                 <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-foreground underline hover:text-foreground/80 cursor-pointer">
@@ -120,7 +120,7 @@ export function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
 
           <section>
             <h3 className="text-foreground font-medium mb-2">5. 개인정보 제3자 제공</h3>
-            <p className="mb-2">TubeWatch™는 이용자의 개인정보를 제3자에게 제공하지 않습니다. 단, 다음 경우 예외로 합니다.</p>
+            <p className="mb-2">TubeWatch는 이용자의 개인정보를 제3자에게 제공하지 않습니다. 단, 다음 경우 예외로 합니다.</p>
             <ul className="list-disc list-inside space-y-1 ml-2">
               <li>법률에 따른 요청</li>
               <li>이용자의 동의가 있는 경우</li>
@@ -129,7 +129,7 @@ export function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
 
           <section>
             <h3 className="text-foreground font-medium mb-2">6. 개인정보 보호 조치</h3>
-            <p className="mb-2">TubeWatch™는 다음과 같은 보안 조치를 시행합니다.</p>
+            <p className="mb-2">TubeWatch는 다음과 같은 보안 조치를 시행합니다.</p>
             <ul className="list-disc list-inside space-y-1 ml-2">
               <li>HTTPS 암호화 통신</li>
               <li>인증 기반 접근 제어</li>
@@ -157,4 +157,3 @@ export function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
     </div>
   );
 }
-
