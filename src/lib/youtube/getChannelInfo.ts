@@ -7,7 +7,7 @@ import {
 } from "./youtubeApi";
 import type { ChannelInfo } from "./types";
 
-type ChannelLookupInput =
+export type ChannelLookupInput =
   | { type: "handle"; value: string }
   | { type: "channelId"; value: string };
 

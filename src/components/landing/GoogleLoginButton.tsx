@@ -43,11 +43,9 @@ export function GoogleLoginButton({
         provider: "google",
         options: {
           redirectTo: callbackUrl.toString(),
-          scopes:
-            "openid email profile https://www.googleapis.com/auth/youtube.readonly",
+          scopes: "openid email profile",
           queryParams: {
             access_type: "offline",
-            prompt: "consent",
           },
         },
       });
