@@ -2,13 +2,14 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import {
   BarChart3,
   ChevronDown,
   CreditCard,
   FileText,
   HelpCircle,
+  LogOut,
   Plus,
   Search,
   Settings,
@@ -17,6 +18,12 @@ import {
   User,
   Youtube,
 } from "lucide-react"
+
+import { createClient } from "@/lib/supabase/client"
+import {
+  readSelectedChannelIdFromStorage,
+  writeSelectedChannelIdToStorage,
+} from "@/lib/channels/selectedChannelStorage"
 
 import {
   Sidebar,
@@ -86,9 +93,94 @@ const secondaryNavItems = [
   },
 ]
 
+type SidebarChannel = {
+  id: string
+  channel_title: string | null
+}
+
 export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
-  const [activeChannel, setActiveChannel] = React.useState("튜브 워치")
+  const router = useRouter()
+  const [channels, setChannels] = React.useState<SidebarChannel[]>([])
+  const [selectedChannelId, setSelectedChannelId] = React.useState<string | null>(null)
+  const [userEmail, setUserEmail] = React.useState<string | null>(null)
+
+  const activeChannelLabel = React.useMemo(() => {
+    if (channels.length === 0) return "채널을 등록하세요"
+    const ch = channels.find((c) => c.id === selectedChannelId)
+    return ch?.channel_title ?? "채널 선택"
+  }, [channels, selectedChannelId])
+
+  const hrefWithChannel = React.useCallback(
+    (base: string) => {
+      if (!selectedChannelId) return base
+      const sep = base.includes("?") ? "&" : "?"
+      return `${base}${sep}channel=${encodeURIComponent(selectedChannelId)}`
+    },
+    [selectedChannelId]
+  )
+
+  const loadChannels = React.useCallback(async () => {
+    try {
+      const res = await fetch("/api/channels", { credentials: "include" })
+      const json: { data?: SidebarChannel[] } = await res.json().catch(() => ({}))
+      const list = Array.isArray(json.data) ? json.data : []
+      setChannels(list)
+      const stored = readSelectedChannelIdFromStorage()
+      if (stored && list.some((c) => c.id === stored)) {
+        setSelectedChannelId(stored)
+      } else if (list.length > 0) {
+        const first = list[0].id
+        setSelectedChannelId(first)
+        writeSelectedChannelIdToStorage(first)
+      } else {
+        setSelectedChannelId(null)
+        writeSelectedChannelIdToStorage(null)
+      }
+    } catch {
+      setChannels([])
+    }
+  }, [])
+
+  React.useEffect(() => {
+    void loadChannels()
+  }, [loadChannels])
+
+  React.useEffect(() => {
+    const onUpdate = () => {
+      void loadChannels()
+    }
+    window.addEventListener("tubewatch-channels-updated", onUpdate)
+    return () => window.removeEventListener("tubewatch-channels-updated", onUpdate)
+  }, [loadChannels])
+
+  React.useEffect(() => {
+    const supabase = createClient()
+    void supabase.auth.getSession().then(({ data: { session } }) => {
+      setUserEmail(session?.user?.email ?? null)
+    })
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserEmail(session?.user?.email ?? null)
+    })
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [])
+
+  const selectChannel = (id: string) => {
+    setSelectedChannelId(id)
+    writeSelectedChannelIdToStorage(id)
+  }
+
+  const handleLogout = async () => {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    writeSelectedChannelIdToStorage(null)
+    router.push("/")
+    router.refresh()
+  }
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -107,7 +199,7 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
 
           <SidebarMenu>
             <SidebarMenuItem>
-              <DropdownMenu>
+              <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
                   <SidebarMenuButton
                     size="lg"
@@ -117,7 +209,7 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                       <Youtube className="size-4" />
                     </div>
                     <div className="grid flex-1 text-left text-sm leading-tight">
-                      <span className="truncate font-semibold">{activeChannel}</span>
+                      <span className="truncate font-semibold">{activeChannelLabel}</span>
                       <span className="truncate text-xs text-muted-foreground">Premium Plan</span>
                     </div>
                     <ChevronDown className="ml-auto size-4" />
@@ -129,24 +221,33 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                   side="bottom"
                   sideOffset={4}
                 >
-                  <DropdownMenuItem onClick={() => setActiveChannel("튜브 워치")}>
-                    <div className="flex items-center gap-2">
-                      <div className="flex size-6 items-center justify-center rounded bg-orange-500 text-white">
-                        <Youtube className="size-3" />
+                  {channels.map((ch, i) => (
+                    <DropdownMenuItem
+                      key={ch.id}
+                      onSelect={() => {
+                        selectChannel(ch.id)
+                      }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={
+                            i % 2 === 0
+                              ? "flex size-6 items-center justify-center rounded bg-orange-500 text-white"
+                              : "flex size-6 items-center justify-center rounded bg-blue-500 text-white"
+                          }
+                        >
+                          <Youtube className="size-3" />
+                        </div>
+                        <span>{ch.channel_title ?? "채널"}</span>
                       </div>
-                      <span>튜브 워치</span>
-                    </div>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setActiveChannel("My Channel 2")}>
-                    <div className="flex items-center gap-2">
-                      <div className="flex size-6 items-center justify-center rounded bg-blue-500 text-white">
-                        <Youtube className="size-3" />
-                      </div>
-                      <span>My Channel 2</span>
-                    </div>
-                  </DropdownMenuItem>
+                    </DropdownMenuItem>
+                  ))}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>
+                  <DropdownMenuItem
+                    onSelect={() => {
+                      router.push("/channels")
+                    }}
+                  >
                     <Plus className="mr-2 size-4" />
                     Add Channel
                   </DropdownMenuItem>
@@ -171,7 +272,7 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                     tooltip={item.title}
                     isActive={pathname === item.url || pathname.startsWith(`${item.url}/`)}
                   >
-                    <Link href={item.url}>
+                    <Link href={hrefWithChannel(item.url)}>
                       <item.icon />
                       <span>{item.title}</span>
                     </Link>
@@ -208,8 +309,20 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">
             <span className="truncate font-medium text-foreground">User Name</span>
-            <span className="truncate text-xs text-muted-foreground">user@example.com</span>
+            <span className="truncate text-xs text-muted-foreground">
+              {userEmail ?? "user@example.com"}
+            </span>
           </div>
+        </div>
+        <div className="px-2 pb-2">
+          <button
+            type="button"
+            onClick={() => void handleLogout()}
+            className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            <LogOut className="size-4 shrink-0" />
+            <span>로그아웃</span>
+          </button>
         </div>
       </SidebarFooter>
 

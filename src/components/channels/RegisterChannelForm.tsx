@@ -10,6 +10,8 @@ type RegisterChannelFormProps = {
   currentCount?: number
   maxCount?: number
   isAdmin?: boolean
+  /** 등록 성공 후 목록 갱신 등 */
+  onRegistered?: () => void
 }
 
 type RegisterChannelResponse = {
@@ -36,6 +38,7 @@ export default function RegisterChannelForm({
   currentCount = 0,
   maxCount = 3,
   isAdmin = false,
+  onRegistered,
 }: RegisterChannelFormProps): JSX.Element {
   const router = useRouter()
   const supabase = createClient()
@@ -75,9 +78,7 @@ export default function RegisterChannelForm({
         return
       }
 
-      const accessToken = session?.access_token
-
-      if (!accessToken) {
+      if (!session) {
         setErrorMessage('로그인이 만료되었습니다. 다시 로그인해 주세요.')
         return
       }
@@ -86,9 +87,9 @@ export default function RegisterChannelForm({
 
       const response = await fetch('/api/channels', {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({ channel_url: normalizedUrl }),
       })
@@ -103,6 +104,7 @@ export default function RegisterChannelForm({
       setMessage(result.message || '채널이 등록되었습니다.')
       setChannelUrl('')
 
+      onRegistered?.()
       router.refresh()
     } catch (error) {
       console.error('RegisterChannelForm error:', error)
