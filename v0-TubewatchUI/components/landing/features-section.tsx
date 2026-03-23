@@ -23,8 +23,8 @@ const features = [
   },
   {
     number: "04",
-    title: "Benchmark",
-    description: "유사 채널과 비교해\n성장 포인트를 발견합니다.",
+    title: "Channel DNA",
+    description: "이 채널의 성과 구조와\n반복되는 성장 패턴을 봅니다.",
     visual: "security",
   },
 ];
@@ -265,7 +265,7 @@ function FeatureCard({ feature, index }: { feature: typeof features[0]; index: n
     return () => observer.disconnect();
   }, []);
 
-  const featureHrefs = ["/analysis", "/action-plan", "/seo-lab", "/benchmark"];
+  const featureHrefs = ["/analysis", "/action-plan", "/seo-lab", "/channel-dna"];
 
   return (
     <a

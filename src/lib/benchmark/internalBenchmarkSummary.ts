@@ -15,7 +15,7 @@ export type InternalBenchmarkRadarVm = {
 };
 
 /**
- * /benchmark 내부 비교 전용 — `getAnalysisPageData`·`analysis_results.feature_snapshot` 범위만 사용.
+ * /channel-dna 내부 비교 전용 — `getAnalysisPageData`·`analysis_results.feature_snapshot` 범위만 사용.
  */
 export type InternalBenchmarkSummaryVm = {
   readonly dataSourceNote: string;

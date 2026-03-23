@@ -269,7 +269,7 @@ export function buildSeoRecommendations(
   let summary: string;
   if (bench.recentVideosUsed < 3) {
     summary =
-      "표본이 매우 적어 관찰 가능한 내부 신호 중심으로만 방향을 제안합니다. 검색량·순위 효과를 단정하지 않으며, /analysis·/benchmark와 같은 저장 데이터 해석과 톤을 맞췄습니다.";
+      "표본이 매우 적어 관찰 가능한 내부 신호 중심으로만 방향을 제안합니다. 검색량·순위 효과를 단정하지 않으며, /analysis·/channel-dna와 같은 저장 데이터 해석과 톤을 맞췄습니다.";
   } else if (!hasEnoughSeoSignal) {
     summary =
       "내부 신호가 제한적입니다. 아래는 이 채널 표본 구조에 맞는지 점검하는 용도이며, 범용 키워드 탐색이 아닙니다. 근거는 저장된 스냅샷·베이스 진단·구간 점수에 한정됩니다.";

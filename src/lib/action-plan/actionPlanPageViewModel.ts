@@ -38,8 +38,8 @@ export type ActionPlanCardVm = {
   expectedEffect: string;
   difficulty: "low" | "medium" | "high";
   executionHint: string;
-  /** `/benchmark`와 동일 스냅샷에서 계산된 룰 기반 근거 */
-  evidenceSource?: "benchmark";
+  /** `/channel-dna`와 동일 스냅샷에서 계산된 룰 기반 근거 */
+  evidenceSource?: "channel_dna";
 };
 
 export type ActionPlanChecklistVm = {
@@ -415,7 +415,7 @@ function benchmarkRowsToSortable(
     expectedEffect: b.expectedEffect,
     difficulty: b.difficulty,
     executionHint: b.executionHint,
-    evidenceSource: "benchmark",
+    evidenceSource: "channel_dna",
     sortTier: b.sortTier,
     sortOrder: b.sortOrder,
   }));
@@ -712,7 +712,7 @@ export function buildActionPlanPageViewModel(
 
   if (benchmarkRows.length > 0) {
     const benchLine =
-      "일부 우선순위 카드는 /benchmark와 동일한 저장 스냅샷에서 계산된 내부 벤치마크 신호를 근거로 합니다.";
+      "일부 우선순위 카드는 /channel-dna와 동일한 저장 스냅샷에서 계산된 내부 신호를 근거로 합니다.";
     limitNotice = limitNotice ? `${limitNotice} ${benchLine}` : benchLine;
   }
 

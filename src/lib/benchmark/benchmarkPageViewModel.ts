@@ -21,7 +21,7 @@ import {
 } from "@/lib/benchmark/internalBenchmarkSummary";
 
 /**
- * /benchmark 확장용 뷰모델.
+ * /channel-dna 확장용 뷰모델.
  * 외부 경쟁 채널·시장 평균 미연동 시 externalChannels 는 빈 배열 유지.
  */
 export type BenchmarkPageViewModel = {
@@ -47,7 +47,7 @@ export type BenchmarkPageViewModel = {
 export function buildBenchmarkPageViewModel(
   data: AnalysisPageData | null
 ): BenchmarkPageViewModel {
-  const menu = deriveExtensionMenuFields(data, "benchmark");
+  const menu = deriveExtensionMenuFields(data, "channel_dna");
   const hasChannel = !!(
     data &&
     data.channels.length > 0 &&
@@ -55,7 +55,7 @@ export function buildBenchmarkPageViewModel(
   );
   const selectedChannelId = data?.selectedChannel?.id ?? null;
   const yt = pickYoutubeAccessFieldsFromPageData(data);
-  const benchStrategy = getMenuExtensionStrategy("benchmark");
+  const benchStrategy = getMenuExtensionStrategy("channel_dna");
   const internalBenchmarkSummary = buildInternalBenchmarkSummary(data);
 
   return {
@@ -72,7 +72,7 @@ export function buildBenchmarkPageViewModel(
     patternInsights: null,
     trendSignals: null,
     extensionNotice: [
-      "경쟁 채널·시장 벤치마크용 외부 데이터는 연결되지 않았습니다. internal_channel_data(analysis_results + feature_snapshot)만 존재하며, 비교 지표는 추후 연동 시 채워집니다.",
+      "Channel DNA는 저장된 채널 스냅샷(analysis_results + feature_snapshot) 기반으로 성과 구조·패턴을 설명합니다. 외부 경쟁 채널·시장 평균 데이터는 아직 연결되지 않았으며, 비교 지표는 추후 연동 시 채워집니다.",
       `확장 정책: ${benchStrategy.runSemantics}`,
     ].join(" "),
     internalBenchmarkSummary,

@@ -4,6 +4,12 @@ const nextConfig = {
     // v0-core is a read-only UI baseline; build should not require patching its internal types.
     ignoreBuildErrors: true,
   },
+  async redirects() {
+    return [
+      { source: "/benchmark", destination: "/channel-dna", permanent: true },
+      { source: "/benchmark/:path*", destination: "/channel-dna/:path*", permanent: true },
+    ];
+  },
 };
 
 module.exports = nextConfig;

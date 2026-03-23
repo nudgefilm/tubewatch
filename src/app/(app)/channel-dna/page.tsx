@@ -1,4 +1,4 @@
-import BenchmarkPage from "@/v0-tubewatchui/app/(app)/benchmark/page";
+import BenchmarkPage from "@/v0-tubewatchui/app/(app)/channel-dna/page";
 
 import {
   buildProtectedReturnPath,
@@ -20,14 +20,14 @@ function pickUserChannelId(sp: SearchParams | undefined): string | undefined {
   return undefined;
 }
 
-export default async function BenchmarkRoutePage({
+export default async function ChannelDnaRoutePage({
   searchParams,
 }: {
   searchParams?: SearchParams;
 }) {
   const channelId = pickUserChannelId(searchParams);
   await redirectToLandingAuthUnlessSignedIn(
-    buildProtectedReturnPath("/benchmark", channelId)
+    buildProtectedReturnPath("/channel-dna", channelId)
   );
   const data = await getAnalysisPageData(channelId);
   const benchmarkViewModel = buildBenchmarkPageViewModel(data);

@@ -54,7 +54,7 @@ export type MenuAnalysisStatusBarVariant =
   | "analysis"
   | "action_plan"
   | "seo_lab"
-  | "benchmark"
+  | "channel_dna"
   | "next_trend";
 
 function formatLastRun(iso: string | null): string {
@@ -101,8 +101,8 @@ function variantTitle(variant: MenuAnalysisStatusBarVariant): string {
       return "액션 플랜 분석 실행";
     case "seo_lab":
       return "SEO Lab 분석 실행";
-    case "benchmark":
-      return "벤치마크 분석 실행";
+    case "channel_dna":
+      return "Channel DNA 분석 실행";
     case "next_trend":
       return "Next Trend 확장 실행";
     default: {

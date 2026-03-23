@@ -21,8 +21,8 @@ const GUIDE_ITEMS = [
   },
   {
     icon: "📐",
-    title: "Benchmark Radar",
-    description: "성장 채널 기준값과 비교해 현재 채널의 위치를 레이더 차트로 시각화합니다.",
+    title: "Channel DNA",
+    description: "고성과 패턴·반복 구조·성장 방식을 레이더 차트 등으로 구조적으로 살펴봅니다.",
   },
   {
     icon: "🤖",

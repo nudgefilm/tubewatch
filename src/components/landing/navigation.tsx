@@ -14,9 +14,9 @@ import { AuthModal } from "./auth-modal";
 
 const navLinks = [
   { name: "Channel Analysis", href: "/analysis", description: "내 채널, 지금 몇점일까?" },
+  { name: "Channel DNA", href: "/channel-dna", description: "이 채널의 성과 구조, 패턴이 궁금해" },
   { name: "Action Plan", href: "/action-plan", description: "그래서 오늘 뭐하면 돼?" },
   { name: "SEO Lab", href: "/seo-lab", description: "조회수 터지는 태그 좀 알려줘" },
-  { name: "Benchmark", href: "/benchmark", description: "잘 나가는 쟤는 비결이 뭐야?" },
   { name: "Next Trend", href: "/next-trend", description: "다음 영상, 뭐 찍을건데 !" },
 ];
 

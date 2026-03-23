@@ -176,7 +176,7 @@ export default function BenchmarkV2View({
               return (
                 <li key={channel.id}>
                   <Link
-                    href={`/benchmark?channelId=${encodeURIComponent(
+                    href={`/channel-dna?channelId=${encodeURIComponent(
                       channel.id
                     )}`}
                     className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs transition ${

@@ -2,20 +2,20 @@
  * (app) 라우트용 최소 로딩 UI.
  * - 인위 지연·과장 문구·전역 오버레이 없음
  * - pulse/shimmer 없이 정적 톤만 사용
- * - benchmark / next-trend: loading.tsx에서 variant만 추가하면 동일 패턴 재사용
+ * - channel-dna / next-trend: loading.tsx에서 variant만 추가하면 동일 패턴 재사용
  */
 export type AppRouteLoadingVariant =
   | "analysis"
   | "action-plan"
   | "seo-lab"
-  | "benchmark"
+  | "channel-dna"
   | "next-trend";
 
 const COPY: Record<AppRouteLoadingVariant, string> = {
   analysis: "채널 데이터를 준비하는 중입니다",
   "action-plan": "데이터를 불러오는 중입니다",
   "seo-lab": "데이터를 불러오는 중입니다",
-  benchmark: "데이터를 불러오는 중입니다",
+  "channel-dna": "데이터를 불러오는 중입니다",
   "next-trend": "데이터를 불러오는 중입니다",
 };
 

@@ -9,9 +9,10 @@ import { PrivacyModal } from "./privacy-modal";
 const footerLinks = {
   product: [
     { name: "Channel Analysis", href: "/analysis" },
+    { name: "Channel DNA", href: "/channel-dna" },
     { name: "Action Plan", href: "/action-plan" },
     { name: "SEO Lab", href: "/seo-lab" },
-    { name: "Benchmark", href: "/benchmark" },
+    { name: "Next Trend", href: "/next-trend" },
   ],
   support: [
     { name: "문의하기", href: "/support" },

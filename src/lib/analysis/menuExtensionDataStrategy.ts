@@ -61,8 +61,8 @@ export const MENU_EXTENSION_STRATEGIES: Record<
     runSemantics:
       "seo_lab 타입 run = SEO Lab 확장 실행 이력. 화면 데이터는 여전히 베이스만으로 재구성 가능한 범위.",
   },
-  benchmark: {
-    menuKey: "benchmark",
+  channel_dna: {
+    menuKey: "channel_dna",
     summary:
       "내부 베이스 지표만으로 레이더·비교 카드 UI 뼈대를 유지하고, 외부 경쟁 데이터 없음을 명시한다.",
     baseReuseFields: [
@@ -75,7 +75,7 @@ export const MENU_EXTENSION_STRATEGIES: Record<
       "YouTube Data API 기반 타 채널 공개 지표",
     ],
     runSemantics:
-      "benchmark 타입 run = 벤치마크 메뉴 확장 실행 이력. 외부 벤치마크 미연동 상태와 충돌하지 않음(안내 문구 유지).",
+      "channel_dna 타입 run = Channel DNA 메뉴 확장 실행 이력. 외부 벤치마크 미연동 상태와 충돌하지 않음(안내 문구 유지).",
   },
   next_trend: {
     menuKey: "next_trend",

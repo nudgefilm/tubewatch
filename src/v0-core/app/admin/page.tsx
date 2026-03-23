@@ -163,7 +163,7 @@ export default function AdminPage() {
     { id: 1, channel: '@kimcreator', type: 'Full Analysis', score: 85, status: 'active' as const, createdAt: '2024-03-15 14:32' },
     { id: 2, channel: '@leestudio', type: 'SEO Check', score: 72, status: 'active' as const, createdAt: '2024-03-15 13:45' },
     { id: 3, channel: '@parkmedia', type: 'Full Analysis', score: null, status: 'pending' as const, createdAt: '2024-03-15 12:20' },
-    { id: 4, channel: '@choichannel', type: 'Benchmark', score: 91, status: 'active' as const, createdAt: '2024-03-15 11:15' },
+    { id: 4, channel: '@choichannel', type: 'Channel DNA', score: 91, status: 'active' as const, createdAt: '2024-03-15 11:15' },
     { id: 5, channel: '@jungcontent', type: 'Full Analysis', score: null, status: 'error' as const, createdAt: '2024-03-15 10:30' },
   ]
 

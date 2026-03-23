@@ -47,6 +47,11 @@ const mainNavItems = [
     icon: BarChart3,
   },
   {
+    title: "Channel DNA",
+    url: "/channel-dna",
+    icon: Target,
+  },
+  {
     title: "Action Plan",
     url: "/action-plan",
     icon: FileText,
@@ -55,11 +60,6 @@ const mainNavItems = [
     title: "SEO Lab",
     url: "/seo-lab",
     icon: Search,
-  },
-  {
-    title: "Benchmark",
-    url: "/benchmark",
-    icon: Target,
   },
   {
     title: "Next Trend",

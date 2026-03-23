@@ -178,7 +178,7 @@ export function buildBenchmarkActionCandidates(
       out.push({
         id: `benchmark-section-${k}`,
         title: `${SECTION_LABELS[k]} 구간 보완 점검`,
-        whyNeeded: `${SECTION_LABELS[k]} 구간 점수 ${Math.round(sections[k])}점입니다. 저장 스냅샷과 /benchmark가 같은 값을 씁니다.`,
+        whyNeeded: `${SECTION_LABELS[k]} 구간 점수 ${Math.round(sections[k])}점입니다. 저장 스냅샷과 /channel-dna가 같은 값을 씁니다.`,
         expectedEffect: CONSERVATIVE_EFFECT,
         difficulty: k === "growthMomentum" ? "high" : "medium",
         executionHint:

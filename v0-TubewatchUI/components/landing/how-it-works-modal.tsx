@@ -40,7 +40,7 @@ const steps = [
     title: "실행 가능한 액션 제공",
     description: "TubeWatch는 분석 결과를 기반으로 실행 가능한 전략 도구를 제공합니다.",
     icon: Rocket,
-    items: ["채널 진단", "Action Plan", "SEO Lab", "Benchmark", "Next Trend"],
+    items: ["채널 진단", "Action Plan", "SEO Lab", "Channel DNA", "Next Trend"],
     label: "대표 기능",
     note: "Next Trend는 채널 데이터 패턴을 분석하여 다음 영상 아이디어, 카테고리 트렌드, 니치 콘텐츠 기회를 발견할 수 있도록 도와줍니다.",
   },

@@ -42,7 +42,7 @@ export type AnalysisRunAnalysisType =
   | "base"
   | "action_plan"
   | "seo_lab"
-  | "benchmark"
+  | "channel_dna"
   | "next_trend";
 
 /** DB `analysis_runs.status` */
@@ -92,7 +92,7 @@ export type CreateAnalysisRunForDbInput = Omit<
 export const MENU_EXTENSION_ANALYSIS_TYPES = [
   "action_plan",
   "seo_lab",
-  "benchmark",
+  "channel_dna",
   "next_trend",
 ] as const;
 
@@ -114,8 +114,10 @@ export function parseExtensionAnalysisRunRequestBody(
   if (typeof analysisTypeRaw !== "string") {
     return null;
   }
+  const normalizedType =
+    analysisTypeRaw === "benchmark" ? "channel_dna" : analysisTypeRaw;
   for (const t of MENU_EXTENSION_ANALYSIS_TYPES) {
-    if (t === analysisTypeRaw) {
+    if (t === normalizedType) {
       return { channelId: channelId.trim(), analysisType: t };
     }
   }
@@ -164,11 +166,14 @@ function isRecord(v: unknown): v is Record<string, unknown> {
 function parseAnalysisRunAnalysisType(
   v: unknown
 ): AnalysisRunAnalysisType | null {
+  if (v === "benchmark") {
+    return "channel_dna";
+  }
   switch (v) {
     case "base":
     case "action_plan":
     case "seo_lab":
-    case "benchmark":
+    case "channel_dna":
     case "next_trend":
       return v;
     default:
@@ -897,7 +902,7 @@ export function deriveExtensionMenuFields(
 }
 
 /**
- * action-plan / seo-lab / benchmark 상단 실행 버튼 활성 조건 (단일 정책).
+ * action-plan / seo-lab / channel_dna 상단 실행 버튼 활성 조건 (단일 정책).
  * - 채널 없음 / queued / running / 베이스 없음(not_started) → 비활성
  * - ready_from_base, needs_refresh, completed, failed → 활성
  */

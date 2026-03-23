@@ -15,11 +15,11 @@ import {
 import { buildInternalBenchmarkSummary } from "@/lib/benchmark/internalBenchmarkSummary";
 import { pickBenchmarkSignalsForActionPlan } from "@/lib/benchmark/benchmarkSignalsForActionPlan";
 
-type ActionKind = "benchmark" | "metric" | "text" | "fallback" | "unknown";
+type ActionKind = "channel_dna" | "metric" | "text" | "fallback" | "unknown";
 
 function classifyId(id: string): ActionKind {
   if (id.startsWith("benchmark-")) {
-    return "benchmark";
+    return "channel_dna";
   }
   if (id.startsWith("metric-")) {
     return "metric";
@@ -113,7 +113,7 @@ function replayMergeMeta(
     expectedEffect: b.expectedEffect,
     difficulty: b.difficulty,
     executionHint: b.executionHint,
-    evidenceSource: "benchmark",
+    evidenceSource: "channel_dna",
     sortTier: b.sortTier,
     sortOrder: b.sortOrder,
   }));
@@ -292,12 +292,12 @@ function runCase(name: string, data: AnalysisPageData): void {
         {
           id: r.id,
           title: r.title,
-          type: "benchmark",
+          type: "channel_dna",
           sortTier: r.sortTier,
           sortOrder: r.sortOrder,
           whyNeededLength: len,
           whyQuality: whyQuality(len),
-          evidenceSource: "benchmark",
+          evidenceSource: "channel_dna",
           isFiltered: false,
         },
         null,
@@ -307,7 +307,7 @@ function runCase(name: string, data: AnalysisPageData): void {
   }
 
   const mergeBenchOnly = replayMergeMeta(benchRows, [], []);
-  console.log("\n--- replayMergeMeta (benchmark만, sortTier/Order 확인용) ---");
+  console.log("\n--- replayMergeMeta (channel_dna만, sortTier/Order 확인용) ---");
   console.log(JSON.stringify(mergeBenchOnly, null, 2));
 
   const vm = buildActionPlanPageViewModel(data);
@@ -336,7 +336,7 @@ function runCase(name: string, data: AnalysisPageData): void {
     );
   }
 
-  const benchmarkCount = vm.actions.filter((a) => a.evidenceSource === "benchmark").length;
+  const benchmarkCount = vm.actions.filter((a) => a.evidenceSource === "channel_dna").length;
   const metricCount = vm.actions.filter((a) => classifyId(a.id) === "metric").length;
   const textCount = vm.actions.filter((a) => classifyId(a.id) === "text").length;
 
@@ -354,7 +354,7 @@ function runCase(name: string, data: AnalysisPageData): void {
 
   if (name.includes("CASE A")) {
     const benchIds = vm.actions
-      .filter((a) => a.evidenceSource === "benchmark")
+      .filter((a) => a.evidenceSource === "channel_dna")
       .map((a) => a.id);
     const onlyRhythm =
       benchIds.length === 0 ||
@@ -374,7 +374,7 @@ function runCase(name: string, data: AnalysisPageData): void {
     if (vm.actions.length > 9) {
       issues.push(`CASE C: 총 액션 ${vm.actions.length} > 9`);
     }
-    const firstBenchIdx = vm.actions.findIndex((a) => a.evidenceSource === "benchmark");
+    const firstBenchIdx = vm.actions.findIndex((a) => a.evidenceSource === "channel_dna");
     const firstMetricIdx = vm.actions.findIndex((a) => classifyId(a.id) === "metric");
     if (
       firstBenchIdx !== -1 &&

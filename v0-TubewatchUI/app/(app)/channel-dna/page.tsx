@@ -294,7 +294,7 @@ export default function BenchmarkPage() {
         <EmptyState
           icon={Target}
           title="연결된 채널이 없습니다"
-          description="채널을 연결하면 경쟁 채널 비교 분석을 확인할 수 있습니다."
+          description="채널을 연결하면 이 채널의 성과 구조 분석을 확인할 수 있습니다."
           action={{ label: "채널 연결하기", href: "/settings" }}
         />
       </div>
@@ -340,16 +340,16 @@ export default function BenchmarkPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left - Radar Chart */}
             <div>
-              <Badge variant="outline" className="mb-6">Benchmark</Badge>
+              <Badge variant="outline" className="mb-6">Channel DNA</Badge>
               <RadarChart data={radarData} labels={radarLabels} />
             </div>
 
             {/* Right - Summary */}
             <div className="space-y-6">
               <div>
-                <h1 className="text-3xl font-bold tracking-tight">경쟁 채널 비교</h1>
+                <h1 className="text-3xl font-bold tracking-tight">이 채널의 성과 구조</h1>
                 <p className="text-muted-foreground mt-2">
-                  동일 카테고리 채널 대비 내 채널의 위치를 확인하세요
+                  고성과 패턴·반복 구조·성장 방식을 함께 봅니다. 이 영역은 이 채널의 성과 구조를 분석합니다.
                 </p>
               </div>
 
@@ -495,7 +495,7 @@ export default function BenchmarkPage() {
       {/* CTA Section */}
       <section className="py-16 px-6 lg:px-12 border-t bg-muted/10">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-2xl font-bold mb-4">벤치마크 결과를 액션으로 연결하세요</h2>
+          <h2 className="text-2xl font-bold mb-4">Channel DNA 인사이트를 액션으로 연결하세요</h2>
           <p className="text-muted-foreground mb-8">
             분석된 강점과 약점을 기반으로 맞춤형 실행 전략을 확인하세요.
           </p>

@@ -68,8 +68,8 @@ const mainNavItems = [
     ],
   },
   {
-    title: "Benchmark",
-    url: "/benchmark",
+    title: "Channel DNA",
+    url: "/channel-dna",
     icon: Target,
   },
   {

@@ -31,9 +31,9 @@ import { createClient } from "@/lib/supabase/client"
 const menuItems = [
   { title: "내 채널", url: "/channels", icon: Tv2 },
   { title: "채널 분석", url: "/analysis", icon: BarChart3 },
+  { title: "Channel DNA", url: "/channel-dna", icon: GitCompareArrows },
   { title: "액션 플랜", url: "/action-plan", icon: Zap },
   { title: "SEO 랩", url: "/seo-lab", icon: Search },
-  { title: "벤치마크", url: "/benchmark", icon: GitCompareArrows },
   { title: "넥스트 트렌드", url: "/next-trend", icon: TrendingUp },
 ]
 

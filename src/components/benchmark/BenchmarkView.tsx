@@ -25,7 +25,7 @@ export default function BenchmarkView({ data }: BenchmarkViewProps): JSX.Element
               return (
                 <li key={ch.id}>
                   <Link
-                    href={`/benchmark?channelId=${encodeURIComponent(ch.id)}`}
+                    href={`/channel-dna?channelId=${encodeURIComponent(ch.id)}`}
                     className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
                       isSelected
                         ? "border-indigo-300 bg-indigo-50 text-indigo-800"
