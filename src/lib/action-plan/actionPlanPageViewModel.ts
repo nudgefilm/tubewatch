@@ -7,10 +7,7 @@ import type {
   AnalysisResultRow,
 } from "@/lib/analysis/getAnalysisPageData";
 import type { ChannelMetrics } from "@/lib/analysis/engine/types";
-import {
-  enrichRowScores,
-  type AnalysisResultRowForMap,
-} from "@/lib/server/analysis/mapAnalysisHistoryAndCompare";
+import { enrichRowScores } from "@/lib/server/analysis/mapAnalysisHistoryAndCompare";
 import type { MarketExtensionSliceVm } from "@/lib/data/marketExtensionSlice";
 import { buildDefaultMarketExtensionSlice } from "@/lib/data/marketExtensionSlice";
 import {
@@ -619,15 +616,11 @@ export function buildActionPlanPageViewModel(
     };
   }
 
-  const row = enrichRowScores(
-    data.latestResult as unknown as AnalysisResultRowForMap
-  );
-  const snapshot = (row as AnalysisResultRow).feature_snapshot;
+  const row = enrichRowScores(data.latestResult);
+  const snapshot = row.feature_snapshot;
   const metrics = extractMetricsFromSnapshot(snapshot);
   const flags = extractPatternFlags(snapshot);
-  const sections = parseSectionScores(
-    (row as AnalysisResultRow).feature_section_scores
-  );
+  const sections = parseSectionScores(row.feature_section_scores);
 
   const totalRaw = row.feature_total_score;
   const totalScore =
@@ -635,8 +628,8 @@ export function buildActionPlanPageViewModel(
       ? Math.max(0, Math.min(100, totalRaw))
       : null;
 
-  const weaknesses = safeStringArray((row as AnalysisResultRow).weaknesses);
-  const bottlenecks = safeStringArray((row as AnalysisResultRow).bottlenecks);
+  const weaknesses = safeStringArray(row.weaknesses);
+  const bottlenecks = safeStringArray(row.bottlenecks);
 
   const internalBenchSummary = buildInternalBenchmarkSummary(data);
   const benchSignals = pickBenchmarkSignalsForActionPlan(internalBenchSummary);
@@ -680,10 +673,8 @@ export function buildActionPlanPageViewModel(
   const cautions = buildCautions(weaknesses, bottlenecks);
 
   const sampleNote =
-    typeof (row as AnalysisResultRow).sample_size_note === "string"
-      ? (row as AnalysisResultRow).sample_size_note
-      : null;
-  const confidenceRaw = (row as AnalysisResultRow).analysis_confidence;
+    typeof row.sample_size_note === "string" ? row.sample_size_note : null;
+  const confidenceRaw = row.analysis_confidence;
   const analysisConfidence =
     confidenceRaw === "low" ||
     confidenceRaw === "medium" ||

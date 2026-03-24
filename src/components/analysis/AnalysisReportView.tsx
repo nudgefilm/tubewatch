@@ -17,16 +17,18 @@ import NextTrend from "@/components/analysis/NextTrend";
 import FirstAnalysisGuide from "@/components/analysis/FirstAnalysisGuide";
 import { AnalysisReportSkeleton } from "@/components/ui/SkeletonCard";
 import type { ChannelSizeTier, ConfidenceLevel } from "@/lib/analysis/engine/types";
-import {
-  computeAnalysisConfidence,
-  computeMetricsCompleteness,
-  type AnalysisConfidence,
-} from "@/lib/analysis/confidence/computeAnalysisConfidence";
 import { formatDateTime } from "@/lib/format/formatDateTime";
 import AnalysisHistoryList from "@/components/analysis/AnalysisHistoryList";
 import type { AnalysisHistoryItem } from "@/components/analysis/AnalysisHistoryList";
 import GrowthTrendChart from "@/components/analysis/GrowthTrendChart";
 import AnalysisCompareCard from "@/components/analysis/AnalysisCompareCard";
+import type { AnalysisViewModel } from "@/lib/analysis/analysisViewModel";
+import type {
+  AnalysisReportAiFieldsVm,
+  AnalysisReportCompareVm,
+  AnalysisReportPresentationVm,
+} from "@/lib/analysis/analysisReportFields";
+import type { ChannelMetrics } from "@/lib/analysis/engine/types";
 
 // ── Types ──
 
@@ -40,154 +42,23 @@ type SelectedChannel = {
   last_analyzed_at?: string | null;
 };
 
-type AnalysisResult = {
-  id: string;
-  user_channel_id: string;
-
-  status: string | null;
-  sample_video_count: number | null;
-  analysis_confidence: string | null;
-
-  channel_summary: string | null;
-  content_pattern_summary: string | null;
-
-  content_patterns: string[] | null;
-  strengths: string[] | null;
-  weaknesses: string[] | null;
-  bottlenecks: string[] | null;
-  recommended_topics: string[] | null;
-  growth_action_plan: string[] | null;
-  target_audience: string[] | null;
-
-  interpretation_mode: string | null;
-  sample_size_note: string | null;
-
-  gemini_status: string | null;
-  gemini_model: string | null;
-  gemini_analyzed_at: string | null;
-
-  feature_snapshot: Record<string, unknown> | null;
-  feature_total_score: number | null;
-  feature_section_scores: Record<string, number> | null;
-
-  created_at: string | null;
-};
-
 type AnalysisReportViewProps = {
   selectedChannel: SelectedChannel;
-  latestResult: AnalysisResult | null;
-  previousResult?: AnalysisResult | null;
+  reportPresentation: AnalysisReportPresentationVm | null;
+  reportCompare: AnalysisReportCompareVm | null;
+  aiInsightFields: AnalysisReportAiFieldsVm | null;
   isAdmin?: boolean;
   analysisHistory?: AnalysisHistoryItem[];
+  /** 스냅샷 메트릭 정규화본 — BenchmarkRadar 등 (ViewModel에서만 계산) */
+  snapshotMetricsForRadar: ChannelMetrics | null;
+  /** 채널 분석 카드·요약 — `buildAnalysisViewModel` 결과만 표시 */
+  analysisViewModel: AnalysisViewModel | null;
 };
-
-type ChannelMetrics = {
-  avgViewCount: number;
-  medianViewCount: number;
-  avgLikeRatio: number;
-  avgCommentRatio: number;
-  avgVideoDuration: number;
-  avgUploadIntervalDays: number;
-  recent30dUploadCount: number;
-  avgTitleLength: number;
-  avgTagCount: number;
-};
-
-type PatternFlag =
-  | "low_upload_frequency"
-  | "irregular_upload_interval"
-  | "short_video_dominant"
-  | "long_video_dominant"
-  | "high_view_variance"
-  | "repeated_topic_pattern"
-  | "low_tag_usage";
 
 // ── Constants ──
 
 const COOLDOWN_HOURS = 72;
 const COOLDOWN_MS = COOLDOWN_HOURS * 60 * 60 * 1000;
-
-const METRIC_META: Record<
-  keyof ChannelMetrics,
-  { label: string; description: string; format: (v: number) => string }
-> = {
-  avgViewCount: {
-    label: "평균 조회수",
-    description: "영상 평균 조회수",
-    format: (v) => formatCompact(v),
-  },
-  medianViewCount: {
-    label: "중간값 조회수",
-    description: "조회수 중간값",
-    format: (v) => formatCompact(v),
-  },
-  avgLikeRatio: {
-    label: "좋아요 비율",
-    description: "조회 대비 좋아요",
-    format: (v) => `${(v * 100).toFixed(2)}%`,
-  },
-  avgCommentRatio: {
-    label: "댓글 비율",
-    description: "조회 대비 댓글",
-    format: (v) => `${(v * 100).toFixed(3)}%`,
-  },
-  avgVideoDuration: {
-    label: "평균 영상 길이",
-    description: "평균 재생 시간",
-    format: (v) => formatDuration(v),
-  },
-  avgUploadIntervalDays: {
-    label: "업로드 간격",
-    description: "평균 업로드 주기",
-    format: (v) => `${v.toFixed(1)}일`,
-  },
-  recent30dUploadCount: {
-    label: "최근 30일 업로드",
-    description: "최근 한 달 업로드 수",
-    format: (v) => `${Math.round(v)}개`,
-  },
-  avgTitleLength: {
-    label: "평균 제목 길이",
-    description: "제목 평균 글자 수",
-    format: (v) => `${v.toFixed(0)}자`,
-  },
-  avgTagCount: {
-    label: "평균 태그 수",
-    description: "영상당 평균 태그",
-    format: (v) => `${v.toFixed(1)}개`,
-  },
-};
-
-const PATTERN_META: Record<PatternFlag, { label: string; tone: string }> = {
-  low_upload_frequency: {
-    label: "낮은 업로드 빈도",
-    tone: "border-amber-300 bg-amber-50 text-amber-800",
-  },
-  irregular_upload_interval: {
-    label: "불규칙한 업로드 주기",
-    tone: "border-amber-300 bg-amber-50 text-amber-800",
-  },
-  short_video_dominant: {
-    label: "숏폼 중심",
-    tone: "border-sky-300 bg-sky-50 text-sky-800",
-  },
-  long_video_dominant: {
-    label: "롱폼 중심",
-    tone: "border-indigo-300 bg-indigo-50 text-indigo-800",
-  },
-  high_view_variance: {
-    label: "높은 조회수 편차",
-    tone: "border-rose-300 bg-rose-50 text-rose-800",
-  },
-  repeated_topic_pattern: {
-    label: "반복 주제 패턴",
-    tone: "border-violet-300 bg-violet-50 text-violet-800",
-  },
-  low_tag_usage: {
-    label: "낮은 태그 활용",
-    tone: "border-orange-300 bg-orange-50 text-orange-800",
-  },
-};
 
 const CHANNEL_SIZE_TIER_META: Record<ChannelSizeTier, { label: string; className: string }> = {
   micro: {
@@ -234,23 +105,6 @@ const SECTION_SCORE_COLORS: Record<string, string> = {
 
 // ── Formatters ──
 
-function formatCompact(value: number): string {
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
-  if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`;
-  return Math.round(value).toLocaleString("ko-KR");
-}
-
-function formatDuration(seconds: number): string {
-  const m = Math.floor(seconds / 60);
-  const s = Math.round(seconds % 60);
-  if (m >= 60) {
-    const h = Math.floor(m / 60);
-    const rm = m % 60;
-    return `${h}시간 ${rm}분`;
-  }
-  return `${m}분 ${s}초`;
-}
-
 function formatNumber(value: number | null | undefined): string {
   if (value == null) return "-";
   return new Intl.NumberFormat("ko-KR").format(value);
@@ -286,40 +140,6 @@ function getConfidenceLevelClassName(level: ConfidenceLevel): string {
   return "border-red-200 bg-red-50 text-red-700";
 }
 
-function computeConfidenceFromSnapshot(
-  snapshot: Record<string, unknown> | null,
-  subscriberCount: number | null | undefined,
-  sampleVideoCount: number | null | undefined
-): AnalysisConfidence {
-  const metricsRaw = snapshot && typeof snapshot === "object"
-    ? snapshot.metrics as Record<string, unknown> | null
-    : null;
-  const patternsRaw = snapshot && typeof snapshot === "object"
-    ? snapshot.patterns
-    : null;
-
-  const metricsCompleteness = computeMetricsCompleteness(metricsRaw);
-  const patternCount = Array.isArray(patternsRaw) ? patternsRaw.length : 0;
-  const snapshotSampleCount =
-    snapshot && typeof snapshot === "object" && typeof snapshot.sampleVideoCount === "number"
-      ? snapshot.sampleVideoCount
-      : 0;
-  const snapshotCollectedCount =
-    snapshot && typeof snapshot === "object" && typeof snapshot.collectedVideoCount === "number"
-      ? snapshot.collectedVideoCount
-      : 0;
-
-  const tier = getChannelSizeTier(subscriberCount);
-
-  return computeAnalysisConfidence({
-    sampleVideoCount: typeof sampleVideoCount === "number" ? sampleVideoCount : snapshotSampleCount,
-    collectedVideoCount: snapshotCollectedCount,
-    channelSizeTier: tier,
-    metricsCompleteness,
-    patternCount,
-  });
-}
-
 function formatRemaining(ms: number): string {
   if (ms <= 0) return "지금 분석 가능";
   const totalMinutes = Math.ceil(ms / (1000 * 60));
@@ -335,25 +155,24 @@ function formatRemaining(ms: number): string {
 
 function getCooldownBaseTime(
   selectedChannel: SelectedChannel,
-  latestResult: AnalysisResult | null,
+  analysisTimestampIso: string | null,
   localRequestedAt: string | null
 ): string | null {
   return (
     localRequestedAt ??
     selectedChannel.last_analysis_requested_at ??
     selectedChannel.last_analyzed_at ??
-    latestResult?.gemini_analyzed_at ??
-    latestResult?.created_at ??
+    analysisTimestampIso ??
     null
   );
 }
 
 function getCooldownState(
   selectedChannel: SelectedChannel,
-  latestResult: AnalysisResult | null,
+  analysisTimestampIso: string | null,
   localRequestedAt: string | null
 ): { isCooldownActive: boolean; remainingText: string; nextAvailableAtText: string } {
-  const baseTime = getCooldownBaseTime(selectedChannel, latestResult, localRequestedAt);
+  const baseTime = getCooldownBaseTime(selectedChannel, analysisTimestampIso, localRequestedAt);
   if (!baseTime) {
     return { isCooldownActive: false, remainingText: "지금 분석 가능", nextAvailableAtText: "지금" };
   }
@@ -369,39 +188,6 @@ function getCooldownState(
     remainingText: isCooldownActive ? formatRemaining(remainingMs) : "지금 분석 가능",
     nextAvailableAtText: formatDateTime(nextAvailableAt.toISOString()),
   };
-}
-
-function extractMetrics(snapshot: Record<string, unknown> | null): ChannelMetrics | null {
-  if (!snapshot || typeof snapshot !== "object") return null;
-  const raw = snapshot.metrics;
-  if (!raw || typeof raw !== "object") return null;
-  const m = raw as Record<string, unknown>;
-  const keys: (keyof ChannelMetrics)[] = [
-    "avgViewCount", "medianViewCount", "avgLikeRatio", "avgCommentRatio",
-    "avgVideoDuration", "avgUploadIntervalDays", "recent30dUploadCount",
-    "avgTitleLength", "avgTagCount",
-  ];
-  const hasAny = keys.some((k) => typeof m[k] === "number");
-  if (!hasAny) return null;
-  return {
-    avgViewCount: typeof m.avgViewCount === "number" ? m.avgViewCount : 0,
-    medianViewCount: typeof m.medianViewCount === "number" ? m.medianViewCount : 0,
-    avgLikeRatio: typeof m.avgLikeRatio === "number" ? m.avgLikeRatio : 0,
-    avgCommentRatio: typeof m.avgCommentRatio === "number" ? m.avgCommentRatio : 0,
-    avgVideoDuration: typeof m.avgVideoDuration === "number" ? m.avgVideoDuration : 0,
-    avgUploadIntervalDays: typeof m.avgUploadIntervalDays === "number" ? m.avgUploadIntervalDays : 0,
-    recent30dUploadCount: typeof m.recent30dUploadCount === "number" ? m.recent30dUploadCount : 0,
-    avgTitleLength: typeof m.avgTitleLength === "number" ? m.avgTitleLength : 0,
-    avgTagCount: typeof m.avgTagCount === "number" ? m.avgTagCount : 0,
-  };
-}
-
-function extractPatterns(snapshot: Record<string, unknown> | null): PatternFlag[] {
-  if (!snapshot || typeof snapshot !== "object") return [];
-  const raw = snapshot.patterns;
-  if (!Array.isArray(raw)) return [];
-  const valid = Object.keys(PATTERN_META);
-  return raw.filter((f): f is PatternFlag => typeof f === "string" && valid.includes(f));
 }
 
 function getScoreColor(score: number): string {
@@ -558,18 +344,6 @@ function ScoreBar({
   );
 }
 
-function PatternBadge({ flag }: { flag: PatternFlag }): JSX.Element {
-  const meta = PATTERN_META[flag];
-  if (!meta) return <></>;
-  return (
-    <span
-      className={`inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-semibold ${meta.tone}`}
-    >
-      {meta.label}
-    </span>
-  );
-}
-
 function AdminResetPanel({
   userChannelId,
   onReset,
@@ -636,10 +410,13 @@ function AdminResetPanel({
 
 export default function AnalysisReportView({
   selectedChannel,
-  latestResult,
-  previousResult = null,
+  reportPresentation = null,
+  reportCompare = null,
+  aiInsightFields = null,
   isAdmin = false,
   analysisHistory = [],
+  snapshotMetricsForRadar = null,
+  analysisViewModel = null,
 }: AnalysisReportViewProps): JSX.Element {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -650,33 +427,18 @@ export default function AnalysisReportView({
   const [localPending, setLocalPending] = useState(false);
 
   const cooldown = useMemo(
-    () => getCooldownState(selectedChannel, latestResult, localRequestedAt),
-    [selectedChannel, latestResult, localRequestedAt]
-  );
-
-  const metrics = useMemo(
-    () => (latestResult ? extractMetrics(latestResult.feature_snapshot) : null),
-    [latestResult]
-  );
-
-  const patterns = useMemo(
-    () => (latestResult ? extractPatterns(latestResult.feature_snapshot) : []),
-    [latestResult]
-  );
-
-  const confidence = useMemo(
     () =>
-      latestResult
-        ? computeConfidenceFromSnapshot(
-            latestResult.feature_snapshot,
-            selectedChannel.subscriber_count,
-            latestResult.sample_video_count
-          )
-        : null,
-    [latestResult, selectedChannel.subscriber_count]
+      getCooldownState(
+        selectedChannel,
+        reportPresentation?.analysisTimestampIso ?? null,
+        localRequestedAt
+      ),
+    [selectedChannel, reportPresentation, localRequestedAt]
   );
 
-  if (!latestResult) {
+  const metrics = snapshotMetricsForRadar;
+
+  if (!reportPresentation || !aiInsightFields) {
     return (
       <div className="space-y-6">
         <FirstAnalysisGuide />
@@ -698,26 +460,28 @@ export default function AnalysisReportView({
   }
 
   const isAnalyzed =
-    latestResult.status === "analyzed" || latestResult.gemini_status === "success";
+    reportPresentation.status === "analyzed" ||
+    reportPresentation.geminiStatus === "success";
 
   const isBackendRunning =
-    latestResult.status === "queued" ||
-    latestResult.status === "processing" ||
-    latestResult.status === "running" ||
-    latestResult.gemini_status === "processing";
+    reportPresentation.status === "queued" ||
+    reportPresentation.status === "processing" ||
+    reportPresentation.status === "running" ||
+    reportPresentation.geminiStatus === "processing";
 
   const isCooldownBlocked = isAdmin ? false : cooldown.isCooldownActive;
 
   const isRequestLocked =
     isSubmitting || isRefreshing || localPending || isBackendRunning || isCooldownBlocked;
 
-  const analyzedAt = formatDateTime(latestResult.gemini_analyzed_at ?? latestResult.created_at);
-  const confidenceLevel = confidence?.confidenceLevel ?? "low";
-  const confidenceLabel = getConfidenceLevelLabel(confidenceLevel);
-  const confidenceClassName = getConfidenceLevelClassName(confidenceLevel);
+  const analyzedAt = formatDateTime(reportPresentation.analysisTimestampIso ?? "");
+  const confidenceLevelForHero: ConfidenceLevel =
+    analysisViewModel?.overallConfidence ?? "low";
+  const confidenceLabel = getConfidenceLevelLabel(confidenceLevelForHero);
+  const confidenceClassName = getConfidenceLevelClassName(confidenceLevelForHero);
 
-  const totalScore = latestResult.feature_total_score;
-  const sectionScores = latestResult.feature_section_scores;
+  const totalScore = reportPresentation.totalScore;
+  const sectionScores = reportPresentation.sectionScores;
 
   function getRequestButtonLabel(): string {
     if (isSubmitting) return "분석 요청 중...";
@@ -725,7 +489,10 @@ export default function AnalysisReportView({
     if (localPending) return "분석 요청됨";
     if (isBackendRunning) return "분석 진행 중";
     if (isCooldownBlocked) return "72시간 쿨다운 적용 중";
-    if (latestResult?.status === "failed" || latestResult?.gemini_status === "failed") {
+    if (
+      reportPresentation.status === "failed" ||
+      reportPresentation.geminiStatus === "failed"
+    ) {
       return "다시 분석 요청";
     }
     return "지금 다시 분석";
@@ -761,13 +528,6 @@ export default function AnalysisReportView({
       setIsSubmitting(false);
     }
   }
-
-  const firstSentence = latestResult.channel_summary
-    ? latestResult.channel_summary.split(/(?<=[.!?])\s+/)[0] ?? null
-    : null;
-
-  const topStrength = normalizeItems(latestResult.strengths)[0] ?? null;
-  const topWeakness = normalizeItems(latestResult.weaknesses)[0] ?? null;
 
   return (
     <div className="space-y-8">
@@ -806,18 +566,21 @@ export default function AnalysisReportView({
                   );
                 })()}
                 <StatusBadge
-                  status={toStatusBadgeStatus(latestResult.status, latestResult.gemini_status)}
+                  status={toStatusBadgeStatus(
+                    reportPresentation.status,
+                    reportPresentation.geminiStatus
+                  )}
                 />
                 <span
                   className={`group relative inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${confidenceClassName}`}
                 >
                   {confidenceLabel}
-                  {confidence && confidence.reasons.length > 0 ? (
+                  {(analysisViewModel?.confidenceReasons?.length ?? 0) > 0 ? (
                     <span className="pointer-events-none absolute left-0 top-full z-20 mt-2 hidden w-64 rounded-xl border border-gray-200 bg-white p-3 text-left text-xs font-normal text-gray-700 shadow-lg group-hover:block">
                       <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wide text-gray-400">
                         신뢰도 근거
                       </span>
-                      {confidence.reasons.map((r, i) => (
+                      {analysisViewModel?.confidenceReasons.map((r, i) => (
                         <span key={i} className="mb-1 block leading-relaxed">{r}</span>
                       ))}
                     </span>
@@ -841,23 +604,28 @@ export default function AnalysisReportView({
           ) : null}
         </div>
 
-        {/* Diagnosis strip */}
-        {(firstSentence || topStrength || topWeakness) ? (
+        {/* Diagnosis strip — analysisViewModel.summary */}
+        {analysisViewModel &&
+        (analysisViewModel.summary.headline ||
+          analysisViewModel.summary.supportingLineA ||
+          analysisViewModel.summary.supportingLineB) ? (
           <div className="mt-4 space-y-2">
-            {firstSentence ? (
-              <p className="text-sm leading-relaxed text-gray-700">{firstSentence}</p>
+            {analysisViewModel.summary.headline ? (
+              <p className="text-sm leading-relaxed text-gray-700">
+                {analysisViewModel.summary.headline}
+              </p>
             ) : null}
             <div className="flex flex-col gap-1.5 sm:flex-row sm:gap-4">
-              {topStrength ? (
+              {analysisViewModel.summary.supportingLineA ? (
                 <span className="inline-flex items-start gap-1.5 text-xs text-gray-600">
                   <span className="mt-0.5 block h-1.5 w-1.5 flex-shrink-0 rounded-full bg-emerald-500" />
-                  <span className="line-clamp-1">{topStrength}</span>
+                  <span className="line-clamp-2">{analysisViewModel.summary.supportingLineA}</span>
                 </span>
               ) : null}
-              {topWeakness ? (
+              {analysisViewModel.summary.supportingLineB ? (
                 <span className="inline-flex items-start gap-1.5 text-xs text-gray-600">
                   <span className="mt-0.5 block h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-500" />
-                  <span className="line-clamp-1">{topWeakness}</span>
+                  <span className="line-clamp-2">{analysisViewModel.summary.supportingLineB}</span>
                 </span>
               ) : null}
             </div>
@@ -907,13 +675,13 @@ export default function AnalysisReportView({
         <div className="rounded-lg bg-gray-50 px-3 py-2">
           <p className="text-[10px] font-medium text-gray-400">분석 영상</p>
           <p className="mt-0.5 text-xs font-semibold tabular-nums text-gray-700">
-            {formatNumber(latestResult.sample_video_count)}개
+            {formatNumber(reportPresentation.sampleVideoCount)}개
           </p>
         </div>
         <div className="rounded-lg bg-gray-50 px-3 py-2">
           <p className="text-[10px] font-medium text-gray-400">AI 모델</p>
           <p className="mt-0.5 text-xs font-semibold text-gray-700">
-            {latestResult.gemini_model ?? "-"}
+            {reportPresentation.geminiModel ?? "-"}
           </p>
         </div>
         <div className="rounded-lg bg-gray-50 px-3 py-2">
@@ -924,9 +692,9 @@ export default function AnalysisReportView({
         </div>
       </div>
 
-      {latestResult.sample_size_note ? (
+      {analysisViewModel?.summary.sampleNote ? (
         <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs leading-5 text-amber-800">
-          {latestResult.sample_size_note}
+          {analysisViewModel.summary.sampleNote}
         </div>
       ) : null}
 
@@ -953,22 +721,23 @@ export default function AnalysisReportView({
         <>
           {/* ═══ Data Overview ═══ */}
 
-          {/* Channel Metrics */}
-          {metrics ? (
+          {/* Channel Metrics — analysisViewModel.cards */}
+          {analysisViewModel && analysisViewModel.cards.length > 0 ? (
             <section>
               <SectionHeader
                 title="Channel Metrics"
                 subtitle="최근 분석 영상 기반의 핵심 수치입니다."
               />
               <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
-                {(Object.keys(METRIC_META) as (keyof ChannelMetrics)[]).map((key) => {
-                  const meta = METRIC_META[key];
+                {analysisViewModel.cards.map((card) => {
+                  const desc =
+                    `${card.insight.length > 140 ? `${card.insight.slice(0, 140)}…` : card.insight} · 신뢰도 ${card.confidence} · 데이터 ${card.dataStatus}`;
                   return (
                     <MetricCard
-                      key={key}
-                      label={meta.label}
-                      value={meta.format(metrics[key])}
-                      description={meta.description}
+                      key={card.id}
+                      label={card.title}
+                      value={String(card.value)}
+                      description={desc}
                     />
                   );
                 })}
@@ -1004,18 +773,34 @@ export default function AnalysisReportView({
             <BenchmarkRadar metrics={metrics} />
           ) : null}
 
-          {/* Detected Patterns */}
+          {/* Detected Patterns — analysisViewModel 패턴 카드 우선 */}
           <section>
             <SectionHeader
               title="Detected Patterns"
               subtitle="분석 데이터에서 감지된 채널 패턴입니다."
             />
-            {patterns.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {patterns.map((flag) => (
-                  <PatternBadge key={flag} flag={flag} />
-                ))}
-              </div>
+            {analysisViewModel ? (
+              (() => {
+                const pc = analysisViewModel.cards.find(
+                  (c) => c.id === "pattern_analysis"
+                );
+                if (!pc) {
+                  return (
+                    <EmptyState message="패턴 카드 데이터가 없습니다." />
+                  );
+                }
+                return (
+                  <div className="space-y-2">
+                    <p className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm leading-relaxed text-gray-800">
+                      {pc.insight}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      표시 값: {String(pc.value)} · 신뢰도 {pc.confidence} · 데이터{" "}
+                      {pc.dataStatus}
+                    </p>
+                  </div>
+                );
+              })()
             ) : (
               <EmptyState message="감지된 특이 패턴이 없습니다. 전반적으로 안정적인 채널 구조입니다." />
             )}
@@ -1028,9 +813,9 @@ export default function AnalysisReportView({
           />
 
           <Section title="채널 요약" icon="📋">
-            {latestResult.channel_summary ? (
+            {aiInsightFields.channel_summary ? (
               <p className="text-sm leading-7 text-gray-800">
-                {latestResult.channel_summary}
+                {aiInsightFields.channel_summary}
               </p>
             ) : (
               <EmptyState message="채널 요약을 생성하지 못했습니다." />
@@ -1041,11 +826,11 @@ export default function AnalysisReportView({
             title="콘텐츠 패턴"
             icon="🔁"
             description={
-              latestResult.content_pattern_summary ?? "반복적으로 보이는 콘텐츠 흐름입니다."
+              aiInsightFields.content_pattern_summary ?? "반복적으로 보이는 콘텐츠 흐름입니다."
             }
           >
             <List
-              items={latestResult.content_patterns}
+              items={aiInsightFields.content_patterns}
               emptyText="콘텐츠 패턴을 분석하기에 데이터가 부족합니다."
             />
           </Section>
@@ -1053,13 +838,13 @@ export default function AnalysisReportView({
           <div className="grid gap-6 xl:grid-cols-2">
             <Section title="강점" icon="💪">
               <List
-                items={latestResult.strengths}
+                items={aiInsightFields.strengths}
                 emptyText="현재 데이터에서 뚜렷한 강점을 도출하지 못했습니다."
               />
             </Section>
             <Section title="약점" icon="⚠️">
               <List
-                items={latestResult.weaknesses}
+                items={aiInsightFields.weaknesses}
                 emptyText="현재 데이터에서 뚜렷한 약점을 도출하지 못했습니다."
               />
             </Section>
@@ -1068,13 +853,13 @@ export default function AnalysisReportView({
           <div className="grid gap-6 xl:grid-cols-2">
             <Section title="병목 요인" icon="🚧">
               <List
-                items={latestResult.bottlenecks}
+                items={aiInsightFields.bottlenecks}
                 emptyText="뚜렷한 병목 요인이 감지되지 않았습니다."
               />
             </Section>
             <Section title="타겟 시청자" icon="🎯">
               <List
-                items={latestResult.target_audience}
+                items={aiInsightFields.target_audience}
                 emptyText="타겟 시청자 정보가 충분하지 않습니다."
               />
             </Section>
@@ -1082,14 +867,14 @@ export default function AnalysisReportView({
 
           <Section title="추천 콘텐츠" icon="💡">
             <List
-              items={latestResult.recommended_topics}
+              items={aiInsightFields.recommended_topics}
               emptyText="추천 콘텐츠 주제를 생성하지 못했습니다."
             />
           </Section>
 
           <Section title="성장 액션 플랜" icon="🚀">
             <List
-              items={latestResult.growth_action_plan}
+              items={aiInsightFields.growth_action_plan}
               emptyText="실행 가능한 액션 플랜을 생성하지 못했습니다."
             />
           </Section>
@@ -1101,10 +886,10 @@ export default function AnalysisReportView({
           />
 
           <NextTrend
-            recommendedTopics={latestResult.recommended_topics}
-            contentPatterns={latestResult.content_patterns}
-            growthActionPlan={latestResult.growth_action_plan}
-            targetAudience={latestResult.target_audience}
+            recommendedTopics={aiInsightFields.recommended_topics}
+            contentPatterns={aiInsightFields.content_patterns}
+            growthActionPlan={aiInsightFields.growth_action_plan}
+            targetAudience={aiInsightFields.target_audience}
           />
         </>
       )}
@@ -1130,24 +915,12 @@ export default function AnalysisReportView({
           <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
             <SectionHeader title="분석 비교" subtitle="직전 분석 대비 점수 변화" />
             <div className="mt-4">
-              <AnalysisCompareCard
-                current={{
-                  id: latestResult?.id ?? "",
-                  created_at: latestResult?.created_at ?? null,
-                  feature_total_score: latestResult?.feature_total_score ?? null,
-                  feature_section_scores: latestResult?.feature_section_scores ?? null,
-                }}
-                previous={
-                  previousResult
-                    ? {
-                        id: previousResult.id,
-                        created_at: previousResult.created_at,
-                        feature_total_score: previousResult.feature_total_score,
-                        feature_section_scores: previousResult.feature_section_scores,
-                      }
-                    : null
-                }
-              />
+              {reportCompare ? (
+                <AnalysisCompareCard
+                  current={reportCompare.current}
+                  previous={reportCompare.previous}
+                />
+              ) : null}
             </div>
           </section>
 
@@ -1160,7 +933,7 @@ export default function AnalysisReportView({
             <div className="mt-4">
               <AnalysisHistoryList
                 items={analysisHistory}
-                currentResultId={latestResult?.id}
+                currentResultId={aiInsightFields.id}
               />
             </div>
           </section>

@@ -1,5 +1,6 @@
 import type { AnalysisHistoryItem } from "@/components/analysis/AnalysisHistoryList";
 import type { CompareAnalysis } from "@/components/analysis/AnalysisCompareCard";
+import type { AnalysisResultRow } from "@/lib/analysis/getAnalysisPageData";
 
 /**
  * analysis_results 행 타입 (DB 컬럼 + 선택적 대체 필드).
@@ -51,15 +52,16 @@ function getSectionScores(
  * ANALYSIS HISTORY용: raw row → AnalysisHistoryItem
  */
 export function mapRowToHistoryItem(
-  row: AnalysisResultRowForMap
+  row: AnalysisResultRowForMap | AnalysisResultRow
 ): AnalysisHistoryItem {
+  const r = row as AnalysisResultRowForMap;
   return {
-    id: row.id,
-    job_id: row.job_id ?? "",
-    created_at: getAnalyzedAt(row),
-    feature_total_score: getTotalScore(row),
-    status: row.status,
-    gemini_status: row.gemini_status,
+    id: r.id,
+    job_id: r.job_id ?? "",
+    created_at: getAnalyzedAt(r),
+    feature_total_score: getTotalScore(r),
+    status: r.status,
+    gemini_status: r.gemini_status,
   };
 }
 
@@ -67,24 +69,26 @@ export function mapRowToHistoryItem(
  * ANALYSIS COMPARE용: raw row → CompareAnalysis
  */
 export function mapRowToCompareAnalysis(
-  row: AnalysisResultRowForMap
+  row: AnalysisResultRowForMap | AnalysisResultRow
 ): CompareAnalysis {
+  const r = row as AnalysisResultRowForMap;
   return {
-    id: row.id,
-    created_at: getAnalyzedAt(row),
-    feature_total_score: getTotalScore(row),
-    feature_section_scores: getSectionScores(row),
+    id: r.id,
+    created_at: getAnalyzedAt(r),
+    feature_total_score: getTotalScore(r),
+    feature_section_scores: getSectionScores(r),
   };
 }
 
 /**
  * row를 그대로 유지하면서 feature_total_score, feature_section_scores만 fallback 적용.
- * Compare/History 표시용으로 page에서 latestResult/previousResult에 사용.
+ * Compare/History 표시용 — 입력은 `analysis_results` 행.
  */
-export function enrichRowScores<T extends AnalysisResultRowForMap>(row: T): T {
+export function enrichRowScores(row: AnalysisResultRow): AnalysisResultRow {
+  const base = row as unknown as AnalysisResultRowForMap;
   return {
     ...row,
-    feature_total_score: getTotalScore(row),
-    feature_section_scores: getSectionScores(row),
+    feature_total_score: getTotalScore(base),
+    feature_section_scores: getSectionScores(base),
   };
 }

@@ -8,10 +8,7 @@ import type {
   AnalysisResultRow,
 } from "@/lib/analysis/getAnalysisPageData";
 import type { ChannelMetrics } from "@/lib/analysis/engine/types";
-import {
-  enrichRowScores,
-  type AnalysisResultRowForMap,
-} from "@/lib/server/analysis/mapAnalysisHistoryAndCompare";
+import { enrichRowScores } from "@/lib/server/analysis/mapAnalysisHistoryAndCompare";
 import type { SeoLabMarketExtensionFieldsVm } from "@/lib/data/marketExtensionSlice";
 import { buildSeoLabMarketExtensionSlice } from "@/lib/data/marketExtensionSlice";
 import {
@@ -451,22 +448,19 @@ export function buildSeoLabPageViewModel(
     };
   }
 
-  const row = enrichRowScores(
-    data.latestResult as unknown as AnalysisResultRowForMap
-  );
-  const rowData = row as unknown as AnalysisResultRow;
-  const snapshot = rowData.feature_snapshot;
+  const row = enrichRowScores(data.latestResult);
+  const snapshot = row.feature_snapshot;
   const metrics = extractMetricsFromSnapshot(snapshot);
   const flags = extractPatternFlags(snapshot);
-  const sections = parseSectionScores(rowData.feature_section_scores);
+  const sections = parseSectionScores(row.feature_section_scores);
 
   const seoSectionScore =
     sections != null ? Math.round(sections.seoOptimization) : null;
   const structureSectionScore =
     sections != null ? Math.round(sections.contentStructure) : null;
 
-  const weaknesses = safeStringArray(rowData.weaknesses);
-  const bottlenecks = safeStringArray(rowData.bottlenecks);
+  const weaknesses = safeStringArray(row.weaknesses);
+  const bottlenecks = safeStringArray(row.bottlenecks);
   const seoRelatedNotes = collectSeoRelatedNotes(weaknesses, bottlenecks);
 
   const videos = parseVideosFromSnapshot(snapshot);
@@ -547,10 +541,10 @@ export function buildSeoLabPageViewModel(
   });
 
   const sampleNote =
-    typeof rowData.sample_size_note === "string"
-      ? rowData.sample_size_note
+    typeof row.sample_size_note === "string"
+      ? row.sample_size_note
       : null;
-  const confidenceRaw = rowData.analysis_confidence;
+  const confidenceRaw = row.analysis_confidence;
   const analysisConfidence =
     confidenceRaw === "low" ||
     confidenceRaw === "medium" ||

@@ -1,6 +1,5 @@
 import type { AnalysisPageData, AnalysisResultRow } from "@/lib/analysis/getAnalysisPageData";
 import type { ChannelMetrics } from "@/lib/analysis/engine/types";
-import type { AnalysisResultRowForMap } from "@/lib/server/analysis/mapAnalysisHistoryAndCompare";
 import { enrichRowScores } from "@/lib/server/analysis/mapAnalysisHistoryAndCompare";
 
 /** 세 구간 요약 — 스냅샷만으로 판별 불가 시 null */
@@ -367,7 +366,7 @@ export function buildInternalBenchmarkSummary(
   }
 
   const rawRow = data.latestResult as AnalysisResultRow;
-  const scoredRow = enrichRowScores(rawRow as unknown as AnalysisResultRowForMap);
+  const scoredRow = enrichRowScores(rawRow);
   const snapshot = rawRow.feature_snapshot;
   const videos = parseSnapshotVideos(snapshot);
   const metrics = extractMetrics(snapshot);

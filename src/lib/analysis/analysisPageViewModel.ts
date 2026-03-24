@@ -2,11 +2,19 @@ import type {
   AnalysisPageData,
   AnalysisResultRow,
 } from "@/lib/analysis/getAnalysisPageData";
-import type { ChannelMetrics } from "@/lib/analysis/engine/types";
+import type { AnalysisHistoryItem } from "@/components/analysis/AnalysisHistoryList";
+import type { AnalysisViewModel } from "@/lib/analysis/analysisViewModel";
+import { buildAnalysisViewModel } from "@/lib/analysis/analysisViewModel";
 import {
-  enrichRowScores,
-  type AnalysisResultRowForMap,
-} from "@/lib/server/analysis/mapAnalysisHistoryAndCompare";
+  buildAnalysisReportAiFields,
+  buildAnalysisReportCompareVm,
+  buildAnalysisReportPresentation,
+  type AnalysisReportAiFieldsVm,
+  type AnalysisReportCompareVm,
+  type AnalysisReportPresentationVm,
+} from "@/lib/analysis/analysisReportFields";
+import type { ChannelMetrics } from "@/lib/analysis/engine/types";
+import { enrichRowScores, mapRowToHistoryItem } from "@/lib/server/analysis/mapAnalysisHistoryAndCompare";
 import type { MarketExtensionSliceVm } from "@/lib/data/marketExtensionSlice";
 import { buildDefaultMarketExtensionSlice } from "@/lib/data/marketExtensionSlice";
 import {
@@ -16,6 +24,12 @@ import {
 import { pickYoutubeAccessFieldsFromPageData } from "@/lib/analysis/pickYoutubeAccessFromPageData";
 import type { YoutubeVerificationUiState } from "@/lib/auth/youtubeVerificationTypes";
 import type { AnalysisStatus } from "@/lib/analysis/types";
+
+export type {
+  AnalysisReportAiFieldsVm,
+  AnalysisReportCompareVm,
+  AnalysisReportPresentationVm,
+} from "@/lib/analysis/analysisReportFields";
 
 /** 클라이언트로 전달 가능한 /analysis v1 뷰 모델 */
 export type AnalysisVideoRow = {
@@ -79,6 +93,18 @@ export type AnalysisPageViewModel = {
   /** YouTube 관리 채널 검증 통과 시에만 분석 실행·메뉴 run 등 핵심 동작 허용 */
   coreAnalysisFeaturesEnabled: boolean;
   youtubeVerificationUi: YoutubeVerificationUiState;
+  /** 리포트 UI 전용 — `buildAnalysisViewModel` 결과 */
+  analysisViewModel: AnalysisViewModel | null;
+  /** 성장 추이·이력 — `analysis_results` 최근 행 매핑 */
+  analysisHistory: AnalysisHistoryItem[];
+  /** BenchmarkRadar 등 — 스냅샷 메트릭 정규화본(표시는 analysisViewModel 우선) */
+  snapshotMetricsForRadar: ChannelMetrics | null;
+  /** 리포트 상단·메타·점수·상태 — enrich 반영 스칼라 */
+  reportPresentation: AnalysisReportPresentationVm | null;
+  /** 비교 카드 — `mapRowToCompareAnalysis` 결과 */
+  reportCompare: AnalysisReportCompareVm | null;
+  /** Gemini 텍스트·리스트 — DB 필드 스냅샷 */
+  aiInsightFields: AnalysisReportAiFieldsVm | null;
 } & MarketExtensionSliceVm;
 
 const SECTION_ORDER: {
@@ -113,6 +139,23 @@ function extractMetricsFromSnapshot(
     return null;
   }
   return raw as MetricsPartial;
+}
+
+function metricsPartialToChannelMetrics(m: MetricsPartial): ChannelMetrics {
+  return {
+    avgViewCount: typeof m.avgViewCount === "number" ? m.avgViewCount : 0,
+    medianViewCount: typeof m.medianViewCount === "number" ? m.medianViewCount : 0,
+    avgLikeRatio: typeof m.avgLikeRatio === "number" ? m.avgLikeRatio : 0,
+    avgCommentRatio: typeof m.avgCommentRatio === "number" ? m.avgCommentRatio : 0,
+    avgVideoDuration:
+      typeof m.avgVideoDuration === "number" ? m.avgVideoDuration : 0,
+    avgUploadIntervalDays:
+      typeof m.avgUploadIntervalDays === "number" ? m.avgUploadIntervalDays : 0,
+    recent30dUploadCount:
+      typeof m.recent30dUploadCount === "number" ? m.recent30dUploadCount : 0,
+    avgTitleLength: typeof m.avgTitleLength === "number" ? m.avgTitleLength : 0,
+    avgTagCount: typeof m.avgTagCount === "number" ? m.avgTagCount : 0,
+  };
 }
 
 function extractPatternFlags(snapshot: unknown): string[] {
@@ -543,6 +586,12 @@ export function buildAnalysisPageViewModel(
     performanceCompareSummary: null,
     growthScenarioLine: null,
     showGrowthChartPlaceholder: true,
+    analysisViewModel: null,
+    analysisHistory: [],
+    snapshotMetricsForRadar: null,
+    reportPresentation: null,
+    reportCompare: null,
+    aiInsightFields: null,
   };
 
   if (!data || data.channels.length === 0 || !data.selectedChannel) {
@@ -554,6 +603,12 @@ export function buildAnalysisPageViewModel(
       hasChannel: false,
       limitNotice:
         "연결된 채널이 없습니다. 설정에서 채널을 연결하면 분석 데이터가 표시됩니다.",
+      analysisViewModel: null,
+      analysisHistory: [],
+      snapshotMetricsForRadar: null,
+      reportPresentation: null,
+      reportCompare: null,
+      aiInsightFields: null,
     };
   }
 
@@ -573,6 +628,9 @@ export function buildAnalysisPageViewModel(
   };
 
   if (!data.latestResult) {
+    const analysisHistoryNoLatest = (data.recentAnalysisResults ?? []).map(
+      (r) => mapRowToHistoryItem(enrichRowScores(r))
+    );
     return {
       ...empty,
       ...deriveBaseAnalysisMenuFields(data),
@@ -587,13 +645,17 @@ export function buildAnalysisPageViewModel(
       limitNotice:
         "현재 확보된 데이터 기준으로 요약만 제공합니다. 분석 실행 후 전체 블록이 채워집니다.",
       showGrowthChartPlaceholder: true,
+      analysisViewModel: null,
+      analysisHistory: analysisHistoryNoLatest,
+      snapshotMetricsForRadar: null,
+      reportPresentation: null,
+      reportCompare: null,
+      aiInsightFields: null,
     };
   }
 
-  const row = enrichRowScores(
-    data.latestResult as unknown as AnalysisResultRowForMap
-  );
-  const snapshot = (row as AnalysisResultRow).feature_snapshot;
+  const row = enrichRowScores(data.latestResult);
+  const snapshot = row.feature_snapshot;
 
   let rawVideos = parseVideosFromSnapshot(snapshot);
   const sampleAvgForHeader = summarizeSampleAvgViews(rawVideos);
@@ -607,10 +669,11 @@ export function buildAnalysisPageViewModel(
   };
 
   const metrics = extractMetricsFromSnapshot(snapshot);
+  const snapshotMetricsForRadar = metrics
+    ? metricsPartialToChannelMetrics(metrics)
+    : null;
   const flags = extractPatternFlags(snapshot);
-  const sections = parseSectionScores(
-    (row as AnalysisResultRow).feature_section_scores
-  );
+  const sections = parseSectionScores(row.feature_section_scores);
 
   const total =
     typeof row.feature_total_score === "number" &&
@@ -618,30 +681,25 @@ export function buildAnalysisPageViewModel(
       ? Math.max(0, Math.min(100, row.feature_total_score))
       : null;
 
-  const headline =
-    typeof (row as AnalysisResultRow).channel_summary === "string" &&
-    (row as AnalysisResultRow).channel_summary!.trim() !== ""
-      ? (row as AnalysisResultRow).channel_summary
-      : typeof (row as AnalysisResultRow).content_pattern_summary === "string" &&
-          (row as AnalysisResultRow).content_pattern_summary!.trim() !== ""
-        ? (row as AnalysisResultRow).content_pattern_summary
-        : null;
-
-  const patternSummary =
-    typeof (row as AnalysisResultRow).content_pattern_summary === "string"
-      ? (row as AnalysisResultRow).content_pattern_summary
+  const channelSummary =
+    typeof row.channel_summary === "string" ? row.channel_summary : null;
+  const contentPatternSummary =
+    typeof row.content_pattern_summary === "string"
+      ? row.content_pattern_summary
       : null;
 
-  const strengths = safeStringArray((row as AnalysisResultRow).strengths).slice(
-    0,
-    3
-  );
-  const weaknesses = safeStringArray(
-    (row as AnalysisResultRow).weaknesses
-  );
-  const bottlenecks = safeStringArray(
-    (row as AnalysisResultRow).bottlenecks
-  );
+  const headline =
+    channelSummary && channelSummary.trim() !== ""
+      ? channelSummary
+      : contentPatternSummary && contentPatternSummary.trim() !== ""
+        ? contentPatternSummary
+        : null;
+
+  const patternSummary = contentPatternSummary;
+
+  const strengths = safeStringArray(row.strengths).slice(0, 3);
+  const weaknesses = safeStringArray(row.weaknesses);
+  const bottlenecks = safeStringArray(row.bottlenecks);
   const urgent = buildUrgentPoints(weaknesses, bottlenecks);
 
   const diagnosisCards: AnalysisDiagnosisCardVm[] = [];
@@ -694,10 +752,8 @@ export function buildAnalysisPageViewModel(
   }
 
   const sampleNote =
-    typeof (row as AnalysisResultRow).sample_size_note === "string"
-      ? (row as AnalysisResultRow).sample_size_note
-      : null;
-  const confidenceRaw = (row as AnalysisResultRow).analysis_confidence;
+    typeof row.sample_size_note === "string" ? row.sample_size_note : null;
+  const confidenceRaw = row.analysis_confidence;
   const analysisConfidence =
     confidenceRaw === "low" ||
     confidenceRaw === "medium" ||
@@ -713,6 +769,20 @@ export function buildAnalysisPageViewModel(
     limitNotice =
       "분석 신뢰도가 낮게 기록되었습니다. 결론은 참고용으로만 활용하세요.";
   }
+
+  const analysisViewModel = buildAnalysisViewModel(row);
+  const recent = data.recentAnalysisResults ?? [];
+  const analysisHistory = recent.map((r) =>
+    mapRowToHistoryItem(enrichRowScores(r))
+  );
+  const previousRow: AnalysisResultRow | null =
+    recent.length >= 2 ? recent[1] : null;
+  const reportPresentation = buildAnalysisReportPresentation(
+    row,
+    analysisViewModel.sampleVideoCount
+  );
+  const aiInsightFields = buildAnalysisReportAiFields(row);
+  const reportCompare = buildAnalysisReportCompareVm(row, previousRow);
 
   return {
     ...ext,
@@ -739,5 +809,11 @@ export function buildAnalysisPageViewModel(
     performanceCompareSummary: summary,
     growthScenarioLine: growthLine,
     showGrowthChartPlaceholder: true,
+    analysisViewModel,
+    analysisHistory,
+    snapshotMetricsForRadar,
+    reportPresentation,
+    reportCompare,
+    aiInsightFields,
   };
 }

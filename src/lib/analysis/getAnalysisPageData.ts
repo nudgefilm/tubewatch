@@ -37,6 +37,8 @@ export type AnalysisPageData = {
   channels: UserChannelRow[];
   selectedChannel: UserChannelRow | null;
   latestResult: AnalysisResultRow | null;
+  /** 선택 채널 기준 최근 분석 결과(최신순, 리포트 이력·비교용) */
+  recentAnalysisResults: AnalysisResultRow[];
   /**
    * `null` — analysis_runs 조회 전이거나 아직 로드하지 않음(placeholder fetch).
    * `[]` — 조회 완료, 해당 채널에 저장된 run 없음.
@@ -109,6 +111,33 @@ export async function getLatestAnalysisResultByUserChannelId(
   }
 
   return (data as AnalysisResultRow | null) ?? null;
+}
+
+export async function getRecentAnalysisResultsByUserChannelId(
+  userChannelId: string,
+  limit = 20
+): Promise<AnalysisResultRow[]> {
+  const userId = await getAuthenticatedUserId();
+
+  if (!userId || !userChannelId) {
+    return [];
+  }
+
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("analysis_results")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("user_channel_id", userChannelId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    return [];
+  }
+
+  return (data ?? []) as AnalysisResultRow[];
 }
 
 export async function getLatestAnalysisResultMap(
@@ -211,6 +240,7 @@ export async function getAnalysisPageData(
       channels: [],
       selectedChannel: null,
       latestResult: null,
+      recentAnalysisResults: [],
       analysisRuns: [],
       youtubeFeatureAccess,
     };
@@ -231,6 +261,10 @@ export async function getAnalysisPageData(
     ? await getLatestAnalysisResultByUserChannelId(selectedChannel.id)
     : null;
 
+  const recentAnalysisResults = selectedChannel
+    ? await getRecentAnalysisResultsByUserChannelId(selectedChannel.id, 20)
+    : [];
+
   const runsRaw = selectedChannel
     ? await fetchAnalysisRunsForUserChannel(
         supabase,
@@ -247,6 +281,7 @@ export async function getAnalysisPageData(
     channels,
     selectedChannel,
     latestResult,
+    recentAnalysisResults,
     analysisRuns,
     youtubeFeatureAccess,
   };
