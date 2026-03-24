@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "check:protected": "node scripts/check-protected-paths.mjs"
+    "check:protected": "node scripts/check-protected-paths.mjs",
+    "check:analysis-route": "node scripts/check-analysis-route-imports.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

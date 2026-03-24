@@ -1,3 +1,9 @@
+/**
+ * DO NOT USE IN ROUTES
+ * Legacy mock analysis UI (archived). Same source as removed:
+ * v0-TubewatchUI/app/(app)/analysis/page.tsx and src/v0-core/app/(app)/analysis/page.tsx
+ * Operational /analysis: src/app/(app)/analysis/page.tsx → @/components/analysis/AnalysisReportPageClient only.
+ */
 "use client"
 
 import { useState, useEffect } from "react"

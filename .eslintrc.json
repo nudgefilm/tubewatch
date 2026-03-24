@@ -29,6 +29,32 @@
           }
         ]
       }
+    },
+    {
+      "files": [
+        "src/app/(app)/analysis/**/*.{js,jsx,ts,tsx}",
+        "src/components/analysis/AnalysisReportPageClient.tsx"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "@/v0-tubewatchui/app/(app)/analysis/**",
+                  "@/v0-core/app/(app)/analysis/**"
+                ],
+                "message": "Legacy /analysis app pages are blocked. Use @/components/analysis/AnalysisReportPageClient only (see docs/ai-guardrail.md)."
+              },
+              {
+                "group": ["@/v0-tubewatchui/**/analysis/page"],
+                "message": "Do not wire v0 analysis page into routes. Operational UI is src/components/analysis/* only."
+              }
+            ]
+          }
+        ]
+      }
     }
   ]
 }

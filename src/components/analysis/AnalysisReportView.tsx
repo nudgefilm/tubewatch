@@ -490,8 +490,8 @@ export default function AnalysisReportView({
     if (isBackendRunning) return "분석 진행 중";
     if (isCooldownBlocked) return "72시간 쿨다운 적용 중";
     if (
-      reportPresentation.status === "failed" ||
-      reportPresentation.geminiStatus === "failed"
+      reportPresentation?.status === "failed" ||
+      reportPresentation?.geminiStatus === "failed"
     ) {
       return "다시 분석 요청";
     }
