@@ -1,5 +1,4 @@
-import NextTrendPage from "@/v0-tubewatchui/app/(app)/next-trend/page";
-
+import NextTrendView from "@/components/next-trend/NextTrendView";
 import {
   buildProtectedReturnPath,
   redirectToLandingAuthUnlessSignedIn,
@@ -7,10 +6,10 @@ import {
 import { getAnalysisPageData } from "@/lib/analysis/getAnalysisPageData";
 import { buildNextTrendPageViewModel } from "@/lib/next-trend/nextTrendPageViewModel";
 
-type SearchParams = { channel?: string | string[] };
+type SearchParams = { channel?: string | string[]; channelId?: string | string[] };
 
 function pickUserChannelId(sp: SearchParams | undefined): string | undefined {
-  const raw = sp?.channel;
+  const raw = sp?.channel ?? sp?.channelId;
   if (typeof raw === "string" && raw.trim() !== "") {
     return raw;
   }
@@ -31,5 +30,5 @@ export default async function NextTrendRoutePage({
   );
   const data = await getAnalysisPageData(channelId);
   const viewModel = buildNextTrendPageViewModel(data);
-  return <NextTrendPage viewModel={viewModel} />;
+  return <NextTrendView viewModel={viewModel} />;
 }

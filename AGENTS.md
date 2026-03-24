@@ -1,16 +1,14 @@
 # Protected Paths
 
 ## DO NOT MODIFY
-- v0-TubewatchUI/**
-- archive/**
-- any legacy snapshots
+- archive snapshots (if present)
+- external snapshot trees outside `src`
 
 ## ALLOWED PATHS
 - src/**
 - config files (tsconfig, next.config, etc)
 
 ## RULES
-- Never edit files under v0-TubewatchUI
-- Always implement changes in src layer
+- Implement changes in the `src` layer
 - Prefer file-level additions over global refactors
 - Do not perform bulk copy operations

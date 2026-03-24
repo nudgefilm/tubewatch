@@ -1,16 +1,16 @@
-import SeoLabPage from "@/v0-tubewatchui/app/(app)/seo-lab/page";
+import { redirect } from "next/navigation";
 
+import SeoLabView from "@/components/seo-lab/SeoLabView";
 import {
   buildProtectedReturnPath,
   redirectToLandingAuthUnlessSignedIn,
 } from "@/lib/auth/require-app-user";
-import { getAnalysisPageData } from "@/lib/analysis/getAnalysisPageData";
-import { buildSeoLabPageViewModel } from "@/lib/seo-lab/seoLabPageViewModel";
+import { getSeoLabPageData } from "@/lib/server/seo-lab/getSeoLabPageData";
 
-type SearchParams = { channel?: string | string[] };
+type SearchParams = { channel?: string | string[]; channelId?: string | string[] };
 
 function pickUserChannelId(sp: SearchParams | undefined): string | undefined {
-  const raw = sp?.channel;
+  const raw = sp?.channel ?? sp?.channelId;
   if (typeof raw === "string" && raw.trim() !== "") {
     return raw;
   }
@@ -29,7 +29,9 @@ export default async function SeoLabRoutePage({
   await redirectToLandingAuthUnlessSignedIn(
     buildProtectedReturnPath("/seo-lab", channelId)
   );
-  const data = await getAnalysisPageData(channelId);
-  const viewModel = buildSeoLabPageViewModel(data);
-  return <SeoLabPage viewModel={viewModel} />;
+  const data = await getSeoLabPageData(channelId);
+  if (!data) {
+    redirect("/");
+  }
+  return <SeoLabView data={data} />;
 }

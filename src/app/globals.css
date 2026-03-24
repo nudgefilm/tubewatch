@@ -55,7 +55,6 @@
     font-family: var(--font-sans);
   }
 
-  /* v0-TubewatchUI is the single UI source; keep display typography aligned here. */
   .font-display {
     font-family: var(--font-display) !important;
   }

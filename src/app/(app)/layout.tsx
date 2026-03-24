@@ -1,7 +1,7 @@
 import type { ReactNode } from "react"
 
 import { V0AppSidebar } from "@/components/layout/V0AppSidebar"
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/v0-core/components/ui/sidebar"
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "../../components/ui/sidebar"
 
 export default function AppRoutesLayout({
   children,

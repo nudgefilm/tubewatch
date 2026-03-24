@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react"
 
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/v0-core/components/ui/sidebar"
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "../ui/sidebar"
 import { V0AppSidebar } from "@/components/layout/V0AppSidebar"
 
 type AppFrameProps = {

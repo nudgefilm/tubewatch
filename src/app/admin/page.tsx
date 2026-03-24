@@ -1,8 +1,9 @@
-import AdminPage from "@/v0-tubewatchui/app/admin/page";
-
+import AdminView from "@/components/admin/AdminView";
 import { ensureAdminOrRedirect } from "@/lib/auth/is-admin";
+import { getAdminDashboardData } from "@/lib/server/admin/getAdminDashboardData";
 
 export default async function AdminRoutePage() {
   await ensureAdminOrRedirect();
-  return <AdminPage />;
+  const data = await getAdminDashboardData();
+  return <AdminView data={data} />;
 }

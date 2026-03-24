@@ -1,6 +1,4 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-echo "▶ 보호된 경로 변경 여부 검사 중 (check-protected-paths.mjs)..."
-npm run check:protected
-
+npm run lint

@@ -1,6 +1,5 @@
 /**
  * OPERATIONAL CLIENT ENTRY for /analysis — 라우트는 이 컴포넌트만 사용 (AnalysisShell + AnalysisReportView).
- * DO NOT swap for @/v0-tubewatchui/app/(app)/analysis/* or v0-core analysis page.
  */
 "use client";
 

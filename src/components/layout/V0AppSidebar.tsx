@@ -38,14 +38,14 @@ import {
   SidebarMenuItem,
   SidebarRail,
   SidebarSeparator,
-} from "@/v0-core/components/ui/sidebar"
+} from "../ui/sidebar"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/v0-core/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu"
 
 const mainNavItems = [
   {

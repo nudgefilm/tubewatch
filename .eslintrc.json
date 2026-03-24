@@ -1,60 +1,24 @@
 {
   "extends": "next/core-web-vitals",
-  "overrides": [
-    {
-      "files": ["src/v0-import/**/*.{js,jsx,ts,tsx}"],
-      "rules": {
-        "react/no-unescaped-entities": "off"
-      }
-    },
-    {
-      "files": ["src/v0-core/**/*.{js,jsx,ts,tsx}"],
-      "rules": {
-        "react/no-unescaped-entities": "off"
-      }
-    },
-    {
-      "files": ["src/**/*.{js,jsx,ts,tsx}"],
-      "excludedFiles": ["src/app/**/*"],
-      "rules": {
-        "no-restricted-imports": [
-          "error",
+  "rules": {
+    "no-restricted-imports": [
+      "error",
+      {
+        "patterns": [
           {
-            "patterns": [
-              {
-                "group": ["@/v0-tubewatchui/**"],
-                "message": "Do not import from v0 directly. Use src layer."
-              }
-            ]
+            "group": [
+              "@/v0-*/**",
+              "archive/**",
+              "**/archive/**",
+              "**/v0-*",
+              "**/v0-*/**",
+              "../../v0-*",
+              "../v0-*"
+            ],
+            "message": "Disallowed import path. Use src project modules only."
           }
         ]
       }
-    },
-    {
-      "files": [
-        "src/app/(app)/analysis/**/*.{js,jsx,ts,tsx}",
-        "src/components/analysis/AnalysisReportPageClient.tsx"
-      ],
-      "rules": {
-        "no-restricted-imports": [
-          "error",
-          {
-            "patterns": [
-              {
-                "group": [
-                  "@/v0-tubewatchui/app/(app)/analysis/**",
-                  "@/v0-core/app/(app)/analysis/**"
-                ],
-                "message": "Legacy /analysis app pages are blocked. Use @/components/analysis/AnalysisReportPageClient only (see docs/ai-guardrail.md)."
-              },
-              {
-                "group": ["@/v0-tubewatchui/**/analysis/page"],
-                "message": "Do not wire v0 analysis page into routes. Operational UI is src/components/analysis/* only."
-              }
-            ]
-          }
-        ]
-      }
-    }
-  ]
+    ]
+  }
 }

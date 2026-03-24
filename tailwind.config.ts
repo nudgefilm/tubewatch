@@ -1,13 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  content: [
-    "./src/**/*.{js,ts,jsx,tsx}",
-    "./v0-TubewatchUI/app/**/*.{js,ts,jsx,tsx}",
-    "./v0-TubewatchUI/components/**/*.{js,ts,jsx,tsx}",
-    "./v0-TubewatchUI/hooks/**/*.{js,ts,jsx,tsx}",
-    "./v0-TubewatchUI/lib/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
   theme: {
     extend: {
       fontFamily: {

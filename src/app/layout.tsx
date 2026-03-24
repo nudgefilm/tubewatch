@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   title: "TubeWatch™ - 데이터로 설계하는 유튜브 성장전략 플랫폼",
   description:
     "채널 데이터를 기반으로 당신의 성장 전략을 찾아갑니다. 채널 분석, Action Plan, SEO 최적화, 벤치마크 비교까지.",
-  generator: "v0.app",
+  generator: "TubeWatch",
   openGraph: {
     title: "TubeWatch™ - 데이터로 설계하는 유튜브 성장전략 플랫폼",
     description: "채널 데이터를 기반으로 당신의 성장 전략을 찾아갑니다.",

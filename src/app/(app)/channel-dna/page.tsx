@@ -1,16 +1,16 @@
-import BenchmarkPage from "@/v0-tubewatchui/app/(app)/channel-dna/page";
+import { redirect } from "next/navigation";
 
+import ChannelDnaView from "@/components/channel-dna/ChannelDnaView";
 import {
   buildProtectedReturnPath,
   redirectToLandingAuthUnlessSignedIn,
 } from "@/lib/auth/require-app-user";
-import { getAnalysisPageData } from "@/lib/analysis/getAnalysisPageData";
-import { buildBenchmarkPageViewModel } from "@/lib/benchmark/benchmarkPageViewModel";
+import { getBenchmarkPageData } from "@/lib/server/benchmark/getBenchmarkPageData";
 
-type SearchParams = { channel?: string | string[] };
+type SearchParams = { channel?: string | string[]; channelId?: string | string[] };
 
 function pickUserChannelId(sp: SearchParams | undefined): string | undefined {
-  const raw = sp?.channel;
+  const raw = sp?.channel ?? sp?.channelId;
   if (typeof raw === "string" && raw.trim() !== "") {
     return raw;
   }
@@ -29,7 +29,9 @@ export default async function ChannelDnaRoutePage({
   await redirectToLandingAuthUnlessSignedIn(
     buildProtectedReturnPath("/channel-dna", channelId)
   );
-  const data = await getAnalysisPageData(channelId);
-  const benchmarkViewModel = buildBenchmarkPageViewModel(data);
-  return <BenchmarkPage benchmarkViewModel={benchmarkViewModel} />;
+  const data = await getBenchmarkPageData(channelId);
+  if (!data) {
+    redirect("/");
+  }
+  return <ChannelDnaView data={data} />;
 }

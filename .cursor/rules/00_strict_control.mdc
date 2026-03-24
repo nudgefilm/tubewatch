@@ -57,7 +57,6 @@ Do NOT proceed until user explicitly says:
 
 ## 🔒 Protected Scope (Always read-only)
 
-- src/v0-final/**
 - src/app/**
 - src/components/**
 - ALL project files
