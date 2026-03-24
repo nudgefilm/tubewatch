@@ -98,7 +98,7 @@ export default function SupportView() {
       icon: Search,
     },
     {
-      title: "벤치마크 분석",
+      title: "채널 DNA 분석",
       description: "경쟁 채널과 비교 분석하는 방법",
       icon: Users,
     },

@@ -1,20 +1,21 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import {
-  getUserChannels,
-  getDefaultAnalysisChannel,
+  getDefaultAnalysisChannelWithClient,
+  getUserChannelsForUser,
   type UserChannelRow,
 } from "@/lib/analysis/getAnalysisPageData";
 import {
-  buildBenchmarkItemsFromResult,
-  buildBenchmarkSummaries,
-} from "./buildBenchmarkItemsFromResult";
+  buildChannelDnaCompareItems,
+  buildChannelDnaSummaries,
+} from "./buildChannelDnaCompareItems";
 import type {
-  BenchmarkPageData,
-  BenchmarkChannel,
-  BenchmarkResultRow,
-} from "@/components/benchmark/types";
+  ChannelDnaPageData,
+  ChannelDnaChannel,
+  ChannelDnaResultRow,
+} from "@/components/channel-dna/channelDnaPageTypes";
 
-function mapChannel(row: UserChannelRow): BenchmarkChannel {
+function mapChannel(row: UserChannelRow): ChannelDnaChannel {
   return {
     id: row.id,
     channel_title: row.channel_title ?? null,
@@ -30,10 +31,10 @@ function mapChannel(row: UserChannelRow): BenchmarkChannel {
  * status=analyzed, gemini_status=success.
  */
 async function getLatestSuccessfulResult(
+  supabase: SupabaseClient,
   userChannelId: string,
   userId: string
-): Promise<BenchmarkResultRow | null> {
-  const supabase = await createClient();
+): Promise<ChannelDnaResultRow | null> {
   const { data, error } = await supabase
     .from("analysis_results")
     .select("*")
@@ -46,21 +47,21 @@ async function getLatestSuccessfulResult(
     .maybeSingle();
 
   if (error) {
-    console.error("[getBenchmarkPageData] latest successful result error:", error);
+    console.error("[getChannelDnaPageData] latest successful result error:", error);
     return null;
   }
 
   if (!data) return null;
 
-  return data as unknown as BenchmarkResultRow;
+  return data as unknown as ChannelDnaResultRow;
 }
 
 /**
- * 벤치마킹 페이지용 데이터 조회.
+ * 채널 DNA 페이지용 데이터 조회.
  */
-export async function getBenchmarkPageData(
+export async function getChannelDnaPageData(
   selectedChannelId?: string
-): Promise<BenchmarkPageData | null> {
+): Promise<ChannelDnaPageData | null> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -71,8 +72,8 @@ export async function getBenchmarkPageData(
     return null;
   }
 
-  const channels = await getUserChannels();
-  const channelList: BenchmarkChannel[] = channels.map(mapChannel);
+  const channels = await getUserChannelsForUser(supabase, user.id);
+  const channelList: ChannelDnaChannel[] = channels.map(mapChannel);
 
   if (channels.length === 0) {
     return {
@@ -89,19 +90,19 @@ export async function getBenchmarkPageData(
     selectedChannel = channels.find((c) => c.id === selectedChannelId) ?? null;
   }
   if (!selectedChannel) {
-    selectedChannel = await getDefaultAnalysisChannel(channels);
+    selectedChannel = await getDefaultAnalysisChannelWithClient(supabase, user.id, channels);
   }
 
   const latestResult = selectedChannel
-    ? await getLatestSuccessfulResult(selectedChannel.id, user.id)
+    ? await getLatestSuccessfulResult(supabase, selectedChannel.id, user.id)
     : null;
 
   const compareItems = latestResult
-    ? buildBenchmarkItemsFromResult(latestResult)
+    ? buildChannelDnaCompareItems(latestResult)
     : [];
   const summaries =
     compareItems.length > 0
-      ? buildBenchmarkSummaries(compareItems)
+      ? buildChannelDnaSummaries(compareItems)
       : ["아직 비교 데이터가 충분하지 않습니다."];
 
   return {

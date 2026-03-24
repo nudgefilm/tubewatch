@@ -1,30 +1,28 @@
-import NextTrendView from "@/components/next-trend/NextTrendView";
+import dynamic from "next/dynamic";
+
 import {
   buildProtectedReturnPath,
   redirectToLandingAuthUnlessSignedIn,
 } from "@/lib/auth/require-app-user";
 import { getAnalysisPageData } from "@/lib/analysis/getAnalysisPageData";
 import { buildNextTrendPageViewModel } from "@/lib/next-trend/nextTrendPageViewModel";
+import {
+  type ChannelSearchParams,
+  pickChannelIdFromSearchParams,
+} from "@/lib/navigation/pickChannelFromSearchParams";
+import { AppRouteLoading } from "@/components/layout/AppRouteLoading";
 
-type SearchParams = { channel?: string | string[]; channelId?: string | string[] };
-
-function pickUserChannelId(sp: SearchParams | undefined): string | undefined {
-  const raw = sp?.channel ?? sp?.channelId;
-  if (typeof raw === "string" && raw.trim() !== "") {
-    return raw;
-  }
-  if (Array.isArray(raw) && typeof raw[0] === "string" && raw[0].trim() !== "") {
-    return raw[0];
-  }
-  return undefined;
-}
+const NextTrendView = dynamic(
+  () => import("@/components/next-trend/NextTrendView"),
+  { loading: () => <AppRouteLoading variant="next-trend" /> }
+);
 
 export default async function NextTrendRoutePage({
   searchParams,
 }: {
-  searchParams?: SearchParams;
+  searchParams?: ChannelSearchParams;
 }) {
-  const channelId = pickUserChannelId(searchParams);
+  const channelId = pickChannelIdFromSearchParams(searchParams);
   await redirectToLandingAuthUnlessSignedIn(
     buildProtectedReturnPath("/next-trend", channelId)
   );

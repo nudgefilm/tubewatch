@@ -20,7 +20,7 @@ export default function ActionPriorityCard({
 
   return (
     <div
-      className={`min-w-0 rounded-xl border p-4 shadow-sm ${bgClass}`}
+      className={`min-w-0 p-4 rounded-xl border bg-card ${bgClass}`}
       data-priority={priority}
     >
       <div className="mb-2 flex items-center gap-2">

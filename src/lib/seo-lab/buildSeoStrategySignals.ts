@@ -1,11 +1,11 @@
 import type {
-  BenchmarkTriLevel,
-  InternalBenchmarkSummaryVm,
-} from "@/lib/benchmark/internalBenchmarkSummary";
-import { benchmarkTriLevelLabel } from "@/lib/benchmark/internalBenchmarkSummary";
+  ChannelDnaTriLevel,
+  InternalChannelDnaSummaryVm,
+} from "@/lib/channel-dna/internalChannelDnaSummary";
+import { channelDnaTriLevelLabel } from "@/lib/channel-dna/internalChannelDnaSummary";
 
 /**
- * 벤치마크·스냅샷 기반 내부 신호를 SEO 전략 생성용 중간 표현으로 번역한다.
+ * 채널 DNA·스냅샷 기반 내부 신호를 SEO 전략 생성용 중간 표현으로 번역한다.
  * (검색량·SERP 없음)
  */
 
@@ -42,8 +42,8 @@ export type SeoStrategyContext = {
   readonly contentStructureScore: number | null;
 };
 
-function triLabel(level: BenchmarkTriLevel | null): string {
-  return benchmarkTriLevelLabel(level);
+function triLabel(level: ChannelDnaTriLevel | null): string {
+  return channelDnaTriLevelLabel(level);
 }
 
 let signalIdSeq = 0;
@@ -53,7 +53,7 @@ function nextSignalId(prefix: string): string {
 }
 
 export function buildSeoStrategySignals(
-  bench: InternalBenchmarkSummaryVm,
+  bench: InternalChannelDnaSummaryVm,
   context: SeoStrategyContext
 ): SeoStrategySignalsPayload {
   signalIdSeq = 0;
@@ -75,7 +75,7 @@ export function buildSeoStrategySignals(
       summaryLine: `표본 기준 추정 포맷: ${bench.dominantFormat}`,
       forSeo:
         "제목·설명의 정보 밀도와 후킹 문구가 이 포맷(길이·시청 맥락 추정)과 어긋나지 않는지 맞출 것.",
-      sourceLabel: "벤치마크·표본 길이",
+      sourceLabel: "채널 DNA·표본 길이",
     });
   } else if (bench.dominantFormatFallback) {
     rawEvidenceLines.push(bench.dominantFormatFallback);
@@ -114,7 +114,7 @@ export function buildSeoStrategySignals(
       summaryLine: `조회 상위권 의존(히트 집중) 신호: ${triLabel(bench.breakoutDependencyLevel)}`,
       forSeo:
         "소수 영상에 조회가 몰린 구조로 읽힙니다. 제목만으로 ‘대표 편’에 기대지 않게 소제목·주제 구분을 명확히 할 것.",
-      sourceLabel: "벤치마크·조회 분포",
+      sourceLabel: "채널 DNA·조회 분포",
     });
     if (bench.breakoutDependencyFallback) {
       rawEvidenceLines.push(bench.breakoutDependencyFallback);
@@ -128,7 +128,7 @@ export function buildSeoStrategySignals(
       summaryLine: `표본 내 조회 편차: ${triLabel(bench.performanceSpreadLevel)}`,
       forSeo:
         "편차가 크면 ‘잘 나온 편’과 그렇지 않은 편의 제목 구조 차이를 표본 안에서만 비교할 것.",
-      sourceLabel: "벤치마크·편차",
+      sourceLabel: "채널 DNA·편차",
     });
     if (bench.performanceSpreadFallback) {
       rawEvidenceLines.push(bench.performanceSpreadFallback);
@@ -142,7 +142,7 @@ export function buildSeoStrategySignals(
       summaryLine: `업로드 간격 일관성: ${triLabel(bench.uploadConsistencyLevel)}`,
       forSeo:
         "발행 리듬이 들어가는 제목 표기(회차·주기)가 채널 전체에서 흔들리지 않는지 점검할 것.",
-      sourceLabel: "벤치마크·업로드",
+      sourceLabel: "채널 DNA·업로드",
     });
     if (bench.uploadConsistencyFallback) {
       rawEvidenceLines.push(bench.uploadConsistencyFallback);

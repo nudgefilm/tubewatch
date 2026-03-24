@@ -1,12 +1,12 @@
 import Link from "next/link";
-import type { BenchmarkPageData } from "./types";
-import BenchmarkCompareCard from "./BenchmarkCompareCard";
+import type { ChannelDnaPageData } from "./channelDnaPageTypes";
+import ChannelDnaCompareCard from "./ChannelDnaCompareCard";
 
-type BenchmarkViewProps = {
-  data: BenchmarkPageData;
+type ChannelDnaLegacyViewProps = {
+  data: ChannelDnaPageData;
 };
 
-export default function BenchmarkView({ data }: BenchmarkViewProps): JSX.Element {
+export default function ChannelDnaLegacyView({ data }: ChannelDnaLegacyViewProps): JSX.Element {
   const { channels, selectedChannel, compareItems, summaries } = data;
   const hasResult = data.latestResult !== null;
   const showCards = hasResult && compareItems.length > 0;
@@ -61,7 +61,7 @@ export default function BenchmarkView({ data }: BenchmarkViewProps): JSX.Element
             </h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {compareItems.slice(0, 4).map((item, i) => (
-                <BenchmarkCompareCard key={`${item.title}-${i}`} item={item} />
+                <ChannelDnaCompareCard key={`${item.title}-${i}`} item={item} />
               ))}
             </div>
           </section>

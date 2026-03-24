@@ -49,18 +49,20 @@
 
   body {
     @apply bg-background text-foreground antialiased;
+    /* 본문·버튼·메뉴·UI: Instrument Sans 단일 스택 */
     --font-sans: var(--font-instrument), "Instrument Sans", system-ui, sans-serif;
     --font-mono: var(--font-jetbrains), "JetBrains Mono", monospace;
-    --font-display: var(--font-instrument-serif), "Instrument Serif", Georgia, serif;
+    --font-heading: var(--font-instrument), "Instrument Sans", system-ui, sans-serif;
+    --font-display: var(--font-instrument), "Instrument Sans", system-ui, sans-serif;
     font-family: var(--font-sans);
   }
 
   .font-display {
-    font-family: var(--font-display) !important;
+    font-family: var(--font-sans) !important;
   }
 
   .font-heading {
-    font-family: var(--font-heading), var(--font-sans), sans-serif !important;
+    font-family: var(--font-sans) !important;
   }
 
   a,

@@ -2,7 +2,7 @@
 
 import SectionCard from "@/components/ui/SectionCard";
 import KpiCard from "@/components/ui/KpiCard";
-import BenchmarkRadar from "@/components/analysis/BenchmarkRadar";
+import ChannelDnaRadar from "@/components/analysis/ChannelDnaRadar";
 import { GuestLockedSection } from "./GuestLockedSection";
 import type { GuestReportData } from "./types";
 
@@ -48,7 +48,7 @@ export function GuestPreviewView({
       <SectionCard>
         <h2 className="text-lg font-semibold text-gray-900">Growth Score Radar</h2>
         <div className="mt-4">
-          <BenchmarkRadar metrics={radar_scores} />
+          <ChannelDnaRadar metrics={radar_scores} />
         </div>
       </SectionCard>
 
@@ -95,11 +95,11 @@ export function GuestPreviewView({
         />
       </section>
 
-      {/* Locked: Benchmark */}
+      {/* Locked: Channel DNA */}
       <section>
-        <h2 className="mb-2 text-lg font-semibold text-gray-900">Benchmark</h2>
+        <h2 className="mb-2 text-lg font-semibold text-gray-900">Channel DNA</h2>
         <GuestLockedSection
-          title="Benchmark"
+          title="Channel DNA"
           channelUrl={channelUrl}
           channelTitle={channel_title}
         />

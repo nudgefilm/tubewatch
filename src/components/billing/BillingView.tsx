@@ -130,7 +130,7 @@ export default function BillingView() {
       isPopular: false,
       features: [
         { text: '채널 무제한 분석', included: true },
-        { text: '고급 벤치마크', included: true },
+        { text: '고급 채널 DNA', included: true },
         { text: 'API 액세스', included: true },
         { text: '우선 지원', included: true },
         { text: '맞춤형 리포트', included: true },

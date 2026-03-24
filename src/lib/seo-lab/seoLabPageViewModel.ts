@@ -1,5 +1,5 @@
 /**
- * SEO Lab: `feature_snapshot`·구간 점수·패턴 + `buildInternalBenchmarkSummary`와 동일 범위의
+ * SEO Lab: `feature_snapshot`·구간 점수·패턴 + `buildInternalChannelDnaSummary`와 동일 범위의
  * 내부 신호로 채널 맞춤 SEO 전략 VM을 만든다.
  * 외부 SERP/검색볼륨은 `menuExtensionDataStrategy`의 `seo_lab.futureCollectionFields`에서 TODO.
  */
@@ -18,7 +18,7 @@ import {
 import { pickYoutubeAccessFieldsFromPageData } from "@/lib/analysis/pickYoutubeAccessFromPageData";
 import type { YoutubeVerificationUiState } from "@/lib/auth/youtubeVerificationTypes";
 import type { AnalysisStatus } from "@/lib/analysis/types";
-import { buildInternalBenchmarkSummary } from "@/lib/benchmark/internalBenchmarkSummary";
+import { buildInternalChannelDnaSummary } from "@/lib/channel-dna/internalChannelDnaSummary";
 import { buildSeoStrategySignals } from "@/lib/seo-lab/buildSeoStrategySignals";
 import { buildSeoRecommendations } from "@/lib/seo-lab/buildSeoRecommendations";
 import type { SeoStrategyItemVm } from "@/lib/seo-lab/seoLabStrategyTypes";
@@ -58,7 +58,7 @@ export type SeoLabPageViewModel = {
   channelTitle: string | null;
   seoSectionScore: number | null;
   structureSectionScore: number | null;
-  /** 채널 맞춤 SEO 전략(벤치마크·스냅샷 내부 신호 기반, 검색량 없음) */
+  /** 채널 맞춤 SEO 전략(채널 DNA·스냅샷 내부 신호 기반, 검색량 없음) */
   seoStrategySummary: string;
   recommendedKeywordAngles: SeoStrategyItemVm[];
   recommendedTitlePatterns: SeoStrategyItemVm[];
@@ -493,7 +493,7 @@ export function buildSeoLabPageViewModel(
     ];
   }
 
-  const benchVm = buildInternalBenchmarkSummary(data);
+  const benchVm = buildInternalChannelDnaSummary(data);
   const signalPayload = buildSeoStrategySignals(benchVm, {
     patternFlags: flags,
     avgTitleLength: avgTitleLen,
@@ -553,7 +553,7 @@ export function buildSeoLabPageViewModel(
       : null;
 
   const noticeParts: string[] = [
-    "SEO Lab은 범용 키워드 도구가 아니라, 저장된 분석·벤치마크에서 읽힌 이 채널 구조에 맞는 제목·메타 방향만 제한적으로 제안합니다. 검색 순위·상위노출을 보장하지 않으며, 외부 검색량·경쟁 지표는 연동되어 있지 않습니다.",
+    "SEO Lab은 범용 키워드 도구가 아니라, 저장된 분석·채널 DNA에서 읽힌 이 채널 구조에 맞는 제목·메타 방향만 제한적으로 제안합니다. 검색 순위·상위노출을 보장하지 않으며, 외부 검색량·경쟁 지표는 연동되어 있지 않습니다.",
   ];
   if (!metrics) {
     noticeParts.push("스냅샷 메트릭이 없어 세부 수치 기반 카드가 줄어듭니다.");

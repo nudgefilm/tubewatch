@@ -1,12 +1,45 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import Link from "next/link";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  useTransition,
+  type ElementType,
+  type ReactNode,
+} from "react";
 import { useRouter } from "next/navigation";
+import {
+  AlertCircle,
+  ArrowRight,
+  ArrowUpRight,
+  BarChart3,
+  CheckCircle2,
+  Eye,
+  Search,
+  Target,
+  ThumbsUp,
+  TrendingDown,
+  TrendingUp,
+  Users,
+  Video,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import {
   StatusBadge,
   toStatusBadgeStatus,
 } from "@/components/ui/StatusBadge";
-import BenchmarkRadar from "@/components/analysis/BenchmarkRadar";
+import ChannelDnaRadar from "@/components/analysis/ChannelDnaRadar";
 import NextTrend from "@/components/analysis/NextTrend";
 import FirstAnalysisGuide from "@/components/analysis/FirstAnalysisGuide";
 import { AnalysisReportSkeleton } from "@/components/ui/SkeletonCard";
@@ -17,14 +50,17 @@ import type { AnalysisHistoryItem } from "@/components/analysis/AnalysisHistoryL
 import GrowthTrendChart from "@/components/analysis/GrowthTrendChart";
 import AnalysisCompareCard from "@/components/analysis/AnalysisCompareCard";
 import type { AnalysisViewModel } from "@/lib/analysis/analysisViewModel";
+import type { AnalysisCardVM } from "@/lib/analysis/analysisViewModel";
 import type {
   AnalysisReportAiFieldsVm,
   AnalysisReportCompareVm,
   AnalysisReportPresentationVm,
 } from "@/lib/analysis/analysisReportFields";
 import type { ChannelMetrics } from "@/lib/analysis/engine/types";
+import type { UserChannelRow } from "@/lib/analysis/getAnalysisPageData";
+import AnalysisShell from "@/components/analysis/AnalysisShell";
 
-// ── Types ──
+// ── Types (props 계약 유지) ──
 
 type SelectedChannel = {
   id: string;
@@ -37,17 +73,181 @@ type SelectedChannel = {
 };
 
 type AnalysisReportViewProps = {
+  channels: UserChannelRow[];
   selectedChannel: SelectedChannel;
   reportPresentation: AnalysisReportPresentationVm | null;
   reportCompare: AnalysisReportCompareVm | null;
   aiInsightFields: AnalysisReportAiFieldsVm | null;
   isAdmin?: boolean;
   analysisHistory?: AnalysisHistoryItem[];
-  /** 스냅샷 메트릭 정규화본 — BenchmarkRadar 등 (ViewModel에서만 계산) */
   snapshotMetricsForRadar: ChannelMetrics | null;
-  /** 채널 분석 카드·요약 — `buildAnalysisViewModel` 결과만 표시 */
   analysisViewModel: AnalysisViewModel | null;
 };
+
+// ── v0-TubewatchUI analysis/page.tsx 복제 컴포넌트 ──
+
+function ScoreGauge({ score, grade }: { score: number; grade: string }) {
+  const [animatedScore, setAnimatedScore] = useState(0);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setAnimatedScore(score);
+    }, 300);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [score]);
+
+  const circumference = 2 * Math.PI * 120;
+  const strokeDashoffset = circumference - (animatedScore / 100) * circumference;
+
+  const getGradeColor = (g: string) => {
+    switch (g) {
+      case "S":
+        return "text-orange-500";
+      case "A":
+        return "text-green-500";
+      case "B":
+        return "text-blue-500";
+      case "C":
+        return "text-yellow-500";
+      default:
+        return "text-muted-foreground";
+    }
+  };
+
+  return (
+    <div className="relative mx-auto h-72 w-72">
+      <svg className="h-full w-full -rotate-90 transform" viewBox="0 0 256 256">
+        <circle
+          cx="128"
+          cy="128"
+          r="120"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="8"
+          className="text-muted/30"
+        />
+        <circle
+          cx="128"
+          cy="128"
+          r="120"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="8"
+          strokeLinecap="round"
+          className="text-orange-500 transition-all duration-1000 ease-out"
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className={`text-7xl font-bold tracking-tight ${getGradeColor(grade)}`}>
+          {grade}
+        </span>
+        <span className="mt-2 text-4xl font-bold text-foreground">{animatedScore}</span>
+        <span className="mt-1 text-sm text-muted-foreground">Channel Score</span>
+      </div>
+    </div>
+  );
+}
+
+function DiagnosisCard({
+  title,
+  score,
+  icon: Icon,
+  status,
+  items,
+}: {
+  title: string;
+  score: number;
+  icon: ElementType;
+  status: "good" | "warning" | "critical";
+  items: { label: string; value: string; trend?: "up" | "down" }[];
+}) {
+  const statusColors = {
+    good: "bg-green-500/10 text-green-500 border-green-500/20",
+    warning: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
+    critical: "bg-red-500/10 text-red-500 border-red-500/20",
+  };
+
+  return (
+    <Card className="bg-card transition-shadow hover:shadow-md">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`rounded-lg p-2 ${statusColors[status]}`}>
+              <Icon className="h-5 w-5" />
+            </div>
+            <div>
+              <CardTitle className="text-base">{title}</CardTitle>
+              <CardDescription className="mt-0.5 text-xs">
+                진단 점수: {score}/100
+              </CardDescription>
+            </div>
+          </div>
+          <Badge variant="outline" className={statusColors[status]}>
+            {status === "good" ? "양호" : status === "warning" ? "주의" : "개선필요"}
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="pt-0">
+        <Progress value={score} className="mb-4 h-1.5" />
+        <div className="space-y-2">
+          {items.map((item, index) => (
+            <div key={index} className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">{item.label}</span>
+              <div className="flex items-center gap-1.5">
+                <span className="font-medium">{item.value}</span>
+                {item.trend ? (
+                  item.trend === "up" ? (
+                    <TrendingUp className="h-3 w-3 text-green-500" />
+                  ) : (
+                    <TrendingDown className="h-3 w-3 text-red-500" />
+                  )
+                ) : null}
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function InsightCard({
+  title,
+  description,
+  type,
+}: {
+  title: string;
+  description: string;
+  type: "positive" | "negative" | "neutral";
+}) {
+  const typeStyles = {
+    positive: "border-l-green-500 bg-green-500/5",
+    negative: "border-l-red-500 bg-red-500/5",
+    neutral: "border-l-blue-500 bg-blue-500/5",
+  };
+
+  return (
+    <div className={`rounded-xl border border-border bg-card p-4 border-l-4 ${typeStyles[type]}`}>
+      <div className="flex items-start gap-3">
+        {type === "positive" ? (
+          <CheckCircle2 className="mt-0.5 h-5 w-5 text-green-500" />
+        ) : type === "negative" ? (
+          <AlertCircle className="mt-0.5 h-5 w-5 text-red-500" />
+        ) : (
+          <Target className="mt-0.5 h-5 w-5 text-blue-500" />
+        )}
+        <div>
+          <h4 className="text-sm font-medium">{title}</h4>
+          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ── Constants ──
 
@@ -73,29 +273,18 @@ const CHANNEL_SIZE_TIER_META: Record<ChannelSizeTier, { label: string; className
   },
 };
 
-function getChannelSizeTier(subscriberCount: number | null | undefined): ChannelSizeTier {
-  const count = subscriberCount ?? 0;
-  if (count >= 100_000) return "large";
-  if (count >= 10_000) return "medium";
-  if (count >= 1_000) return "small";
-  return "micro";
-}
-
-const SECTION_SCORE_LABELS: Record<string, string> = {
-  channelActivity: "채널 활동",
-  audienceResponse: "시청자 반응",
-  contentStructure: "콘텐츠 구조",
-  seoOptimization: "SEO 최적화",
-  growthMomentum: "성장 모멘텀",
-};
-
-const SECTION_SCORE_COLORS: Record<string, string> = {
-  channelActivity: "bg-blue-500",
-  audienceResponse: "bg-emerald-500",
-  contentStructure: "bg-violet-500",
-  seoOptimization: "bg-amber-500",
-  growthMomentum: "bg-rose-500",
-};
+const DIAGNOSIS_ORDER: {
+  key: string;
+  title: string;
+  icon: ElementType;
+  cardId: string;
+}[] = [
+  { key: "channelActivity", title: "활동 지표", icon: Video, cardId: "upload_frequency" },
+  { key: "audienceResponse", title: "반응 지표", icon: ThumbsUp, cardId: "engagement" },
+  { key: "contentStructure", title: "구조 분석", icon: BarChart3, cardId: "video_length" },
+  { key: "seoOptimization", title: "SEO 점수", icon: Search, cardId: "content_meta" },
+  { key: "growthMomentum", title: "성장 지표", icon: TrendingUp, cardId: "view_performance" },
+];
 
 // ── Formatters ──
 
@@ -104,22 +293,12 @@ function formatNumber(value: number | null | undefined): string {
   return new Intl.NumberFormat("ko-KR").format(value);
 }
 
-// formatDateTime imported from @/lib/format/formatDateTime
-
-// ── Data helpers ──
-
-function normalizeItems(items: string[] | null | undefined): string[] {
-  if (!Array.isArray(items)) return [];
-  const seen = new Set<string>();
-  return items
-    .map((v) => (typeof v === "string" ? v.trim() : ""))
-    .filter((v) => {
-      if (v.length === 0) return false;
-      const key = v.toLowerCase();
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
+function getChannelSizeTier(subscriberCount: number | null | undefined): ChannelSizeTier {
+  const count = subscriberCount ?? 0;
+  if (count >= 100_000) return "large";
+  if (count >= 10_000) return "medium";
+  if (count >= 1_000) return "small";
+  return "micro";
 }
 
 function getConfidenceLevelLabel(level: ConfidenceLevel): string {
@@ -184,50 +363,82 @@ function getCooldownState(
   };
 }
 
-function getScoreColor(score: number): string {
-  if (score >= 70) return "text-emerald-600";
-  if (score >= 40) return "text-amber-600";
-  return "text-red-500";
+function scoreToGrade(score: number): string {
+  if (score >= 90) return "S";
+  if (score >= 80) return "A";
+  if (score >= 70) return "B";
+  if (score >= 60) return "C";
+  return "D";
 }
 
-function getScoreLabel(score: number): string {
-  if (score >= 70) return "우수";
-  if (score >= 40) return "보통";
-  return "개선 필요";
+function sectionStatusFromScore(score: number): "good" | "warning" | "critical" {
+  if (score >= 70) return "good";
+  if (score >= 50) return "warning";
+  return "critical";
 }
 
-// ── Reusable UI primitives ──
+function normalizeItems(items: string[] | null | undefined): string[] {
+  if (!Array.isArray(items)) return [];
+  const seen = new Set<string>();
+  return items
+    .map((v) => (typeof v === "string" ? v.trim() : ""))
+    .filter((v) => {
+      if (v.length === 0) return false;
+      const key = v.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
 
-function SectionHeader({
+function findCard(vm: AnalysisViewModel | null, id: string): AnalysisCardVM | undefined {
+  return vm?.cards.find((c) => c.id === id);
+}
+
+function buildDiagnosisItems(
+  score: number,
+  card: AnalysisCardVM | undefined
+): { label: string; value: string; trend?: "up" | "down" }[] {
+  const trend: "up" | "down" | undefined =
+    score >= 70 ? "up" : score < 50 ? "down" : undefined;
+  return [
+    { label: "핵심 지표", value: card ? String(card.value) : "—", trend },
+    {
+      label: "데이터",
+      value: card ? `${card.dataStatus}` : "—",
+    },
+    {
+      label: "신뢰도",
+      value: card ? `${card.confidence}` : "—",
+    },
+  ];
+}
+
+// ── Appendix blocks (기능 유지, v0 섹션 래퍼와 동일 패딩) ──
+
+function AppendixSection({
   title,
   subtitle,
+  children,
 }: {
   title: string;
   subtitle: string;
+  children: React.ReactNode;
 }): JSX.Element {
   return (
-    <div className="mb-3">
-      <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
-        {title}
-      </h2>
-      <p className="mt-0.5 text-sm text-gray-400">{subtitle}</p>
-    </div>
+    <section className="py-12">
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold">{title}</h2>
+          <p className="mt-1 text-muted-foreground">{subtitle}</p>
+        </div>
+        {children}
+      </div>
+    </section>
   );
 }
 
-function GroupDivider({ title, subtitle }: { title: string; subtitle: string }): JSX.Element {
-  return (
-    <div className="relative pt-2">
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
-      <h2 className="pt-3 text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
-        {title}
-      </h2>
-      <p className="mt-0.5 text-sm text-gray-400">{subtitle}</p>
-    </div>
-  );
-}
-
-function Section({
+function AiSection({
   title,
   description,
   icon,
@@ -239,102 +450,42 @@ function Section({
   children: React.ReactNode;
 }): JSX.Element {
   return (
-    <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+    <section className="rounded-xl border border-border bg-card p-6 shadow-sm">
       <div className="mb-4">
-        <h3 className="flex items-center gap-2 text-base font-semibold text-gray-900 sm:text-lg">
-          {icon ? <span className="text-base">{icon}</span> : null}
+        <h3 className="flex items-center gap-2 text-base font-semibold">
+          {icon ? <span>{icon}</span> : null}
           {title}
         </h3>
-        {description ? (
-          <p className="mt-1 text-sm text-gray-500">{description}</p>
-        ) : null}
+        {description ? <p className="mt-1 text-sm text-muted-foreground">{description}</p> : null}
       </div>
       {children}
     </section>
   );
 }
 
-function List({
+function ListBlock({
   items,
-  emptyText = "분석 데이터가 충분하지 않아 인사이트를 생성하지 못했습니다.",
+  emptyText,
 }: {
   items: string[] | null;
-  emptyText?: string;
+  emptyText: string;
 }): JSX.Element {
   const safe = normalizeItems(items);
   if (safe.length === 0) {
-    return (
-      <p className="rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-400">
-        {emptyText}
-      </p>
-    );
+    return <p className="rounded-lg border border-border/60 bg-muted/30 px-4 py-3 text-sm text-muted-foreground">{emptyText}</p>;
   }
   return (
     <ul className="space-y-2">
       {safe.map((item, i) => (
         <li
           key={i}
-          className="flex items-start gap-3 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm leading-relaxed text-gray-800"
+          className="flex items-start gap-3 rounded-lg border border-border/60 bg-muted/20 px-4 py-3 text-sm leading-relaxed"
         >
-          <span className="mt-[9px] block h-1.5 w-1.5 flex-shrink-0 rounded-full bg-gray-400" />
+          <span className="mt-[9px] block h-1.5 w-1.5 shrink-0 rounded-full bg-muted-foreground/40" />
           <span>{item}</span>
         </li>
       ))}
     </ul>
-  );
-}
-
-function EmptyState({ message }: { message: string }): JSX.Element {
-  return (
-    <p className="rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-400">
-      {message}
-    </p>
-  );
-}
-
-function MetricCard({
-  label,
-  value,
-  description,
-}: {
-  label: string;
-  value: string;
-  description: string;
-}): JSX.Element {
-  return (
-    <div className="rounded-xl border border-gray-200 bg-white p-3.5 transition-shadow hover:shadow-md sm:p-4">
-      <p className="text-[11px] font-medium text-gray-500 sm:text-xs">{label}</p>
-      <p className="mt-1 text-lg font-semibold tabular-nums text-gray-900 sm:mt-1.5 sm:text-xl">
-        {value}
-      </p>
-      <p className="mt-0.5 text-[11px] text-gray-400 sm:mt-1 sm:text-xs">{description}</p>
-    </div>
-  );
-}
-
-function ScoreBar({
-  label,
-  score,
-  colorClass,
-}: {
-  label: string;
-  score: number;
-  colorClass: string;
-}): JSX.Element {
-  const clamped = Math.max(0, Math.min(100, Math.round(score)));
-  return (
-    <div>
-      <div className="mb-1.5 flex items-center justify-between">
-        <span className="text-sm font-medium text-gray-700">{label}</span>
-        <span className="text-sm font-semibold tabular-nums text-gray-900">{clamped}</span>
-      </div>
-      <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
-        <div
-          className={`h-full rounded-full transition-all ${colorClass}`}
-          style={{ width: `${clamped}%` }}
-        />
-      </div>
-    </div>
   );
 }
 
@@ -376,11 +527,11 @@ function AdminResetPanel({
   }
 
   return (
-    <div className="mt-4 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3">
+    <div className="mt-4 rounded-xl border border-border bg-muted/40 px-4 py-3">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold text-indigo-700">Admin Tools</p>
-          <p className="mt-0.5 text-xs text-indigo-600">
+          <p className="text-xs font-semibold">Admin Tools</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
             분석 타임스탬프를 초기화하여 즉시 재분석을 허용합니다.
           </p>
         </div>
@@ -388,21 +539,20 @@ function AdminResetPanel({
           type="button"
           onClick={handleReset}
           disabled={isResetting}
-          className="flex-shrink-0 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-indigo-500 disabled:opacity-50"
+          className="shrink-0 rounded-lg bg-orange-500 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-orange-600 disabled:opacity-50"
         >
           {isResetting ? "초기화 중..." : "분석 리셋"}
         </button>
       </div>
-      {resetMessage ? (
-        <p className="mt-2 text-xs text-indigo-700">{resetMessage}</p>
-      ) : null}
+      {resetMessage ? <p className="mt-2 text-xs text-muted-foreground">{resetMessage}</p> : null}
     </div>
   );
 }
 
-// ── Main component ──
+// ── Main ──
 
 export default function AnalysisReportView({
+  channels,
   selectedChannel,
   reportPresentation = null,
   reportCompare = null,
@@ -432,30 +582,65 @@ export default function AnalysisReportView({
 
   const metrics = snapshotMetricsForRadar;
 
+  const insightRows = useMemo(() => {
+    if (!aiInsightFields) {
+      return [] as {
+        title: string;
+        description: string;
+        type: "positive" | "negative" | "neutral";
+      }[];
+    }
+    const rows: { title: string; description: string; type: "positive" | "negative" | "neutral" }[] =
+      [];
+    const s = aiInsightFields.strengths?.[0];
+    const w = aiInsightFields.weaknesses?.[0];
+    const r = aiInsightFields.recommended_topics?.[0];
+    if (s) rows.push({ title: "강점 신호", description: s, type: "positive" });
+    if (w) rows.push({ title: "개선 포인트", description: w, type: "negative" });
+    if (r) rows.push({ title: "추천 주제", description: r, type: "neutral" });
+    while (rows.length < 3) {
+      rows.push({
+        title: "분석 인사이트",
+        description:
+          aiInsightFields.channel_summary?.slice(0, 200) ??
+          "추가 인사이트는 분석 데이터가 쌓일수록 정교해집니다.",
+        type: "neutral",
+      });
+    }
+    return rows.slice(0, 3);
+  }, [aiInsightFields]);
+
   if (!reportPresentation || !aiInsightFields) {
     return (
-      <div className="space-y-6">
-        <FirstAnalysisGuide />
-        <section className="rounded-xl border border-gray-200 bg-white p-6 text-center shadow-sm">
-          <div className="mx-auto max-w-sm">
-            <p className="text-3xl">📋</p>
-            <h2 className="mt-3 text-lg font-semibold text-gray-900">
-              아직 분석 결과가 없습니다
-            </h2>
-            <p className="mt-2 text-sm leading-relaxed text-gray-500">
-              위 헤더의 분석 요청 버튼을 눌러 첫 분석을 시작해 보세요.
-              <br />
-              분석에는 약 1~2분이 소요됩니다.
-            </p>
-          </div>
-        </section>
-      </div>
+      <>
+        <div className="relative mx-auto h-72 w-72 shrink-0" aria-hidden />
+        <div className="w-full max-w-6xl mx-auto px-6 lg:px-12 py-8 lg:py-10">
+          <section className="py-12">
+            <div className="space-y-6">
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight">종합 진단 리포트</h1>
+                <p className="mt-2 text-muted-foreground">채널 데이터 기반 상세 분석 결과</p>
+              </div>
+              <FirstAnalysisGuide />
+              <div className="rounded-xl border border-border bg-card p-4 text-center">
+                <div className="mx-auto max-w-sm">
+                  <p className="text-3xl">📋</p>
+                  <h2 className="mt-3 text-lg font-semibold">아직 분석 결과가 없습니다</h2>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    분석 요청 후 결과가 표시됩니다. 분석에는 약 1~2분이 소요됩니다.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+        <></>
+      </>
     );
   }
 
   const isAnalyzed =
-    reportPresentation.status === "analyzed" ||
-    reportPresentation.geminiStatus === "success";
+    reportPresentation.status === "analyzed" || reportPresentation.geminiStatus === "success";
 
   const isBackendRunning =
     reportPresentation.status === "queued" ||
@@ -469,13 +654,27 @@ export default function AnalysisReportView({
     isSubmitting || isRefreshing || localPending || isBackendRunning || isCooldownBlocked;
 
   const analyzedAt = formatDateTime(reportPresentation.analysisTimestampIso ?? "");
-  const confidenceLevelForHero: ConfidenceLevel =
-    analysisViewModel?.overallConfidence ?? "low";
+  const confidenceLevelForHero: ConfidenceLevel = analysisViewModel?.overallConfidence ?? "low";
   const confidenceLabel = getConfidenceLevelLabel(confidenceLevelForHero);
   const confidenceClassName = getConfidenceLevelClassName(confidenceLevelForHero);
 
   const totalScore = reportPresentation.totalScore;
+  const rawScore = typeof totalScore === "number" && !Number.isNaN(totalScore) ? totalScore : 0;
+  const grade = scoreToGrade(Math.round(rawScore));
+
   const sectionScores = reportPresentation.sectionScores;
+
+  const viewCard = findCard(analysisViewModel, "view_performance");
+
+  const summarySubscribers = formatNumber(selectedChannel.subscriber_count);
+  const summaryTotalViews = viewCard ? String(viewCard.value) : "—";
+  const summaryVideos = formatNumber(reportPresentation.sampleVideoCount);
+  const summaryAvgViews =
+    metrics != null
+      ? formatNumber(Math.round(metrics.avgViewCount))
+      : viewCard
+        ? String(viewCard.value)
+        : "—";
 
   function getRequestButtonLabel(): string {
     if (isSubmitting) return "분석 요청 중...";
@@ -511,7 +710,9 @@ export default function AnalysisReportView({
       setLocalRequestedAt(nowIso);
       setLocalPending(true);
       setRequestMessage("분석 요청이 접수되었습니다. 결과가 반영되면 최신 리포트로 갱신됩니다.");
-      startTransition(() => { router.refresh(); });
+      startTransition(() => {
+        router.refresh();
+      });
     } catch (error: unknown) {
       const message =
         error instanceof Error && typeof error.message === "string"
@@ -523,171 +724,163 @@ export default function AnalysisReportView({
     }
   }
 
-  return (
-    <div className="space-y-8">
-      {/* ═══ Hero ═══ */}
-      <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-          {/* Left: identity + score */}
-          <div className="flex items-start gap-4">
-            {selectedChannel.thumbnail_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={selectedChannel.thumbnail_url}
-                alt={selectedChannel.channel_title ?? "channel"}
-                className="h-14 w-14 rounded-full border border-black/5 object-cover sm:h-16 sm:w-16"
-              />
-            ) : (
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-base font-semibold text-gray-500 sm:h-16 sm:w-16">
-                {(selectedChannel.channel_title ?? "C").slice(0, 1).toUpperCase()}
-              </div>
-            )}
-            <div className="min-w-0">
-              <h1 className="truncate text-xl font-semibold text-gray-900 sm:text-2xl">
-                {selectedChannel.channel_title ?? "채널명 없음"}
-              </h1>
-              <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm text-gray-500">
-                <span>구독자 {formatNumber(selectedChannel.subscriber_count)}명</span>
-                {(() => {
-                  const tier = getChannelSizeTier(selectedChannel.subscriber_count);
-                  const meta = CHANNEL_SIZE_TIER_META[tier];
-                  return (
-                    <span
-                      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold leading-none ${meta.className}`}
-                    >
-                      {meta.label}
-                    </span>
-                  );
-                })()}
-                <StatusBadge
-                  status={toStatusBadgeStatus(
-                    reportPresentation.status,
-                    reportPresentation.geminiStatus
-                  )}
-                />
-                <span
-                  className={`group relative inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${confidenceClassName}`}
-                >
-                  {confidenceLabel}
-                  {(analysisViewModel?.confidenceReasons?.length ?? 0) > 0 ? (
-                    <span className="pointer-events-none absolute left-0 top-full z-20 mt-2 hidden w-64 rounded-xl border border-gray-200 bg-white p-3 text-left text-xs font-normal text-gray-700 shadow-lg group-hover:block">
-                      <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-                        신뢰도 근거
-                      </span>
-                      {analysisViewModel?.confidenceReasons.map((r, i) => (
-                        <span key={i} className="mb-1 block leading-relaxed">{r}</span>
-                      ))}
-                    </span>
-                  ) : null}
-                </span>
-              </div>
-            </div>
-          </div>
+  const gaugeNode = <ScoreGauge score={Math.round(rawScore)} grade={grade} />;
 
-          {/* Right: total score */}
-          {totalScore != null ? (
-            <div className="flex flex-shrink-0 flex-col items-center lg:items-end">
-              <span className={`text-4xl font-extrabold tabular-nums leading-none ${getScoreColor(totalScore)}`}>
-                {Math.round(totalScore)}
-              </span>
-              <span className={`mt-1 text-xs font-semibold ${getScoreColor(totalScore)}`}>
-                {getScoreLabel(totalScore)}
-              </span>
-              <span className="text-[10px] text-gray-400">종합 점수</span>
+  const heroRightNode = (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">종합 진단 리포트</h1>
+        <p className="mt-2 text-muted-foreground">채널 데이터 기반 상세 분석 결과</p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <Card className="bg-card/50">
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-orange-500/10 p-2">
+                <Users className="h-5 w-5 text-orange-500" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">구독자</p>
+                <p className="text-xl font-bold">{summarySubscribers}</p>
+              </div>
             </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-card/50">
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-blue-500/10 p-2">
+                <Eye className="h-5 w-5 text-blue-500" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">총 조회수</p>
+                <p className="text-xl font-bold">{summaryTotalViews}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-card/50">
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-green-500/10 p-2">
+                <Video className="h-5 w-5 text-green-500" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">영상 수</p>
+                <p className="text-xl font-bold">{summaryVideos}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-card/50">
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-purple-500/10 p-2">
+                <BarChart3 className="h-5 w-5 text-purple-500" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">평균 조회수</p>
+                <p className="text-xl font-bold">{summaryAvgViews}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+        <span>구독자 {formatNumber(selectedChannel.subscriber_count)}명</span>
+        {(() => {
+          const tier = getChannelSizeTier(selectedChannel.subscriber_count);
+          const meta = CHANNEL_SIZE_TIER_META[tier];
+          return (
+            <span
+              className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold leading-none ${meta.className}`}
+            >
+              {meta.label}
+            </span>
+          );
+        })()}
+        <StatusBadge
+          status={toStatusBadgeStatus(reportPresentation.status, reportPresentation.geminiStatus)}
+        />
+        <span
+          className={`group relative inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${confidenceClassName}`}
+        >
+          {confidenceLabel}
+          {(analysisViewModel?.confidenceReasons?.length ?? 0) > 0 ? (
+            <span className="pointer-events-none absolute left-0 top-full z-20 mt-2 hidden w-64 rounded-xl border border-border bg-card p-3 text-left text-xs font-normal shadow-lg group-hover:block">
+              <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                신뢰도 근거
+              </span>
+              {analysisViewModel?.confidenceReasons.map((reason, i) => (
+                <span key={i} className="mb-1 block leading-relaxed">
+                  {reason}
+                </span>
+              ))}
+            </span>
           ) : null}
-        </div>
+        </span>
+      </div>
 
-        {/* Diagnosis strip — analysisViewModel.summary */}
-        {analysisViewModel &&
-        (analysisViewModel.summary.headline ||
-          analysisViewModel.summary.supportingLineA ||
-          analysisViewModel.summary.supportingLineB) ? (
-          <div className="mt-4 space-y-2">
-            {analysisViewModel.summary.headline ? (
-              <p className="text-sm leading-relaxed text-gray-700">
-                {analysisViewModel.summary.headline}
-              </p>
-            ) : null}
-            <div className="flex flex-col gap-1.5 sm:flex-row sm:gap-4">
-              {analysisViewModel.summary.supportingLineA ? (
-                <span className="inline-flex items-start gap-1.5 text-xs text-gray-600">
-                  <span className="mt-0.5 block h-1.5 w-1.5 flex-shrink-0 rounded-full bg-emerald-500" />
-                  <span className="line-clamp-2">{analysisViewModel.summary.supportingLineA}</span>
-                </span>
-              ) : null}
-              {analysisViewModel.summary.supportingLineB ? (
-                <span className="inline-flex items-start gap-1.5 text-xs text-gray-600">
-                  <span className="mt-0.5 block h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-500" />
-                  <span className="line-clamp-2">{analysisViewModel.summary.supportingLineB}</span>
-                </span>
-              ) : null}
-            </div>
-          </div>
-        ) : null}
-
-        {/* CTA + cooldown */}
-        <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <button
-            type="button"
-            onClick={handleRequestAnalysis}
-            disabled={isRequestLocked}
-            className={[
-              "inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition",
-              isRequestLocked
-                ? "cursor-not-allowed bg-gray-100 text-gray-400"
-                : "bg-indigo-600 text-white hover:bg-indigo-700",
-            ].join(" ")}
-          >
-            {getRequestButtonLabel()}
-          </button>
-
-          <div className="min-h-[20px] text-xs">
-            {requestError ? (
-              <p className="text-red-600">{requestError}</p>
-            ) : requestMessage ? (
-              <p className="text-emerald-600">{requestMessage}</p>
-            ) : isAdmin && cooldown.isCooldownActive ? (
-              <p className="text-indigo-600">Admin: 쿨다운 바이패스 · 즉시 재분석 가능</p>
-            ) : isCooldownBlocked ? (
-              <p className="text-amber-700">{cooldown.remainingText}</p>
-            ) : isBackendRunning ? (
-              <p className="text-gray-600">분석 진행 중</p>
-            ) : (
-              <p className="text-gray-400">최근 분석: {analyzedAt}</p>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ Meta (demoted) ═══ */}
-      <div className="grid gap-2 sm:grid-cols-4">
-        <div className="rounded-lg bg-gray-50 px-3 py-2">
-          <p className="text-[10px] font-medium text-gray-400">분석 시각</p>
-          <p className="mt-0.5 text-xs font-semibold tabular-nums text-gray-700">{analyzedAt}</p>
-        </div>
-        <div className="rounded-lg bg-gray-50 px-3 py-2">
-          <p className="text-[10px] font-medium text-gray-400">분석 영상</p>
-          <p className="mt-0.5 text-xs font-semibold tabular-nums text-gray-700">
-            {formatNumber(reportPresentation.sampleVideoCount)}개
-          </p>
-        </div>
-        <div className="rounded-lg bg-gray-50 px-3 py-2">
-          <p className="text-[10px] font-medium text-gray-400">AI 모델</p>
-          <p className="mt-0.5 text-xs font-semibold text-gray-700">
-            {reportPresentation.geminiModel ?? "-"}
-          </p>
-        </div>
-        <div className="rounded-lg bg-gray-50 px-3 py-2">
-          <p className="text-[10px] font-medium text-gray-400">다음 분석</p>
-          <p className="mt-0.5 text-xs font-semibold text-gray-700">
-            {cooldown.isCooldownActive ? cooldown.nextAvailableAtText : "가능"}
-          </p>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <Button
+          type="button"
+          onClick={handleRequestAnalysis}
+          disabled={isRequestLocked}
+          size="lg"
+          className="bg-orange-500 hover:bg-orange-600"
+        >
+          {getRequestButtonLabel()}
+        </Button>
+        <div className="min-h-[20px] text-xs">
+          {requestError ? (
+            <p className="text-red-600">{requestError}</p>
+          ) : requestMessage ? (
+            <p className="text-emerald-600">{requestMessage}</p>
+          ) : isAdmin && cooldown.isCooldownActive ? (
+            <p className="text-indigo-600">Admin: 쿨다운 바이패스 · 즉시 재분석 가능</p>
+          ) : isCooldownBlocked ? (
+            <p className="text-amber-700">{cooldown.remainingText}</p>
+          ) : isBackendRunning ? (
+            <p className="text-muted-foreground">분석 진행 중</p>
+          ) : (
+            <p className="text-muted-foreground">최근 분석: {analyzedAt}</p>
+          )}
         </div>
       </div>
 
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <Card className="bg-card/50">
+          <CardContent className="pt-4">
+            <p className="text-sm text-muted-foreground">분석 시각</p>
+            <p className="text-lg font-bold">{analyzedAt}</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-card/50">
+          <CardContent className="pt-4">
+            <p className="text-sm text-muted-foreground">분석 영상</p>
+            <p className="text-lg font-bold">{formatNumber(reportPresentation.sampleVideoCount)}개</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-card/50">
+          <CardContent className="pt-4">
+            <p className="text-sm text-muted-foreground">AI 모델</p>
+            <p className="text-lg font-bold">{reportPresentation.geminiModel ?? "-"}</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-card/50">
+          <CardContent className="pt-4">
+            <p className="text-sm text-muted-foreground">다음 분석</p>
+            <p className="text-lg font-bold">
+              {cooldown.isCooldownActive ? cooldown.nextAvailableAtText : "가능"}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
       {analysisViewModel?.summary.sampleNote ? (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs leading-5 text-amber-800">
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs leading-5 text-amber-900">
           {analysisViewModel.summary.sampleNote}
         </div>
       ) : null}
@@ -696,243 +889,240 @@ export default function AnalysisReportView({
         <AdminResetPanel
           userChannelId={selectedChannel.id}
           onReset={() => {
-            startTransition(() => { router.refresh(); });
+            startTransition(() => {
+              router.refresh();
+            });
           }}
         />
       ) : null}
+    </div>
+  );
 
+  const mainRest = (
+    <>
       {!isAnalyzed ? (
-        <div className="space-y-4">
-          <section className="rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm leading-6 text-amber-800 shadow-sm">
-            <p className="font-semibold">분석이 진행 중입니다</p>
-            <p className="mt-1 text-amber-700">
-              데이터 수집과 AI 분석이 완료되면 아래에 리포트가 표시됩니다. 약 1~2분 후 페이지를 새로고침해 주세요.
-            </p>
-          </section>
-          <AnalysisReportSkeleton />
-        </div>
+        <section className="py-12">
+          <div className="space-y-6">
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
+              <p className="font-semibold">분석이 진행 중입니다</p>
+              <p className="mt-1 text-amber-800">
+                데이터 수집과 AI 분석이 완료되면 아래에 리포트가 표시됩니다. 약 1~2분 후 페이지를 새로고침해 주세요.
+              </p>
+            </div>
+            <AnalysisReportSkeleton />
+          </div>
+        </section>
       ) : (
         <>
-          {/* ═══ Data Overview ═══ */}
-
-          {/* Channel Metrics — analysisViewModel.cards */}
-          {analysisViewModel && analysisViewModel.cards.length > 0 ? (
-            <section>
-              <SectionHeader
-                title="Channel Metrics"
-                subtitle="최근 분석 영상 기반의 핵심 수치입니다."
-              />
-              <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
-                {analysisViewModel.cards.map((card) => {
-                  const desc =
-                    `${card.insight.length > 140 ? `${card.insight.slice(0, 140)}…` : card.insight} · 신뢰도 ${card.confidence} · 데이터 ${card.dataStatus}`;
-                  return (
-                    <MetricCard
-                      key={card.id}
-                      label={card.title}
-                      value={String(card.value)}
-                      description={desc}
-                    />
-                  );
-                })}
-              </div>
-            </section>
-          ) : null}
-
-          {/* Channel Score */}
           {sectionScores ? (
-            <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
-              <SectionHeader
-                title="Channel Score"
-                subtitle="5개 영역별 세부 점수입니다."
-              />
-              <div className="space-y-3">
-                {Object.entries(sectionScores).map(([key, score]) => {
-                  if (typeof score !== "number") return null;
-                  return (
-                    <ScoreBar
-                      key={key}
-                      label={SECTION_SCORE_LABELS[key] ?? key}
-                      score={score}
-                      colorClass={SECTION_SCORE_COLORS[key] ?? "bg-gray-500"}
-                    />
-                  );
-                })}
+            <section className="py-12">
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold">영역별 진단</h2>
+                    <p className="mt-1 text-muted-foreground">5개 핵심 영역의 상세 분석 결과</p>
+                  </div>
+                </div>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {DIAGNOSIS_ORDER.map((row) => {
+                    const sc = sectionScores[row.key as keyof typeof sectionScores];
+                    if (typeof sc !== "number") return null;
+                    const card = findCard(analysisViewModel, row.cardId);
+                    return (
+                      <DiagnosisCard
+                        key={row.key}
+                        title={row.title}
+                        score={Math.round(sc)}
+                        icon={row.icon}
+                        status={sectionStatusFromScore(sc)}
+                        items={buildDiagnosisItems(sc, card)}
+                      />
+                    );
+                  })}
+                </div>
               </div>
             </section>
           ) : null}
 
-          {/* Benchmark Radar */}
           {metrics ? (
-            <BenchmarkRadar metrics={metrics} />
+            <section className="py-12">
+              <div className="space-y-6">
+                <ChannelDnaRadar metrics={metrics} />
+              </div>
+            </section>
           ) : null}
 
-          {/* Detected Patterns — analysisViewModel 패턴 카드 우선 */}
-          <section>
-            <SectionHeader
-              title="Detected Patterns"
-              subtitle="분석 데이터에서 감지된 채널 패턴입니다."
-            />
-            {analysisViewModel ? (
-              (() => {
-                const pc = analysisViewModel.cards.find(
-                  (c) => c.id === "pattern_analysis"
-                );
-                if (!pc) {
-                  return (
-                    <EmptyState message="패턴 카드 데이터가 없습니다." />
-                  );
-                }
-                return (
-                  <div className="space-y-2">
-                    <p className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm leading-relaxed text-gray-800">
-                      {pc.insight}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      표시 값: {String(pc.value)} · 신뢰도 {pc.confidence} · 데이터{" "}
-                      {pc.dataStatus}
-                    </p>
-                  </div>
-                );
-              })()
-            ) : (
-              <EmptyState message="감지된 특이 패턴이 없습니다. 전반적으로 안정적인 채널 구조입니다." />
-            )}
+          <section className="bg-muted/20 py-12">
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-2xl font-bold">패턴 인사이트</h2>
+                <p className="mt-1 text-muted-foreground">데이터에서 발견된 주요 패턴과 시사점</p>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {insightRows.map((row, idx) => (
+                  <InsightCard key={idx} title={row.title} description={row.description} type={row.type} />
+                ))}
+              </div>
+            </div>
           </section>
 
-          {/* ═══ AI Insights ═══ */}
-          <GroupDivider
-            title="AI Insights"
-            subtitle="Gemini 분석 엔진이 생성한 인사이트입니다."
-          />
+          <section className="py-12">
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-2xl font-bold">성장 트렌드</h2>
+                <p className="mt-1 text-muted-foreground">최근 90일간 채널 성장 추이</p>
+              </div>
+              <Card className="bg-card">
+                <CardContent className="pt-6">
+                  <div className="flex h-64 items-center justify-center rounded-lg border bg-muted/30">
+                    <div className="text-center text-muted-foreground">
+                      <BarChart3 className="mx-auto mb-3 h-12 w-12 opacity-50" />
+                      <p className="text-sm">성장 트렌드 차트</p>
+                      <p className="mt-1 text-xs">데이터 연결 시 활성화</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </section>
 
-          <Section title="채널 요약" icon="📋">
-            {aiInsightFields.channel_summary ? (
-              <p className="text-sm leading-7 text-gray-800">
-                {aiInsightFields.channel_summary}
-              </p>
-            ) : (
-              <EmptyState message="채널 요약을 생성하지 못했습니다." />
-            )}
-          </Section>
+          <section className="border-t bg-muted/10 py-12">
+            <div className="space-y-6 text-center">
+              <div>
+                <h2 className="text-2xl font-bold">분석 결과를 바탕으로 다음 단계를 시작하세요</h2>
+                <p className="mt-1 text-muted-foreground">
+                  진단 결과를 기반으로 맞춤형 액션 플랜을 확인하거나, SEO 최적화를 시작할 수 있습니다.
+                </p>
+              </div>
+              <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+                <Button asChild size="lg" className="gap-2">
+                  <Link href="/action-plan">
+                    액션 플랜 확인하기
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" size="lg" className="gap-2">
+                  <Link href="/seo-lab">
+                    SEO Lab 시작하기
+                    <ArrowUpRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </section>
 
-          <Section
-            title="콘텐츠 패턴"
-            icon="🔁"
-            description={
-              aiInsightFields.content_pattern_summary ?? "반복적으로 보이는 콘텐츠 흐름입니다."
-            }
-          >
-            <List
-              items={aiInsightFields.content_patterns}
-              emptyText="콘텐츠 패턴을 분석하기에 데이터가 부족합니다."
+          <AppendixSection title="AI Insights" subtitle="Gemini 분석 엔진이 생성한 인사이트입니다.">
+            <div className="space-y-6">
+              <AiSection title="채널 요약" icon="📋">
+                {aiInsightFields.channel_summary ? (
+                  <p className="text-sm leading-7">{aiInsightFields.channel_summary}</p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">채널 요약을 생성하지 못했습니다.</p>
+                )}
+              </AiSection>
+
+              <AiSection
+                title="콘텐츠 패턴"
+                icon="🔁"
+                description={
+                  aiInsightFields.content_pattern_summary ?? "반복적으로 보이는 콘텐츠 흐름입니다."
+                }
+              >
+                <ListBlock
+                  items={aiInsightFields.content_patterns}
+                  emptyText="콘텐츠 패턴을 분석하기에 데이터가 부족합니다."
+                />
+              </AiSection>
+
+              <div className="grid gap-6 xl:grid-cols-2">
+                <AiSection title="강점" icon="💪">
+                  <ListBlock
+                    items={aiInsightFields.strengths}
+                    emptyText="현재 데이터에서 뚜렷한 강점을 도출하지 못했습니다."
+                  />
+                </AiSection>
+                <AiSection title="약점" icon="⚠️">
+                  <ListBlock
+                    items={aiInsightFields.weaknesses}
+                    emptyText="현재 데이터에서 뚜렷한 약점을 도출하지 못했습니다."
+                  />
+                </AiSection>
+              </div>
+
+              <div className="grid gap-6 xl:grid-cols-2">
+                <AiSection title="병목 요인" icon="🚧">
+                  <ListBlock
+                    items={aiInsightFields.bottlenecks}
+                    emptyText="뚜렷한 병목 요인이 감지되지 않았습니다."
+                  />
+                </AiSection>
+                <AiSection title="타겟 시청자" icon="🎯">
+                  <ListBlock
+                    items={aiInsightFields.target_audience}
+                    emptyText="타겟 시청자 정보가 충분하지 않습니다."
+                  />
+                </AiSection>
+              </div>
+
+              <AiSection title="추천 콘텐츠" icon="💡">
+                <ListBlock
+                  items={aiInsightFields.recommended_topics}
+                  emptyText="추천 콘텐츠 주제를 생성하지 못했습니다."
+                />
+              </AiSection>
+
+              <AiSection title="성장 액션 플랜" icon="🚀">
+                <ListBlock
+                  items={aiInsightFields.growth_action_plan}
+                  emptyText="실행 가능한 액션 플랜을 생성하지 못했습니다."
+                />
+              </AiSection>
+            </div>
+          </AppendixSection>
+
+          <AppendixSection title="Next Trend" subtitle="채널 데이터를 기반으로 향후 시도해볼 콘텐츠 방향입니다.">
+            <NextTrend
+              recommendedTopics={aiInsightFields.recommended_topics}
+              contentPatterns={aiInsightFields.content_patterns}
+              growthActionPlan={aiInsightFields.growth_action_plan}
+              targetAudience={aiInsightFields.target_audience}
             />
-          </Section>
-
-          <div className="grid gap-6 xl:grid-cols-2">
-            <Section title="강점" icon="💪">
-              <List
-                items={aiInsightFields.strengths}
-                emptyText="현재 데이터에서 뚜렷한 강점을 도출하지 못했습니다."
-              />
-            </Section>
-            <Section title="약점" icon="⚠️">
-              <List
-                items={aiInsightFields.weaknesses}
-                emptyText="현재 데이터에서 뚜렷한 약점을 도출하지 못했습니다."
-              />
-            </Section>
-          </div>
-
-          <div className="grid gap-6 xl:grid-cols-2">
-            <Section title="병목 요인" icon="🚧">
-              <List
-                items={aiInsightFields.bottlenecks}
-                emptyText="뚜렷한 병목 요인이 감지되지 않았습니다."
-              />
-            </Section>
-            <Section title="타겟 시청자" icon="🎯">
-              <List
-                items={aiInsightFields.target_audience}
-                emptyText="타겟 시청자 정보가 충분하지 않습니다."
-              />
-            </Section>
-          </div>
-
-          <Section title="추천 콘텐츠" icon="💡">
-            <List
-              items={aiInsightFields.recommended_topics}
-              emptyText="추천 콘텐츠 주제를 생성하지 못했습니다."
-            />
-          </Section>
-
-          <Section title="성장 액션 플랜" icon="🚀">
-            <List
-              items={aiInsightFields.growth_action_plan}
-              emptyText="실행 가능한 액션 플랜을 생성하지 못했습니다."
-            />
-          </Section>
-
-          {/* ═══ Strategy ═══ */}
-          <GroupDivider
-            title="Next Trend"
-            subtitle="채널 데이터를 기반으로 향후 시도해볼 콘텐츠 방향입니다."
-          />
-
-          <NextTrend
-            recommendedTopics={aiInsightFields.recommended_topics}
-            contentPatterns={aiInsightFields.content_patterns}
-            growthActionPlan={aiInsightFields.growth_action_plan}
-            targetAudience={aiInsightFields.target_audience}
-          />
+          </AppendixSection>
         </>
       )}
 
       {analysisHistory.length > 0 ? (
         <>
-          <GroupDivider
-            title="Growth Trend"
-            subtitle="분석 점수의 변화 추이를 확인합니다."
-          />
+          <AppendixSection title="Growth Trend" subtitle="분석 점수의 변화 추이를 확인합니다.">
+            <Card className="bg-card">
+              <CardContent className="pt-6">
+                <GrowthTrendChart points={analysisHistory} />
+              </CardContent>
+            </Card>
+          </AppendixSection>
 
-          <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
-            <SectionHeader title="성장 추이" subtitle="최근 분석 기록 기반 점수 변화" />
-            <div className="mt-4">
-              <GrowthTrendChart points={analysisHistory} />
-            </div>
-          </section>
+          <AppendixSection title="Analysis Compare" subtitle="이전 분석 결과와 현재를 비교합니다.">
+            {reportCompare ? (
+              <AnalysisCompareCard current={reportCompare.current} previous={reportCompare.previous} />
+            ) : null}
+          </AppendixSection>
 
-          <GroupDivider
-            title="Analysis Compare"
-            subtitle="이전 분석 결과와 현재를 비교합니다."
-          />
-          <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
-            <SectionHeader title="분석 비교" subtitle="직전 분석 대비 점수 변화" />
-            <div className="mt-4">
-              {reportCompare ? (
-                <AnalysisCompareCard
-                  current={reportCompare.current}
-                  previous={reportCompare.previous}
-                />
-              ) : null}
-            </div>
-          </section>
-
-          <GroupDivider
-            title="Analysis History"
-            subtitle="이 채널의 과거 분석 기록입니다."
-          />
-          <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
-            <SectionHeader title="분석 이력" subtitle="최근 20건의 분석 기록" />
-            <div className="mt-4">
-              <AnalysisHistoryList
-                items={analysisHistory}
-                currentResultId={aiInsightFields.id}
-              />
-            </div>
-          </section>
+          <AppendixSection title="Analysis History" subtitle="이 채널의 과거 분석 기록입니다.">
+            <AnalysisHistoryList items={analysisHistory} currentResultId={aiInsightFields.id} />
+          </AppendixSection>
         </>
       ) : null}
-    </div>
+    </>
+  );
+
+  return (
+    <AnalysisShell
+      channels={channels}
+      selectedChannelId={selectedChannel.id}
+      gauge={gaugeNode}
+      heroRight={heroRightNode}
+    >
+      {mainRest}
+    </AnalysisShell>
   );
 }

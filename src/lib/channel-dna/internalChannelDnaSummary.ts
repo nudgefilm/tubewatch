@@ -3,9 +3,9 @@ import type { ChannelMetrics } from "@/lib/analysis/engine/types";
 import { enrichRowScores } from "@/lib/server/analysis/mapAnalysisHistoryAndCompare";
 
 /** 세 구간 요약 — 스냅샷만으로 판별 불가 시 null */
-export type BenchmarkTriLevel = "low" | "medium" | "high";
+export type ChannelDnaTriLevel = "low" | "medium" | "high";
 
-export type InternalBenchmarkRadarVm = {
+export type InternalChannelDnaRadarVm = {
   readonly labels: readonly string[];
   /** 0–100 스케일, `feature_section_scores` 기반 */
   readonly channel: readonly number[];
@@ -16,7 +16,7 @@ export type InternalBenchmarkRadarVm = {
 /**
  * /channel-dna 내부 비교 전용 — `getAnalysisPageData`·`analysis_results.feature_snapshot` 범위만 사용.
  */
-export type InternalBenchmarkSummaryVm = {
+export type InternalChannelDnaSummaryVm = {
   readonly dataSourceNote: string;
   /** `user_channels.video_count` (있을 때만) */
   readonly totalVideosUsed: number | null;
@@ -29,19 +29,19 @@ export type InternalBenchmarkSummaryVm = {
   readonly topPerformerShare: number | null;
   /** 표본 조회수 합계 대비 조회 상위 3개 합 비중 0–1(표본 3개 이상일 때만) */
   readonly top3Share: number | null;
-  readonly uploadConsistencyLevel: BenchmarkTriLevel | null;
+  readonly uploadConsistencyLevel: ChannelDnaTriLevel | null;
   readonly uploadConsistencyFallback: string | null;
-  readonly performanceSpreadLevel: BenchmarkTriLevel | null;
+  readonly performanceSpreadLevel: ChannelDnaTriLevel | null;
   readonly performanceSpreadFallback: string | null;
-  readonly breakoutDependencyLevel: BenchmarkTriLevel | null;
+  readonly breakoutDependencyLevel: ChannelDnaTriLevel | null;
   readonly breakoutDependencyFallback: string | null;
   /** 예: "짧은 폼(추정)", 스냅샷 기반 */
   readonly dominantFormat: string | null;
   readonly dominantFormatFallback: string | null;
   readonly topPatternSignals: readonly string[];
   readonly weakPatternSignals: readonly string[];
-  readonly benchmarkNarrative: string;
-  readonly radarProfile: InternalBenchmarkRadarVm | null;
+  readonly channelDnaNarrative: string;
+  readonly radarProfile: InternalChannelDnaRadarVm | null;
   readonly sectionScoresLine: string | null;
 };
 
@@ -200,7 +200,7 @@ function parseSectionScores(raw: unknown): SectionScores | null {
   };
 }
 
-function triFromUploadInterval(days: number): BenchmarkTriLevel {
+function triFromUploadInterval(days: number): ChannelDnaTriLevel {
   if (days <= 5) {
     return "high";
   }
@@ -210,7 +210,7 @@ function triFromUploadInterval(days: number): BenchmarkTriLevel {
   return "low";
 }
 
-function triFromCv(cv: number): BenchmarkTriLevel {
+function triFromCv(cv: number): ChannelDnaTriLevel {
   if (cv < 0.45) {
     return "low";
   }
@@ -220,7 +220,7 @@ function triFromCv(cv: number): BenchmarkTriLevel {
   return "high";
 }
 
-function triFromTopShare(share: number): BenchmarkTriLevel {
+function triFromTopShare(share: number): ChannelDnaTriLevel {
   if (share >= 0.5) {
     return "high";
   }
@@ -231,7 +231,7 @@ function triFromTopShare(share: number): BenchmarkTriLevel {
 }
 
 /** 상위 3개 조회 합 비중 — 단일 히트 지표보다 완만한 임계값 */
-function triFromTopThreeShare(share: number): BenchmarkTriLevel {
+function triFromTopThreeShare(share: number): ChannelDnaTriLevel {
   if (share >= 0.55) {
     return "high";
   }
@@ -255,9 +255,9 @@ function buildNarrative(args: {
   recentVideosUsed: number;
   medianViews: number | null;
   averageViews: number | null;
-  spreadLevel: BenchmarkTriLevel | null;
-  breakoutLevel: BenchmarkTriLevel | null;
-  uploadLevel: BenchmarkTriLevel | null;
+  spreadLevel: ChannelDnaTriLevel | null;
+  breakoutLevel: ChannelDnaTriLevel | null;
+  uploadLevel: ChannelDnaTriLevel | null;
   top3Share: number | null;
   topPerformerShare: number | null;
   topSignals: readonly string[];
@@ -328,9 +328,9 @@ function buildNarrative(args: {
   return parts.join(" ");
 }
 
-export function buildInternalBenchmarkSummary(
+export function buildInternalChannelDnaSummary(
   data: AnalysisPageData | null
-): InternalBenchmarkSummaryVm {
+): InternalChannelDnaSummaryVm {
   const baseNote =
     "외부 경쟁 채널·시장 평균 데이터는 없습니다. 아래는 저장된 베이스 분석(`analysis_results`)의 `feature_snapshot`·구간 점수·문자열 진단만으로 계산한 내부 비교입니다.";
 
@@ -358,7 +358,7 @@ export function buildInternalBenchmarkSummary(
         "베이스 분석 결과가 없어 포맷 추정을 하지 않습니다.",
       topPatternSignals: [],
       weakPatternSignals: [],
-      benchmarkNarrative:
+      channelDnaNarrative:
         "저장된 분석 스냅샷이 없습니다. /analysis에서 베이스 분석을 완료하면 이 페이지에 표본 기반 내부 비교를 표시할 수 있습니다.",
       radarProfile: null,
       sectionScoresLine: null,
@@ -419,7 +419,7 @@ export function buildInternalBenchmarkSummary(
     }
   }
 
-  let uploadConsistencyLevel: BenchmarkTriLevel | null = null;
+  let uploadConsistencyLevel: ChannelDnaTriLevel | null = null;
   let uploadConsistencyFallback: string | null = null;
   if (metrics?.avgUploadIntervalDays != null && Number.isFinite(metrics.avgUploadIntervalDays)) {
     uploadConsistencyLevel = triFromUploadInterval(metrics.avgUploadIntervalDays);
@@ -457,7 +457,7 @@ export function buildInternalBenchmarkSummary(
     }
   }
 
-  let performanceSpreadLevel: BenchmarkTriLevel | null = null;
+  let performanceSpreadLevel: ChannelDnaTriLevel | null = null;
   let performanceSpreadFallback: string | null = null;
   if (sortedViews.length >= 3) {
     const m = meanStd(sortedViews);
@@ -469,7 +469,7 @@ export function buildInternalBenchmarkSummary(
       "조회수가 있는 표본이 3개 미만이라 성과 편차 등급을 두지 않았습니다.";
   }
 
-  let breakoutDependencyLevel: BenchmarkTriLevel | null = null;
+  let breakoutDependencyLevel: ChannelDnaTriLevel | null = null;
   let breakoutDependencyFallback: string | null = null;
   if (top3Share != null) {
     breakoutDependencyLevel = triFromTopThreeShare(top3Share);
@@ -533,7 +533,7 @@ export function buildInternalBenchmarkSummary(
   }
 
   const sections = parseSectionScores(scoredRow.feature_section_scores ?? null);
-  let radarProfile: InternalBenchmarkRadarVm | null = null;
+  let radarProfile: InternalChannelDnaRadarVm | null = null;
   let sectionScoresLine: string | null = null;
   if (sections) {
     const a = sections.channelActivity;
@@ -552,7 +552,7 @@ export function buildInternalBenchmarkSummary(
     sectionScoresLine = `구간 점수(0–100): 활동 ${Math.round(a)} · 반응 ${Math.round(b)} · 구조 ${Math.round(c)} · SEO ${Math.round(d)} · 성장 ${Math.round(e)}`;
   }
 
-  const benchmarkNarrative = buildNarrative({
+  const channelDnaNarrative = buildNarrative({
     recentVideosUsed: videos.length,
     medianViews,
     averageViews,
@@ -584,13 +584,13 @@ export function buildInternalBenchmarkSummary(
     dominantFormatFallback,
     topPatternSignals,
     weakPatternSignals,
-    benchmarkNarrative,
+    channelDnaNarrative,
     radarProfile,
     sectionScoresLine,
   };
 }
 
-export function benchmarkTriLevelLabel(level: BenchmarkTriLevel | null): string {
+export function channelDnaTriLevelLabel(level: ChannelDnaTriLevel | null): string {
   if (level == null) {
     return "판정 없음";
   }

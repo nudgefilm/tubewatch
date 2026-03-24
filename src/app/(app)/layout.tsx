@@ -1,22 +1,28 @@
-import type { ReactNode } from "react"
+"use client"
 
-import { V0AppSidebar } from "@/components/layout/V0AppSidebar"
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "../../components/ui/sidebar"
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
+import { AppSidebar } from "@/components/app-sidebar"
+import { Separator } from "@/components/ui/separator"
 
-export default function AppRoutesLayout({
+export default function AppLayout({
   children,
 }: {
-  children: ReactNode
+  children: React.ReactNode
 }) {
   return (
-    <SidebarProvider className="min-h-screen">
-      <V0AppSidebar />
-      <SidebarInset className="min-w-0">
-        <header className="block h-14 items-center gap-2 border-b px-4 md:hidden">
-          <SidebarTrigger />
-          <span className="text-[1.55rem] leading-none font-heading font-medium tracking-[-0.02em]">TubeWatch™</span>
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset className="min-h-0 min-w-0">
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+          <Separator orientation="vertical" className="mr-2 h-4" />
+          <div className="flex items-center gap-2 text-sm font-medium">
+            TubeWatch
+          </div>
         </header>
-        <main className="flex-1 overflow-auto">{children}</main>
+        <div className="min-h-0 min-w-0 flex-1 overflow-auto">
+          {children}
+        </div>
       </SidebarInset>
     </SidebarProvider>
   )

@@ -1,7 +1,7 @@
 import type { ActionItem, ActionPlanResultRow } from "@/components/action-plan/types";
 
 /**
- * BenchmarkRadar과 동일한 보간 로직으로 0~100 점수 계산.
+ * ChannelDnaRadar과 동일한 보간 로직으로 0~100 점수 계산.
  * 분석 로직/엔진 변경 없이 기존 스냅샷 값만 사용.
  */
 function interpolate(value: number, breakpoints: [number, number][]): number {
@@ -28,7 +28,7 @@ type AxisKey =
 
 type AxisConfig = {
   key: AxisKey;
-  benchmark: number;
+  baseline: number;
   normalize: (v: number) => number;
   fallbackTitle: string;
   fallbackReason: string;
@@ -37,42 +37,42 @@ type AxisConfig = {
 const AXES: AxisConfig[] = [
   {
     key: "avgViewCount",
-    benchmark: 70,
+    baseline: 70,
     normalize: (v) => interpolate(v, [[0, 0], [1000, 40], [5000, 70], [10000, 100]]),
     fallbackTitle: "대표 콘텐츠 포맷 재정의",
     fallbackReason: "조회수 경쟁력 약세",
   },
   {
     key: "avgLikeRatio",
-    benchmark: 70,
+    baseline: 70,
     normalize: (v) => interpolate(v, [[0, 0], [0.03, 60], [0.06, 100]]),
     fallbackTitle: "썸네일·제목 개선 실험",
     fallbackReason: "좋아요 반응 낮음",
   },
   {
     key: "avgCommentRatio",
-    benchmark: 60,
+    baseline: 60,
     normalize: (v) => interpolate(v, [[0, 0], [0.005, 60], [0.01, 100]]),
     fallbackTitle: "질문형 CTA 추가",
     fallbackReason: "댓글 참여도 낮음",
   },
   {
     key: "avgUploadIntervalDays",
-    benchmark: 70,
+    baseline: 70,
     normalize: (v) => interpolate(v, [[0, 100], [3, 100], [7, 70], [14, 40], [30, 10]]),
     fallbackTitle: "업로드 주기 고정",
     fallbackReason: "업로드 규칙성 낮음",
   },
   {
     key: "recent30dUploadCount",
-    benchmark: 70,
+    baseline: 70,
     normalize: (v) => interpolate(v, [[0, 0], [4, 50], [8, 80], [12, 100]]),
     fallbackTitle: "업로드 재개 계획 수립",
     fallbackReason: "최근 활동성 점수 낮음",
   },
   {
     key: "avgTagCount",
-    benchmark: 60,
+    baseline: 60,
     normalize: (v) => interpolate(v, [[0, 0], [5, 60], [10, 100]]),
     fallbackTitle: "태그/메타데이터 정비",
     fallbackReason: "SEO 태그 활용 부족",
@@ -159,7 +159,7 @@ export function buildActionItemsFromResult(row: ActionPlanResultRow | null): Act
     for (const axis of AXES) {
       const value = metrics[axis.key];
       const score = axis.normalize(value);
-      if (score < axis.benchmark) lowAxes.push(axis);
+      if (score < axis.baseline) lowAxes.push(axis);
     }
     for (const axis of lowAxes) {
       if (out.length >= 3) break;

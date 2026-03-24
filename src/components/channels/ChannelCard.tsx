@@ -211,14 +211,14 @@ export default function ChannelCard({
 
         {hasAnalysis ? (
           <Link
-            href={`/analysis/${channel.id}`}
+            href={`/analysis?channel=${encodeURIComponent(channel.id)}`}
             className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-xs font-semibold text-gray-700 transition hover:bg-gray-50"
           >
             분석 결과 보기
           </Link>
         ) : (
           <Link
-            href={`/analysis/${channel.id}`}
+            href={`/analysis?channel=${encodeURIComponent(channel.id)}`}
             className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-xs font-semibold text-gray-400 transition hover:bg-gray-50"
           >
             분석 페이지

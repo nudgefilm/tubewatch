@@ -27,7 +27,7 @@ function ActionRow({ item, index }: { item: ActionItem; index: number }): JSX.El
   };
 
   return (
-    <li className="rounded-xl border border-slate-200 bg-white p-4 shadow-[0_8px_30px_rgba(15,23,42,0.03)]">
+    <li className="p-4 rounded-xl border bg-card">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 space-y-1.5">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
@@ -66,9 +66,11 @@ export default function ActionPlanV2View({
   const hasActions = hasResult && actions.length > 0;
 
   return (
-    <div className="space-y-6">
+    <div className="w-full max-w-6xl mx-auto px-6 lg:px-12 py-8 lg:py-10">
       {/* 채널 선택 및 분석 상태 요약 */}
-      <section className="rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100/80 p-4 sm:p-5">
+      <section className="py-12">
+        <div className="space-y-6">
+          <div className="rounded-xl border border-border bg-gradient-to-br from-muted/40 to-muted/20 p-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1.5">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
@@ -117,11 +119,15 @@ export default function ActionPlanV2View({
             </div>
           ) : null}
         </div>
+          </div>
+        </div>
       </section>
 
       {/* 채널 선택 목록 */}
       {hasChannels && channels.length > 1 ? (
-        <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_18px_60px_rgba(15,23,42,0.04)]">
+        <section className="py-12">
+          <div className="space-y-6">
+        <div className="p-4 rounded-xl border bg-card">
           <div className="mb-3 flex items-center justify-between gap-2">
             <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
               채널 선택
@@ -164,12 +170,15 @@ export default function ActionPlanV2View({
               );
             })}
           </ul>
+        </div>
+          </div>
         </section>
       ) : null}
 
       {/* 액션 카드 섹션 */}
       {hasActions ? (
-        <section className="space-y-4">
+        <section className="py-12">
+          <div className="space-y-6">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
               우선순위 액션 3개
@@ -178,14 +187,17 @@ export default function ActionPlanV2View({
               이번 분석 결과를 기준으로 바로 실행할 수 있는 액션입니다.
             </p>
           </div>
-          <ul className="grid gap-4 md:grid-cols-3">
+          <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {actions.slice(0, 3).map((item, index) => (
               <ActionRow key={`${item.title}-${index}`} item={item} index={index} />
             ))}
           </ul>
+          </div>
         </section>
       ) : (
-        <section className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/60 p-5 text-sm text-slate-600">
+        <section className="py-12">
+          <div className="space-y-6">
+        <div className="rounded-xl border border-dashed border-border bg-card p-4 text-sm text-muted-foreground">
           {hasChannels ? (
             <div className="space-y-2">
               <p className="font-medium text-slate-800">
@@ -226,6 +238,8 @@ export default function ActionPlanV2View({
               </Link>
             </div>
           )}
+        </div>
+          </div>
         </section>
       )}
     </div>

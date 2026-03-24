@@ -97,7 +97,7 @@ export type AnalysisPageViewModel = {
   analysisViewModel: AnalysisViewModel | null;
   /** 성장 추이·이력 — `analysis_results` 최근 행 매핑 */
   analysisHistory: AnalysisHistoryItem[];
-  /** BenchmarkRadar 등 — 스냅샷 메트릭 정규화본(표시는 analysisViewModel 우선) */
+  /** Channel DNA 레이더 등 — 스냅샷 메트릭 정규화본(표시는 analysisViewModel 우선) */
   snapshotMetricsForRadar: ChannelMetrics | null;
   /** 리포트 상단·메타·점수·상태 — enrich 반영 스칼라 */
   reportPresentation: AnalysisReportPresentationVm | null;

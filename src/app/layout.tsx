@@ -1,24 +1,12 @@
 import type { Metadata } from "next"
 import { Analytics } from "@vercel/analytics/next"
-import { IBM_Plex_Sans_KR, Instrument_Sans, Instrument_Serif, JetBrains_Mono } from "next/font/google"
+import { Instrument_Sans, JetBrains_Mono } from "next/font/google"
 import type { ReactNode } from "react"
 import "./globals.css"
 
 const instrumentSans = Instrument_Sans({
   subsets: ["latin"],
   variable: "--font-instrument",
-})
-
-const instrumentSerif = Instrument_Serif({
-  subsets: ["latin"],
-  weight: "400",
-  variable: "--font-instrument-serif",
-})
-
-const ibmPlex = IBM_Plex_Sans_KR({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-heading",
 })
 
 const jetbrainsMono = JetBrains_Mono({
@@ -29,7 +17,7 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "TubeWatch™ - 데이터로 설계하는 유튜브 성장전략 플랫폼",
   description:
-    "채널 데이터를 기반으로 당신의 성장 전략을 찾아갑니다. 채널 분석, Action Plan, SEO 최적화, 벤치마크 비교까지.",
+    "채널 데이터를 기반으로 당신의 성장 전략을 찾아갑니다. 채널 분석, Action Plan, SEO 최적화, 채널 DNA 비교까지.",
   generator: "TubeWatch",
   openGraph: {
     title: "TubeWatch™ - 데이터로 설계하는 유튜브 성장전략 플랫폼",
@@ -62,7 +50,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" data-scroll-behavior="smooth">
-      <body className={`${instrumentSans.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable} ${ibmPlex.variable} font-sans antialiased`}>
+      <body className={`${instrumentSans.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
         {children}
         <Analytics />
       </body>

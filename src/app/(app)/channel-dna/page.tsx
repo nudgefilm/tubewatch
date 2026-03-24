@@ -1,35 +1,32 @@
 import { redirect } from "next/navigation";
+import dynamic from "next/dynamic";
 
-import ChannelDnaView from "@/components/channel-dna/ChannelDnaView";
 import {
   buildProtectedReturnPath,
   redirectToLandingAuthUnlessSignedIn,
 } from "@/lib/auth/require-app-user";
-import { getBenchmarkPageData } from "@/lib/server/benchmark/getBenchmarkPageData";
+import { getChannelDnaPageData } from "@/lib/server/channel-dna/getChannelDnaPageData";
+import {
+  type ChannelSearchParams,
+  pickChannelIdFromSearchParams,
+} from "@/lib/navigation/pickChannelFromSearchParams";
+import { AppRouteLoading } from "@/components/layout/AppRouteLoading";
 
-type SearchParams = { channel?: string | string[]; channelId?: string | string[] };
-
-function pickUserChannelId(sp: SearchParams | undefined): string | undefined {
-  const raw = sp?.channel ?? sp?.channelId;
-  if (typeof raw === "string" && raw.trim() !== "") {
-    return raw;
-  }
-  if (Array.isArray(raw) && typeof raw[0] === "string" && raw[0].trim() !== "") {
-    return raw[0];
-  }
-  return undefined;
-}
+const ChannelDnaView = dynamic(
+  () => import("@/components/channel-dna/ChannelDnaView"),
+  { loading: () => <AppRouteLoading variant="channel-dna" /> }
+);
 
 export default async function ChannelDnaRoutePage({
   searchParams,
 }: {
-  searchParams?: SearchParams;
+  searchParams?: ChannelSearchParams;
 }) {
-  const channelId = pickUserChannelId(searchParams);
+  const channelId = pickChannelIdFromSearchParams(searchParams);
   await redirectToLandingAuthUnlessSignedIn(
     buildProtectedReturnPath("/channel-dna", channelId)
   );
-  const data = await getBenchmarkPageData(channelId);
+  const data = await getChannelDnaPageData(channelId);
   if (!data) {
     redirect("/");
   }

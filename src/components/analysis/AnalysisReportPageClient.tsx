@@ -1,9 +1,8 @@
 /**
- * OPERATIONAL CLIENT ENTRY for /analysis — 라우트는 이 컴포넌트만 사용 (AnalysisShell + AnalysisReportView).
+ * OPERATIONAL CLIENT ENTRY for /analysis — AnalysisReportView가 AnalysisShell을 내부에서 구성한다.
  */
 "use client";
 
-import AnalysisShell from "@/components/analysis/AnalysisShell";
 import AnalysisReportView from "@/components/analysis/AnalysisReportView";
 import type { AnalysisPageViewModel } from "@/lib/analysis/analysisPageViewModel";
 import type { UserChannelRow } from "@/lib/analysis/getAnalysisPageData";
@@ -28,31 +27,27 @@ export default function AnalysisReportPageClient({
   }
 
   return (
-    <AnalysisShell
+    <AnalysisReportView
       channels={channels}
-      selectedChannelId={selectedChannel.id}
-    >
-      <AnalysisReportView
-        selectedChannel={{
-          id: selectedChannel.id,
-          channel_title: selectedChannel.channel_title ?? null,
-          thumbnail_url: selectedChannel.thumbnail_url ?? null,
-          subscriber_count:
-            typeof selectedChannel.subscriber_count === "number"
-              ? selectedChannel.subscriber_count
-              : null,
-          created_at: selectedChannel.created_at ?? null,
-          last_analysis_requested_at:
-            selectedChannel.last_analysis_requested_at ?? null,
-          last_analyzed_at: selectedChannel.last_analyzed_at ?? null,
-        }}
-        reportPresentation={viewModel.reportPresentation}
-        reportCompare={viewModel.reportCompare}
-        aiInsightFields={viewModel.aiInsightFields}
-        analysisHistory={viewModel.analysisHistory}
-        analysisViewModel={viewModel.analysisViewModel}
-        snapshotMetricsForRadar={viewModel.snapshotMetricsForRadar}
-      />
-    </AnalysisShell>
+      selectedChannel={{
+        id: selectedChannel.id,
+        channel_title: selectedChannel.channel_title ?? null,
+        thumbnail_url: selectedChannel.thumbnail_url ?? null,
+        subscriber_count:
+          typeof selectedChannel.subscriber_count === "number"
+            ? selectedChannel.subscriber_count
+            : null,
+        created_at: selectedChannel.created_at ?? null,
+        last_analysis_requested_at:
+          selectedChannel.last_analysis_requested_at ?? null,
+        last_analyzed_at: selectedChannel.last_analyzed_at ?? null,
+      }}
+      reportPresentation={viewModel.reportPresentation}
+      reportCompare={viewModel.reportCompare}
+      aiInsightFields={viewModel.aiInsightFields}
+      analysisHistory={viewModel.analysisHistory}
+      analysisViewModel={viewModel.analysisViewModel}
+      snapshotMetricsForRadar={viewModel.snapshotMetricsForRadar}
+    />
   );
 }

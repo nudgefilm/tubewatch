@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import type { BenchmarkPageData, BenchmarkCompareItem } from "./types";
+import type { ChannelDnaPageData, ChannelDnaCompareItem } from "./channelDnaPageTypes";
 
-type BenchmarkV2ViewProps = {
-  data: BenchmarkPageData;
+type ChannelDnaV2ViewProps = {
+  data: ChannelDnaPageData;
 };
 
 function formatDate(value: string | null): string {
@@ -19,14 +19,14 @@ function formatDate(value: string | null): string {
   });
 }
 
-function scoreDelta(item: BenchmarkCompareItem): number {
-  return item.current_score - item.benchmark_score;
+function scoreDelta(item: ChannelDnaCompareItem): number {
+  return item.current_score - item.baseline_score;
 }
 
 function StatusBadge({
   item,
 }: {
-  item: BenchmarkCompareItem;
+  item: ChannelDnaCompareItem;
 }): JSX.Element {
   const delta = scoreDelta(item);
   const isPositive = delta >= 0;
@@ -48,15 +48,15 @@ function StatusBadge({
   );
 }
 
-function BenchmarkCard({
+function ChannelDnaMetricCard({
   item,
 }: {
-  item: BenchmarkCompareItem;
+  item: ChannelDnaCompareItem;
 }): JSX.Element {
   const delta = scoreDelta(item);
 
   return (
-    <li className="rounded-xl border border-slate-200 bg-white p-4 shadow-[0_14px_45px_rgba(15,23,42,0.04)]">
+    <li className="p-4 rounded-xl border bg-card">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 space-y-1.5">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
@@ -77,7 +77,7 @@ function BenchmarkCard({
           <span className="text-xs text-slate-500">/ 100</span>
         </div>
         <div className="flex flex-1 items-center justify-between text-xs text-slate-500">
-          <span>기준 {item.benchmark_score}점</span>
+          <span>기준 {item.baseline_score}점</span>
           <span
             className={
               delta >= 0 ? "text-emerald-600 font-medium" : "text-rose-600 font-medium"
@@ -96,9 +96,9 @@ function BenchmarkCard({
   );
 }
 
-export default function BenchmarkV2View({
+export default function ChannelDnaV2View({
   data,
-}: BenchmarkV2ViewProps): JSX.Element {
+}: ChannelDnaV2ViewProps): JSX.Element {
   const { channels, selectedChannel, latestResult, compareItems, summaries } =
     data;
   const hasChannels = channels.length > 0;
@@ -111,8 +111,8 @@ export default function BenchmarkV2View({
       <section className="rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100/80 p-4 sm:p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1.5">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-              벤치마킹
+            <p className="text-xs font-semibold tracking-wide text-slate-500">
+              채널 DNA
             </p>
             <h2 className="text-lg font-display font-semibold text-slate-900 sm:text-xl">
               경쟁 채널 대비 현재 위치
@@ -161,7 +161,9 @@ export default function BenchmarkV2View({
 
       {/* 채널 선택 */}
       {hasChannels && channels.length > 1 ? (
-        <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_18px_60px_rgba(15,23,42,0.04)]">
+        <section className="py-12">
+          <div className="space-y-6">
+        <div className="p-4 rounded-xl border bg-card">
           <div className="mb-3 flex items-center justify-between gap-2">
             <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
               채널 선택
@@ -204,13 +206,16 @@ export default function BenchmarkV2View({
               );
             })}
           </ul>
+        </div>
+          </div>
         </section>
       ) : null}
 
       {/* 비교 카드 + 요약 */}
       {hasItems ? (
         <>
-          <section className="space-y-4">
+          <section className="py-12">
+            <div className="space-y-6">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
                 핵심 지표 비교
@@ -219,14 +224,17 @@ export default function BenchmarkV2View({
                 구독자 대비 조회수, 업로드 빈도, 반응 등을 기준으로 비교합니다.
               </p>
             </div>
-            <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <ul className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {compareItems.slice(0, 4).map((item) => (
-                <BenchmarkCard key={item.title} item={item} />
+                <ChannelDnaMetricCard key={item.title} item={item} />
               ))}
             </ul>
+            </div>
           </section>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.04)]">
+          <section className="py-12">
+            <div className="space-y-6">
+          <div className="p-4 rounded-xl border bg-card">
             <h3 className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
               요약 인사이트
             </h3>
@@ -238,14 +246,18 @@ export default function BenchmarkV2View({
                 </li>
               ))}
             </ul>
+          </div>
+            </div>
           </section>
         </>
       ) : (
-        <section className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/60 p-5 text-sm text-slate-600">
+        <section className="py-12">
+          <div className="space-y-6">
+        <div className="rounded-xl border border-dashed border-border bg-card p-4 text-sm text-muted-foreground">
           {hasChannels ? (
             <div className="space-y-2">
               <p className="font-medium text-slate-800">
-                아직 벤치마킹을 생성할 분석 결과가 없습니다.
+                아직 채널 DNA 분석을 생성할 분석 결과가 없습니다.
               </p>
               <p className="text-sm text-slate-600">
                 채널 분석을 먼저 실행하면, 경쟁 채널 대비 위치를 자동으로 계산해
@@ -282,6 +294,8 @@ export default function BenchmarkV2View({
               </Link>
             </div>
           )}
+        </div>
+          </div>
         </section>
       )}
     </div>

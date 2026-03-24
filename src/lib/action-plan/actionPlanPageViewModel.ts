@@ -17,13 +17,13 @@ import {
 import { pickYoutubeAccessFieldsFromPageData } from "@/lib/analysis/pickYoutubeAccessFromPageData";
 import type { YoutubeVerificationUiState } from "@/lib/auth/youtubeVerificationTypes";
 import type { AnalysisStatus } from "@/lib/analysis/types";
-import { buildInternalBenchmarkSummary } from "@/lib/benchmark/internalBenchmarkSummary";
-import { pickBenchmarkSignalsForActionPlan } from "@/lib/benchmark/benchmarkSignalsForActionPlan";
+import { buildInternalChannelDnaSummary } from "@/lib/channel-dna/internalChannelDnaSummary";
+import { pickChannelDnaSignalsForActionPlan } from "@/lib/channel-dna/channelDnaSignalsForActionPlan";
 import {
-  buildBenchmarkActionCandidates,
-  filterMetricActionsSupersededByBenchmark,
-  type BenchmarkActionCandidate,
-} from "@/lib/action-plan/buildBenchmarkActionCandidates";
+  buildChannelDnaActionCandidates,
+  filterMetricActionsSupersededByChannelDna,
+  type ChannelDnaActionCandidate,
+} from "@/lib/action-plan/buildChannelDnaActionCandidates";
 
 export type ActionPlanPriority = "P1" | "P2" | "P3";
 
@@ -184,7 +184,7 @@ function titleFromText(text: string, maxLen: number): string {
 type TextSourceKind = "weakness" | "bottleneck";
 
 /**
- * TODO(확장 수집): 경쟁 벤치마크·사용자 진행도 등은
+ * TODO(확장 수집): 경쟁 채널 DNA·사용자 진행도 등은
  * `getMenuExtensionStrategy("action_plan").futureCollectionFields` 범위에서만 보강한다.
  */
 function buildTextBackedActions(
@@ -402,8 +402,8 @@ function toSortableMetricAndText(
   }));
 }
 
-function benchmarkRowsToSortable(
-  rows: BenchmarkActionCandidate[]
+function channelDnaRowsToSortable(
+  rows: ChannelDnaActionCandidate[]
 ): SortableActionCandidate[] {
   return rows.map((b) => ({
     id: b.id,
@@ -419,14 +419,14 @@ function benchmarkRowsToSortable(
 }
 
 /**
- * 우선순위: 1 벤치마크 히트 → 2 편차 → 3 업로드 → 4 구간(벤치 구간 카드 → 수치 기반 메트릭) → 5 강점 확장 → 6 텍스트 약점·병목
+ * 우선순위: 1 채널 DNA 히트 → 2 편차 → 3 업로드 → 4 구간(채널 DNA 구간 카드 → 수치 기반 메트릭) → 5 강점 확장 → 6 텍스트 약점·병목
  */
 function mergePrioritizedActionStack(
-  benchmarkRows: BenchmarkActionCandidate[],
+  channelDnaRows: ChannelDnaActionCandidate[],
   metricActions: Omit<ActionPlanCardVm, "priority">[],
   textActions: Omit<ActionPlanCardVm, "priority">[]
 ): Omit<ActionPlanCardVm, "priority">[] {
-  const bench = benchmarkRowsToSortable(benchmarkRows);
+  const bench = channelDnaRowsToSortable(channelDnaRows);
   const metricS = toSortableMetricAndText(metricActions, 4, 100);
   const textS = toSortableMetricAndText(textActions, 6, 0);
   const all: SortableActionCandidate[] = [...bench, ...metricS, ...textS];
@@ -631,18 +631,18 @@ export function buildActionPlanPageViewModel(
   const weaknesses = safeStringArray(row.weaknesses);
   const bottlenecks = safeStringArray(row.bottlenecks);
 
-  const internalBenchSummary = buildInternalBenchmarkSummary(data);
-  const benchSignals = pickBenchmarkSignalsForActionPlan(internalBenchSummary);
+  const internalChannelDnaSummary = buildInternalChannelDnaSummary(data);
+  const channelDnaSignals = pickChannelDnaSignalsForActionPlan(internalChannelDnaSummary);
 
   const textActions = buildTextBackedActions(weaknesses, bottlenecks);
   const metricActions = buildMetricBackedActions(sections, metrics);
-  const benchmarkRows = buildBenchmarkActionCandidates(benchSignals, sections);
-  const metricActionsFiltered = filterMetricActionsSupersededByBenchmark(
+  const channelDnaRows = buildChannelDnaActionCandidates(channelDnaSignals, sections);
+  const metricActionsFiltered = filterMetricActionsSupersededByChannelDna(
     metricActions,
-    benchmarkRows
+    channelDnaRows
   );
   let merged = mergePrioritizedActionStack(
-    benchmarkRows,
+    channelDnaRows,
     metricActionsFiltered,
     textActions
   );
@@ -691,17 +691,17 @@ export function buildActionPlanPageViewModel(
       "분석 신뢰도가 낮게 기록되었습니다. 아래 제안은 참고용 우선순위일 뿐입니다.";
   }
   if (
-    benchmarkRows.length === 0 &&
+    channelDnaRows.length === 0 &&
     textActions.length === 0 &&
     metricActions.length === 0 &&
     actions.length <= 1
   ) {
     const extra =
-      "저장된 약점·병목 문구와 수치·벤치마크 근거가 거의 없어 제안 범위가 매우 좁습니다.";
+      "저장된 약점·병목 문구와 수치·채널 DNA 근거가 거의 없어 제안 범위가 매우 좁습니다.";
     limitNotice = limitNotice ? `${limitNotice} ${extra}` : extra;
   }
 
-  if (benchmarkRows.length > 0) {
+  if (channelDnaRows.length > 0) {
     const benchLine =
       "일부 우선순위 카드는 /channel-dna와 동일한 저장 스냅샷에서 계산된 내부 신호를 근거로 합니다.";
     limitNotice = limitNotice ? `${limitNotice} ${benchLine}` : benchLine;

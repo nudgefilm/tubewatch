@@ -20,7 +20,7 @@ export function GuestUpsellCard(): JSX.Element {
         1회 리포트가 아니라 지속적인 채널 성장을 원하시나요?
       </h2>
       <p className="mt-2 text-sm text-gray-600">
-        TubeWatch 구독으로 액션 플랜, SEO 랩, 벤치마킹을 계속 받아보세요.
+        TubeWatch 구독으로 액션 플랜, SEO 랩, 채널 DNA를 계속 받아보세요.
       </p>
       <p className="mt-1 text-sm text-gray-600">
         지속 분석이 필요하면 구독 플랜이 더 유리합니다.

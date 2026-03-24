@@ -66,14 +66,14 @@ export type PatternInsightsDatasetVm = null;
 /** 트렌드 신호 — 데이터 없으면 null */
 export type TrendSignalsVm = null;
 
-/** 벤치마크용 외부 채널 슬롯 (현재 빈 배열) */
-export type BenchmarkExternalChannelVm = {
+/** 채널 DNA용 외부 채널 슬롯 (현재 빈 배열) */
+export type ChannelDnaExternalChannelVm = {
   readonly id: string;
   readonly label: string;
   readonly connectionState: "pending_connection";
 };
 
 /**
- * 내부 벤치마크 요약은 `marketDataAvailability`·`comparativeMetrics`와 충돌하지 않도록
- * `BenchmarkPageViewModel.internalBenchmarkSummary`(`@/lib/benchmark/internalBenchmarkSummary`)에 둔다.
+ * 내부 채널 DNA 요약은 `marketDataAvailability`·`comparativeMetrics`와 충돌하지 않도록
+ * `ChannelDnaPageViewModel.internalChannelDnaSummary`(`@/lib/channel-dna/internalChannelDnaSummary`)에 둔다.
  */

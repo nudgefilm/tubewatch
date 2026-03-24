@@ -38,7 +38,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
   SidebarSeparator,
-} from "../ui/sidebar"
+} from "@/components/ui/sidebar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -282,9 +282,11 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+      </SidebarContent>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Settings</SidebarGroupLabel>
+      <SidebarFooter className="mt-auto flex flex-col gap-0 border-t border-sidebar-border pt-2">
+        <SidebarGroup className="px-0 py-0">
+          <SidebarGroupLabel className="px-2">Settings</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {secondaryNavItems.map((item) => (
@@ -300,9 +302,9 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-      </SidebarContent>
 
-      <SidebarFooter>
+        <SidebarSeparator className="my-2" />
+
         <div className="flex items-center gap-3 px-2 py-3">
           <div className="flex aspect-square size-8 items-center justify-center rounded-full bg-muted">
             <User className="size-4 text-muted-foreground" />

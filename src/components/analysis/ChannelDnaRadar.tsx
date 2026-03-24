@@ -1,6 +1,6 @@
 "use client";
 
-type BenchmarkRadarMetrics = {
+type ChannelDnaRadarMetrics = {
   avgViewCount: number;
   avgLikeRatio: number;
   avgCommentRatio: number;
@@ -9,14 +9,14 @@ type BenchmarkRadarMetrics = {
   avgTagCount: number;
 };
 
-type BenchmarkRadarProps = {
-  metrics: BenchmarkRadarMetrics;
+type ChannelDnaRadarProps = {
+  metrics: ChannelDnaRadarMetrics;
 };
 
 type RadarAxis = {
-  key: keyof BenchmarkRadarMetrics;
+  key: keyof ChannelDnaRadarMetrics;
   label: string;
-  benchmark: number;
+  baseline: number;
   normalize: (value: number) => number;
 };
 
@@ -40,42 +40,42 @@ const RADAR_AXES: RadarAxis[] = [
   {
     key: "avgViewCount",
     label: "조회수 경쟁력",
-    benchmark: 70,
+    baseline: 70,
     normalize: (v) =>
       interpolate(v, [[0, 0], [1000, 40], [5000, 70], [10000, 100]]),
   },
   {
     key: "avgLikeRatio",
     label: "좋아요 반응",
-    benchmark: 70,
+    baseline: 70,
     normalize: (v) =>
       interpolate(v, [[0, 0], [0.03, 60], [0.06, 100]]),
   },
   {
     key: "avgCommentRatio",
     label: "댓글 참여도",
-    benchmark: 60,
+    baseline: 60,
     normalize: (v) =>
       interpolate(v, [[0, 0], [0.005, 60], [0.01, 100]]),
   },
   {
     key: "avgUploadIntervalDays",
     label: "업로드 규칙성",
-    benchmark: 70,
+    baseline: 70,
     normalize: (v) =>
       interpolate(v, [[0, 100], [3, 100], [7, 70], [14, 40], [30, 10]]),
   },
   {
     key: "recent30dUploadCount",
     label: "최근 활동성",
-    benchmark: 70,
+    baseline: 70,
     normalize: (v) =>
       interpolate(v, [[0, 0], [4, 50], [8, 80], [12, 100]]),
   },
   {
     key: "avgTagCount",
     label: "SEO 태그 활용",
-    benchmark: 60,
+    baseline: 60,
     normalize: (v) =>
       interpolate(v, [[0, 0], [5, 60], [10, 100]]),
   },
@@ -134,16 +134,16 @@ function getLabelAnchor(axisIndex: number): { textAnchor: SvgTextAnchor; dy: num
   return { textAnchor, dy };
 }
 
-export default function BenchmarkRadar({ metrics }: BenchmarkRadarProps): JSX.Element {
+export default function ChannelDnaRadar({ metrics }: ChannelDnaRadarProps): JSX.Element {
   const channelValues = RADAR_AXES.map((axis) =>
     Math.round(axis.normalize(metrics[axis.key]))
   );
-  const benchmarkValues = RADAR_AXES.map((axis) => axis.benchmark);
+  const baselineValues = RADAR_AXES.map((axis) => axis.baseline);
 
   return (
     <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
       <h2 className="mb-1 text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
-        Benchmark Radar
+        Channel DNA
       </h2>
       <p className="mb-4 text-sm text-gray-500">
         채널 성과 점수를 성장 채널 기준과 비교합니다.
@@ -154,7 +154,7 @@ export default function BenchmarkRadar({ metrics }: BenchmarkRadarProps): JSX.El
           viewBox="0 0 340 310"
           className="w-full"
           role="img"
-          aria-label="채널 벤치마크 레이더 차트"
+          aria-label="채널 DNA 레이더 차트"
         >
           {/* Grid rings */}
           {GRID_LEVELS.map((level) => (
@@ -183,9 +183,9 @@ export default function BenchmarkRadar({ metrics }: BenchmarkRadarProps): JSX.El
             );
           })}
 
-          {/* Benchmark polygon */}
+          {/* Channel DNA reference polygon */}
           <polygon
-            points={buildPolygonPoints(benchmarkValues)}
+            points={buildPolygonPoints(baselineValues)}
             fill="none"
             stroke="#9ca3af"
             strokeWidth={1.5}
@@ -251,7 +251,7 @@ export default function BenchmarkRadar({ metrics }: BenchmarkRadarProps): JSX.El
       <div className="mt-4 grid grid-cols-3 gap-6 sm:grid-cols-6">
         {RADAR_AXES.map((axis, i) => {
           const score = channelValues[i];
-          const diff = score - axis.benchmark;
+          const diff = score - axis.baseline;
           const diffColor =
             diff >= 0 ? "text-emerald-600" : "text-red-500";
           const diffSign = diff >= 0 ? "+" : "";

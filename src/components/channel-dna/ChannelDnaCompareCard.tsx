@@ -1,7 +1,7 @@
-import type { BenchmarkCompareItem } from "./types";
+import type { ChannelDnaCompareItem } from "./channelDnaPageTypes";
 
-type BenchmarkCompareCardProps = {
-  item: BenchmarkCompareItem;
+type ChannelDnaCompareCardProps = {
+  item: ChannelDnaCompareItem;
 };
 
 function getStatusClass(status: string): string {
@@ -10,9 +10,9 @@ function getStatusClass(status: string): string {
   return "border-slate-200 bg-slate-50/50 text-slate-700";
 }
 
-export default function BenchmarkCompareCard({
+export default function ChannelDnaCompareCard({
   item,
-}: BenchmarkCompareCardProps): JSX.Element {
+}: ChannelDnaCompareCardProps): JSX.Element {
   const statusClass = getStatusClass(item.status_label);
 
   return (
@@ -27,7 +27,7 @@ export default function BenchmarkCompareCard({
           {item.current_score}
         </span>
         <span className="text-sm text-slate-500">
-          / {item.benchmark_score}점 기준
+          / {item.baseline_score}점 기준
         </span>
       </div>
       <p className="mt-1.5 text-xs font-medium text-slate-600">

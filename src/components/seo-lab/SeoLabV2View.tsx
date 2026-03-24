@@ -21,7 +21,7 @@ function formatDate(value: string | null): string {
 
 function SeoCard({ item }: { item: SeoLabCardItem }): JSX.Element {
   return (
-    <li className="rounded-xl border border-slate-200 bg-white p-4 shadow-[0_14px_45px_rgba(15,23,42,0.04)]">
+    <li className="p-4 rounded-xl border bg-card">
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
         {item.title}
       </p>
@@ -47,9 +47,11 @@ export default function SeoLabV2View({
   const hasCards = hasResult && cards.length > 0;
 
   return (
-    <div className="space-y-6">
+    <div className="w-full max-w-6xl mx-auto px-6 lg:px-12 py-8 lg:py-10">
       {/* 헤더 / 채널 요약 */}
-      <section className="rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100/80 p-4 sm:p-5">
+      <section className="py-12">
+        <div className="space-y-6">
+          <div className="rounded-xl border border-border bg-gradient-to-br from-muted/40 to-muted/20 p-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1.5">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
@@ -98,11 +100,15 @@ export default function SeoLabV2View({
             </div>
           ) : null}
         </div>
+          </div>
+        </div>
       </section>
 
       {/* 채널 선택 */}
       {hasChannels && channels.length > 1 ? (
-        <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_18px_60px_rgba(15,23,42,0.04)]">
+        <section className="py-12">
+          <div className="space-y-6">
+        <div className="p-4 rounded-xl border bg-card">
           <div className="mb-3 flex items-center justify-between gap-2">
             <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
               채널 선택
@@ -145,6 +151,8 @@ export default function SeoLabV2View({
               );
             })}
           </ul>
+        </div>
+          </div>
         </section>
       ) : null}
 

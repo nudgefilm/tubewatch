@@ -10,7 +10,7 @@ const CARD_TITLES: [string, string, string] = [
 ];
 
 /**
- * BenchmarkRadar과 동일한 보간 로직으로 0~100 점수 계산.
+ * ChannelDnaRadar과 동일한 보간 로직으로 0~100 점수 계산.
  */
 function interpolate(value: number, breakpoints: [number, number][]): number {
   if (breakpoints.length === 0) return 0;

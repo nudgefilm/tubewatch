@@ -1,7 +1,8 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import {
-  getUserChannels,
-  getDefaultAnalysisChannel,
+  getDefaultAnalysisChannelWithClient,
+  getUserChannelsForUser,
   type UserChannelRow,
 } from "@/lib/analysis/getAnalysisPageData";
 import { buildActionItemsFromResult } from "./buildActionItemsFromResult";
@@ -27,10 +28,10 @@ function mapChannel(row: UserChannelRow): ActionPlanChannel {
  * status=analyzed, gemini_status=success.
  */
 async function getLatestSuccessfulResult(
+  supabase: SupabaseClient,
   userChannelId: string,
   userId: string
 ): Promise<ActionPlanResultRow | null> {
-  const supabase = await createClient();
   const { data, error } = await supabase
     .from("analysis_results")
     .select("*")
@@ -72,7 +73,7 @@ export async function getActionPlanPageData(
     return null;
   }
 
-  const channels = await getUserChannels();
+  const channels = await getUserChannelsForUser(supabase, user.id);
   const channelList: ActionPlanChannel[] = channels.map(mapChannel);
 
   if (channels.length === 0) {
@@ -89,11 +90,11 @@ export async function getActionPlanPageData(
     selectedChannel = channels.find((c) => c.id === selectedChannelId) ?? null;
   }
   if (!selectedChannel) {
-    selectedChannel = await getDefaultAnalysisChannel(channels);
+    selectedChannel = await getDefaultAnalysisChannelWithClient(supabase, user.id, channels);
   }
 
   const latestResult = selectedChannel
-    ? await getLatestSuccessfulResult(selectedChannel.id, user.id)
+    ? await getLatestSuccessfulResult(supabase, selectedChannel.id, user.id)
     : null;
 
   const actions = latestResult ? buildActionItemsFromResult(latestResult) : [];

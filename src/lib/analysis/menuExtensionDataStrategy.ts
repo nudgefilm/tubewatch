@@ -37,7 +37,7 @@ export const MENU_EXTENSION_STRATEGIES: Record<
       "sample_size_note, analysis_confidence",
     ],
     futureCollectionFields: [
-      "액션별 외부 벤치마크·경쟁 채널 스냅샷",
+      "액션별 외부 채널 DNA·경쟁 채널 스냅샷",
       "사용자 체크리스트 완료율·로컬 메모",
     ],
     runSemantics:
@@ -75,7 +75,7 @@ export const MENU_EXTENSION_STRATEGIES: Record<
       "YouTube Data API 기반 타 채널 공개 지표",
     ],
     runSemantics:
-      "channel_dna 타입 run = Channel DNA 메뉴 확장 실행 이력. 외부 벤치마크 미연동 상태와 충돌하지 않음(안내 문구 유지).",
+      "channel_dna 타입 run = Channel DNA 메뉴 확장 실행 이력. 외부 채널 DNA 미연동 상태와 충돌하지 않음(안내 문구 유지).",
   },
   next_trend: {
     menuKey: "next_trend",

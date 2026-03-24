@@ -1,4 +1,4 @@
-import type { InternalBenchmarkSummaryVm } from "@/lib/benchmark/internalBenchmarkSummary";
+import type { InternalChannelDnaSummaryVm } from "@/lib/channel-dna/internalChannelDnaSummary";
 import type { SeoStrategyItemVm } from "@/lib/seo-lab/seoLabStrategyTypes";
 import type {
   SeoStrategySignalRecord,
@@ -34,7 +34,7 @@ function dedupePush(
 }
 
 function computeHasEnoughSeoSignal(
-  bench: InternalBenchmarkSummaryVm,
+  bench: InternalChannelDnaSummaryVm,
   records: readonly SeoStrategySignalRecord[]
 ): boolean {
   const n = bench.recentVideosUsed;
@@ -84,7 +84,7 @@ function nextRecId(prefix: string): string {
  * 번역된 신호에서 채널 맞춤 추천 항목을 생성한다.
  */
 export function buildSeoRecommendations(
-  bench: InternalBenchmarkSummaryVm,
+  bench: InternalChannelDnaSummaryVm,
   payload: SeoStrategySignalsPayload
 ): SeoLabStrategySectionVm {
   recId = 0;
@@ -188,7 +188,7 @@ export function buildSeoRecommendations(
       title: "첫 구절에서 주제·포맷 구분",
       shortReason:
         "상위 몇 편에 조회가 집중된 비중이 높게 나타났습니다. 제목 앞부분만으로 편이 구분되는지, 동일한 문구 반복이 없는지 살펴보세요.",
-      signalSource: "벤치마크·조회 분포",
+      signalSource: "채널 DNA·조회 분포",
     });
   }
 
@@ -275,7 +275,7 @@ export function buildSeoRecommendations(
       "내부 신호가 제한적입니다. 아래는 이 채널 표본 구조에 맞는지 점검하는 용도이며, 범용 키워드 탐색이 아닙니다. 근거는 저장된 스냅샷·베이스 진단·구간 점수에 한정됩니다.";
   } else {
     summary =
-      "이 페이지는 외부 검색량이 아니라, 저장된 분석·벤치마크에서 읽힌 채널 구조에 맞는 제목·키워드 방향을 제안합니다. Action Plan·벤치마크에서 쓰는 내부 해석과 같은 결을 유지했습니다.";
+      "이 페이지는 외부 검색량이 아니라, 저장된 분석·채널 DNA에서 읽힌 채널 구조에 맞는 제목·키워드 방향을 제안합니다. Action Plan·채널 DNA에서 쓰는 내부 해석과 같은 결을 유지했습니다.";
   }
 
   return {

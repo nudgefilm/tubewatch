@@ -13,10 +13,10 @@ import {
 } from "@/lib/ai/analyzeChannelWithGemini";
 import { buildActionItemsFromResult } from "@/lib/server/action-plan/buildActionItemsFromResult";
 import { buildSeoLabItemsFromResult } from "@/lib/server/seo-lab/buildSeoLabItemsFromResult";
-import { buildBenchmarkItemsFromResult } from "@/lib/server/benchmark/buildBenchmarkItemsFromResult";
+import { buildChannelDnaCompareItems } from "@/lib/server/channel-dna/buildChannelDnaCompareItems";
 import type { ActionPlanResultRow } from "@/components/action-plan/types";
 import type { SeoLabResultRow } from "@/components/seo-lab/types";
-import type { BenchmarkResultRow } from "@/components/benchmark/types";
+import type { ChannelDnaResultRow } from "@/components/channel-dna/channelDnaPageTypes";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import type { GuestFullReportData } from "./guestReportTypes";
 import { generateStrategyPdf } from "@/lib/server/pdf/generateStrategyPdf";
@@ -130,7 +130,7 @@ export async function generateGuestFullReport(
     patterns: channelPatterns.flags,
   };
 
-  const syntheticRow: ActionPlanResultRow & SeoLabResultRow & BenchmarkResultRow = {
+  const syntheticRow: ActionPlanResultRow & SeoLabResultRow & ChannelDnaResultRow = {
     id: "",
     user_channel_id: "",
     status: "analyzed",
@@ -145,7 +145,7 @@ export async function generateGuestFullReport(
 
   const actionPlanItems = buildActionItemsFromResult(syntheticRow);
   const seoItems = buildSeoLabItemsFromResult(syntheticRow);
-  const benchmarkItems = buildBenchmarkItemsFromResult(syntheticRow);
+  const channelDnaCompareItems = buildChannelDnaCompareItems(syntheticRow);
 
   const reportData: GuestFullReportData = {
     channel_title: channel.channel_title ?? "",
@@ -183,10 +183,10 @@ export async function generateGuestFullReport(
       recommendation: s.recommendation,
       source: s.source,
     })),
-    benchmark_items: benchmarkItems.map((b) => ({
+    benchmark_items: channelDnaCompareItems.map((b) => ({
       title: b.title,
       current_score: b.current_score,
-      benchmark_score: b.benchmark_score,
+      benchmark_score: b.baseline_score,
       status_label: b.status_label,
       source: b.source,
     })),

@@ -6,7 +6,7 @@ type SeoLabCardProps = {
 
 export default function SeoLabCard({ item }: SeoLabCardProps): JSX.Element {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <div className="p-4 rounded-xl border bg-card">
       <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
         {item.title}
       </h3>

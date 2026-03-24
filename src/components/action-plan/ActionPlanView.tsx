@@ -19,10 +19,12 @@ export default function ActionPlanView({ data }: ActionPlanViewProps): JSX.Eleme
   const showActions = hasResult && actions.length > 0;
 
   return (
-    <div className="space-y-6">
+    <div className="w-full max-w-6xl mx-auto px-6 lg:px-12 py-8 lg:py-10">
       {/* 채널 선택 */}
       {hasChannels && channels.length > 1 ? (
-        <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <section className="py-12">
+          <div className="space-y-6">
+        <div className="p-4 rounded-xl border bg-card">
           <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
             채널 선택
           </h2>
@@ -56,6 +58,8 @@ export default function ActionPlanView({ data }: ActionPlanViewProps): JSX.Eleme
               );
             })}
           </ul>
+        </div>
+          </div>
         </section>
       ) : null}
 
