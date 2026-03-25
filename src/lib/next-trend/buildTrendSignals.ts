@@ -426,3 +426,19 @@ export function buildTrendSignals(snapshot: unknown): TrendSignalsBundle {
 
   return { records, evidenceNotes, recentVideosUsed };
 }
+
+/** Next Trend 내부 스펙(권장 길이 등)용 — 외부 API 없음 */
+export function getSnapshotVideoDurationStats(snapshot: unknown): {
+  sampleCount: number;
+  avgDurationSec: number | null;
+} {
+  const videos = parseTrendVideos(snapshot);
+  const durs = videos
+    .map((v) => v.durationSeconds)
+    .filter((d): d is number => d != null && d > 0);
+  if (durs.length === 0) {
+    return { sampleCount: videos.length, avgDurationSec: null };
+  }
+  const avg = durs.reduce((s, v) => s + v, 0) / durs.length;
+  return { sampleCount: videos.length, avgDurationSec: avg };
+}

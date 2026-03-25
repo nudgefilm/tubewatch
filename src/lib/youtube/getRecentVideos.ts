@@ -91,6 +91,11 @@ function pickThumbnailUrl(snippet: YouTubeVideoSnippet | undefined): string | nu
   );
 }
 
+/**
+ * 채널의 최근 업로드 영상. **search.list 미사용**.
+ * `channels.list`(uploads 플레이리스트 ID) → `playlistItems.list` → `videos.list` 조합이며,
+ * 이후 분석 엔진의 `recent30dUploadCount`는 여기서 얻은 `published_at`을 정규화한 뒤 30일 이내로 필터해 집계합니다.
+ */
 export async function getRecentVideos(
   channelId: string,
   limit: number = 20

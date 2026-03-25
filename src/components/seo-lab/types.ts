@@ -23,11 +23,51 @@ export type SeoLabChannel = {
   last_analyzed_at: string | null;
 };
 
+/**
+ * 공개 API·저장 스냅샷 기준으로만 성립하는 SEO Lab 확정 스펙 UI.
+ * 외부 검색량·SERP·CTR·경쟁 채널 비교는 포함하지 않음.
+ */
+export type SeoLabSpecViewModel = {
+  dataPipelineNote: string;
+  diagnosis: {
+    titleClarity: string;
+    keywordConsistency: string;
+    topicFocus: string;
+    representativeKeywordAxis: string;
+  };
+  keywordAnalysis: {
+    topKeywords: string[];
+    topKeywordsNote: string;
+    lowPerformingRepeated: string[];
+    lowPerformingNote: string;
+    underutilized: string[];
+    underutilizedNote: string;
+    brandVsGeneral: string;
+  };
+  titleImprovement: {
+    problemAnalysis: string;
+    improvedTitleSuggestion: string;
+    structureFormula: string;
+  };
+  clusters: {
+    strongTopics: string[];
+    expansionTopics: string[];
+    confusedTopics: string[];
+    cleanupPriority: string[];
+  };
+  execution: {
+    keywordVideoIdeas: string[];
+    titleGenerationHints: string[];
+    checklist: string[];
+  };
+};
+
 export type SeoLabPageData = {
   channels: SeoLabChannel[];
   selectedChannel: SeoLabChannel | null;
   latestResult: SeoLabResultRow | null;
   cards: SeoLabCardItem[];
+  spec: SeoLabSpecViewModel;
 };
 
 /**

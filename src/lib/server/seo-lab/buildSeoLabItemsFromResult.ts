@@ -97,7 +97,7 @@ export function buildSeoLabItemsFromResult(
     return [
       {
         title: CARD_TITLES[0],
-        current_status: "조회수 경쟁력 약세",
+        current_status: "표본 평균 조회 대비 정규화 점수가 낮게 읽힘(내부 스냅샷)",
         recommendation: "대표 영상 제목 구조 재정의",
         source: "fallback",
       },
@@ -141,7 +141,7 @@ export function buildSeoLabItemsFromResult(
     if (viewScore < 70) {
       cards.push({
         title: CARD_TITLES[0],
-        current_status: "조회수 경쟁력 약세",
+        current_status: "표본 평균 조회 대비 정규화 점수가 낮게 읽힘(내부 스냅샷)",
         recommendation: "대표 영상 제목 구조 재정의",
         source: "low_score_section",
       });

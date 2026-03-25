@@ -55,7 +55,7 @@ export function buildChannelDnaPageViewModel(
   );
   const selectedChannelId = data?.selectedChannel?.id ?? null;
   const yt = pickYoutubeAccessFieldsFromPageData(data);
-  const benchStrategy = getMenuExtensionStrategy("channel_dna");
+  const channelDnaMenuStrategy = getMenuExtensionStrategy("channel_dna");
   const internalChannelDnaSummary = buildInternalChannelDnaSummary(data);
 
   return {
@@ -72,8 +72,8 @@ export function buildChannelDnaPageViewModel(
     patternInsights: null,
     trendSignals: null,
     extensionNotice: [
-      "Channel DNA는 저장된 채널 스냅샷(analysis_results + feature_snapshot) 기반으로 성과 구조·패턴을 설명합니다. 외부 경쟁 채널·시장 평균 데이터는 아직 연결되지 않았으며, 비교 지표는 추후 연동 시 채워집니다.",
-      `확장 정책: ${benchStrategy.runSemantics}`,
+      "Channel DNA는 저장된 채널 스냅샷(analysis_results + feature_snapshot)과 공개 API 지표를 기반으로 성과 구조·패턴을 설명합니다. 외부 시장 확장 슬롯은 별도이며, 연동 시 동일 메뉴에서 추가합니다.",
+      `확장 정책: ${channelDnaMenuStrategy.runSemantics}`,
     ].join(" "),
     internalChannelDnaSummary,
   };

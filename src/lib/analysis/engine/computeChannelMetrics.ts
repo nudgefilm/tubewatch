@@ -1,6 +1,11 @@
 import type { ChannelMetrics, NormalizedChannelDataset } from "./types";
 import { average, median } from "./utils";
 
+/**
+ * `recent30dUploadCount`: 표본 영상 각각의 `publishedAt`으로부터 계산한 `daysSincePublished`가
+ * 30일 이하인 편 수입니다. 표본은 수집 시점에 **채널 uploads 플레이리스트 → playlistItems** 기준으로
+ * 가져온 목록(검색 API 기반 목록과 혼용하지 않음)이어야 동일 파이프라인과 일치합니다.
+ */
 export function computeChannelMetrics(
   dataset: NormalizedChannelDataset
 ): ChannelMetrics {

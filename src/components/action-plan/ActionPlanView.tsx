@@ -2,21 +2,21 @@ import Link from "next/link";
 import type { ActionPlanPageData } from "./types";
 import ActionPriorityCard from "./ActionPriorityCard";
 
-const PRIORITY_CONFIG: { key: "P1" | "P2" | "P3"; label: string }[] = [
-  { key: "P1", label: "지금 바로" },
-  { key: "P2", label: "이번 주" },
-  { key: "P3", label: "다음 단계" },
-];
+const PRIORITY_LABEL: Record<"P1" | "P2" | "P3", string> = {
+  P1: "지금 바로",
+  P2: "이번 주",
+  P3: "다음 단계",
+};
 
 type ActionPlanViewProps = {
   data: ActionPlanPageData;
 };
 
 export default function ActionPlanView({ data }: ActionPlanViewProps): JSX.Element {
-  const { channels, selectedChannel, actions } = data;
+  const { channels, selectedChannel, actions, specItems, checklist } = data;
   const hasChannels = channels.length > 0;
   const hasResult = data.latestResult !== null;
-  const showActions = hasResult && actions.length > 0;
+  const showActions = hasResult && actions.length > 0 && specItems.length > 0;
 
   return (
     <div className="w-full max-w-6xl mx-auto px-6 lg:px-12 py-8 lg:py-10">
@@ -63,40 +63,56 @@ export default function ActionPlanView({ data }: ActionPlanViewProps): JSX.Eleme
         </section>
       ) : null}
 
-      {/* 우선순위 액션 3개 */}
       {showActions ? (
         <>
           <section>
-            <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
-              우선순위 액션
+            <h2 className="mb-1 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+              실행 우선순위
             </h2>
-            <div className="grid gap-6 sm:grid-cols-3">
-              {actions.slice(0, 3).map((item, i) => (
+            <p className="mb-3 text-xs text-slate-500">
+              P1 / P2 / P3 · 카드에 영향 영역과 근거·시나리오를 표시합니다.
+            </p>
+            <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-3">
+              {specItems.map((spec) => (
                 <ActionPriorityCard
-                  key={`${item.title}-${i}`}
-                  item={item}
-                  priority={PRIORITY_CONFIG[i].key}
-                  priorityLabel={PRIORITY_CONFIG[i].label}
+                  key={`${spec.priority}-${spec.action_title}`}
+                  spec={spec}
+                  priorityLabel={PRIORITY_LABEL[spec.priority]}
                 />
               ))}
             </div>
           </section>
 
-          {/* 근거 섹션 */}
-          <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <section className="mt-10 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
-              근거
+              체크리스트
             </h2>
-            <ul className="space-y-1.5 text-sm text-slate-600">
-              {actions.slice(0, 3).map((item, i) => (
-                <li key={`reason-${i}`} className="break-words">
-                  <span className="font-medium text-slate-500">
-                    {PRIORITY_CONFIG[i].key}:{" "}
-                  </span>
-                  {item.reason || "—"}
-                </li>
-              ))}
-            </ul>
+            <div className="space-y-4 text-sm text-slate-700">
+              <div>
+                <p className="mb-1.5 text-xs font-medium text-slate-500">해야 할 것</p>
+                <ul className="list-disc space-y-1 pl-5">
+                  {checklist.dos.map((line, i) => (
+                    <li key={`do-${i}`} className="leading-relaxed">
+                      {line}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <p className="mb-1.5 text-xs font-medium text-slate-500">하지 말 것</p>
+                <ul className="list-disc space-y-1 pl-5">
+                  {checklist.donts.map((line, i) => (
+                    <li key={`dont-${i}`} className="leading-relaxed">
+                      {line}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="rounded-lg border border-slate-100 bg-slate-50/80 p-3">
+                <p className="text-xs font-medium text-slate-500">핵심 1개 액션</p>
+                <p className="mt-1 font-medium text-slate-900">{checklist.core_single_action}</p>
+              </div>
+            </div>
           </section>
         </>
       ) : null}

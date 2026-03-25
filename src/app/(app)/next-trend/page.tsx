@@ -1,4 +1,5 @@
 import dynamic from "next/dynamic";
+import { redirect } from "next/navigation";
 
 import {
   buildProtectedReturnPath,
@@ -27,6 +28,9 @@ export default async function NextTrendRoutePage({
     buildProtectedReturnPath("/next-trend", channelId)
   );
   const data = await getAnalysisPageData(channelId);
+  if (!data) {
+    redirect("/channels");
+  }
   const viewModel = buildNextTrendPageViewModel(data);
   return <NextTrendView viewModel={viewModel} />;
 }

@@ -5,6 +5,7 @@ import {
   buildProtectedReturnPath,
   redirectToLandingAuthUnlessSignedIn,
 } from "@/lib/auth/require-app-user";
+import { buildChannelDnaSpecViewModel } from "@/lib/channel-dna/buildChannelDnaSpecViewModel";
 import { getChannelDnaPageData } from "@/lib/server/channel-dna/getChannelDnaPageData";
 import {
   type ChannelSearchParams,
@@ -28,7 +29,8 @@ export default async function ChannelDnaRoutePage({
   );
   const data = await getChannelDnaPageData(channelId);
   if (!data) {
-    redirect("/");
+    redirect("/channels");
   }
-  return <ChannelDnaView data={data} />;
+  const spec = buildChannelDnaSpecViewModel(data);
+  return <ChannelDnaView data={data} spec={spec} />;
 }

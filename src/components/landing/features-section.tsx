@@ -218,7 +218,7 @@ function ClientFeatureVisualLoader({ type }: { type: string }) {
 
 function FeatureCard({ feature, index }: { feature: (typeof features)[0]; index: number }) {
   const [isVisible, setIsVisible] = useState(false);
-  const cardRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLAnchorElement>(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(

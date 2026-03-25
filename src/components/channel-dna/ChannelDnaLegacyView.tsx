@@ -56,10 +56,13 @@ export default function ChannelDnaLegacyView({ data }: ChannelDnaLegacyViewProps
       {showCards ? (
         <>
           <section>
-            <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
-              핵심 지표 비교
+            <h2 className="mb-1 text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">
+              참고 지표
             </h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <p className="mb-3 text-[11px] text-slate-400">
+              내부 정규화 점수이며, 요약·DNA 카드보다 보조적으로 봐 주세요.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 opacity-95">
               {compareItems.slice(0, 4).map((item, i) => (
                 <ChannelDnaCompareCard key={`${item.title}-${i}`} item={item} />
               ))}

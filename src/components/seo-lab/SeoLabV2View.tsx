@@ -41,13 +41,14 @@ function SeoCard({ item }: { item: SeoLabCardItem }): JSX.Element {
 export default function SeoLabV2View({
   data,
 }: SeoLabV2ViewProps): JSX.Element {
-  const { channels, selectedChannel, latestResult, cards } = data;
+  const { channels, selectedChannel, latestResult, cards, spec } = data;
   const hasChannels = channels.length > 0;
   const hasResult = latestResult !== null;
   const hasCards = hasResult && cards.length > 0;
 
   return (
     <div className="w-full max-w-6xl mx-auto px-6 lg:px-12 py-8 lg:py-10">
+      <p className="mb-6 text-sm leading-relaxed text-slate-600">{spec.dataPipelineNote}</p>
       {/* 헤더 / 채널 요약 */}
       <section className="py-12">
         <div className="space-y-6">

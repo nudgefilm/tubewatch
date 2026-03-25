@@ -5,6 +5,7 @@ import {
   getUserChannelsForUser,
   type UserChannelRow,
 } from "@/lib/analysis/getAnalysisPageData";
+import { buildActionPlanSpecFromItems } from "@/lib/action-plan/buildActionPlanSpecFromItems";
 import { buildActionItemsFromResult } from "./buildActionItemsFromResult";
 import type {
   ActionPlanPageData,
@@ -82,6 +83,8 @@ export async function getActionPlanPageData(
       selectedChannel: null,
       latestResult: null,
       actions: [],
+      specItems: [],
+      checklist: { dos: [], donts: [], core_single_action: "" },
     };
   }
 
@@ -98,11 +101,14 @@ export async function getActionPlanPageData(
     : null;
 
   const actions = latestResult ? buildActionItemsFromResult(latestResult) : [];
+  const { specItems, checklist } = buildActionPlanSpecFromItems(actions, latestResult);
 
   return {
     channels: channelList,
     selectedChannel: selectedChannel ? mapChannel(selectedChannel) : null,
     latestResult,
     actions,
+    specItems,
+    checklist,
   };
 }

@@ -28,7 +28,7 @@ export default async function ActionPlanRoutePage({
   );
   const data = await getActionPlanPageData(channelId);
   if (!data) {
-    redirect("/");
+    redirect("/channels");
   }
   return <ActionPlanView data={data} />;
 }

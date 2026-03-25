@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import type { ActionPlanPageData, ActionItem } from "./types";
+import type { ActionPlanPageData } from "./types";
+import ActionPriorityCard from "./ActionPriorityCard";
+
+const PRIORITY_LABEL: Record<"P1" | "P2" | "P3", string> = {
+  P1: "지금 바로",
+  P2: "이번 주",
+  P3: "다음 단계",
+};
 
 type ActionPlanV2ViewProps = {
   data: ActionPlanPageData;
@@ -19,51 +26,13 @@ function formatDate(value: string | null): string {
   });
 }
 
-function ActionRow({ item, index }: { item: ActionItem; index: number }): JSX.Element {
-  const priorityLabels: Record<number, string> = {
-    0: "P1. 지금 바로",
-    1: "P2. 이번 주",
-    2: "P3. 다음 단계",
-  };
-
-  return (
-    <li className="p-4 rounded-xl border bg-card">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 space-y-1.5">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-            {priorityLabels[index] ?? "우선순위"}
-          </p>
-          <h3 className="text-base font-semibold text-slate-900 break-words">
-            {item.title}
-          </h3>
-          <p className="text-sm leading-relaxed text-slate-600 break-words">
-            {item.reason}
-          </p>
-        </div>
-        <span className="inline-flex h-7 shrink-0 items-center rounded-full bg-emerald-50 px-3 text-xs font-medium text-emerald-700">
-          예상 효과
-        </span>
-      </div>
-      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-        <span className="rounded-full bg-slate-50 px-2.5 py-1 text-[11px] font-medium text-slate-600">
-          {item.expected_impact}
-        </span>
-        <span className="text-slate-300">•</span>
-        <span className="truncate text-[11px]">
-          출처: <span className="font-medium text-slate-600">{item.source}</span>
-        </span>
-      </div>
-    </li>
-  );
-}
-
 export default function ActionPlanV2View({
   data,
 }: ActionPlanV2ViewProps): JSX.Element {
-  const { channels, selectedChannel, latestResult, actions } = data;
+  const { channels, selectedChannel, latestResult, actions, specItems, checklist } = data;
   const hasChannels = channels.length > 0;
   const hasResult = latestResult !== null;
-  const hasActions = hasResult && actions.length > 0;
+  const hasActions = hasResult && actions.length > 0 && specItems.length > 0;
 
   return (
     <div className="w-full max-w-6xl mx-auto px-6 lg:px-12 py-8 lg:py-10">
@@ -177,23 +146,58 @@ export default function ActionPlanV2View({
 
       {/* 액션 카드 섹션 */}
       {hasActions ? (
+        <>
         <section className="py-12">
           <div className="space-y-6">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-              우선순위 액션 3개
+              실행 우선순위
             </h3>
             <p className="text-xs text-slate-500">
-              이번 분석 결과를 기준으로 바로 실행할 수 있는 액션입니다.
+              P1–P3 · 영향 영역·근거·예상 효과 시나리오를 카드에 표시합니다.
             </p>
           </div>
-          <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {actions.slice(0, 3).map((item, index) => (
-              <ActionRow key={`${item.title}-${index}`} item={item} index={index} />
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {specItems.map((spec) => (
+              <ActionPriorityCard
+                key={`${spec.priority}-${spec.action_title}`}
+                spec={spec}
+                priorityLabel={PRIORITY_LABEL[spec.priority]}
+              />
             ))}
-          </ul>
+          </div>
           </div>
         </section>
+        <section className="py-12">
+          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <h3 className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+              체크리스트
+            </h3>
+            <div className="space-y-4 text-sm text-slate-700">
+              <div>
+                <p className="mb-1.5 text-xs font-medium text-slate-500">해야 할 것</p>
+                <ul className="list-disc space-y-1 pl-5">
+                  {checklist.dos.map((line, i) => (
+                    <li key={`do-${i}`}>{line}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <p className="mb-1.5 text-xs font-medium text-slate-500">하지 말 것</p>
+                <ul className="list-disc space-y-1 pl-5">
+                  {checklist.donts.map((line, i) => (
+                    <li key={`dont-${i}`}>{line}</li>
+                  ))}
+                </ul>
+              </div>
+              <div className="rounded-lg border border-slate-100 bg-slate-50/80 p-3">
+                <p className="text-xs font-medium text-slate-500">핵심 1개 액션</p>
+                <p className="mt-1 font-medium text-slate-900">{checklist.core_single_action}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+        </>
       ) : (
         <section className="py-12">
           <div className="space-y-6">

@@ -21,11 +21,52 @@ export type ChannelDnaChannel = {
   channel_title: string | null;
   thumbnail_url: string | null;
   subscriber_count: number | null;
+  /** YouTube 공개 API·DB `user_channels` 기준, 내부 요약에 사용 */
+  video_count: number | null;
   created_at: string | null;
   last_analyzed_at: string | null;
 };
 
+/** 공개 API·계산·AI 해석 구분 (UI 라벨용) */
+export type ChannelDnaSourceTag = "youtube_api" | "computed" | "ai_interpretation";
+
+export type ChannelDnaSpecLine = {
+  label: string;
+  body: string;
+  source: ChannelDnaSourceTag;
+};
+
+/**
+ * Channel DNA 확정 스펙: 성과 구조 요약 / 반복 패턴 / DNA 카드 / 성장 축 지표.
+ */
+export type ChannelDnaSpecViewModel = {
+  dataPipelineNote: string;
+  performanceStructure: {
+    hitDependency: ChannelDnaSpecLine;
+    performanceDistribution: ChannelDnaSpecLine;
+    growthModeDefinition: ChannelDnaSpecLine;
+    growthAxisClassification: ChannelDnaSpecLine;
+  };
+  repetitionPatterns: {
+    highPerformerCommonalities: ChannelDnaSpecLine;
+    titleStructurePatterns: ChannelDnaSpecLine;
+    formatLengthRepeat: ChannelDnaSpecLine;
+    topicCluster: ChannelDnaSpecLine;
+    uploadVsPerformance: ChannelDnaSpecLine;
+  };
+  dnaCards: {
+    strengthPattern: ChannelDnaSpecLine;
+    weaknessPattern: ChannelDnaSpecLine;
+    maintenanceCore: ChannelDnaSpecLine;
+    hitDependenceRisk: ChannelDnaSpecLine;
+  };
+  /** 통합 내러티브(표본·편차·의존도·업로드) */
+  channelDnaNarrative: string | null;
+};
+
 export type ChannelDnaPageData = {
+  /** 세션 사용자 — 내부 요약 VM 연결용 */
+  userId: string;
   channels: ChannelDnaChannel[];
   selectedChannel: ChannelDnaChannel | null;
   latestResult: ChannelDnaResultRow | null;

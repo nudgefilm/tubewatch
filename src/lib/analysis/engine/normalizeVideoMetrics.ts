@@ -109,6 +109,7 @@ import {
         const durationSeconds = parseDurationToSeconds(video.duration);
   
         const publishedDate = parseIsoDate(publishedAt);
+        /** 업로드 시각 기준 일수 — `recent30dUploadCount` 등과 함께 쓰임(표본은 uploads 플레이리스트 수집 경로). */
         const daysSincePublished = publishedDate
           ? Math.max(0, daysBetween(publishedDate, now))
           : null;

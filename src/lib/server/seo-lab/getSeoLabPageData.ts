@@ -5,6 +5,7 @@ import {
   getUserChannelsForUser,
   type UserChannelRow,
 } from "@/lib/analysis/getAnalysisPageData";
+import { buildSeoLabSpecViewModel } from "@/lib/seo-lab/buildSeoLabSpecViewModel";
 import { buildSeoLabItemsFromResult } from "./buildSeoLabItemsFromResult";
 import type {
   SeoLabPageData,
@@ -82,6 +83,7 @@ export async function getSeoLabPageData(
       selectedChannel: null,
       latestResult: null,
       cards: [],
+      spec: buildSeoLabSpecViewModel(null, null),
     };
   }
 
@@ -98,11 +100,16 @@ export async function getSeoLabPageData(
     : null;
 
   const cards = latestResult ? buildSeoLabItemsFromResult(latestResult) : [];
+  const spec = buildSeoLabSpecViewModel(
+    latestResult,
+    selectedChannel?.channel_title ?? null
+  );
 
   return {
     channels: channelList,
     selectedChannel: selectedChannel ? mapChannel(selectedChannel) : null,
     latestResult,
     cards,
+    spec,
   };
 }

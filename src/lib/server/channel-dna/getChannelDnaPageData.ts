@@ -21,6 +21,10 @@ function mapChannel(row: UserChannelRow): ChannelDnaChannel {
     channel_title: row.channel_title ?? null,
     thumbnail_url: row.thumbnail_url ?? null,
     subscriber_count: row.subscriber_count ?? null,
+    video_count:
+      typeof row.video_count === "number" && Number.isFinite(row.video_count)
+        ? row.video_count
+        : null,
     created_at: row.created_at ?? null,
     last_analyzed_at: row.last_analyzed_at ?? null,
   };
@@ -77,6 +81,7 @@ export async function getChannelDnaPageData(
 
   if (channels.length === 0) {
     return {
+      userId: user.id,
       channels: channelList,
       selectedChannel: null,
       latestResult: null,
@@ -106,6 +111,7 @@ export async function getChannelDnaPageData(
       : ["아직 비교 데이터가 충분하지 않습니다."];
 
   return {
+    userId: user.id,
     channels: channelList,
     selectedChannel: selectedChannel ? mapChannel(selectedChannel) : null,
     latestResult,

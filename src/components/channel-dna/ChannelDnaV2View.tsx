@@ -2,11 +2,56 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import type { ChannelDnaPageData, ChannelDnaCompareItem } from "./channelDnaPageTypes";
+import type {
+  ChannelDnaPageData,
+  ChannelDnaCompareItem,
+  ChannelDnaSpecViewModel,
+  ChannelDnaSpecLine,
+  ChannelDnaSourceTag,
+} from "./channelDnaPageTypes";
 
 type ChannelDnaV2ViewProps = {
   data: ChannelDnaPageData;
+  spec: ChannelDnaSpecViewModel;
 };
+
+function sourceLabel(source: ChannelDnaSourceTag): string {
+  switch (source) {
+    case "youtube_api":
+      return "YouTube API";
+    case "computed":
+      return "계산";
+    case "ai_interpretation":
+      return "AI 해석";
+    default: {
+      const _e: never = source;
+      return _e;
+    }
+  }
+}
+
+function SpecLineGrid({ items }: { items: ChannelDnaSpecLine[] }): JSX.Element {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      {items.map((item, index) => (
+        <div
+          key={`spec-line-${index}-${item.label}`}
+          className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+        >
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <h4 className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+              {item.label}
+            </h4>
+            <span className="text-[10px] font-medium uppercase tracking-wide text-slate-400">
+              {sourceLabel(item.source)}
+            </span>
+          </div>
+          <p className="text-sm leading-relaxed text-slate-700">{item.body}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function formatDate(value: string | null): string {
   if (!value) return "-";
@@ -98,6 +143,7 @@ function ChannelDnaMetricCard({
 
 export default function ChannelDnaV2View({
   data,
+  spec,
 }: ChannelDnaV2ViewProps): JSX.Element {
   const { channels, selectedChannel, latestResult, compareItems, summaries } =
     data;
@@ -106,7 +152,7 @@ export default function ChannelDnaV2View({
   const hasItems = hasResult && compareItems.length > 0;
 
   return (
-    <div className="space-y-6">
+    <div className="w-full max-w-6xl mx-auto px-6 lg:px-12 py-8 lg:py-10 space-y-6">
       {/* 헤더 / 채널 요약 */}
       <section className="rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100/80 p-4 sm:p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -115,10 +161,10 @@ export default function ChannelDnaV2View({
               채널 DNA
             </p>
             <h2 className="text-lg font-display font-semibold text-slate-900 sm:text-xl">
-              경쟁 채널 대비 현재 위치
+              성과 구조·반복 패턴·DNA 카드
             </h2>
             <p className="text-xs text-slate-500 sm:text-sm">
-              핵심 지표 기준으로 내 채널의 강점과 개선 우선순위를 비교합니다.
+              {spec.dataPipelineNote}
             </p>
           </div>
 
@@ -216,15 +262,84 @@ export default function ChannelDnaV2View({
         <>
           <section className="py-12">
             <div className="space-y-6">
-            <div className="flex flex-wrap items-baseline justify-between gap-2">
               <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-                핵심 지표 비교
+                성과 구조 요약
               </h3>
-              <p className="text-xs text-slate-500">
-                구독자 대비 조회수, 업로드 빈도, 반응 등을 기준으로 비교합니다.
-              </p>
+              <SpecLineGrid
+                items={[
+                  spec.performanceStructure.hitDependency,
+                  spec.performanceStructure.performanceDistribution,
+                  spec.performanceStructure.growthModeDefinition,
+                  spec.performanceStructure.growthAxisClassification,
+                ]}
+              />
             </div>
-            <ul className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          </section>
+
+          <section className="py-12">
+            <div className="space-y-6">
+              <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                반복 패턴 분석
+              </h3>
+              <SpecLineGrid
+                items={[
+                  spec.repetitionPatterns.highPerformerCommonalities,
+                  spec.repetitionPatterns.titleStructurePatterns,
+                  spec.repetitionPatterns.formatLengthRepeat,
+                  spec.repetitionPatterns.topicCluster,
+                  spec.repetitionPatterns.uploadVsPerformance,
+                ]}
+              />
+            </div>
+          </section>
+
+          <section className="py-12">
+            <div className="space-y-6">
+              <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                DNA 카드
+              </h3>
+              <SpecLineGrid
+                items={[
+                  spec.dnaCards.strengthPattern,
+                  spec.dnaCards.weaknessPattern,
+                  spec.dnaCards.maintenanceCore,
+                  spec.dnaCards.hitDependenceRisk,
+                ]}
+              />
+            </div>
+          </section>
+
+          {spec.channelDnaNarrative ? (
+            <section className="py-12">
+              <div className="space-y-6">
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <h3 className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                    표본 기반 통합 해석
+                  </h3>
+                  <p className="text-sm leading-relaxed text-slate-700">
+                    {spec.channelDnaNarrative}
+                  </p>
+                </div>
+              </div>
+            </section>
+          ) : null}
+
+          <section className="py-12 border-t border-dashed border-slate-200/90">
+            <div className="space-y-4">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <h3 className="text-xs font-medium uppercase tracking-[0.14em] text-slate-400">
+                  참고 지표
+                </h3>
+                <p className="mt-1 max-w-xl text-[11px] leading-relaxed text-slate-400">
+                  저장 표본을 내부 기준과 비교한 보조 지표입니다. 위의 성과 구조·반복 패턴·DNA 카드를 먼저 보시고 참고하세요.
+                </p>
+              </div>
+              <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
+                보조
+              </span>
+            </div>
+            <ul className="grid grid-cols-2 md:grid-cols-4 gap-4 opacity-95">
               {compareItems.slice(0, 4).map((item) => (
                 <ChannelDnaMetricCard key={item.title} item={item} />
               ))}

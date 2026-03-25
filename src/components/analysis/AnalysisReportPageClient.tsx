@@ -20,8 +20,10 @@ export default function AnalysisReportPageClient({
 }: AnalysisReportPageClientProps): JSX.Element {
   if (!viewModel.hasChannel || !selectedChannel) {
     return (
-      <div className="rounded-xl border border-gray-200 bg-white p-6 text-center text-sm leading-relaxed text-gray-600 shadow-sm">
-        {viewModel.limitNotice ?? "연결된 채널이 없습니다. 설정에서 채널을 연결해 주세요."}
+      <div className="w-full max-w-6xl mx-auto px-6 lg:px-12 py-8 lg:py-10">
+        <div className="rounded-xl border border-gray-200 bg-white p-6 text-center text-sm leading-relaxed text-gray-600 shadow-sm">
+          {viewModel.limitNotice ?? "연결된 채널이 없습니다. 설정에서 채널을 연결해 주세요."}
+        </div>
       </div>
     );
   }

@@ -1,4 +1,4 @@
-import type { ActionItem, ActionPlanResultRow } from "@/components/action-plan/types";
+import type { ActionItem, ActionMetricAxisKey, ActionPlanResultRow } from "@/components/action-plan/types";
 
 /**
  * ChannelDnaRadar과 동일한 보간 로직으로 0~100 점수 계산.
@@ -121,9 +121,30 @@ export function buildActionItemsFromResult(row: ActionPlanResultRow | null): Act
 
   if (!row) {
     out.push(
-      { title: "업로드 재개 계획 수립", reason: "최근 활동성 점수 낮음", expected_impact: "", source: "fallback" },
-      { title: "태그/메타데이터 정비", reason: "SEO 태그 활용 부족", expected_impact: "", source: "fallback" },
-      { title: "대표 콘텐츠 포맷 재정의", reason: "조회수 경쟁력 약세", expected_impact: "", source: "fallback" }
+      {
+        title: "업로드 재개 계획 수립",
+        reason: "최근 활동성 점수 낮음",
+        expected_impact: "",
+        source: "fallback",
+        sourceDetail: "fallback",
+        axisKey: "recent30dUploadCount",
+      },
+      {
+        title: "태그/메타데이터 정비",
+        reason: "SEO 태그 활용 부족",
+        expected_impact: "",
+        source: "fallback",
+        sourceDetail: "fallback",
+        axisKey: "avgTagCount",
+      },
+      {
+        title: "대표 콘텐츠 포맷 재정의",
+        reason: "조회수 경쟁력 약세",
+        expected_impact: "",
+        source: "fallback",
+        sourceDetail: "fallback",
+        axisKey: "avgViewCount",
+      }
     );
     return out;
   }
@@ -135,6 +156,8 @@ export function buildActionItemsFromResult(row: ActionPlanResultRow | null): Act
       reason: "AI 성장 액션 플랜",
       expected_impact: "",
       source: "growth_action_plan",
+      sourceDetail: "growth_action_plan",
+      axisKey: null,
     });
   }
 
@@ -149,6 +172,8 @@ export function buildActionItemsFromResult(row: ActionPlanResultRow | null): Act
         reason: "분석 감지 약점/병목",
         expected_impact: "",
         source: "weaknesses_bottlenecks",
+        sourceDetail: "weakness_bottleneck",
+        axisKey: null,
       });
     }
   }
@@ -168,6 +193,8 @@ export function buildActionItemsFromResult(row: ActionPlanResultRow | null): Act
         reason: axis.fallbackReason,
         expected_impact: "",
         source: "low_score_section",
+        sourceDetail: "low_metric",
+        axisKey: axis.key as ActionMetricAxisKey,
       });
     }
   }
@@ -179,6 +206,8 @@ export function buildActionItemsFromResult(row: ActionPlanResultRow | null): Act
       reason: axis.fallbackReason,
       expected_impact: "",
       source: "fallback",
+      sourceDetail: "fallback",
+      axisKey: axis.key as ActionMetricAxisKey,
     });
   }
 

@@ -28,7 +28,7 @@ export default async function SeoLabRoutePage({
   );
   const data = await getSeoLabPageData(channelId);
   if (!data) {
-    redirect("/");
+    redirect("/channels");
   }
   return <SeoLabView data={data} />;
 }

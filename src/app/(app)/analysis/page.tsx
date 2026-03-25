@@ -36,7 +36,7 @@ export default async function AnalysisRoutePage({
   const data = await getAnalysisPageData(channelId);
 
   if (!data) {
-    redirect("/");
+    redirect("/channels");
   }
 
   const viewModel = buildAnalysisPageViewModel(data);
