@@ -6,9 +6,10 @@ const config: Config = {
     extend: {
       fontFamily: {
         sans: ["var(--font-sans)"],
-        serif: ["var(--font-display)"],
+        heading: ["var(--font-sans)"],
+        serif: ["var(--font-sans)"],
         mono: ["var(--font-mono)"],
-        display: ["var(--font-display)"],
+        display: ["var(--font-sans)"],
       },
       colors: {
         border: "var(--border)",
