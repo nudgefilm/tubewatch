@@ -1,0 +1,134 @@
+"use client"
+
+import { Check, Minus, X, Clock } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+
+interface ChecklistItem {
+  id: string
+  text: string
+  linked?: string
+}
+
+interface ChecklistData {
+  changeFirst: ChecklistItem[]
+  maintain: ChecklistItem[]
+  avoid: ChecklistItem[]
+  reviewAfter2Weeks: ChecklistItem[]
+}
+
+interface ActionPlanChecklistProps {
+  data: ChecklistData
+}
+
+export function ActionPlanChecklistSection({ data }: ActionPlanChecklistProps) {
+  return (
+    <section className="space-y-4">
+      <h2 className="text-xl font-bold">실행 체크리스트</h2>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {/* 먼저 바꿀 것 */}
+        <Card className="border-emerald-200 bg-emerald-50/50 dark:bg-emerald-950/20">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base text-emerald-700 dark:text-emerald-400">
+              <div className="p-1 rounded-full bg-emerald-100 dark:bg-emerald-900">
+                <Check className="h-4 w-4" />
+              </div>
+              먼저 바꿀 것
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-3">
+              {data.changeFirst.map((item) => (
+                <li key={item.id} className="flex items-start gap-2">
+                  <div className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
+                  <div className="space-y-1">
+                    <p className="text-sm">{item.text}</p>
+                    {item.linked && (
+                      <Badge variant="outline" className="text-xs">
+                        {item.linked}
+                      </Badge>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+
+        {/* 유지할 것 */}
+        <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base text-blue-700 dark:text-blue-400">
+              <div className="p-1 rounded-full bg-blue-100 dark:bg-blue-900">
+                <Minus className="h-4 w-4" />
+              </div>
+              유지할 것
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-3">
+              {data.maintain.map((item) => (
+                <li key={item.id} className="flex items-start gap-2">
+                  <div className="mt-1 h-1.5 w-1.5 rounded-full bg-blue-500 shrink-0" />
+                  <p className="text-sm">{item.text}</p>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+
+        {/* 하지 말 것 */}
+        <Card className="border-destructive/30 bg-destructive/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base text-destructive">
+              <div className="p-1 rounded-full bg-destructive/10">
+                <X className="h-4 w-4" />
+              </div>
+              하지 말 것
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-3">
+              {data.avoid.map((item) => (
+                <li key={item.id} className="flex items-start gap-2">
+                  <div className="mt-1 h-1.5 w-1.5 rounded-full bg-destructive shrink-0" />
+                  <p className="text-sm">{item.text}</p>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+
+        {/* 2주 후 확인 */}
+        <Card className="border-amber-200 bg-amber-50/50 dark:bg-amber-950/20">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base text-amber-700 dark:text-amber-400">
+              <div className="p-1 rounded-full bg-amber-100 dark:bg-amber-900">
+                <Clock className="h-4 w-4" />
+              </div>
+              2주 후 확인
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-3">
+              {data.reviewAfter2Weeks.map((item) => (
+                <li key={item.id} className="flex items-start gap-2">
+                  <div className="mt-1 h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" />
+                  <div className="space-y-1">
+                    <p className="text-sm">{item.text}</p>
+                    {item.linked && (
+                      <Badge variant="outline" className="text-xs">
+                        {item.linked}
+                      </Badge>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      </div>
+    </section>
+  )
+}

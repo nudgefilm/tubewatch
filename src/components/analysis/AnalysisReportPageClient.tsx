@@ -35,6 +35,10 @@ export default function AnalysisReportPageClient({
         id: selectedChannel.id,
         channel_title: selectedChannel.channel_title ?? null,
         thumbnail_url: selectedChannel.thumbnail_url ?? null,
+        video_count:
+          typeof selectedChannel.video_count === "number"
+            ? selectedChannel.video_count
+            : null,
         subscriber_count:
           typeof selectedChannel.subscriber_count === "number"
             ? selectedChannel.subscriber_count
@@ -50,6 +54,11 @@ export default function AnalysisReportPageClient({
       analysisHistory={viewModel.analysisHistory}
       analysisViewModel={viewModel.analysisViewModel}
       snapshotMetricsForRadar={viewModel.snapshotMetricsForRadar}
+      headlineDiagnosis={viewModel.headlineDiagnosis}
+      recentVideos={viewModel.recentVideos}
+      topVideos={viewModel.topVideos}
+      weakVideos={viewModel.weakVideos}
+      performanceCompareSummary={viewModel.performanceCompareSummary}
     />
   );
 }

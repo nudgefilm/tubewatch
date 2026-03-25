@@ -12,8 +12,8 @@ import {
 } from "@/lib/navigation/pickChannelFromSearchParams";
 import { AppRouteLoading } from "@/components/layout/AppRouteLoading";
 
-const ActionPlanView = dynamic(
-  () => import("@/components/action-plan/ActionPlanView"),
+const ActionPlanV2View = dynamic(
+  () => import("@/components/action-plan/ActionPlanV2View"),
   { loading: () => <AppRouteLoading variant="action-plan" /> }
 );
 
@@ -30,5 +30,5 @@ export default async function ActionPlanRoutePage({
   if (!data) {
     redirect("/channels");
   }
-  return <ActionPlanView data={data} />;
+  return <ActionPlanV2View data={data} />;
 }

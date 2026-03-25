@@ -103,8 +103,8 @@ export default function ChannelSidebar({
       <div className="flex w-full justify-center lg:justify-start">{gauge}</div>
 
       <p className="mt-6 max-w-md text-center text-muted-foreground lg:text-left">
-        종합 채널 점수입니다. 활동, 반응, 구조, SEO, 성장 5개 영역의 분석 결과를
-        종합하여 산출됩니다.
+        원천 데이터 진단형 기준선입니다. TubeWatch 엔진 분석으로 수집·스냅샷된 지표를
+        요약합니다.
       </p>
 
       <nav className="mt-8 w-full max-w-md space-y-2">

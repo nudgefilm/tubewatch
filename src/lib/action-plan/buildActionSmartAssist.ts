@@ -49,7 +49,7 @@ function vrew(item: ActionItem): ActionSmartAssist {
 function chatGptSeo(item: ActionItem): ActionSmartAssist {
   const t = clip(item.title, 48);
   return {
-    toolName: "ChatGPT / Claude",
+    toolName: "문장 보조 도구",
     reason:
       "SEO·제목·태그·메타 방향의 액션입니다. 검색 의도와 채널 톤을 함께 넣어 한 번에 여러 후보를 비교할 수 있습니다.",
     promptExample: `역할: 한국어 YouTube SEO 어시스턴트.\n채널 액션: ${t}\n요청: 검색 의도에 맞는 제목 후보 5개(40자 내), 설명 첫 줄 1개, 태그 8개 이내.`,
@@ -61,7 +61,7 @@ function chatGptSeo(item: ActionItem): ActionSmartAssist {
 function genericLlm(item: ActionItem, area: ActionImpactArea): ActionSmartAssist {
   const ctx = clip(`${item.title}. ${item.reason}`, 200);
   return {
-    toolName: "ChatGPT / Claude",
+    toolName: "문장 보조 도구",
     reason: `영향 영역「${area}」에 맞춰 저장된 액션 문맥을 바탕으로 실행 문장·체크리스트 초안을 뽑을 때 사용합니다.`,
     promptExample: `다음은 우리 채널 액션 플랜의 한 항목입니다. 실행 가능한 5단계 체크리스트와 주의사항 3가지만 한국어로 정리해 주세요:\n\n${ctx}`,
     effect:
@@ -77,7 +77,7 @@ function areaFallback(area: ActionImpactArea, item: ActionItem): ActionSmartAssi
       return chatGptSeo(item);
     case "반응·참여":
       return {
-        toolName: "ChatGPT / Claude",
+        toolName: "문장 보조 도구",
         reason:
           "참여·CTA·질문 문구를 다듬는 액션에 맞춰 짧은 훅·댓글 유도 문장 초안을 뽑을 때 사용합니다.",
         promptExample: `액션: ${clip(item.title, 60)}\n요청: 영상 마지막 20초용 CTA 2안(한국어), 댓글 질문 1개.`,
@@ -85,7 +85,7 @@ function areaFallback(area: ActionImpactArea, item: ActionItem): ActionSmartAssi
       };
     case "업로드·일관성":
       return {
-        toolName: "Notion / 캘린더 + ChatGPT",
+        toolName: "Notion / 캘린더 + 문장 보조",
         reason:
           "업로드 리듬·슬롯 고정이 중심일 때, 일정 문장화와 리마인드 문구를 함께 쓰기 좋습니다.",
         promptExample: `주간 업로드 목표를 ${clip(item.reason, 100)} 맥락에 맞게 2주 치 캘린더 불릿으로만 정리해 주세요.`,

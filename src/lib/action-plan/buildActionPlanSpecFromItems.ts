@@ -82,7 +82,7 @@ function evidenceData(item: ActionItem, row: ActionPlanResultRow | null): string
   }
   switch (item.sourceDetail) {
     case "growth_action_plan":
-      return "근거 데이터: `growth_action_plan`(Gemini 저장) + 동일 행 `created_at`.";
+      return "근거 데이터: 저장된 성장 액션 플랜(growth_action_plan) + 동일 분석 `created_at`.";
     case "weakness_bottleneck":
       return "근거 데이터: `weaknesses` / `bottlenecks` 저장 텍스트.";
     case "low_metric":
@@ -149,7 +149,7 @@ function executionExample(area: ActionImpactArea): string {
 }
 
 function scopeText(): string {
-  return "적용 범위: 선택 채널의 최신 성공 분석 1건(`status=analyzed`, `gemini_status=success`)에 한정.";
+  return "적용 범위: 선택 채널의 최신 성공 분석 1건(분석 완료·엔진 성공)에 한정.";
 }
 
 function scenarioText(item: ActionItem): string {

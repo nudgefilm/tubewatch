@@ -6,51 +6,30 @@ import {
   useMemo,
   useState,
   useTransition,
-  type ElementType,
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
-import {
-  AlertCircle,
-  ArrowRight,
-  ArrowUpRight,
-  BarChart3,
-  CheckCircle2,
-  Eye,
-  Search,
-  Target,
-  ThumbsUp,
-  TrendingDown,
-  TrendingUp,
-  Users,
-  Video,
-} from "lucide-react";
+import { AlertCircle, ArrowRight, ArrowUpRight, TrendingUp, Users, Video } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import {
   StatusBadge,
   toStatusBadgeStatus,
 } from "@/components/ui/StatusBadge";
-import ChannelDnaRadar from "@/components/analysis/ChannelDnaRadar";
-import NextTrend from "@/components/analysis/NextTrend";
 import FirstAnalysisGuide from "@/components/analysis/FirstAnalysisGuide";
 import { AnalysisReportSkeleton } from "@/components/ui/SkeletonCard";
-import type { ChannelSizeTier, ConfidenceLevel } from "@/lib/analysis/engine/types";
+import type { ConfidenceLevel } from "@/lib/analysis/engine/types";
 import { formatDateTime } from "@/lib/format/formatDateTime";
 import AnalysisHistoryList from "@/components/analysis/AnalysisHistoryList";
 import type { AnalysisHistoryItem } from "@/components/analysis/AnalysisHistoryList";
-import GrowthTrendChart from "@/components/analysis/GrowthTrendChart";
-import AnalysisCompareCard from "@/components/analysis/AnalysisCompareCard";
 import type { AnalysisViewModel } from "@/lib/analysis/analysisViewModel";
-import type { AnalysisCardVM } from "@/lib/analysis/analysisViewModel";
+import type { AnalysisVideoRow } from "@/lib/analysis/analysisPageViewModel";
 import type {
   AnalysisReportAiFieldsVm,
   AnalysisReportCompareVm,
@@ -59,6 +38,13 @@ import type {
 import type { ChannelMetrics } from "@/lib/analysis/engine/types";
 import type { UserChannelRow } from "@/lib/analysis/getAnalysisPageData";
 import AnalysisShell from "@/components/analysis/AnalysisShell";
+import {
+  buildChannelStatusSummary,
+  buildHubMetricCards,
+  deriveVideoPatternTags,
+  performanceBadgeShort,
+  type HubMetricCardVm,
+} from "@/components/analysis/analysisHubPresentation";
 
 // ── Types (props 계약 유지) ──
 
@@ -66,6 +52,7 @@ type SelectedChannel = {
   id: string;
   channel_title: string | null;
   thumbnail_url: string | null;
+  video_count: number | null;
   subscriber_count: number | null;
   created_at: string | null;
   last_analysis_requested_at?: string | null;
@@ -82,6 +69,12 @@ type AnalysisReportViewProps = {
   analysisHistory?: AnalysisHistoryItem[];
   snapshotMetricsForRadar: ChannelMetrics | null;
   analysisViewModel: AnalysisViewModel | null;
+  /** analysisPageViewModel — 표현 전용, 추가 수집 없음 */
+  headlineDiagnosis?: string | null;
+  recentVideos?: AnalysisVideoRow[];
+  topVideos?: AnalysisVideoRow[];
+  weakVideos?: AnalysisVideoRow[];
+  performanceCompareSummary?: string | null;
 };
 
 // ── v0-TubewatchUI analysis/page.tsx 복제 컴포넌트 ──
@@ -146,107 +139,58 @@ function ScoreGauge({ score, grade }: { score: number; grade: string }) {
           {grade}
         </span>
         <span className="mt-2 text-4xl font-bold text-foreground">{animatedScore}</span>
-        <span className="mt-1 text-sm text-muted-foreground">Channel Score</span>
+        <span className="mt-1 text-sm text-muted-foreground">TubeWatch 엔진 분석 종합 점수</span>
       </div>
     </div>
   );
 }
 
-function DiagnosisCard({
-  title,
-  score,
-  icon: Icon,
-  status,
-  items,
-}: {
-  title: string;
-  score: number;
-  icon: ElementType;
-  status: "good" | "warning" | "critical";
-  items: { label: string; value: string; trend?: "up" | "down" }[];
-}) {
-  const statusColors = {
-    good: "bg-green-500/10 text-green-500 border-green-500/20",
-    warning: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-    critical: "bg-red-500/10 text-red-500 border-red-500/20",
-  };
+function HubMetricCard({ vm }: { vm: HubMetricCardVm }): JSX.Element {
+  const toneRing = {
+    good: "border-emerald-500/25 bg-emerald-500/[0.04]",
+    warning: "border-amber-500/25 bg-amber-500/[0.04]",
+    critical: "border-red-500/25 bg-red-500/[0.04]",
+    neutral: "border-border bg-card",
+  }[vm.tone];
 
   return (
-    <Card className="bg-card transition-shadow hover:shadow-md">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className={`rounded-lg p-2 ${statusColors[status]}`}>
-              <Icon className="h-5 w-5" />
-            </div>
-            <div>
-              <CardTitle className="text-base">{title}</CardTitle>
-              <CardDescription className="mt-0.5 text-xs">
-                진단 점수: {score}/100
-              </CardDescription>
-            </div>
-          </div>
-          <Badge variant="outline" className={statusColors[status]}>
-            {status === "good" ? "양호" : status === "warning" ? "주의" : "개선필요"}
+    <Card className={`border-2 ${toneRing}`}>
+      <CardHeader className="space-y-2 pb-2">
+        <div className="flex items-start justify-between gap-2">
+          <CardTitle className="text-sm font-semibold leading-snug">{vm.title}</CardTitle>
+          <Badge variant="outline" className="shrink-0 text-[10px]">
+            {vm.statusLabel}
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="pt-0">
-        <Progress value={score} className="mb-4 h-1.5" />
-        <div className="space-y-2">
-          {items.map((item, index) => (
-            <div key={index} className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">{item.label}</span>
-              <div className="flex items-center gap-1.5">
-                <span className="font-medium">{item.value}</span>
-                {item.trend ? (
-                  item.trend === "up" ? (
-                    <TrendingUp className="h-3 w-3 text-green-500" />
-                  ) : (
-                    <TrendingDown className="h-3 w-3 text-red-500" />
-                  )
-                ) : null}
-              </div>
-            </div>
+      <CardContent className="space-y-3 pt-0">
+        <p className="text-lg font-bold leading-tight sm:text-xl">{vm.primaryValue}</p>
+        {vm.miniBars && vm.miniBars.length >= 3 ? (
+          <div className="flex h-12 items-end gap-1 rounded-md border border-border/60 bg-muted/30 px-2 py-2">
+            {vm.miniBars.map((h, i) => (
+              <div
+                key={i}
+                className="min-h-[6px] flex-1 rounded-sm bg-orange-500/80"
+                style={{ height: `${Math.max(12, (h / 100) * 40)}px` }}
+              />
+            ))}
+          </div>
+        ) : null}
+        <ul className="space-y-1 text-xs text-muted-foreground">
+          {vm.detailLines.map((line, i) => (
+            <li key={i}>{line}</li>
           ))}
-        </div>
+        </ul>
       </CardContent>
     </Card>
   );
 }
 
-function InsightCard({
-  title,
-  description,
-  type,
-}: {
-  title: string;
-  description: string;
-  type: "positive" | "negative" | "neutral";
-}) {
-  const typeStyles = {
-    positive: "border-l-green-500 bg-green-500/5",
-    negative: "border-l-red-500 bg-red-500/5",
-    neutral: "border-l-blue-500 bg-blue-500/5",
-  };
-
-  return (
-    <div className={`rounded-xl border border-border bg-card p-4 border-l-4 ${typeStyles[type]}`}>
-      <div className="flex items-start gap-3">
-        {type === "positive" ? (
-          <CheckCircle2 className="mt-0.5 h-5 w-5 text-green-500" />
-        ) : type === "negative" ? (
-          <AlertCircle className="mt-0.5 h-5 w-5 text-red-500" />
-        ) : (
-          <Target className="mt-0.5 h-5 w-5 text-blue-500" />
-        )}
-        <div>
-          <h4 className="text-sm font-medium">{title}</h4>
-          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-        </div>
-      </div>
-    </div>
-  );
+function formatPublishedAt(iso: string | null): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("ko-KR");
 }
 
 // ── Constants ──
@@ -254,51 +198,11 @@ function InsightCard({
 const COOLDOWN_HOURS = 72;
 const COOLDOWN_MS = COOLDOWN_HOURS * 60 * 60 * 1000;
 
-const CHANNEL_SIZE_TIER_META: Record<ChannelSizeTier, { label: string; className: string }> = {
-  micro: {
-    label: "Micro",
-    className: "border-gray-300 bg-gray-50 text-gray-700",
-  },
-  small: {
-    label: "Small",
-    className: "border-sky-300 bg-sky-50 text-sky-700",
-  },
-  medium: {
-    label: "Medium",
-    className: "border-violet-300 bg-violet-50 text-violet-700",
-  },
-  large: {
-    label: "Large",
-    className: "border-amber-300 bg-amber-50 text-amber-700",
-  },
-};
-
-const DIAGNOSIS_ORDER: {
-  key: string;
-  title: string;
-  icon: ElementType;
-  cardId: string;
-}[] = [
-  { key: "channelActivity", title: "활동 지표", icon: Video, cardId: "upload_frequency" },
-  { key: "audienceResponse", title: "반응 지표", icon: ThumbsUp, cardId: "engagement" },
-  { key: "contentStructure", title: "구조 분석", icon: BarChart3, cardId: "video_length" },
-  { key: "seoOptimization", title: "SEO 점수", icon: Search, cardId: "content_meta" },
-  { key: "growthMomentum", title: "성장 지표", icon: TrendingUp, cardId: "view_performance" },
-];
-
 // ── Formatters ──
 
 function formatNumber(value: number | null | undefined): string {
   if (value == null) return "-";
   return new Intl.NumberFormat("ko-KR").format(value);
-}
-
-function getChannelSizeTier(subscriberCount: number | null | undefined): ChannelSizeTier {
-  const count = subscriberCount ?? 0;
-  if (count >= 100_000) return "large";
-  if (count >= 10_000) return "medium";
-  if (count >= 1_000) return "small";
-  return "micro";
 }
 
 function getConfidenceLevelLabel(level: ConfidenceLevel): string {
@@ -371,12 +275,6 @@ function scoreToGrade(score: number): string {
   return "D";
 }
 
-function sectionStatusFromScore(score: number): "good" | "warning" | "critical" {
-  if (score >= 70) return "good";
-  if (score >= 50) return "warning";
-  return "critical";
-}
-
 function normalizeItems(items: string[] | null | undefined): string[] {
   if (!Array.isArray(items)) return [];
   const seen = new Set<string>();
@@ -391,30 +289,7 @@ function normalizeItems(items: string[] | null | undefined): string[] {
     });
 }
 
-function findCard(vm: AnalysisViewModel | null, id: string): AnalysisCardVM | undefined {
-  return vm?.cards.find((c) => c.id === id);
-}
-
-function buildDiagnosisItems(
-  score: number,
-  card: AnalysisCardVM | undefined
-): { label: string; value: string; trend?: "up" | "down" }[] {
-  const trend: "up" | "down" | undefined =
-    score >= 70 ? "up" : score < 50 ? "down" : undefined;
-  return [
-    { label: "핵심 지표", value: card ? String(card.value) : "—", trend },
-    {
-      label: "데이터",
-      value: card ? `${card.dataStatus}` : "—",
-    },
-    {
-      label: "신뢰도",
-      value: card ? `${card.confidence}` : "—",
-    },
-  ];
-}
-
-// ── Appendix blocks (기능 유지, v0 섹션 래퍼와 동일 패딩) ──
+// ── Appendix blocks ──
 
 function AppendixSection({
   title,
@@ -434,31 +309,6 @@ function AppendixSection({
         </div>
         {children}
       </div>
-    </section>
-  );
-}
-
-function AiSection({
-  title,
-  description,
-  icon,
-  children,
-}: {
-  title: string;
-  description?: string;
-  icon?: string;
-  children: React.ReactNode;
-}): JSX.Element {
-  return (
-    <section className="rounded-xl border border-border bg-card p-6 shadow-sm">
-      <div className="mb-4">
-        <h3 className="flex items-center gap-2 text-base font-semibold">
-          {icon ? <span>{icon}</span> : null}
-          {title}
-        </h3>
-        {description ? <p className="mt-1 text-sm text-muted-foreground">{description}</p> : null}
-      </div>
-      {children}
     </section>
   );
 }
@@ -561,6 +411,11 @@ export default function AnalysisReportView({
   analysisHistory = [],
   snapshotMetricsForRadar = null,
   analysisViewModel = null,
+  headlineDiagnosis = null,
+  recentVideos = [],
+  topVideos = [],
+  weakVideos = [],
+  performanceCompareSummary = null,
 }: AnalysisReportViewProps): JSX.Element {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -582,33 +437,25 @@ export default function AnalysisReportView({
 
   const metrics = snapshotMetricsForRadar;
 
-  const insightRows = useMemo(() => {
-    if (!aiInsightFields) {
-      return [] as {
-        title: string;
-        description: string;
-        type: "positive" | "negative" | "neutral";
-      }[];
-    }
-    const rows: { title: string; description: string; type: "positive" | "negative" | "neutral" }[] =
-      [];
-    const s = aiInsightFields.strengths?.[0];
-    const w = aiInsightFields.weaknesses?.[0];
-    const r = aiInsightFields.recommended_topics?.[0];
-    if (s) rows.push({ title: "강점 신호", description: s, type: "positive" });
-    if (w) rows.push({ title: "개선 포인트", description: w, type: "negative" });
-    if (r) rows.push({ title: "추천 주제", description: r, type: "neutral" });
-    while (rows.length < 3) {
-      rows.push({
-        title: "분석 인사이트",
-        description:
-          aiInsightFields.channel_summary?.slice(0, 200) ??
-          "추가 인사이트는 분석 데이터가 쌓일수록 정교해집니다.",
-        type: "neutral",
-      });
-    }
-    return rows.slice(0, 3);
-  }, [aiInsightFields]);
+  const hubCards = useMemo(
+    () =>
+      buildHubMetricCards({
+        metrics,
+        sectionScores: reportPresentation?.sectionScores ?? null,
+        recentVideos,
+        reportCompare,
+      }),
+    [metrics, reportPresentation?.sectionScores, recentVideos, reportCompare]
+  );
+
+  const channelStatusLine = useMemo(
+    () =>
+      buildChannelStatusSummary({
+        sectionScores: reportPresentation?.sectionScores ?? null,
+        metrics,
+      }),
+    [reportPresentation?.sectionScores, metrics]
+  );
 
   if (!reportPresentation || !aiInsightFields) {
     return (
@@ -618,8 +465,10 @@ export default function AnalysisReportView({
           <section className="py-12">
             <div className="space-y-6">
               <div>
-                <h1 className="text-3xl font-bold tracking-tight">종합 진단 리포트</h1>
-                <p className="mt-2 text-muted-foreground">채널 데이터 기반 상세 분석 결과</p>
+                <h1 className="text-3xl font-bold tracking-tight">Channel Analysis</h1>
+                <p className="mt-2 text-muted-foreground">
+                  원천 데이터 허브 · TubeWatch 엔진 분석 기준선
+                </p>
               </div>
               <FirstAnalysisGuide />
               <div className="rounded-xl border border-border bg-card p-4 text-center">
@@ -662,19 +511,15 @@ export default function AnalysisReportView({
   const rawScore = typeof totalScore === "number" && !Number.isNaN(totalScore) ? totalScore : 0;
   const grade = scoreToGrade(Math.round(rawScore));
 
-  const sectionScores = reportPresentation.sectionScores;
-
-  const viewCard = findCard(analysisViewModel, "view_performance");
-
   const summarySubscribers = formatNumber(selectedChannel.subscriber_count);
-  const summaryTotalViews = viewCard ? String(viewCard.value) : "—";
-  const summaryVideos = formatNumber(reportPresentation.sampleVideoCount);
-  const summaryAvgViews =
-    metrics != null
-      ? formatNumber(Math.round(metrics.avgViewCount))
-      : viewCard
-        ? String(viewCard.value)
-        : "—";
+  const summaryTotalVideos =
+    selectedChannel.video_count != null
+      ? formatNumber(selectedChannel.video_count)
+      : formatNumber(reportPresentation.sampleVideoCount);
+  const summaryUpload30 =
+    metrics?.recent30dUploadCount != null
+      ? formatNumber(metrics.recent30dUploadCount)
+      : "—";
 
   function getRequestButtonLabel(): string {
     if (isSubmitting) return "분석 요청 중...";
@@ -728,100 +573,108 @@ export default function AnalysisReportView({
 
   const heroRightNode = (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">종합 진단 리포트</h1>
-        <p className="mt-2 text-muted-foreground">채널 데이터 기반 상세 분석 결과</p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+        {selectedChannel.thumbnail_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={selectedChannel.thumbnail_url}
+            alt=""
+            className="h-16 w-16 shrink-0 rounded-full border border-border object-cover"
+          />
+        ) : (
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-lg font-semibold text-muted-foreground">
+            {(selectedChannel.channel_title ?? "C").slice(0, 1).toUpperCase()}
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            {selectedChannel.channel_title ?? "채널명 없음"}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Channel Analysis · 원천 데이터 허브 (TubeWatch 엔진 분석)
+          </p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <Card className="bg-card/50">
           <CardContent className="pt-4">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <div className="rounded-lg bg-orange-500/10 p-2">
-                <Users className="h-5 w-5 text-orange-500" />
+                <Users className="h-4 w-4 text-orange-500" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">구독자</p>
-                <p className="text-xl font-bold">{summarySubscribers}</p>
+                <p className="text-xs text-muted-foreground">구독자 (statistics)</p>
+                <p className="text-lg font-bold">{summarySubscribers}</p>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card className="bg-card/50">
           <CardContent className="pt-4">
-            <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-blue-500/10 p-2">
-                <Eye className="h-5 w-5 text-blue-500" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">총 조회수</p>
-                <p className="text-xl font-bold">{summaryTotalViews}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-card/50">
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <div className="rounded-lg bg-green-500/10 p-2">
-                <Video className="h-5 w-5 text-green-500" />
+                <Video className="h-4 w-4 text-green-500" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">영상 수</p>
-                <p className="text-xl font-bold">{summaryVideos}</p>
+                <p className="text-xs text-muted-foreground">총 영상 수</p>
+                <p className="text-lg font-bold">{summaryTotalVideos}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-card/50">
+        <Card className="bg-card/50 col-span-2 sm:col-span-1">
           <CardContent className="pt-4">
-            <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-purple-500/10 p-2">
-                <BarChart3 className="h-5 w-5 text-purple-500" />
+            <div className="flex items-center gap-2">
+              <div className="rounded-lg bg-violet-500/10 p-2">
+                <TrendingUp className="h-4 w-4 text-violet-500" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">평균 조회수</p>
-                <p className="text-xl font-bold">{summaryAvgViews}</p>
+                <p className="text-xs text-muted-foreground">최근 30일 업로드 (playlist)</p>
+                <p className="text-lg font-bold">{summaryUpload30}</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-        <span>구독자 {formatNumber(selectedChannel.subscriber_count)}명</span>
-        {(() => {
-          const tier = getChannelSizeTier(selectedChannel.subscriber_count);
-          const meta = CHANNEL_SIZE_TIER_META[tier];
-          return (
-            <span
-              className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold leading-none ${meta.className}`}
-            >
-              {meta.label}
-            </span>
-          );
-        })()}
+      {headlineDiagnosis ? (
+        <p className="rounded-lg border border-border bg-muted/40 px-3 py-2.5 text-sm font-medium leading-relaxed text-foreground">
+          <span className="text-muted-foreground">한줄 진단 · </span>
+          {headlineDiagnosis}
+        </p>
+      ) : null}
+
+      <div className="rounded-lg border border-dashed border-border bg-muted/20 px-3 py-2.5 text-sm leading-relaxed text-foreground">
+        <span className="font-medium text-muted-foreground">채널 상태 요약 · </span>
+        {channelStatusLine}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
         <StatusBadge
           status={toStatusBadgeStatus(reportPresentation.status, reportPresentation.geminiStatus)}
         />
         <span
-          className={`group relative inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${confidenceClassName}`}
+          className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-semibold ${confidenceClassName}`}
         >
           {confidenceLabel}
-          {(analysisViewModel?.confidenceReasons?.length ?? 0) > 0 ? (
-            <span className="pointer-events-none absolute left-0 top-full z-20 mt-2 hidden w-64 rounded-xl border border-border bg-card p-3 text-left text-xs font-normal shadow-lg group-hover:block">
-              <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                신뢰도 근거
-              </span>
-              {analysisViewModel?.confidenceReasons.map((reason, i) => (
-                <span key={i} className="mb-1 block leading-relaxed">
-                  {reason}
-                </span>
-              ))}
-            </span>
-          ) : null}
         </span>
+        <span className="hidden sm:inline">·</span>
+        <span>최근 분석 시각: {analyzedAt}</span>
       </div>
+      {(analysisViewModel?.confidenceReasons?.length ?? 0) > 0 ? (
+        <p className="text-xs text-muted-foreground">
+          신뢰도 근거: {analysisViewModel?.confidenceReasons.join(" · ")}
+        </p>
+      ) : null}
+
+      <p className="text-xs leading-relaxed text-muted-foreground">
+        데이터 소스: YouTube Data API{" "}
+        <code className="rounded bg-muted px-1 py-0.5 text-[10px]">channels.list</code> ·{" "}
+        <code className="rounded bg-muted px-1 py-0.5 text-[10px]">statistics</code> · 업로드 플레이리스트{" "}
+        <code className="rounded bg-muted px-1 py-0.5 text-[10px]">publishedAt</code> 필터 · 표본{" "}
+        <code className="rounded bg-muted px-1 py-0.5 text-[10px]">videos.list</code> / 내부 분석 메타
+      </p>
 
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <Button
@@ -845,36 +698,30 @@ export default function AnalysisReportView({
           ) : isBackendRunning ? (
             <p className="text-muted-foreground">분석 진행 중</p>
           ) : (
-            <p className="text-muted-foreground">최근 분석: {analyzedAt}</p>
+            <p className="text-muted-foreground">메타 갱신: {analyzedAt}</p>
           )}
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <Card className="bg-card/50">
           <CardContent className="pt-4">
-            <p className="text-sm text-muted-foreground">분석 시각</p>
-            <p className="text-lg font-bold">{analyzedAt}</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-card/50">
-          <CardContent className="pt-4">
-            <p className="text-sm text-muted-foreground">분석 영상</p>
+            <p className="text-xs text-muted-foreground">표본 영상 수</p>
             <p className="text-lg font-bold">{formatNumber(reportPresentation.sampleVideoCount)}개</p>
           </CardContent>
         </Card>
         <Card className="bg-card/50">
           <CardContent className="pt-4">
-            <p className="text-sm text-muted-foreground">AI 모델</p>
-            <p className="text-lg font-bold">{reportPresentation.geminiModel ?? "-"}</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-card/50">
-          <CardContent className="pt-4">
-            <p className="text-sm text-muted-foreground">다음 분석</p>
+            <p className="text-xs text-muted-foreground">다음 재분석</p>
             <p className="text-lg font-bold">
               {cooldown.isCooldownActive ? cooldown.nextAvailableAtText : "가능"}
             </p>
+          </CardContent>
+        </Card>
+        <Card className="bg-card/50 col-span-2 sm:col-span-1">
+          <CardContent className="pt-4">
+            <p className="text-xs text-muted-foreground">엔진</p>
+            <p className="text-lg font-bold">TubeWatch 엔진 분석</p>
           </CardContent>
         </Card>
       </div>
@@ -906,7 +753,7 @@ export default function AnalysisReportView({
             <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
               <p className="font-semibold">분석이 진행 중입니다</p>
               <p className="mt-1 text-amber-800">
-                데이터 수집과 AI 분석이 완료되면 아래에 리포트가 표시됩니다. 약 1~2분 후 페이지를 새로고침해 주세요.
+                데이터 수집과 TubeWatch 엔진 분석이 완료되면 아래에 리포트가 표시됩니다. 약 1~2분 후 페이지를 새로고침해 주세요.
               </p>
             </div>
             <AnalysisReportSkeleton />
@@ -914,53 +761,22 @@ export default function AnalysisReportView({
         </section>
       ) : (
         <>
-          {sectionScores ? (
-            <section className="py-12">
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-2xl font-bold">영역별 진단</h2>
-                    <p className="mt-1 text-muted-foreground">5개 핵심 영역의 상세 분석 결과</p>
-                  </div>
-                </div>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {DIAGNOSIS_ORDER.map((row) => {
-                    const sc = sectionScores[row.key as keyof typeof sectionScores];
-                    if (typeof sc !== "number") return null;
-                    const card = findCard(analysisViewModel, row.cardId);
-                    return (
-                      <DiagnosisCard
-                        key={row.key}
-                        title={row.title}
-                        score={Math.round(sc)}
-                        icon={row.icon}
-                        status={sectionStatusFromScore(sc)}
-                        items={buildDiagnosisItems(sc, card)}
-                      />
-                    );
-                  })}
-                </div>
-              </div>
-            </section>
-          ) : null}
-
-          {metrics ? (
-            <section className="py-12">
-              <div className="space-y-6">
-                <ChannelDnaRadar metrics={metrics} />
-              </div>
-            </section>
-          ) : null}
-
-          <section className="bg-muted/20 py-12">
+          <section className="py-12">
             <div className="space-y-6">
               <div>
-                <h2 className="text-2xl font-bold">패턴 인사이트</h2>
-                <p className="mt-1 text-muted-foreground">데이터에서 발견된 주요 패턴과 시사점</p>
+                <h2 className="text-2xl font-bold">핵심 진단 카드</h2>
+                <p className="mt-1 text-muted-foreground">
+                  업로드·조회 흐름·구조 안정성·기준·보조 기준선 (TubeWatch 엔진 분석)
+                </p>
               </div>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {insightRows.map((row, idx) => (
-                  <InsightCard key={idx} title={row.title} description={row.description} type={row.type} />
+              {recentVideos.length === 0 && !metrics ? (
+                <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                  최근 데이터 부족: 일부 지표는 수치 대신 안내만 표시됩니다.
+                </p>
+              ) : null}
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {hubCards.map((vm) => (
+                  <HubMetricCard key={vm.id} vm={vm} />
                 ))}
               </div>
             </div>
@@ -969,145 +785,265 @@ export default function AnalysisReportView({
           <section className="py-12">
             <div className="space-y-6">
               <div>
-                <h2 className="text-2xl font-bold">성장 트렌드</h2>
-                <p className="mt-1 text-muted-foreground">최근 90일간 채널 성장 추이</p>
+                <h2 className="text-2xl font-bold">최근 영상 표본</h2>
+                <p className="mt-1 text-muted-foreground">
+                  DNA·Trend 해석에 쓰일 분석 샘플 집합입니다. (스냅샷·엔진 분석)
+                </p>
               </div>
               <Card className="bg-card">
                 <CardContent className="pt-6">
-                  <div className="flex h-64 items-center justify-center rounded-lg border bg-muted/30">
-                    <div className="text-center text-muted-foreground">
-                      <BarChart3 className="mx-auto mb-3 h-12 w-12 opacity-50" />
-                      <p className="text-sm">성장 트렌드 차트</p>
-                      <p className="mt-1 text-xs">데이터 연결 시 활성화</p>
-                    </div>
-                  </div>
+                  {recentVideos.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">최근 데이터 부족 · 표본 없음</p>
+                  ) : (
+                    <ul className="space-y-4">
+                      {recentVideos.slice(0, 8).map((v, i) => {
+                        const badge = performanceBadgeShort(v.relativeBadge);
+                        const tags = deriveVideoPatternTags(v);
+                        return (
+                          <li
+                            key={i}
+                            className="flex flex-col gap-3 border-b border-border/70 pb-4 last:border-0 sm:flex-row sm:items-start"
+                          >
+                            <div className="flex shrink-0 gap-3">
+                              {v.thumbnailUrl ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={v.thumbnailUrl}
+                                  alt=""
+                                  className="h-16 w-28 rounded-md border border-border object-cover"
+                                />
+                              ) : (
+                                <div className="flex h-16 w-28 items-center justify-center rounded-md border border-dashed border-border bg-muted text-[10px] text-muted-foreground">
+                                  썸네일 없음
+                                </div>
+                              )}
+                            </div>
+                            <div className="min-w-0 flex-1 space-y-1.5">
+                              <p className="font-medium leading-snug">{v.title}</p>
+                              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                                <span>{formatPublishedAt(v.publishedAt)}</span>
+                                <span>·</span>
+                                <span className="tabular-nums">
+                                  {v.viewCount != null ? v.viewCount.toLocaleString("ko-KR") : "—"} 조회
+                                </span>
+                                <span>·</span>
+                                <span>{v.durationLabel ?? "길이 없음"}</span>
+                              </div>
+                              <div className="flex flex-wrap gap-1.5">
+                                <Badge variant="secondary" className="text-[10px]">
+                                  성과: {badge}
+                                </Badge>
+                                {tags.map((t) => (
+                                  <Badge key={t} variant="outline" className="text-[10px] font-normal">
+                                    {t}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
                 </CardContent>
               </Card>
             </div>
           </section>
 
-          <section className="border-t bg-muted/10 py-12">
-            <div className="space-y-6 text-center">
+          <section className="py-12">
+            <div className="space-y-6">
               <div>
-                <h2 className="text-2xl font-bold">분석 결과를 바탕으로 다음 단계를 시작하세요</h2>
+                <h2 className="text-2xl font-bold">상위·하위 성과 비교</h2>
                 <p className="mt-1 text-muted-foreground">
-                  진단 결과를 기반으로 맞춤형 액션 플랜을 확인하거나, SEO 최적화를 시작할 수 있습니다.
+                  조회수 기준 상위 20%·하위 20% 표본. 개별 감상이 아니라 반복 차이를 봅니다.
                 </p>
               </div>
-              <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+              <div className="grid gap-4 md:grid-cols-2">
+                <Card className="bg-card">
+                  <CardHeader>
+                    <CardTitle className="text-base">상위 영상 (Top 20%)</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2 text-sm">
+                    {topVideos.length === 0 ? (
+                      <p className="text-muted-foreground">최근 데이터 부족</p>
+                    ) : (
+                      topVideos.slice(0, 4).map((v, i) => (
+                        <div
+                          key={i}
+                          className="flex justify-between gap-2 border-b border-border/60 pb-2 last:border-0"
+                        >
+                          <span className="min-w-0 truncate">{v.title}</span>
+                          <span className="shrink-0 tabular-nums text-muted-foreground">
+                            {v.viewCount != null ? v.viewCount.toLocaleString("ko-KR") : "—"}
+                          </span>
+                        </div>
+                      ))
+                    )}
+                  </CardContent>
+                </Card>
+                <Card className="bg-card">
+                  <CardHeader>
+                    <CardTitle className="text-base">하위 영상 (Bottom 20%)</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2 text-sm">
+                    {weakVideos.length === 0 ? (
+                      <p className="text-muted-foreground">최근 데이터 부족</p>
+                    ) : (
+                      weakVideos.slice(0, 4).map((v, i) => (
+                        <div
+                          key={i}
+                          className="flex justify-between gap-2 border-b border-border/60 pb-2 last:border-0"
+                        >
+                          <span className="min-w-0 truncate">{v.title}</span>
+                          <span className="shrink-0 tabular-nums text-muted-foreground">
+                            {v.viewCount != null ? v.viewCount.toLocaleString("ko-KR") : "—"}
+                          </span>
+                        </div>
+                      ))
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <Card className="border-dashed bg-muted/10">
+                  <CardHeader>
+                    <CardTitle className="text-sm font-semibold">차이 포인트</CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-sm text-muted-foreground">
+                    {performanceCompareSummary ?? "메타·길이·주제 차이는 상·하위 표본 메타 비교 및 엔진 분석으로 요약됩니다."}
+                  </CardContent>
+                </Card>
+                <Card className="border-dashed bg-muted/10">
+                  <CardHeader>
+                    <CardTitle className="text-sm font-semibold">반복 차이 패턴</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ListBlock
+                      items={normalizeItems(aiInsightFields.content_patterns).slice(0, 5)}
+                      emptyText="반복 패턴을 도출하기에 표본·메타가 부족합니다."
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </section>
+
+          <section className="border-t bg-muted/10 py-12">
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-2xl font-bold">종합 해석</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  이후 메뉴로 넘어가기 전 입력 요약입니다. (TubeWatch 엔진 분석)
+                </p>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">강점</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ListBlock
+                      items={normalizeItems(aiInsightFields.strengths).slice(0, 5)}
+                      emptyText="강점 신호를 축약할 데이터가 부족합니다."
+                    />
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">개선 포인트</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ListBlock
+                      items={normalizeItems(aiInsightFields.weaknesses).slice(0, 5)}
+                      emptyText="개선 포인트를 축약할 데이터가 부족합니다."
+                    />
+                  </CardContent>
+                </Card>
+                <Card className="md:col-span-2">
+                  <CardHeader>
+                    <CardTitle className="text-base">근거 요약</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {aiInsightFields.channel_summary ? (
+                      <p className="text-sm leading-relaxed text-muted-foreground">
+                        {(aiInsightFields.channel_summary ?? "").slice(0, 520)}
+                        {(aiInsightFields.channel_summary ?? "").length > 520 ? "…" : ""}
+                      </p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">근거 요약을 생성하지 못했습니다.</p>
+                    )}
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">핵심 병목</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ListBlock
+                      items={normalizeItems(aiInsightFields.bottlenecks).slice(0, 5)}
+                      emptyText="병목을 단정하기에 데이터가 부족합니다."
+                    />
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">다음 단계 연결</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2 text-sm text-muted-foreground">
+                    <p>원천 진단을 바탕으로 세부 전략 메뉴에서 확장합니다.</p>
+                    <ul className="space-y-2">
+                      <li>
+                        <Link href="/channel-dna" className="font-medium text-foreground underline-offset-4 hover:underline">
+                          Channel DNA
+                        </Link>{" "}
+                        — 패턴·정체성 심화
+                      </li>
+                      <li>
+                        <Link href="/action-plan" className="font-medium text-foreground underline-offset-4 hover:underline">
+                          Action Plan
+                        </Link>{" "}
+                        — 실행·KPI
+                      </li>
+                      <li>
+                        <Link href="/seo-lab" className="font-medium text-foreground underline-offset-4 hover:underline">
+                          SEO Lab
+                        </Link>{" "}
+                        — 검색·메타 실험
+                      </li>
+                      <li>
+                        <Link href="/next-trend" className="font-medium text-foreground underline-offset-4 hover:underline">
+                          Next Trend
+                        </Link>{" "}
+                        — 트렌드 후보
+                      </li>
+                    </ul>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="flex flex-col items-stretch justify-center gap-3 sm:flex-row">
                 <Button asChild size="lg" className="gap-2">
                   <Link href="/action-plan">
-                    액션 플랜 확인하기
+                    액션 플랜으로 이동
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
                 <Button asChild variant="outline" size="lg" className="gap-2">
                   <Link href="/seo-lab">
-                    SEO Lab 시작하기
+                    SEO Lab으로 이동
                     <ArrowUpRight className="h-4 w-4" />
                   </Link>
                 </Button>
               </div>
             </div>
           </section>
-
-          <AppendixSection title="AI Insights" subtitle="Gemini 분석 엔진이 생성한 인사이트입니다.">
-            <div className="space-y-6">
-              <AiSection title="채널 요약" icon="📋">
-                {aiInsightFields.channel_summary ? (
-                  <p className="text-sm leading-7">{aiInsightFields.channel_summary}</p>
-                ) : (
-                  <p className="text-sm text-muted-foreground">채널 요약을 생성하지 못했습니다.</p>
-                )}
-              </AiSection>
-
-              <AiSection
-                title="콘텐츠 패턴"
-                icon="🔁"
-                description={
-                  aiInsightFields.content_pattern_summary ?? "반복적으로 보이는 콘텐츠 흐름입니다."
-                }
-              >
-                <ListBlock
-                  items={aiInsightFields.content_patterns}
-                  emptyText="콘텐츠 패턴을 분석하기에 데이터가 부족합니다."
-                />
-              </AiSection>
-
-              <div className="grid gap-6 xl:grid-cols-2">
-                <AiSection title="강점" icon="💪">
-                  <ListBlock
-                    items={aiInsightFields.strengths}
-                    emptyText="현재 데이터에서 뚜렷한 강점을 도출하지 못했습니다."
-                  />
-                </AiSection>
-                <AiSection title="약점" icon="⚠️">
-                  <ListBlock
-                    items={aiInsightFields.weaknesses}
-                    emptyText="현재 데이터에서 뚜렷한 약점을 도출하지 못했습니다."
-                  />
-                </AiSection>
-              </div>
-
-              <div className="grid gap-6 xl:grid-cols-2">
-                <AiSection title="병목 요인" icon="🚧">
-                  <ListBlock
-                    items={aiInsightFields.bottlenecks}
-                    emptyText="뚜렷한 병목 요인이 감지되지 않았습니다."
-                  />
-                </AiSection>
-                <AiSection title="타겟 시청자" icon="🎯">
-                  <ListBlock
-                    items={aiInsightFields.target_audience}
-                    emptyText="타겟 시청자 정보가 충분하지 않습니다."
-                  />
-                </AiSection>
-              </div>
-
-              <AiSection title="추천 콘텐츠" icon="💡">
-                <ListBlock
-                  items={aiInsightFields.recommended_topics}
-                  emptyText="추천 콘텐츠 주제를 생성하지 못했습니다."
-                />
-              </AiSection>
-
-              <AiSection title="성장 액션 플랜" icon="🚀">
-                <ListBlock
-                  items={aiInsightFields.growth_action_plan}
-                  emptyText="실행 가능한 액션 플랜을 생성하지 못했습니다."
-                />
-              </AiSection>
-            </div>
-          </AppendixSection>
-
-          <AppendixSection title="Next Trend" subtitle="채널 데이터를 기반으로 향후 시도해볼 콘텐츠 방향입니다.">
-            <NextTrend
-              recommendedTopics={aiInsightFields.recommended_topics}
-              contentPatterns={aiInsightFields.content_patterns}
-              growthActionPlan={aiInsightFields.growth_action_plan}
-              targetAudience={aiInsightFields.target_audience}
-            />
-          </AppendixSection>
         </>
       )}
 
       {analysisHistory.length > 0 ? (
         <>
-          <AppendixSection title="Growth Trend" subtitle="분석 점수의 변화 추이를 확인합니다.">
-            <Card className="bg-card">
-              <CardContent className="pt-6">
-                <GrowthTrendChart points={analysisHistory} />
-              </CardContent>
-            </Card>
-          </AppendixSection>
-
-          <AppendixSection title="Analysis Compare" subtitle="이전 분석 결과와 현재를 비교합니다.">
-            {reportCompare ? (
-              <AnalysisCompareCard current={reportCompare.current} previous={reportCompare.previous} />
-            ) : null}
-          </AppendixSection>
-
-          <AppendixSection title="Analysis History" subtitle="이 채널의 과거 분석 기록입니다.">
+          <AppendixSection title="분석 이력" subtitle="이 채널의 과거 분석 기록입니다.">
             <AnalysisHistoryList items={analysisHistory} currentResultId={aiInsightFields.id} />
           </AppendixSection>
         </>

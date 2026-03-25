@@ -2,6 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useMemo } from "react";
+import ChannelDnaRadar from "@/components/analysis/ChannelDnaRadar";
+import { Progress } from "@/components/ui/progress";
+import type { ChannelMetrics } from "@/lib/analysis/engine/types";
 import type {
   ChannelDnaPageData,
   ChannelDnaCompareItem,
@@ -22,12 +26,32 @@ function sourceLabel(source: ChannelDnaSourceTag): string {
     case "computed":
       return "계산";
     case "ai_interpretation":
-      return "AI 해석";
+      return "TubeWatch 엔진 분석";
     default: {
       const _e: never = source;
       return _e;
     }
   }
+}
+
+function snapshotToChannelMetrics(snapshot: unknown): ChannelMetrics | null {
+  if (!snapshot || typeof snapshot !== "object") return null;
+  const raw = (snapshot as Record<string, unknown>).metrics;
+  if (!raw || typeof raw !== "object") return null;
+  const m = raw as Record<string, unknown>;
+  return {
+    avgViewCount: typeof m.avgViewCount === "number" ? m.avgViewCount : 0,
+    medianViewCount: typeof m.medianViewCount === "number" ? m.medianViewCount : 0,
+    avgLikeRatio: typeof m.avgLikeRatio === "number" ? m.avgLikeRatio : 0,
+    avgCommentRatio: typeof m.avgCommentRatio === "number" ? m.avgCommentRatio : 0,
+    avgVideoDuration: typeof m.avgVideoDuration === "number" ? m.avgVideoDuration : 0,
+    avgUploadIntervalDays:
+      typeof m.avgUploadIntervalDays === "number" ? m.avgUploadIntervalDays : 0,
+    recent30dUploadCount:
+      typeof m.recent30dUploadCount === "number" ? m.recent30dUploadCount : 0,
+    avgTitleLength: typeof m.avgTitleLength === "number" ? m.avgTitleLength : 0,
+    avgTagCount: typeof m.avgTagCount === "number" ? m.avgTagCount : 0,
+  };
 }
 
 function SpecLineGrid({ items }: { items: ChannelDnaSpecLine[] }): JSX.Element {
@@ -46,7 +70,7 @@ function SpecLineGrid({ items }: { items: ChannelDnaSpecLine[] }): JSX.Element {
               {sourceLabel(item.source)}
             </span>
           </div>
-          <p className="text-sm leading-relaxed text-slate-700">{item.body}</p>
+          <p className="line-clamp-3 text-sm leading-relaxed text-slate-700">{item.body}</p>
         </div>
       ))}
     </div>
@@ -107,7 +131,7 @@ function ChannelDnaMetricCard({
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
             {item.status_label}
           </p>
-          <h3 className="text-sm font-display font-semibold text-slate-900 break-words">
+          <h3 className="text-sm font-semibold text-slate-900 break-words">
             {item.title}
           </h3>
         </div>
@@ -116,7 +140,7 @@ function ChannelDnaMetricCard({
 
       <div className="mt-4 flex items-end gap-4">
         <div className="flex items-baseline gap-1">
-          <span className="text-2xl font-display font-semibold text-slate-900">
+          <span className="text-2xl font-semibold text-slate-900">
             {item.current_score}
           </span>
           <span className="text-xs text-slate-500">/ 100</span>
@@ -151,6 +175,14 @@ export default function ChannelDnaV2View({
   const hasResult = latestResult !== null;
   const hasItems = hasResult && compareItems.length > 0;
 
+  const radarMetrics = useMemo(
+    () =>
+      latestResult?.feature_snapshot
+        ? snapshotToChannelMetrics(latestResult.feature_snapshot)
+        : null,
+    [latestResult]
+  );
+
   return (
     <div className="w-full max-w-6xl mx-auto px-6 lg:px-12 py-8 lg:py-10 space-y-6">
       {/* 헤더 / 채널 요약 */}
@@ -160,7 +192,7 @@ export default function ChannelDnaV2View({
             <p className="text-xs font-semibold tracking-wide text-slate-500">
               채널 DNA
             </p>
-            <h2 className="text-lg font-display font-semibold text-slate-900 sm:text-xl">
+            <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">
               성과 구조·반복 패턴·DNA 카드
             </h2>
             <p className="text-xs text-slate-500 sm:text-sm">
@@ -257,6 +289,66 @@ export default function ChannelDnaV2View({
         </section>
       ) : null}
 
+      {hasResult ? (
+        <section className="py-12">
+          <div className="space-y-6">
+            <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+              DNA 레이더 · 강점/약점
+            </h3>
+            <div className="grid gap-6 lg:grid-cols-2">
+              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                {radarMetrics ? (
+                  <ChannelDnaRadar metrics={radarMetrics} />
+                ) : (
+                  <div className="flex h-56 items-center justify-center rounded-lg border border-dashed border-slate-200 bg-slate-50/80 text-sm text-slate-500">
+                    표본 부족
+                  </div>
+                )}
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+                <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/50 p-4 shadow-sm">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-emerald-900">
+                    강점 패턴
+                  </p>
+                  <p className="mt-2 line-clamp-3 text-sm text-slate-800">
+                    {spec.dnaCards.strengthPattern.body}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-rose-200/80 bg-rose-50/50 p-4 shadow-sm">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-rose-900">
+                    약점 패턴
+                  </p>
+                  <p className="mt-2 line-clamp-3 text-sm text-slate-800">
+                    {spec.dnaCards.weaknessPattern.body}
+                  </p>
+                </div>
+              </div>
+            </div>
+            {hasItems ? (
+              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                  패턴 강도 (정규화 점수)
+                </p>
+                <ul className="mt-4 space-y-3">
+                  {compareItems.slice(0, 4).map((item) => (
+                    <li key={item.title}>
+                      <div className="flex justify-between gap-2 text-xs text-slate-600">
+                        <span className="font-medium text-slate-800">{item.title}</span>
+                        <span className="tabular-nums">{item.current_score}/100</span>
+                      </div>
+                      <Progress
+                        value={Math.min(100, Math.max(0, item.current_score))}
+                        className="mt-1.5 h-2"
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
+
       {/* 비교 카드 + 요약 */}
       {hasItems ? (
         <>
@@ -324,29 +416,6 @@ export default function ChannelDnaV2View({
             </section>
           ) : null}
 
-          <section className="py-12 border-t border-dashed border-slate-200/90">
-            <div className="space-y-4">
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <div>
-                <h3 className="text-xs font-medium uppercase tracking-[0.14em] text-slate-400">
-                  참고 지표
-                </h3>
-                <p className="mt-1 max-w-xl text-[11px] leading-relaxed text-slate-400">
-                  저장 표본을 내부 기준과 비교한 보조 지표입니다. 위의 성과 구조·반복 패턴·DNA 카드를 먼저 보시고 참고하세요.
-                </p>
-              </div>
-              <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
-                보조
-              </span>
-            </div>
-            <ul className="grid grid-cols-2 md:grid-cols-4 gap-4 opacity-95">
-              {compareItems.slice(0, 4).map((item) => (
-                <ChannelDnaMetricCard key={item.title} item={item} />
-              ))}
-            </ul>
-            </div>
-          </section>
-
           <section className="py-12">
             <div className="space-y-6">
           <div className="p-4 rounded-xl border bg-card">
@@ -362,6 +431,29 @@ export default function ChannelDnaV2View({
               ))}
             </ul>
           </div>
+            </div>
+          </section>
+
+          <section className="border-t border-dashed border-slate-200/90 py-12">
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <h3 className="text-xs font-medium uppercase tracking-[0.14em] text-slate-400">
+                    참고 지표
+                  </h3>
+                  <p className="mt-1 max-w-xl text-[11px] leading-relaxed text-slate-400">
+                    저장 표본을 내부 기준과 비교한 보조 지표입니다. 위 블록을 먼저 보신 뒤 참고하세요.
+                  </p>
+                </div>
+                <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
+                  보조
+                </span>
+              </div>
+              <ul className="grid grid-cols-2 gap-4 opacity-95 md:grid-cols-4">
+                {compareItems.slice(0, 4).map((item) => (
+                  <ChannelDnaMetricCard key={item.title} item={item} />
+                ))}
+              </ul>
             </div>
           </section>
         </>

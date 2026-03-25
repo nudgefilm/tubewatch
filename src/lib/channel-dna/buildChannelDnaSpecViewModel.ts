@@ -91,7 +91,7 @@ export function buildChannelDnaSpecViewModel(data: ChannelDnaPageData): ChannelD
   const compareItems = data.compareItems;
 
   const dataPipelineNote =
-    "데이터: YouTube 공개 API로 수집한 채널·영상 메타와 조회 등 지표를 `feature_snapshot`에 저장하고, 여기서는 표본 기준 계산과 저장된 Gemini 해석 필드를 함께 씁니다.";
+    "데이터: YouTube 공개 API로 수집한 채널·영상 메타와 조회 등 지표를 `feature_snapshot`에 저장하고, 여기서는 표본 기준 계산과 TubeWatch 엔진 분석으로 저장된 텍스트 필드를 함께 씁니다.";
 
   const hitBodyParts: string[] = [];
   hitBodyParts.push(`히트 의존도 등급: ${channelDnaTriLevelLabel(internal.breakoutDependencyLevel)}.`);
@@ -155,8 +155,8 @@ export function buildChannelDnaSpecViewModel(data: ChannelDnaPageData): ChannelD
   const topics = readStringArray(row, "recommended_topics");
   const topicBody =
     topics.length > 0
-      ? `${topics.slice(0, 4).join(" · ")} (토픽 라벨은 Gemini, 군집·유사도는 저장 파이프라인 기준)`
-      : "제목·설명·태그에서 토큰을 추출해 군집·유사도를 계산하고, Gemini가 `recommended_topics` 라벨을 채웁니다. 현재 저장 행에 토픽 라벨이 없습니다.";
+      ? `${topics.slice(0, 4).join(" · ")} (토픽 라벨은 저장 필드, 군집·유사도는 저장 파이프라인 기준)`
+      : "제목·설명·태그에서 토큰을 추출해 군집·유사도를 계산하고, TubeWatch 엔진이 `recommended_topics` 라벨을 채웁니다. 현재 저장 행에 토픽 라벨이 없습니다.";
   const topicCluster = line("주제 클러스터", topicBody, topics.length > 0 ? "ai_interpretation" : "computed");
 
   const uploadScore = compareItems.find((i) => i.title.includes("업로드"));
