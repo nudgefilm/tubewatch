@@ -1,0 +1,59 @@
+"use client"
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Lightbulb, Type, Zap, Image, Compass, Play } from "lucide-react"
+import type { ExecutionHint } from "../mock-data"
+
+interface NextTrendExecutionHintsProps {
+  data: ExecutionHint[]
+}
+
+const typeConfig = {
+  title: { icon: Type, label: "제목", color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" },
+  hook: { icon: Zap, label: "훅", color: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400" },
+  thumbnail: { icon: Image, label: "썸네일", color: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
+  angle: { icon: Compass, label: "각도", color: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400" },
+  start: { icon: Play, label: "시작", color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" },
+}
+
+export function NextTrendExecutionHints({ data }: NextTrendExecutionHintsProps) {
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <Lightbulb className="h-5 w-5 text-primary" />
+          <CardTitle>실행 힌트</CardTitle>
+        </div>
+        <CardDescription>
+          SEO + DNA 연결 기반의 실행 가이드
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {data.map((hint) => {
+            const config = typeConfig[hint.type]
+            const Icon = config.icon
+            return (
+              <div
+                key={hint.id}
+                className="rounded-lg border bg-card p-4 space-y-2"
+              >
+                <div className="flex items-center gap-2">
+                  <div className={`rounded-md p-1.5 ${config.color}`}>
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm font-medium">{hint.label}</span>
+                </div>
+                <p className="text-sm">{hint.content}</p>
+                <Badge variant="outline" className="text-xs">
+                  {hint.linkedTo}
+                </Badge>
+              </div>
+            )
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}

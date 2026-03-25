@@ -1,13 +1,9 @@
-// Channel Analysis Components
-export { ChannelAnalysisPage } from "./channel-analysis-page"
-export { AnalysisHeaderSection } from "./analysis-header-section"
-export { AnalysisScoreOverview } from "./analysis-score-overview"
-export { AnalysisKpiCards } from "./analysis-kpi-cards"
-export { AnalysisViewTrendChart } from "./analysis-view-trend-chart"
-export { AnalysisRecentVideosSection } from "./analysis-recent-videos-section"
-export { AnalysisTopBottomCompare } from "./analysis-top-bottom-compare"
-export { AnalysisSummarySection } from "./analysis-summary-section"
-export { AnalysisEmptyState } from "./analysis-empty-state"
-
-// Types and Mock Data
-export * from "./mock-data"
+export { ChannelAnalysisPage, ChannelAnalysisPage as AnalysisPage } from "./AnalysisPage"
+export { AnalysisEmptyState } from "./sections/EmptyState"
+export { AnalysisHeaderSection } from "./sections/HeaderSection"
+export { AnalysisKpiCards } from "./sections/KpiCardsSection"
+export { AnalysisRecentVideosSection } from "./sections/RecentVideosSection"
+export { AnalysisScoreOverview } from "./sections/ScoreOverviewSection"
+export { AnalysisSummarySection } from "./sections/SummarySection"
+export { AnalysisTopBottomCompare } from "./sections/TopBottomCompareSection"
+export { AnalysisViewTrendChart } from "./sections/TrendChartSection"

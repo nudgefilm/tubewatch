@@ -1,4 +1,4 @@
-import { ActionPlanPage } from "@/components/action-plan"
+import { ActionPlanPage } from "./ActionPlanPage"
 
 export default async function Page({ params }: { params: Promise<{ channelId: string }> }) {
   const { channelId } = await params

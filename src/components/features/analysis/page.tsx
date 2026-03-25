@@ -1,4 +1,4 @@
-import { ChannelAnalysisPage } from "@/components/analysis"
+import { ChannelAnalysisPage } from "./AnalysisPage"
 
 export default function AnalysisPage() {
   return <ChannelAnalysisPage />

@@ -1,4 +1,4 @@
-import { ChannelDnaPage } from "@/components/channel-dna"
+import { ChannelDnaPage } from "./ChannelDnaPage"
 
 export default async function Page({ params }: { params: Promise<{ channelId: string }> }) {
   const { channelId } = await params

@@ -1,34 +1,5 @@
-import { redirect } from "next/navigation";
-import dynamic from "next/dynamic";
+import { ActionPlanPage } from "@/components/features/action-plan"
 
-import {
-  buildProtectedReturnPath,
-  redirectToLandingAuthUnlessSignedIn,
-} from "@/lib/auth/require-app-user";
-import { getActionPlanPageData } from "@/lib/server/action-plan/getActionPlanPageData";
-import {
-  type ChannelSearchParams,
-  pickChannelIdFromSearchParams,
-} from "@/lib/navigation/pickChannelFromSearchParams";
-import { AppRouteLoading } from "@/components/layout/AppRouteLoading";
-
-const ActionPlanV2View = dynamic(
-  () => import("@/components/action-plan/ActionPlanV2View"),
-  { loading: () => <AppRouteLoading variant="action-plan" /> }
-);
-
-export default async function ActionPlanRoutePage({
-  searchParams,
-}: {
-  searchParams?: ChannelSearchParams;
-}) {
-  const channelId = pickChannelIdFromSearchParams(searchParams);
-  await redirectToLandingAuthUnlessSignedIn(
-    buildProtectedReturnPath("/action-plan", channelId)
-  );
-  const data = await getActionPlanPageData(channelId);
-  if (!data) {
-    redirect("/channels");
-  }
-  return <ActionPlanV2View data={data} />;
+export default function Page() {
+  return <ActionPlanPage />
 }

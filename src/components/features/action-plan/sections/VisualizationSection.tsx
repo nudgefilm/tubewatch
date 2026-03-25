@@ -87,9 +87,11 @@ export function ActionPlanVisualization({ data }: ActionPlanVisualizationProps) 
                     label={{ value: '영향도', angle: -90, position: 'left', offset: 10 }}
                   />
                   <ChartTooltip
-                    content={({ active, payload }) => {
+                    content={((props: { active?: boolean; payload?: unknown[] }) => {
+                      const { active, payload } = props
                       if (active && payload && payload.length) {
-                        const data = payload[0].payload as PriorityMatrixItem
+                        const data = (payload[0] as { payload: PriorityMatrixItem })
+                          .payload as PriorityMatrixItem
                         return (
                           <div className="rounded-lg border bg-background p-2 shadow-sm">
                             <div className="font-medium">{data.action}</div>
@@ -101,7 +103,7 @@ export function ActionPlanVisualization({ data }: ActionPlanVisualizationProps) 
                         )
                       }
                       return null
-                    }}
+                    }) as any}
                   />
                   <Scatter data={data.priorityMatrix} fill="#8884d8">
                     {data.priorityMatrix.map((entry, index) => (

@@ -1,13 +1,13 @@
 "use client"
 
-import { ActionPlanSummarySection } from "./action-plan-summary-section"
-import { ActionPlanPrioritySection } from "./action-plan-priority-section"
-import { ActionPlanCardsSection } from "./action-plan-cards-section"
-import { ActionPlanChecklistSection } from "./action-plan-checklist-section"
-import { ActionPlanTrackingSection } from "./action-plan-tracking-section"
-import { ActionPlanAssistSection } from "./action-plan-assist-section"
-import { ActionPlanVisualization } from "./action-plan-visualization"
-import { ActionPlanEmptyState } from "./action-plan-empty-state"
+import { ActionPlanSummarySection } from "./sections/SummarySection"
+import { ActionPlanPrioritySection } from "./sections/PrioritySection"
+import { ActionPlanCardsSection } from "./sections/CardsSection"
+import { ActionPlanChecklistSection } from "./sections/ChecklistSection"
+import { ActionPlanTrackingSection } from "./sections/TrackingSection"
+import { ActionPlanAssistSection } from "./sections/AssistSection"
+import { ActionPlanVisualization } from "./sections/VisualizationSection"
+import { ActionPlanEmptyState } from "./sections/EmptyState"
 import {
   actionPlanSummary,
   priorityActions,
@@ -19,10 +19,10 @@ import {
 } from "./mock-data"
 
 interface ActionPlanPageProps {
-  channelId: string
+  channelId?: string
 }
 
-export function ActionPlanPage({ channelId }: ActionPlanPageProps) {
+export function ActionPlanPage({ channelId = "" }: ActionPlanPageProps) {
   const hasData = true // mock: 실제로는 데이터 존재 여부 체크
 
   if (!hasData) {

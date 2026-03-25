@@ -1,4 +1,4 @@
-import { NextTrendPage } from "@/components/next-trend"
+import { NextTrendPage } from "./NextTrendPage"
 
 export default async function Page({
   params,
