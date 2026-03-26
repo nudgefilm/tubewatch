@@ -143,10 +143,6 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
   }, [])
 
   React.useEffect(() => {
-    void loadChannels()
-  }, [loadChannels])
-
-  React.useEffect(() => {
     const onUpdate = () => {
       void loadChannels()
     }
@@ -156,18 +152,24 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
 
   React.useEffect(() => {
     const supabase = createClient()
-    void supabase.auth.getSession().then(({ data: { session } }) => {
-      setUserEmail(session?.user?.email ?? null)
-    })
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setUserEmail(session?.user?.email ?? null)
+      if (!session?.user) {
+        setChannels([])
+        setSelectedChannelId(null)
+        writeSelectedChannelIdToStorage(null)
+        return
+      }
+      if (event === "INITIAL_SESSION" || event === "SIGNED_IN") {
+        void loadChannels()
+      }
     })
     return () => {
       subscription.unsubscribe()
     }
-  }, [])
+  }, [loadChannels])
 
   const selectChannel = (id: string) => {
     setSelectedChannelId(id)
