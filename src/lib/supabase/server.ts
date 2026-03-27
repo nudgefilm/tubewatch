@@ -32,10 +32,7 @@ export async function createClient() {
         try {
           cookiesToSet.forEach(({ name, value, options }) => {
             if (value) {
-              cookieStore.set(name, value, {
-                ...(options ?? {}),
-                path: options?.path ?? "/",
-              })
+              cookieStore.set(name, value, options)
             } else {
               cookieStore.delete(name)
             }
