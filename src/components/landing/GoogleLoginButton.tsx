@@ -31,7 +31,10 @@ export function GoogleLoginButton({
 
     try {
       const supabase = createClient();
-      const origin = window.location.origin;
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+      const origin = siteUrl
+        ? siteUrl.replace(/\/$/, "")
+        : window.location.origin;
       const safeNext = getSafeOAuthReturnPath(
         returnToPath,
         DEFAULT_POST_LOGIN_PATH
