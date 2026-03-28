@@ -126,8 +126,17 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
       const json: { data?: SidebarChannel[] } = await res.json().catch(() => ({}))
       const list = Array.isArray(json.data) ? json.data : []
       setChannels(list)
+      // 우선순위: 1) URL ?channel= → 2) localStorage → 3) 첫 번째 채널
+      const urlChannelId =
+        typeof window !== "undefined"
+          ? new URLSearchParams(window.location.search).get("channel")
+          : null
       const stored = readSelectedChannelIdFromStorage()
-      if (stored && list.some((c) => c.id === stored)) {
+      if (urlChannelId && list.some((c) => c.id === urlChannelId)) {
+        // URL 채널이 유효한 경우 localStorage도 동기화
+        setSelectedChannelId(urlChannelId)
+        writeSelectedChannelIdToStorage(urlChannelId)
+      } else if (stored && list.some((c) => c.id === stored)) {
         setSelectedChannelId(stored)
       } else if (list.length > 0) {
         const first = list[0].id
@@ -174,6 +183,12 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
   const selectChannel = (id: string) => {
     setSelectedChannelId(id)
     writeSelectedChannelIdToStorage(id)
+    // URL 동기화: 현재 path의 기존 query를 유지하되 channel만 교체/추가
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href)
+      url.searchParams.set("channel", id)
+      router.replace(url.pathname + url.search, { scroll: false })
+    }
   }
 
   const handleLogout = async () => {
