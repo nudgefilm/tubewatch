@@ -1,18 +1,19 @@
 "use client"
 
-import { Dna, Calendar } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
+import { Dna } from "lucide-react"
 import { DnaStructureSummarySection } from "./sections/StructureSummarySection"
 import { DnaPatternAnalysisSection } from "./sections/PatternAnalysisSection"
 import { DnaCardsSection } from "./sections/CardsSection"
 import { DnaVisualizationSection } from "./sections/VisualizationSection"
 import { channelDnaData } from "./mock-data"
+import { ChannelContextHeader, type ChannelContext } from "@/components/features/shared/ChannelContextHeader"
 
 interface ChannelDnaPageProps {
   channelId?: string
+  channelContext?: ChannelContext
 }
 
-export function ChannelDnaPage({ channelId = "" }: ChannelDnaPageProps) {
+export function ChannelDnaPage({ channelId = "", channelContext }: ChannelDnaPageProps) {
   console.log("[v0] ChannelDnaPage rendering with channelId:", channelId)
   console.log("[v0] channelDnaData:", channelDnaData)
   const data = channelDnaData
@@ -32,14 +33,10 @@ export function ChannelDnaPage({ channelId = "" }: ChannelDnaPageProps) {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Calendar className="size-3" />
-          <span>최근 분석: 2024년 1월 15일</span>
-          <Badge variant="outline" className="ml-2 text-xs">
-            {channelId}
-          </Badge>
-        </div>
       </header>
+
+      {/* 채널 컨텍스트 */}
+      <ChannelContextHeader channelContext={channelContext} />
 
       {/* A. 성과 구조 요약 */}
       <DnaStructureSummarySection data={data.structureSummary} />

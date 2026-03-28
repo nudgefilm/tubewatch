@@ -4,7 +4,7 @@ import {
 } from "@/lib/auth/require-app-user"
 import { getAnalysisPageData } from "@/lib/analysis/getAnalysisPageData"
 import { buildAnalysisPageViewModel } from "@/lib/analysis/analysisPageViewModel"
-import AnalysisReportPageClient from "@/components/analysis/AnalysisReportPageClient"
+import { ChannelAnalysisPage } from "@/components/features/analysis"
 
 type PageProps = {
   searchParams?: { channel?: string }
@@ -20,10 +20,9 @@ export default async function Page({ searchParams }: PageProps) {
   const viewModel = buildAnalysisPageViewModel(data)
 
   return (
-    <AnalysisReportPageClient
+    <ChannelAnalysisPage
+      channelId={channelId}
       viewModel={viewModel}
-      channels={data?.channels ?? []}
-      selectedChannel={data?.selectedChannel ?? null}
     />
   )
 }

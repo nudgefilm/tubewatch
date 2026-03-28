@@ -3,6 +3,12 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "yt3.ggpht.com" },
+      { protocol: "https", hostname: "i.ytimg.com" },
+    ],
+  },
   async redirects() {
     return [
       { source: "/benchmark", destination: "/channel-dna", permanent: true },

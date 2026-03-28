@@ -17,12 +17,14 @@ import {
   assistContent,
   visualizationData,
 } from "./mock-data"
+import { ChannelContextHeader, type ChannelContext } from "@/components/features/shared/ChannelContextHeader"
 
 interface ActionPlanPageProps {
   channelId?: string
+  channelContext?: ChannelContext
 }
 
-export function ActionPlanPage({ channelId = "" }: ActionPlanPageProps) {
+export function ActionPlanPage({ channelId = "", channelContext }: ActionPlanPageProps) {
   const hasData = true // mock: 실제로는 데이터 존재 여부 체크
 
   if (!hasData) {
@@ -39,6 +41,9 @@ export function ActionPlanPage({ channelId = "" }: ActionPlanPageProps) {
             채널 성장을 위한 맞춤형 실행 전략 가이드
           </p>
         </div>
+
+        {/* 채널 컨텍스트 */}
+        <ChannelContextHeader channelContext={channelContext} />
 
         {/* A. 전략 요약 */}
         <ActionPlanSummarySection data={actionPlanSummary} />

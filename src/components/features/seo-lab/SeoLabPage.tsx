@@ -14,12 +14,14 @@ import {
   seoActionsData,
   seoVisualizationData,
 } from "./mock-data"
+import { ChannelContextHeader, type ChannelContext } from "@/components/features/shared/ChannelContextHeader"
 
 interface SeoLabPageProps {
   channelId?: string
+  channelContext?: ChannelContext
 }
 
-export function SeoLabPage({ channelId = "" }: SeoLabPageProps) {
+export function SeoLabPage({ channelId = "", channelContext }: SeoLabPageProps) {
   const hasSeoData = true // mock: 데이터 존재 여부
 
   if (!hasSeoData) {
@@ -47,6 +49,9 @@ export function SeoLabPage({ channelId = "" }: SeoLabPageProps) {
             이 채널에서 통하는 키워드와 제목 구조를 데이터 기반으로 분석합니다
           </p>
         </div>
+
+        {/* 채널 컨텍스트 */}
+        <ChannelContextHeader channelContext={channelContext} />
 
         {/* A. SEO 진단 */}
         <SeoLabDiagnosticSection data={seoDiagnosticData} />

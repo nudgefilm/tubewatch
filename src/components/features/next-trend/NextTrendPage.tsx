@@ -17,12 +17,14 @@ import {
   sourceSplit,
   visualizationData,
 } from "./mock-data"
+import { ChannelContextHeader, type ChannelContext } from "@/components/features/shared/ChannelContextHeader"
 
 interface NextTrendPageProps {
   channelId?: string
+  channelContext?: ChannelContext
 }
 
-export function NextTrendPage({ channelId = "" }: NextTrendPageProps) {
+export function NextTrendPage({ channelId = "", channelContext }: NextTrendPageProps) {
   console.log("[v0] NextTrendPage rendering with channelId:", channelId)
   console.log("[v0] trendCandidates:", trendCandidates)
   const hasCandidates = trendCandidates.length > 0
@@ -37,6 +39,7 @@ export function NextTrendPage({ channelId = "" }: NextTrendPageProps) {
               내부 신호 기반 다음 시도 방향 제안
             </p>
           </div>
+          <ChannelContextHeader channelContext={channelContext} />
           <NextTrendEmptyState />
         </div>
       </div>
@@ -53,6 +56,9 @@ export function NextTrendPage({ channelId = "" }: NextTrendPageProps) {
             내부 신호 기반 다음 시도 방향 제안
           </p>
         </div>
+
+        {/* 채널 컨텍스트 */}
+        <ChannelContextHeader channelContext={channelContext} />
 
         {/* A. 다음 시도 후보 */}
         <NextTrendCandidatesSection data={trendCandidates} />
