@@ -10,8 +10,8 @@ type RegisterChannelFormProps = {
   currentCount?: number
   maxCount?: number
   isAdmin?: boolean
-  /** 등록 성공 후 목록 갱신 등 */
-  onRegistered?: () => void
+  /** 등록 성공 후 목록 갱신 등. 신규 채널의 user_channels.id를 인자로 전달. */
+  onRegistered?: (newChannelId?: string) => void
 }
 
 type RegisterChannelResponse = {
@@ -104,7 +104,7 @@ export default function RegisterChannelForm({
       setMessage(result.message || '채널이 등록되었습니다.')
       setChannelUrl('')
 
-      onRegistered?.()
+      onRegistered?.(result.data?.id)
       router.refresh()
     } catch (error) {
       console.error('RegisterChannelForm error:', error)

@@ -1,18 +1,40 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import {
   User,
   Mail,
   Youtube,
   Plus,
-  Trash2,
   LogOut,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { createClient } from "@/lib/supabase/client"
 
-export default function SettingsView() {
+type ChannelRow = {
+  id: string;
+  channel_title: string | null;
+  channel_url: string | null;
+  channel_id: string | null;
+};
+
+type Props = {
+  email: string | null;
+  channels: ChannelRow[];
+};
+
+export default function SettingsView({ email, channels }: Props) {
+  const router = useRouter()
+
+  const handleLogout = async () => {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push("/")
+    router.refresh()
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -50,7 +72,9 @@ export default function SettingsView() {
                   <Mail className="w-4 h-4 text-muted-foreground" />
                   <div>
                     <p className="text-sm font-medium">이메일</p>
-                    <p className="text-sm text-muted-foreground">user@example.com</p>
+                    <p className="text-sm text-muted-foreground">
+                      {email ?? "—"}
+                    </p>
                   </div>
                 </div>
                 <Badge variant="secondary">인증됨</Badge>
@@ -72,58 +96,46 @@ export default function SettingsView() {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between py-3 border-b">
-                <div className="flex items-center gap-3">
-                  <div className="flex size-8 items-center justify-center rounded bg-orange-500 text-white">
-                    <Youtube className="size-4" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">튜브 워치</p>
-                    <p className="text-sm text-muted-foreground">@tubewatch</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-green-600 border-green-600/30">
-                    연결됨
-                  </Badge>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
+              {channels.length === 0 ? (
+                <p className="py-3 text-sm text-muted-foreground">
+                  등록된 채널이 없습니다.
+                </p>
+              ) : (
+                channels.map((ch) => (
+                  <div
+                    key={ch.id}
+                    className="flex items-center justify-between py-3 border-b last:border-b-0"
                   >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between py-3 border-b">
-                <div className="flex items-center gap-3">
-                  <div className="flex size-8 items-center justify-center rounded bg-blue-500 text-white">
-                    <Youtube className="size-4" />
+                    <div className="flex items-center gap-3">
+                      <div className="flex size-8 items-center justify-center rounded bg-red-500/10">
+                        <Youtube className="size-4 text-red-500" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {ch.channel_title ?? ch.channel_id ?? "채널"}
+                        </p>
+                        {ch.channel_url ? (
+                          <p className="text-sm text-muted-foreground truncate">
+                            {ch.channel_url}
+                          </p>
+                        ) : null}
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="text-green-600 border-green-600/30 shrink-0">
+                      연결됨
+                    </Badge>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium">My Channel 2</p>
-                    <p className="text-sm text-muted-foreground">@mychannel2</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-green-600 border-green-600/30">
-                    연결됨
-                  </Badge>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
+                ))
+              )}
 
               <div className="pt-2">
-                <Button variant="outline" className="w-full">
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => router.push("/channels")}
+                >
                   <Plus className="w-4 h-4 mr-2" />
-                  채널 추가
+                  채널 관리
                 </Button>
               </div>
             </CardContent>
@@ -142,7 +154,11 @@ export default function SettingsView() {
                     <p className="text-sm text-muted-foreground">현재 기기에서 로그아웃합니다.</p>
                   </div>
                 </div>
-                <Button variant="destructive" size="sm">
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => void handleLogout()}
+                >
                   로그아웃
                 </Button>
               </div>
