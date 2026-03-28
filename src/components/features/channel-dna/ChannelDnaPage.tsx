@@ -4,8 +4,7 @@ import { Dna } from "lucide-react"
 import { DnaStructureSummarySection } from "./sections/StructureSummarySection"
 import { DnaPatternAnalysisSection } from "./sections/PatternAnalysisSection"
 import { DnaCardsSection } from "./sections/CardsSection"
-import { DnaVisualizationSection } from "./sections/VisualizationSection"
-import { channelDnaData } from "./mock-data"
+import { DnaEmptyState } from "./sections/EmptyState"
 import { ChannelContextHeader, type ChannelContext } from "@/components/features/shared/ChannelContextHeader"
 import type { ChannelDnaPageViewModel } from "@/lib/channel-dna/channelDnaPageViewModel"
 import type { InternalChannelDnaSummaryVm } from "@/lib/channel-dna/internalChannelDnaSummary"
@@ -152,12 +151,9 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel }: Ch
     )
   }
 
-  // Mock data path
-  const data = channelDnaData
-
+  // No analysis data
   return (
     <div className="flex flex-col gap-6 p-6">
-      {/* 페이지 헤더 */}
       <header className="flex flex-col gap-2">
         <div className="flex items-center gap-3">
           <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
@@ -171,24 +167,8 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel }: Ch
           </div>
         </div>
       </header>
-
-      {/* 채널 컨텍스트 */}
       <ChannelContextHeader channelContext={channelContext} />
-
-      {/* A. 성과 구조 요약 */}
-      <DnaStructureSummarySection data={data.structureSummary} />
-
-      {/* B. 반복 패턴 분석 */}
-      <DnaPatternAnalysisSection data={data.patternAnalysis} />
-
-      {/* C. DNA 카드 */}
-      <DnaCardsSection data={data.dnaCards} />
-
-      {/* D. 시각화 영역 */}
-      <DnaVisualizationSection
-        data={data.visualization}
-        distribution={data.structureSummary.performanceDistribution}
-      />
+      <DnaEmptyState channelId={channelId || undefined} />
     </div>
   )
 }

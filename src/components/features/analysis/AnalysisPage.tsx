@@ -8,19 +8,12 @@ import { AnalysisRecentVideosSection } from "./sections/RecentVideosSection"
 import { AnalysisTopBottomCompare } from "./sections/TopBottomCompareSection"
 import { AnalysisSummarySection } from "./sections/SummarySection"
 import { AnalysisEmptyState } from "./sections/EmptyState"
-import {
-  mockChannelData,
-  mockKpiData,
-  mockViewTrendData,
-  mockVideosData,
-  mockComparisonData,
-  mockSummaryData,
-  mockOverallScore,
-  type ChannelData,
-  type KpiData,
-  type VideoData,
-  type ComparisonData,
-  type SummaryData,
+import type {
+  ChannelData,
+  KpiData,
+  VideoData,
+  ComparisonData,
+  SummaryData,
 } from "./mock-data"
 import type { AnalysisPageViewModel, AnalysisVideoRow } from "@/lib/analysis/analysisPageViewModel"
 
@@ -225,18 +218,32 @@ interface ChannelAnalysisPageProps {
 }
 
 export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel }: ChannelAnalysisPageProps) {
-  // When viewModel is provided, map real data; otherwise fall back to mock (dev/preview)
-  const channelData = viewModel ? mapToChannelData(viewModel) : mockChannelData
-  const score = viewModel ? (viewModel.scoreGauge?.score ?? 0) : mockOverallScore
-  const kpiData = viewModel ? mapToKpiData(viewModel) : mockKpiData
-  const trendData = viewModel ? mapToViewTrendData(viewModel.recentVideos) : mockViewTrendData
-  const videosData = viewModel ? mapToVideoData(viewModel.recentVideos) : mockVideosData
-  const comparisonData = viewModel ? mapToComparisonData(viewModel) : mockComparisonData
-  const summaryData = viewModel ? mapToSummaryData(viewModel) : mockSummaryData
-  const trendInterpretation = viewModel?.growthScenarioLine ?? undefined
+  // No viewModel — no channel selected or no data yet
+  if (!viewModel) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight lg:text-3xl">Channel Analysis</h1>
+            <p className="mt-1 text-sm text-muted-foreground">채널 현재 상태를 구조화한 원천 데이터 허브</p>
+          </div>
+          <AnalysisEmptyState type="no-data" title="채널 분석 결과가 없습니다" description="사이드바에서 채널을 선택하거나, 채널을 등록하면 분석을 시작할 수 있습니다." />
+        </div>
+      </div>
+    )
+  }
+
+  const channelData = mapToChannelData(viewModel)
+  const score = viewModel.scoreGauge?.score ?? 0
+  const kpiData = mapToKpiData(viewModel)
+  const trendData = mapToViewTrendData(viewModel.recentVideos)
+  const videosData = mapToVideoData(viewModel.recentVideos)
+  const comparisonData = mapToComparisonData(viewModel)
+  const summaryData = mapToSummaryData(viewModel)
+  const trendInterpretation = viewModel.growthScenarioLine ?? undefined
 
   // No-channel guard
-  if (viewModel && !viewModel.hasChannel) {
+  if (!viewModel.hasChannel) {
     return (
       <div className="min-h-screen bg-background">
         <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
@@ -251,7 +258,7 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel }: C
   }
 
   // No-result guard
-  if (viewModel && !viewModel.hasAnalysisResult) {
+  if (!viewModel.hasAnalysisResult) {
     return (
       <div className="min-h-screen bg-background">
         <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
