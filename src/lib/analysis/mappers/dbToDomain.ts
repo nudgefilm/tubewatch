@@ -113,6 +113,8 @@ export function mapDbRunToDomain(row: AnalysisRunRow): AnalysisRunRecord {
     startedAt: row.started_at,
     completedAt: row.completed_at,
     updatedAt: row.updated_at,
+    runType: row.run_type ?? null,
+    requestedModules: Array.isArray(row.requested_modules) ? row.requested_modules : null,
     inputSnapshotId: row.input_snapshot_id,
     resultSnapshotId: row.result_snapshot_id,
     errorMessage: row.error_message,

@@ -12,6 +12,11 @@ import {
   updateAnalysisRunStatusInDb,
 } from "@/lib/analysis/analysisRun";
 import { createClient } from "@/lib/supabase/server";
+import {
+  getOrCreateUserCredits,
+  incrementCreditsUsed,
+} from "@/lib/server/analysis/checkUserCredits";
+import { insertCreditLog } from "@/lib/server/analysis/creditLog";
 
 function analysisRunToResponseBody(r: AnalysisRunRecord) {
   return {
@@ -127,6 +132,8 @@ export async function POST(request: Request) {
     channelId: parsed.channelId,
     analysisType: parsed.analysisType,
     inputSnapshotId: latestResult.id,
+    runType: parsed.runType,
+    requestedModules: parsed.requestedModules,
   });
 
   if (!inserted) {
@@ -176,6 +183,47 @@ export async function POST(request: Request) {
       { ok: false, error: "run 완료 처리에 실패했습니다." },
       { status: 500 }
     );
+  }
+
+  // STEP 5: credit 차감 + credit_logs 1행 기록 (run 완료 후)
+  // non-fatal — credit 기록 실패가 run 응답을 막지 않음
+  try {
+    const creditsBefore = await getOrCreateUserCredits(supabase, user.id);
+    const creditBefore = creditsBefore.credits_used;
+
+    try {
+      await incrementCreditsUsed(supabase, user.id);
+      await insertCreditLog(supabase, {
+        userId: user.id,
+        channelId: parsed.channelId,
+        snapshotId: latestResult.id,
+        analysisRunId: inserted.id,
+        runType: parsed.runType,
+        requestedModules: parsed.requestedModules,
+        creditBefore,
+        creditDelta: -1,
+        resultStatus: "applied",
+      });
+    } catch (incrementErr) {
+      console.error("[analysis-run] credit increment failed:", incrementErr);
+      await insertCreditLog(supabase, {
+        userId: user.id,
+        channelId: parsed.channelId,
+        snapshotId: latestResult.id,
+        analysisRunId: inserted.id,
+        runType: parsed.runType,
+        requestedModules: parsed.requestedModules,
+        creditBefore,
+        creditDelta: 0,
+        resultStatus: "failed",
+        failureReason:
+          incrementErr instanceof Error
+            ? incrementErr.message
+            : "credit increment failed",
+      });
+    }
+  } catch (creditErr) {
+    console.error("[analysis-run] credit flow failed:", creditErr);
   }
 
   const { data: finalRow, error: finalErr } = await supabase

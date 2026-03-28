@@ -49,6 +49,13 @@ export type AnalysisRunAnalysisType =
 export type AnalysisRunStatus = "queued" | "running" | "completed" | "failed";
 
 /**
+ * DB `analysis_runs.run_type`.
+ * NULL(기존 행)은 `resolveAnalysisRunConfig`에서 'full'로 해석.
+ * 신규 행은 STEP 4 이후 반드시 명시 기록.
+ */
+export type AnalysisRunRunType = "full" | "partial";
+
+/**
  * Supabase `analysis_runs` 행과 필드명을 맞춘 도메인 레코드.
  * snake_case 컬럼은 insert/select 시 매핑 레이어에서 변환하면 된다.
  */
@@ -61,6 +68,16 @@ export type AnalysisRunRecord = {
   readonly channelId: string;
   readonly analysisType: AnalysisRunAnalysisType;
   readonly status: AnalysisRunStatus;
+  /**
+   * 실행 유형. NULL은 기존 행(하위 호환) — `resolveAnalysisRunConfig`로 해석.
+   * 신규 행은 STEP 4 이후 반드시 명시값 기록.
+   */
+  readonly runType: AnalysisRunRunType | null;
+  /**
+   * 요청 모듈 배열. NULL은 기존 행(하위 호환) — `resolveAnalysisRunConfig`로 해석.
+   * 신규 행은 STEP 4 이후 반드시 명시 배열 기록. 빈 배열 금지.
+   */
+  readonly requestedModules: readonly string[] | null;
   readonly startedAt: string;
   readonly completedAt: string | null;
   readonly updatedAt: string;
@@ -80,6 +97,16 @@ export type CreateAnalysisRunInput = {
   channelId: string;
   analysisType: AnalysisRunAnalysisType;
   inputSnapshotId?: string | null;
+  /**
+   * 신규 실행은 항상 명시. STEP 4 이후 NULL 저장 금지.
+   * 미전달 시 'full' 기본값 적용 (레거시 호출 경로 안전망).
+   */
+  runType?: AnalysisRunRunType;
+  /**
+   * 신규 실행은 항상 명시. 빈 배열 금지.
+   * 미전달 시 FULL_MODULE_LIST 기본값 적용 (레거시 호출 경로 안전망).
+   */
+  requestedModules?: readonly string[];
 };
 
 /** DB insert 시에는 로그인 사용자 id 필수 */
@@ -99,10 +126,67 @@ export const MENU_EXTENSION_ANALYSIS_TYPES = [
 export type MenuExtensionAnalysisRunType =
   (typeof MENU_EXTENSION_ANALYSIS_TYPES)[number];
 
+/**
+ * 전체 모듈 목록 — `requested_modules` NULL 해석 기준값.
+ * DB/API 외부 인터페이스 전용(string[]). `MENU_EXTENSION_ANALYSIS_TYPES`와 동일 집합.
+ *
+ * NULL-safe 해석은 `resolveAnalysisRunConfig`를 통해서만 수행.
+ * 직접 `?? FULL_MODULE_LIST` 처리 금지.
+ */
+export const FULL_MODULE_LIST: readonly string[] = MENU_EXTENSION_ANALYSIS_TYPES;
+
+/**
+ * run 레코드의 `runType`/`requestedModules` NULL을 기본값으로 해석.
+ * NULL-safe 해석은 이 함수를 통해서만 수행 — 직접 `?? FULL_MODULE_LIST` 금지.
+ */
+export function resolveAnalysisRunConfig(
+  run: Pick<AnalysisRunRecord, "runType" | "requestedModules">
+): { runType: AnalysisRunRunType; requestedModules: readonly string[] } {
+  return {
+    runType: run.runType ?? "full",
+    requestedModules: run.requestedModules ?? FULL_MODULE_LIST,
+  };
+}
+
+/**
+ * `requested_modules` 입력값 검증 및 정규화.
+ * - 빈 배열 금지 (실행 차단 필요)
+ * - 허용값 외 키 거부
+ * - null/undefined 입력 → null 반환 (전달 안 함으로 취급)
+ * - 검증 실패 시 오류 메시지와 함께 `{ ok: false }` 반환
+ */
+export function parseRequestedModulesInput(
+  value: unknown
+): { ok: true; modules: readonly string[] } | { ok: false; error: string } {
+  if (value === undefined || value === null) {
+    // 미전달 — 호출부가 full 기본값 적용
+    return { ok: true, modules: FULL_MODULE_LIST };
+  }
+  if (!Array.isArray(value)) {
+    return { ok: false, error: "requested_modules는 배열이어야 합니다." };
+  }
+  if (value.length === 0) {
+    return { ok: false, error: "requested_modules는 1개 이상이어야 합니다." };
+  }
+  const invalid = value.filter(
+    (v) => typeof v !== "string" || !FULL_MODULE_LIST.includes(v as string)
+  );
+  if (invalid.length > 0) {
+    return {
+      ok: false,
+      error: `허용되지 않는 module key가 포함되어 있습니다: ${invalid.join(", ")}`,
+    };
+  }
+  return { ok: true, modules: value as string[] };
+}
+
 /** POST /api/analysis-run 요청 본문 파싱 */
-export function parseExtensionAnalysisRunRequestBody(
-  body: unknown
-): { channelId: string; analysisType: MenuExtensionAnalysisRunType } | null {
+export function parseExtensionAnalysisRunRequestBody(body: unknown): {
+  channelId: string;
+  analysisType: MenuExtensionAnalysisRunType;
+  runType: AnalysisRunRunType;
+  requestedModules: readonly string[];
+} | null {
   if (!isRecord(body)) {
     return null;
   }
@@ -118,12 +202,34 @@ export function parseExtensionAnalysisRunRequestBody(
   // 신규 클라이언트는 반드시 "channel_dna"를 전송해야 하며, "benchmark"는 흡수 전용.
   const normalizedType =
     analysisTypeRaw === "benchmark" ? "channel_dna" : analysisTypeRaw;
+  let analysisType: MenuExtensionAnalysisRunType | null = null;
   for (const t of MENU_EXTENSION_ANALYSIS_TYPES) {
     if (t === normalizedType) {
-      return { channelId: channelId.trim(), analysisType: t };
+      analysisType = t;
+      break;
     }
   }
-  return null;
+  if (!analysisType) {
+    return null;
+  }
+
+  // run_type: 미전달 시 'full' 기본값
+  const runTypeRaw = body.runType;
+  const runType: AnalysisRunRunType =
+    runTypeRaw === "partial" ? "partial" : "full";
+
+  // requested_modules: 미전달 시 전체 모듈
+  const modulesResult = parseRequestedModulesInput(body.requestedModules);
+  if (!modulesResult.ok) {
+    return null;
+  }
+
+  return {
+    channelId: channelId.trim(),
+    analysisType,
+    runType,
+    requestedModules: modulesResult.modules,
+  };
 }
 
 export type UpdateAnalysisRunStatusInput =
@@ -204,6 +310,20 @@ function parseAnalysisRunStatus(v: unknown): AnalysisRunStatus | null {
   }
 }
 
+function parseAnalysisRunRunType(v: unknown): AnalysisRunRunType | null {
+  if (v === "full" || v === "partial") return v;
+  return null; // NULL 포함 — resolveAnalysisRunConfig에서 해석
+}
+
+function parseRequestedModulesRow(v: unknown): readonly string[] | null {
+  if (v === null || v === undefined) return null;
+  if (!Array.isArray(v)) return null;
+  const filtered = v.filter(
+    (x): x is string => typeof x === "string" && x.trim() !== ""
+  );
+  return filtered.length > 0 ? filtered : null;
+}
+
 /**
  * Supabase `analysis_runs` 행 → 도메인 레코드 (검증 실패 시 null).
  */
@@ -216,6 +336,8 @@ export function parseAnalysisRunRow(row: unknown): AnalysisRunRecord | null {
   const channelId = row.channel_id;
   const analysisType = parseAnalysisRunAnalysisType(row.analysis_type);
   const status = parseAnalysisRunStatus(row.status);
+  const runType = parseAnalysisRunRunType(row.run_type);
+  const requestedModules = parseRequestedModulesRow(row.requested_modules);
   const startedAt = row.started_at;
   const completedAt = row.completed_at;
   const updatedAt = row.updated_at;
@@ -278,6 +400,8 @@ export function parseAnalysisRunRow(row: unknown): AnalysisRunRecord | null {
     channelId,
     analysisType,
     status,
+    runType,
+    requestedModules,
     startedAt,
     completedAt: completedAtNorm,
     updatedAt,
@@ -289,13 +413,17 @@ export function parseAnalysisRunRow(row: unknown): AnalysisRunRecord | null {
 
 function recordToDbInsertRow(
   record: AnalysisRunRecord
-): Record<string, string | null> {
+): Record<string, string | string[] | null> {
   return {
     id: record.id,
     user_id: record.userId,
     channel_id: record.channelId,
     analysis_type: record.analysisType,
     status: record.status,
+    run_type: record.runType,
+    requested_modules: record.requestedModules
+      ? (record.requestedModules as string[])
+      : null,
     started_at: record.startedAt,
     completed_at: record.completedAt,
     updated_at: record.updatedAt,
@@ -316,6 +444,9 @@ export function buildQueuedAnalysisRunRecord(
     channelId: input.channelId,
     analysisType: input.analysisType,
     status: "queued",
+    // STEP 4: 항상 명시값 기록. 미전달 시 안전 기본값.
+    runType: input.runType ?? "full",
+    requestedModules: input.requestedModules ?? FULL_MODULE_LIST,
     startedAt: now,
     completedAt: null,
     updatedAt: now,
@@ -579,6 +710,8 @@ export function inferSyntheticBaseRunFromLatestResult(
     channelId: userChannelId,
     analysisType: "base",
     status: "completed",
+    runType: null,
+    requestedModules: null,
     startedAt: created,
     completedAt: updated,
     updatedAt: updated,
