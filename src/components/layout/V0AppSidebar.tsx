@@ -105,6 +105,7 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
   const [channels, setChannels] = React.useState<SidebarChannel[]>([])
   const [selectedChannelId, setSelectedChannelId] = React.useState<string | null>(null)
   const [userEmail, setUserEmail] = React.useState<string | null>(null)
+  const [userDisplayName, setUserDisplayName] = React.useState<string | null>(null)
 
   const activeChannelLabel = React.useMemo(() => {
     if (channels.length === 0) return "채널을 등록하세요"
@@ -167,10 +168,33 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
 
   React.useEffect(() => {
     const supabase = createClient()
+
+    // mount 시 즉시 현재 세션 읽어 초기화 (INITIAL_SESSION 지연 보완)
+    void supabase.auth.getSession().then(({ data: { session } }) => {
+      const user = session?.user ?? null
+      setUserEmail(user?.email ?? null)
+      const meta = user?.user_metadata ?? {}
+      setUserDisplayName(
+        (meta.name as string | undefined) ||
+        (meta.full_name as string | undefined) ||
+        (meta.preferred_username as string | undefined) ||
+        user?.email ||
+        null
+      )
+    })
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       setUserEmail(session?.user?.email ?? null)
+      const meta = session?.user?.user_metadata ?? {}
+      setUserDisplayName(
+        (meta.name as string | undefined) ||
+        (meta.full_name as string | undefined) ||
+        (meta.preferred_username as string | undefined) ||
+        session?.user?.email ||
+        null
+      )
       if (!session?.user) {
         setChannels([])
         setSelectedChannelId(null)
@@ -334,10 +358,10 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
             <User className="size-4 text-muted-foreground" />
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-medium text-foreground">User Name</span>
-            <span className="truncate text-xs text-muted-foreground">
-              {userEmail ?? "user@example.com"}
-            </span>
+            <span className="truncate font-medium text-foreground">{userDisplayName ?? "User"}</span>
+            {userEmail ? (
+              <span className="truncate text-xs text-muted-foreground">{userEmail}</span>
+            ) : null}
           </div>
         </div>
         <div className="px-2 pb-2">
