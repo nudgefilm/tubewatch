@@ -114,6 +114,8 @@ export function parseExtensionAnalysisRunRequestBody(
   if (typeof analysisTypeRaw !== "string") {
     return null;
   }
+  // 레거시 호환: 과거 "benchmark" 타입을 공식 식별자 "channel_dna"로 정규화.
+  // 신규 클라이언트는 반드시 "channel_dna"를 전송해야 하며, "benchmark"는 흡수 전용.
   const normalizedType =
     analysisTypeRaw === "benchmark" ? "channel_dna" : analysisTypeRaw;
   for (const t of MENU_EXTENSION_ANALYSIS_TYPES) {
@@ -163,10 +165,19 @@ function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
 }
 
+/**
+ * DB `analysis_runs.analysis_type` 컬럼 값을 도메인 타입으로 변환.
+ *
+ * 레거시 호환 처리:
+ *   - DB에 "benchmark"로 저장된 레거시 행을 "channel_dna"로 정규화.
+ *   - 신규 insert 기준은 "channel_dna" — "benchmark" 분기는 레거시 행 흡수 전용.
+ *   - 이 함수 외부에서 "benchmark"를 분기 기준값으로 사용하지 말 것.
+ */
 function parseAnalysisRunAnalysisType(
   v: unknown
 ): AnalysisRunAnalysisType | null {
   if (v === "benchmark") {
+    // 레거시 DB 값 호환 처리 — 공식 식별자는 "channel_dna".
     return "channel_dna";
   }
   switch (v) {

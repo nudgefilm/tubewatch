@@ -1,7 +1,8 @@
 /**
  * Guest preview report data shape.
  * Preview: channel overview, subscriber_count, video_count, radar_scores, strengths, weaknesses.
- * Locked: action_plan, seo_insights, benchmark (not included in payload; UI shows GuestLockedSection).
+ * Locked: action_plan, seo_insights, channel_dna (not included in payload; UI shows GuestLockedSection).
+ * Note: Legacy guest reports store channel_dna comparison data under "benchmark_items" key — see guestReportTypes.ts.
  */
 
 export type GuestRadarMetrics = {
