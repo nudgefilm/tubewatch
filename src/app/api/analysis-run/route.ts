@@ -17,6 +17,7 @@ import {
   incrementCreditsUsed,
 } from "@/lib/server/analysis/checkUserCredits";
 import { insertCreditLog } from "@/lib/server/analysis/creditLog";
+import { insertAnalysisModuleResults } from "@/lib/server/analysis/moduleResults";
 
 function analysisRunToResponseBody(r: AnalysisRunRecord) {
   return {
@@ -101,7 +102,7 @@ export async function POST(request: Request) {
 
   const { data: latestResult, error: lrErr } = await supabase
     .from("analysis_results")
-    .select("id")
+    .select("*")  // STEP 7: 전체 필드 필요 (module payload 구성용)
     .eq("user_id", user.id)
     .eq("user_channel_id", parsed.channelId)
     .order("created_at", { ascending: false })
@@ -183,6 +184,23 @@ export async function POST(request: Request) {
       { ok: false, error: "run 완료 처리에 실패했습니다." },
       { status: 500 }
     );
+  }
+
+  // STEP 7: analysis_module_results 저장 (run 완료 후, non-fatal)
+  // requested_modules 기준 1 module = 1 row. 개별 실패는 로그로 추적.
+  const moduleAnalyzedAt = new Date().toISOString();
+  try {
+    await insertAnalysisModuleResults(supabase, {
+      analysisRunId: inserted.id,
+      userId: user.id,
+      channelId: parsed.channelId,
+      snapshotId: latestResult.id as string,
+      requestedModules: parsed.requestedModules,
+      resultRow: latestResult as Record<string, unknown>,
+      analyzedAt: moduleAnalyzedAt,
+    });
+  } catch (moduleErr) {
+    console.error("[analysis-run] module results insertion error:", moduleErr);
   }
 
   // STEP 5: credit 차감 + credit_logs 1행 기록 (run 완료 후)
