@@ -5,6 +5,11 @@ interface YouTubeChannelSnippet {
   title?: string | null;
   description?: string | null;
   publishedAt?: string | null;
+  thumbnails?: {
+    default?: { url?: string | null } | null;
+    medium?: { url?: string | null } | null;
+    high?: { url?: string | null } | null;
+  } | null;
 }
 
 interface YouTubeChannelStatistics {
@@ -72,6 +77,9 @@ export async function fetchChannelData(
     title: safeString(snippet?.title, "Untitled Channel"),
     description: safeNullableString(snippet?.description),
     publishedAt: safeNullableString(snippet?.publishedAt),
+    thumbnailUrl:
+      safeNullableString(snippet?.thumbnails?.medium?.url) ??
+      safeNullableString(snippet?.thumbnails?.default?.url),
     subscriberCount: toNumber(statistics?.subscriberCount),
     videoCount: toNumber(statistics?.videoCount),
     viewCount: toNumber(statistics?.viewCount),

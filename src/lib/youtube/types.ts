@@ -3,6 +3,7 @@ export interface YouTubeChannelData {
   title: string;
   description: string | null;
   publishedAt: string | null;
+  thumbnailUrl: string | null;
 
   subscriberCount: number | null;
   videoCount: number | null;
