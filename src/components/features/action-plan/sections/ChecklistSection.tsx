@@ -17,11 +17,57 @@ interface ChecklistData {
   reviewAfter2Weeks: ChecklistItem[]
 }
 
-interface ActionPlanChecklistProps {
-  data: ChecklistData
+export interface FlatChecklistItem {
+  id: string
+  title: string
+  description: string
+  difficulty: "easy" | "medium" | "hard"
 }
 
-export function ActionPlanChecklistSection({ data }: ActionPlanChecklistProps) {
+interface ActionPlanChecklistProps {
+  data?: ChecklistData
+  items?: FlatChecklistItem[]
+}
+
+const difficultyLabel: Record<FlatChecklistItem["difficulty"], string> = {
+  easy: "쉬움",
+  medium: "보통",
+  hard: "어려움",
+}
+
+const difficultyColor: Record<FlatChecklistItem["difficulty"], string> = {
+  easy: "text-emerald-600",
+  medium: "text-amber-600",
+  hard: "text-destructive",
+}
+
+export function ActionPlanChecklistSection({ data, items }: ActionPlanChecklistProps) {
+  if (items && items.length > 0) {
+    return (
+      <section className="space-y-4">
+        <h2 className="text-xl font-bold">실행 체크리스트</h2>
+        <div className="grid gap-3 md:grid-cols-2">
+          {items.map((item) => (
+            <Card key={item.id} className="flex gap-3 p-4">
+              <div className="mt-1 h-2 w-2 rounded-full bg-primary shrink-0" />
+              <div className="space-y-1 flex-1">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-sm font-medium">{item.title}</p>
+                  <span className={`text-xs font-medium ${difficultyColor[item.difficulty]}`}>
+                    {difficultyLabel[item.difficulty]}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground">{item.description}</p>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  if (!data) return null
+
   return (
     <section className="space-y-4">
       <h2 className="text-xl font-bold">실행 체크리스트</h2>

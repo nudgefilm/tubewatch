@@ -25,20 +25,20 @@ interface ActionCard {
   id: string
   title: string
   problemSummary: string
-  evidenceData: {
+  evidenceData?: {
     current: string
     benchmark: string
     sampleSize: number
-  }
+  } | null
   whyNeeded: string
   howToExecute: string[]
   expectedEffect: string
-  applicationScope: string
-  experimentPeriod: string
-  caution: string
-  confidence: number
-  dnaConnection: string
-  analysisConnection: string
+  applicationScope?: string | null
+  experimentPeriod?: string | null
+  caution?: string | null
+  confidence?: number | null
+  dnaConnection?: string | null
+  analysisConnection?: string | null
   priority: string
 }
 
@@ -81,14 +81,18 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                       <Badge className={priorityColors[action.priority]}>
                         {action.priority}
                       </Badge>
-                      <Badge variant="outline" className="gap-1">
-                        <BarChart3 className="h-3 w-3" />
-                        {action.analysisConnection}
-                      </Badge>
-                      <Badge variant="outline" className="gap-1">
-                        <Dna className="h-3 w-3" />
-                        {action.dnaConnection}
-                      </Badge>
+                      {action.analysisConnection && (
+                        <Badge variant="outline" className="gap-1">
+                          <BarChart3 className="h-3 w-3" />
+                          {action.analysisConnection}
+                        </Badge>
+                      )}
+                      {action.dnaConnection && (
+                        <Badge variant="outline" className="gap-1">
+                          <Dna className="h-3 w-3" />
+                          {action.dnaConnection}
+                        </Badge>
+                      )}
                     </div>
                     <CardTitle className="text-lg">{action.title}</CardTitle>
                   </div>
@@ -116,26 +120,28 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
               {isExpanded && (
                 <CardContent className="pt-0 space-y-6">
                   {/* 근거 데이터 */}
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm font-medium">
-                      <Database className="h-4 w-4 text-primary" />
-                      근거 데이터
+                  {action.evidenceData && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm font-medium">
+                        <Database className="h-4 w-4 text-primary" />
+                        근거 데이터
+                      </div>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="p-3 bg-muted/50 rounded-lg">
+                          <p className="text-xs text-muted-foreground">현재</p>
+                          <p className="font-medium">{action.evidenceData.current}</p>
+                        </div>
+                        <div className="p-3 bg-muted/50 rounded-lg">
+                          <p className="text-xs text-muted-foreground">벤치마크</p>
+                          <p className="font-medium">{action.evidenceData.benchmark}</p>
+                        </div>
+                        <div className="p-3 bg-muted/50 rounded-lg">
+                          <p className="text-xs text-muted-foreground">표본 수</p>
+                          <p className="font-medium">{action.evidenceData.sampleSize}개</p>
+                        </div>
+                      </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className="p-3 bg-muted/50 rounded-lg">
-                        <p className="text-xs text-muted-foreground">현재</p>
-                        <p className="font-medium">{action.evidenceData.current}</p>
-                      </div>
-                      <div className="p-3 bg-muted/50 rounded-lg">
-                        <p className="text-xs text-muted-foreground">벤치마크</p>
-                        <p className="font-medium">{action.evidenceData.benchmark}</p>
-                      </div>
-                      <div className="p-3 bg-muted/50 rounded-lg">
-                        <p className="text-xs text-muted-foreground">표본 수</p>
-                        <p className="font-medium">{action.evidenceData.sampleSize}개</p>
-                      </div>
-                    </div>
-                  </div>
+                  )}
 
                   {/* 왜 필요한지 */}
                   <div className="space-y-2">
@@ -175,53 +181,65 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                         {action.expectedEffect}
                       </p>
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm font-medium">
-                        <Target className="h-4 w-4 text-primary" />
-                        적용 범위
+                    {action.applicationScope && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm font-medium">
+                          <Target className="h-4 w-4 text-primary" />
+                          적용 범위
+                        </div>
+                        <p className="text-sm text-muted-foreground pl-6">
+                          {action.applicationScope}
+                        </p>
                       </div>
-                      <p className="text-sm text-muted-foreground pl-6">
-                        {action.applicationScope}
-                      </p>
-                    </div>
+                    )}
                   </div>
 
                   {/* 실험 기간 & 주의사항 */}
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm font-medium">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        실험 기간
-                      </div>
-                      <p className="text-sm text-muted-foreground pl-6">
-                        {action.experimentPeriod}
-                      </p>
+                  {(action.experimentPeriod || action.caution) && (
+                    <div className="grid gap-4 md:grid-cols-2">
+                      {action.experimentPeriod && (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-sm font-medium">
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                            실험 기간
+                          </div>
+                          <p className="text-sm text-muted-foreground pl-6">
+                            {action.experimentPeriod}
+                          </p>
+                        </div>
+                      )}
+                      {action.caution && (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-sm font-medium">
+                            <AlertTriangle className="h-4 w-4 text-amber-500" />
+                            주의사항
+                          </div>
+                          <p className="text-sm text-muted-foreground pl-6">
+                            {action.caution}
+                          </p>
+                        </div>
+                      )}
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm font-medium">
-                        <AlertTriangle className="h-4 w-4 text-amber-500" />
-                        주의사항
-                      </div>
-                      <p className="text-sm text-muted-foreground pl-6">
-                        {action.caution}
-                      </p>
-                    </div>
-                  </div>
+                  )}
 
                   {/* 신뢰도 */}
-                  <div className="pt-4 border-t">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2 text-sm">
-                        <Shield className="h-4 w-4" />
-                        <span>데이터 신뢰도</span>
+                  {action.confidence != null && (
+                    <div className="pt-4 border-t">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Shield className="h-4 w-4" />
+                          <span>데이터 신뢰도</span>
+                        </div>
+                        <span className="text-sm font-medium">{action.confidence}%</span>
                       </div>
-                      <span className="text-sm font-medium">{action.confidence}%</span>
+                      <Progress value={action.confidence} className="h-2" />
+                      {action.evidenceData && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          표본 {action.evidenceData.sampleSize}개 기준, 패턴 일관성 분석 결과
+                        </p>
+                      )}
                     </div>
-                    <Progress value={action.confidence} className="h-2" />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      표본 {action.evidenceData.sampleSize}개 기준, 패턴 일관성 분석 결과
-                    </p>
-                  </div>
+                  )}
                 </CardContent>
               )}
             </Card>

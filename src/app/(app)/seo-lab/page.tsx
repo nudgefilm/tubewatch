@@ -4,6 +4,7 @@ import {
   buildProtectedReturnPath,
 } from "@/lib/auth/require-app-user"
 import { getAnalysisPageData } from "@/lib/analysis/getAnalysisPageData"
+import { buildSeoLabPageViewModel } from "@/lib/seo-lab/seoLabPageViewModel"
 
 type PageProps = {
   searchParams?: { channel?: string; snapshot?: string }
@@ -15,10 +16,8 @@ export default async function Page({ searchParams }: PageProps) {
   await redirectToLandingAuthUnlessSignedIn(
     buildProtectedReturnPath("/seo-lab", channelId)
   )
-  // 단일 진입점: getAnalysisPageData만 사용. snapshot 기반 조회.
   const data = await getAnalysisPageData({ channelId, snapshotId })
-  // channelContext는 baseData에서 직접 추출 (builder 재조회 없음)
-  // TODO(4-3B): buildSeoLabPageViewModel(data)를 UI에 연결
+  const viewModel = buildSeoLabPageViewModel(data)
   const channelContext = data?.selectedChannel
     ? {
         title: data.selectedChannel.channel_title ?? null,
@@ -31,6 +30,7 @@ export default async function Page({ searchParams }: PageProps) {
     <SeoLabPage
       channelId={channelId}
       channelContext={channelContext}
+      viewModel={viewModel}
     />
   )
 }

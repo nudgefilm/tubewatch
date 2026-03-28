@@ -9,10 +9,10 @@ interface PriorityAction {
   id: string
   level: string
   title: string
-  impact: string[]
+  impact?: string[]
   reason: string
   order: number
-  confidence: number
+  confidence?: number | null
   difficulty: string
 }
 
@@ -62,13 +62,15 @@ export function ActionPlanPrioritySection({ data }: ActionPlanPriorityProps) {
 
             <CardContent className="space-y-4">
               {/* 영향 영역 */}
-              <div className="flex flex-wrap gap-1">
-                {action.impact.map((item) => (
-                  <Badge key={item} variant="secondary" className="text-xs">
-                    {item}
-                  </Badge>
-                ))}
-              </div>
+              {action.impact && action.impact.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {action.impact.map((item) => (
+                    <Badge key={item} variant="secondary" className="text-xs">
+                      {item}
+                    </Badge>
+                  ))}
+                </div>
+              )}
 
               {/* 우선 적용 이유 */}
               <p className="text-sm text-muted-foreground leading-relaxed">
@@ -77,15 +79,19 @@ export function ActionPlanPrioritySection({ data }: ActionPlanPriorityProps) {
 
               {/* 신뢰도 & 난이도 */}
               <div className="space-y-2 pt-2 border-t">
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-1">
-                    <Shield className="h-3 w-3" />
-                    <span>신뢰도</span>
-                  </div>
-                  <span className="font-medium">{action.confidence}%</span>
-                </div>
-                <Progress value={action.confidence} className="h-1.5" />
-                
+                {action.confidence != null && (
+                  <>
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-1">
+                        <Shield className="h-3 w-3" />
+                        <span>신뢰도</span>
+                      </div>
+                      <span className="font-medium">{action.confidence}%</span>
+                    </div>
+                    <Progress value={action.confidence} className="h-1.5" />
+                  </>
+                )}
+
                 <div className="flex items-center justify-between text-sm pt-1">
                   <span>실행 난이도</span>
                   <span className={`font-medium ${difficultyColors[action.difficulty]}`}>
