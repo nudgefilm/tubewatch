@@ -1,7 +1,17 @@
 import { SeoLabPage } from "@/components/features/seo-lab"
-import { redirectToLandingAuthUnlessSignedIn } from "@/lib/auth/require-app-user"
+import {
+  redirectToLandingAuthUnlessSignedIn,
+  buildProtectedReturnPath,
+} from "@/lib/auth/require-app-user"
 
-export default async function Page() {
-  await redirectToLandingAuthUnlessSignedIn("/seo-lab")
-  return <SeoLabPage />
+type PageProps = {
+  searchParams?: { channel?: string }
+}
+
+export default async function Page({ searchParams }: PageProps) {
+  const channelId = searchParams?.channel
+  await redirectToLandingAuthUnlessSignedIn(
+    buildProtectedReturnPath("/seo-lab", channelId)
+  )
+  return <SeoLabPage channelId={channelId} />
 }

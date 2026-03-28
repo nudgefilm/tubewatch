@@ -17,7 +17,11 @@ import {
   mockOverallScore,
 } from "./mock-data"
 
-export function ChannelAnalysisPage() {
+interface ChannelAnalysisPageProps {
+  channelId?: string
+}
+
+export function ChannelAnalysisPage({ channelId: _channelId = "" }: ChannelAnalysisPageProps) {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
