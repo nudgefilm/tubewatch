@@ -6,6 +6,9 @@ import { DnaPatternAnalysisSection } from "./sections/PatternAnalysisSection"
 import { DnaCardsSection } from "./sections/CardsSection"
 import { DnaEmptyState } from "./sections/EmptyState"
 import { ChannelContextHeader, type ChannelContext } from "@/components/features/shared/ChannelContextHeader"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ScoreBar } from "@/components/ui/ScoreBar"
+import { makeDiagnosticLabel } from "@/lib/utils/labelUtils"
 import type { ChannelDnaPageViewModel } from "@/lib/channel-dna/channelDnaPageViewModel"
 import type { InternalChannelDnaSummaryVm } from "@/lib/channel-dna/internalChannelDnaSummary"
 
@@ -40,13 +43,13 @@ function buildStructureSummaryFromVm(vm: InternalChannelDnaSummaryVm) {
 
 function buildPatternAnalysisFromVm(vm: InternalChannelDnaSummaryVm) {
   const highPerformancePatterns = vm.topPatternSignals.map((signal) => ({
-    pattern: signal.length > 40 ? signal.slice(0, 40) + "…" : signal,
+    pattern: makeDiagnosticLabel(signal),
     frequency: "스냅샷 기반",
     description: signal,
     examples: [] as string[],
   }))
   const lowPerformancePatterns = vm.weakPatternSignals.map((signal) => ({
-    pattern: signal.length > 40 ? signal.slice(0, 40) + "…" : signal,
+    pattern: makeDiagnosticLabel(signal),
     frequency: "스냅샷 기반",
     description: signal,
     examples: [] as never[],
@@ -71,13 +74,13 @@ function buildPatternAnalysisFromVm(vm: InternalChannelDnaSummaryVm) {
 
 function buildDnaCardsFromVm(vm: InternalChannelDnaSummaryVm) {
   const strengths = vm.topPatternSignals.map((signal, i) => ({
-    title: signal.length > 30 ? signal.slice(0, 30) + "…" : signal,
+    title: makeDiagnosticLabel(signal),
     description: signal,
     score: Math.max(60, 85 - i * 5),
     tags: [] as string[],
   }))
   const weaknesses = vm.weakPatternSignals.map((signal, i) => ({
-    title: signal.length > 30 ? signal.slice(0, 30) + "…" : signal,
+    title: makeDiagnosticLabel(signal),
     description: signal,
     score: Math.min(45, 40 + i * 3),
     tags: [] as string[],
@@ -136,6 +139,32 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel }: Ch
 
         {/* A. 성과 구조 요약 */}
         <DnaStructureSummarySection data={structureSummary} />
+
+        {/* A-1. 구간 점수 (radarProfile 실데이터 기반) */}
+        {vm.radarProfile && (() => {
+          const [activity, response, structure] = vm.radarProfile.channel
+          const items = [
+            { label: "콘텐츠 구조", score: structure },
+            { label: "성과 반응", score: response },
+            { label: "채널 활동성", score: activity },
+          ].filter((x): x is { label: string; score: number } => x.score != null)
+          if (items.length === 0) return null
+          return (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">구간 점수</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {items.map((item) => (
+                  <ScoreBar key={item.label} label={item.label} score={item.score} />
+                ))}
+                <p className="text-xs text-muted-foreground pt-1">
+                  feature_section_scores 기반 — 0–100 구간 점수
+                </p>
+              </CardContent>
+            </Card>
+          )
+        })()}
 
         {/* B. 반복 패턴 분석 */}
         {(patternAnalysis.highPerformancePatterns.length > 0 ||

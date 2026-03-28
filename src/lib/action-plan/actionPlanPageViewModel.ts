@@ -19,6 +19,7 @@ import type { YoutubeVerificationUiState } from "@/lib/auth/youtubeVerificationT
 import type { AnalysisStatus } from "@/lib/analysis/types";
 import { buildInternalChannelDnaSummary } from "@/lib/channel-dna/internalChannelDnaSummary";
 import { pickChannelDnaSignalsForActionPlan } from "@/lib/channel-dna/channelDnaSignalsForActionPlan";
+import { makeDiagnosticLabel } from "@/lib/utils/labelUtils";
 import {
   buildChannelDnaActionCandidates,
   filterMetricActionsSupersededByChannelDna,
@@ -173,12 +174,8 @@ function parseSectionScores(raw: unknown): ChannelSectionScores | null {
   };
 }
 
-function titleFromText(text: string, maxLen: number): string {
-  const t = text.trim();
-  if (t.length <= maxLen) {
-    return t;
-  }
-  return `${t.slice(0, maxLen - 1)}…`;
+function titleFromText(text: string): string {
+  return makeDiagnosticLabel(text);
 }
 
 type TextSourceKind = "weakness" | "bottleneck";
@@ -214,7 +211,7 @@ function buildTextBackedActions(
     idx += 1;
     out.push({
       id,
-      title: titleFromText(item.text, 72),
+      title: titleFromText(item.text),
       whyNeeded: `${label}으로 저장된 내용: ${item.text}`,
       expectedEffect: CONSERVATIVE_EFFECT,
       difficulty: item.kind === "bottleneck" ? "high" : "medium",

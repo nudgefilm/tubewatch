@@ -4,6 +4,7 @@ import type {
   SeoStrategySignalRecord,
   SeoStrategySignalsPayload,
 } from "@/lib/seo-lab/buildSeoStrategySignals";
+import { makeDiagnosticLabel } from "@/lib/utils/labelUtils";
 
 export type SeoLabStrategySectionVm = {
   seoStrategySummary: string;
@@ -129,12 +130,11 @@ export function buildSeoRecommendations(
   for (let i = 0; i < topLines.length; i += 1) {
     const line = topLines[i]?.trim();
     if (!line) continue;
-    const short = line.length > 48 ? `${line.slice(0, 45)}…` : line;
     dedupePush(keywordAngles, sharedTitleSeen, {
       id: nextRecId("kw"),
-      title: `강점 신호와 맞닿는 주제 언어: ${short}`,
+      title: makeDiagnosticLabel(line),
       shortReason:
-        "베이스 진단에서 반복 언급된 내용입니다. 제목 앞부분의 단어 선택이 이 축과 겹치면 채널 안에서 메시지가 한 줄로 읽히기 쉽습니다.",
+        `${line} — 베이스 진단에서 반복 언급된 내용입니다. 제목 앞부분의 단어 선택이 이 축과 겹치면 채널 안에서 메시지가 한 줄로 읽히기 쉽습니다.`,
       signalSource: "베이스 강점·패턴",
     });
   }
@@ -196,13 +196,11 @@ export function buildSeoRecommendations(
   for (const w of weakForAvoid) {
     const t = w.trim();
     if (!t) continue;
-    const title =
-      t.length > 42 ? `주의로 기록된 접근 피하기: ${t.slice(0, 39)}…` : `주의로 기록된 접근 피하기: ${t}`;
     dedupePush(avoidAngles, seenA, {
       id: nextRecId("av"),
-      title,
+      title: makeDiagnosticLabel(t),
       shortReason:
-        "베이스 진단의 주의·병목 문장과 같은 톤을 제목·태그에 반복하면, 채널 구조상 개선 여지가 줄어들 수 있습니다. 확정 진단은 아닙니다.",
+        `${t} — 베이스 진단의 주의·병목 문장과 같은 톤을 제목·태그에 반복하면, 채널 구조상 개선 여지가 줄어들 수 있습니다. 확정 진단은 아닙니다.`,
       signalSource: "베이스 주의·병목",
     });
   }
@@ -230,12 +228,10 @@ export function buildSeoRecommendations(
   if (keywordAngles.length === 0 && records.length > 0) {
     for (const r of records) {
       if (keywordAngles.length >= caps.kw) break;
-      const base =
-        r.summaryLine.length > 56 ? `${r.summaryLine.slice(0, 53)}…` : r.summaryLine;
       dedupePush(keywordAngles, sharedTitleSeen, {
         id: nextRecId("kw"),
-        title: `관찰 신호 기반 점검: ${base}`,
-        shortReason: r.forSeo,
+        title: makeDiagnosticLabel(r.summaryLine),
+        shortReason: r.summaryLine ? `${r.summaryLine} — ${r.forSeo}` : r.forSeo,
         signalSource: r.sourceLabel,
       });
     }
@@ -245,12 +241,10 @@ export function buildSeoRecommendations(
     for (const r of records) {
       if (r.dimension === "risk") continue;
       if (titlePatterns.length >= caps.tp) break;
-      const base =
-        r.summaryLine.length > 52 ? `${r.summaryLine.slice(0, 49)}…` : r.summaryLine;
       dedupePush(titlePatterns, sharedTitleSeen, {
         id: nextRecId("tp"),
-        title: `제목 구조 점검: ${base}`,
-        shortReason: r.forSeo,
+        title: makeDiagnosticLabel(r.summaryLine),
+        shortReason: r.summaryLine ? `${r.summaryLine} — ${r.forSeo}` : r.forSeo,
         signalSource: r.sourceLabel,
       });
     }

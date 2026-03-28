@@ -3,6 +3,7 @@
 import { SeoLabEmptyState } from "./sections/EmptyState"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { ScoreBar } from "@/components/ui/ScoreBar"
 import { ChannelContextHeader, type ChannelContext } from "@/components/features/shared/ChannelContextHeader"
 import type { SeoLabPageViewModel } from "@/lib/seo-lab/seoLabPageViewModel"
 
@@ -85,6 +86,26 @@ export function SeoLabPage({ channelId = "", channelContext, viewModel }: SeoLab
                       ))}
                     </div>
                   )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* 구간 점수 */}
+            {(viewModel.seoSectionScore != null || viewModel.structureSectionScore != null) && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">구간 점수</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {viewModel.seoSectionScore != null && (
+                    <ScoreBar label="SEO 최적화" score={viewModel.seoSectionScore} />
+                  )}
+                  {viewModel.structureSectionScore != null && (
+                    <ScoreBar label="콘텐츠 구조" score={viewModel.structureSectionScore} />
+                  )}
+                  <p className="text-xs text-muted-foreground pt-1">
+                    feature_section_scores 기반 — 0–100 구간 점수
+                  </p>
                 </CardContent>
               </Card>
             )}
