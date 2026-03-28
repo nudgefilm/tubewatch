@@ -61,7 +61,11 @@ async function getLatestSuccessfulResult(
 }
 
 /**
- * 채널 DNA 페이지용 데이터 조회.
+ * @deprecated [STEP 4-3A] channelId 기반 독립 fetch — 사용하지 않는 함수.
+ * 모든 데이터는 getAnalysisPageData({ channelId, snapshotId }) 단일 진입점으로 공급해야 한다.
+ * TODO(4-3B): 이 함수 및 파일 전체 삭제.
+ *
+ * 채널 DNA 페이지용 데이터 조회 (구버전).
  */
 export async function getChannelDnaPageData(
   selectedChannelId?: string

@@ -558,6 +558,14 @@ function growthScenarioLine(
   return parts.join(" ");
 }
 
+/**
+ * TODO(STEP 4-3): 이 함수는 /analysis 파이프라인의 직접 진입점에서 제외되었다.
+ * 현재는 adaptAnalysisPageDataToViewModel (domainToViewModel.ts)이 이 함수를 내부에서 호출한다.
+ * STEP 4-3에서 Domain 타입 native 빌드로 교체되면 이 함수는 제거 예정.
+ *
+ * @deprecated /analysis 파이프라인에서는 adaptAnalysisPageDataToViewModel 사용.
+ *             다른 호출처가 있다면 STEP 4-3에서 migration 필요.
+ */
 export function buildAnalysisPageViewModel(
   data: AnalysisPageData | null
 ): AnalysisPageViewModel {

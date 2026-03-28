@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import {
   BarChart3,
   ChevronDown,
@@ -101,6 +101,7 @@ type SidebarChannel = {
 export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [channels, setChannels] = React.useState<SidebarChannel[]>([])
   const [selectedChannelId, setSelectedChannelId] = React.useState<string | null>(null)
   const [userEmail, setUserEmail] = React.useState<string | null>(null)
@@ -115,9 +116,14 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
     (base: string) => {
       if (!selectedChannelId) return base
       const sep = base.includes("?") ? "&" : "?"
-      return `${base}${sep}channel=${encodeURIComponent(selectedChannelId)}`
+      let href = `${base}${sep}channel=${encodeURIComponent(selectedChannelId)}`
+      const currentSnapshotId = searchParams.get("snapshot")
+      if (currentSnapshotId) {
+        href += `&snapshot=${encodeURIComponent(currentSnapshotId)}`
+      }
+      return href
     },
-    [selectedChannelId]
+    [selectedChannelId, searchParams]
   )
 
   const loadChannels = React.useCallback(async () => {
@@ -183,10 +189,11 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
   const selectChannel = (id: string) => {
     setSelectedChannelId(id)
     writeSelectedChannelIdToStorage(id)
-    // URL 동기화: 현재 path의 기존 query를 유지하되 channel만 교체/추가
+    // URL 동기화: channel 교체 시 snapshot도 초기화 (새 채널의 최신 snapshot으로 재확정됨)
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href)
       url.searchParams.set("channel", id)
+      url.searchParams.delete("snapshot")
       router.replace(url.pathname + url.search, { scroll: false })
     }
   }

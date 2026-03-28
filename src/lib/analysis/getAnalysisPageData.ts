@@ -158,6 +158,26 @@ async function fetchRecentResultsForChannel(
   return (data ?? []) as AnalysisResultRow[];
 }
 
+async function fetchResultById(
+  supabase: SupabaseClient,
+  userId: string,
+  snapshotId: string
+): Promise<AnalysisResultRow | null> {
+  const { data, error } = await supabase
+    .from("analysis_results")
+    .select("*")
+    .eq("id", snapshotId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    console.error("[fetchResultById] error:", error);
+    return null;
+  }
+
+  return (data as AnalysisResultRow | null) ?? null;
+}
+
 /** 동일 Supabase 클라이언트로 채널 목록만 조회 (추가 `getUser` 없음). */
 export async function getUserChannelsForUser(
   supabase: SupabaseClient,
@@ -291,10 +311,16 @@ export async function getDefaultAnalysisChannel(
 /**
  * 분석 페이지 데이터: 한 번의 `getUser` + 공유 Supabase 클라이언트로 조회하고,
  * 선택 채널에 대한 최신/최근 결과·runs는 병렬로 가져온다.
+ *
+ * snapshotId가 제공되면 해당 analysis_results row를 기준으로 데이터를 조회한다.
+ * snapshotId가 없으면 channelId 기준 최신 결과를 가져온다 (redirect 전 임시 사용).
  */
 export async function getAnalysisPageData(
-  selectedChannelId?: string
+  params?: { channelId?: string; snapshotId?: string }
 ): Promise<AnalysisPageData | null> {
+  const channelId = params?.channelId;
+  const snapshotId = params?.snapshotId;
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -322,10 +348,46 @@ export async function getAnalysisPageData(
     };
   }
 
+  // snapshotId 기준 조회: snapshot row에서 user_channel_id를 통해 채널 확정
+  if (snapshotId) {
+    const snapshotResult = await fetchResultById(supabase, userId, snapshotId);
+
+    let selectedChannel: UserChannelRow | null = null;
+    if (snapshotResult?.user_channel_id) {
+      selectedChannel = channels.find((c) => c.id === snapshotResult.user_channel_id) ?? null;
+    }
+    // fallback: channelId param으로 채널 찾기
+    if (!selectedChannel && channelId) {
+      selectedChannel = channels.find((c) => c.id === channelId) ?? null;
+    }
+    if (!selectedChannel) {
+      selectedChannel = await getDefaultAnalysisChannelWithClient(supabase, userId, channels);
+    }
+
+    const cid = selectedChannel?.id;
+    const [recentAnalysisResults, runsRaw] = cid
+      ? await Promise.all([
+          fetchRecentResultsForChannel(supabase, userId, cid, 20),
+          fetchAnalysisRunsForUserChannel(supabase, userId, cid),
+        ])
+      : [[], null];
+
+    return {
+      userId,
+      channels,
+      selectedChannel,
+      latestResult: snapshotResult,
+      recentAnalysisResults,
+      analysisRuns: runsRaw === null ? null : [...runsRaw],
+      youtubeFeatureAccess,
+    };
+  }
+
+  // snapshotId 없는 경우: channelId 기준 최신 결과 조회 (redirect용)
   let selectedChannel: UserChannelRow | null = null;
 
-  if (selectedChannelId) {
-    selectedChannel = channels.find((c) => c.id === selectedChannelId) ?? null;
+  if (channelId) {
+    selectedChannel = channels.find((c) => c.id === channelId) ?? null;
   }
 
   if (!selectedChannel) {

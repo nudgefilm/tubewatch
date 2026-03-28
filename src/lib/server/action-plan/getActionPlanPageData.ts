@@ -55,11 +55,11 @@ async function getLatestSuccessfulResult(
 }
 
 /**
- * 액션 플랜 페이지용 데이터 조회.
- * - 현재 사용자 user_channels 목록
- * - 선택 채널(쿼리 또는 최근 분석 채널)
- * - 해당 채널의 최신 성공 분석 1건
- * - 액션 3개 (결과 있으면 매핑, 없으면 빈 배열)
+ * @deprecated [STEP 4-3A] channelId 기반 독립 fetch — 사용하지 않는 함수.
+ * 모든 데이터는 getAnalysisPageData({ channelId, snapshotId }) 단일 진입점으로 공급해야 한다.
+ * TODO(4-3B): 이 함수 및 파일 전체 삭제.
+ *
+ * 액션 플랜 페이지용 데이터 조회 (구버전).
  */
 export async function getActionPlanPageData(
   selectedChannelId?: string
