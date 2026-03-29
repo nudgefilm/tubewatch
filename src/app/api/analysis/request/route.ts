@@ -7,7 +7,6 @@
  */
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getRecentVideos } from "@/lib/youtube";
 import { normalizeVideoMetrics } from "@/lib/analysis/engine/normalizeVideoMetrics";
 import { buildChannelFeatures } from "@/lib/analysis/engine/buildChannelFeatures";
@@ -19,6 +18,8 @@ import {
   analyzeChannelWithGemini,
   type ChannelVideoSample,
 } from "@/lib/ai/analyzeChannelWithGemini";
+import { saveAnalysisResult } from "@/lib/server/analysis/saveAnalysisResult";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import type { VideoInfo } from "@/lib/youtube";
 
 const COOLDOWN_HOURS = 72;
@@ -83,7 +84,7 @@ export async function POST(request: Request) {
   const { data: channelRow, error: channelErr } = await supabase
     .from("user_channels")
     .select(
-      "id, channel_id, channel_title, subscriber_count, video_count, last_analyzed_at"
+      "id, channel_id, channel_title, channel_url, subscriber_count, video_count, last_analyzed_at"
     )
     .eq("id", userChannelId)
     .eq("user_id", user.id)
@@ -220,51 +221,74 @@ export async function POST(request: Request) {
     patterns: channelPatterns.flags,
   };
 
-  const insertPayload = {
-    user_channel_id: userChannelId,
+  // analysis_jobs 선삽입 (FK 제약 충족)
+  const jobId = crypto.randomUUID();
+  const jobPayload = {
+    id: jobId,
     user_id: user.id,
-    status: "analyzed",
-    gemini_status: "completed",
-    feature_total_score: scoreResult.totalScore,
-    feature_section_scores: scoreResult.sectionScores as Record<string, number>,
-    feature_snapshot: featureSnapshot as Record<string, unknown>,
-    channel_summary: gemini.result.channel_summary,
-    content_pattern_summary: gemini.result.content_pattern_summary,
-    content_patterns: gemini.result.content_patterns,
-    target_audience: gemini.result.target_audience,
-    strengths: gemini.result.strengths,
-    weaknesses: gemini.result.weaknesses,
-    bottlenecks: gemini.result.bottlenecks,
-    recommended_topics: gemini.result.recommended_topics,
-    growth_action_plan: gemini.result.growth_action_plan,
-    analysis_confidence: gemini.result.analysis_confidence,
-    interpretation_mode: gemini.result.interpretation_mode,
-    sample_size_note: gemini.result.sample_size_note,
-    gemini_analyzed_at: now,
+    user_channel_id: userChannelId,
+    status: "success",
+    started_at: now,
+    finished_at: now,
   };
-
-  // supabaseAdmin으로 insert (RLS 우회, user_id 명시)
-  const { data: insertedRow, error: insertError } = await supabaseAdmin
-    .from("analysis_results")
-    .insert(insertPayload)
+  console.log("[Analysis Start API] create analysis_job payload:", JSON.stringify(jobPayload));
+  const { data: jobRow, error: jobError } = await supabaseAdmin
+    .from("analysis_jobs")
+    .insert(jobPayload)
     .select("id")
     .single();
-
-  console.log(
-    "[Analysis Start API] created run:",
-    insertedRow?.id ?? null
-  );
-
-  if (insertError || !insertedRow) {
-    console.error(
-      "[Analysis Start API] error: insert failed:",
-      JSON.stringify(insertError)
+  console.log("[Analysis Start API] create analysis_job result:", jobRow?.id ?? null);
+  if (jobError || !jobRow) {
+    console.error("[Analysis Start API] create analysis_job error:", JSON.stringify(jobError));
+    return NextResponse.json(
+      { ok: false, error: "분석 작업 생성에 실패했습니다." },
+      { status: 500 }
     );
+  }
+
+  let savedRow: { id: string };
+  try {
+    savedRow = await saveAnalysisResult({
+      userId: user.id,
+      userChannelId,
+      jobId,
+      channelId: youtubeChannelId,
+      channelUrl: (channelRow.channel_url as string | null) ?? "",
+      channelTitle: (channelRow.channel_title as string | null) ?? null,
+      thumbnailUrl: null,
+      sampleVideoCount: youtubeVideos.length,
+      analysisConfidence: gemini.result.analysis_confidence ?? null,
+      status: "analyzed",
+      geminiModel: gemini.model,
+      geminiStatus: "completed",
+      geminiAnalyzedAt: now,
+      geminiRawJson: gemini.rawJson,
+      geminiAttemptCount: 1,
+      channelSummary: gemini.result.channel_summary,
+      contentPatternSummary: gemini.result.content_pattern_summary,
+      contentPatterns: gemini.result.content_patterns,
+      strengths: gemini.result.strengths,
+      weaknesses: gemini.result.weaknesses,
+      bottlenecks: gemini.result.bottlenecks,
+      recommendedTopics: gemini.result.recommended_topics,
+      growthActionPlan: gemini.result.growth_action_plan,
+      targetAudience: gemini.result.target_audience,
+      sampleSizeNote: gemini.result.sample_size_note,
+      interpretationMode: gemini.result.interpretation_mode,
+      featureSnapshot: featureSnapshot as unknown as import("@/lib/server/analysis/storageTypes").JsonValue,
+      featureTotalScore: scoreResult.totalScore,
+      featureSectionScores: scoreResult.sectionScores as unknown as import("@/lib/server/analysis/storageTypes").JsonValue,
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "unknown";
+    console.error("[Analysis Start API] error: insert failed:", msg);
     return NextResponse.json(
       { ok: false, error: "분석 결과 저장에 실패했습니다." },
       { status: 500 }
     );
   }
+
+  console.log("[Analysis Start API] created run:", savedRow.id);
 
   // last_analyzed_at 업데이트
   await supabase
@@ -275,6 +299,6 @@ export async function POST(request: Request) {
 
   return NextResponse.json({
     ok: true,
-    analysisResultId: insertedRow.id,
+    analysisResultId: savedRow.id,
   });
 }

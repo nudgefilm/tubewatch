@@ -39,6 +39,18 @@ export async function saveAnalysisResult(
     feature_section_scores: payload.featureSectionScores,
   };
 
+  // ── 진단 로그 ──
+  const undefinedKeys = Object.entries(insertPayload)
+    .filter(([, v]) => v === undefined)
+    .map(([k]) => k);
+  console.log("[SAVE] payload keys:", Object.keys(insertPayload));
+  console.log("[SAVE] undefined keys:", undefinedKeys);
+  console.log("[SAVE] payload sample:", JSON.stringify(insertPayload).slice(0, 500));
+  console.log("[SAVE] job_id:", insertPayload.job_id);
+  console.log("[SAVE] user_channel_id:", insertPayload.user_channel_id);
+  console.log("[SAVE] feature_total_score type:", typeof insertPayload.feature_total_score, "value:", insertPayload.feature_total_score);
+  console.log("[SAVE] gemini_raw_json length:", insertPayload.gemini_raw_json?.length ?? 0);
+
   const { data, error } = await supabaseAdmin
     .from("analysis_results")
     .upsert(insertPayload, { onConflict: "job_id" })
@@ -79,6 +91,12 @@ export async function saveAnalysisResult(
     .single();
 
   if (error) {
+    console.error("[SAVE] insert error code:", error.code);
+    console.error("[SAVE] insert error message:", error.message);
+    console.error("[SAVE] insert error details:", error.details);
+    console.error("[SAVE] insert error hint:", error.hint);
+    console.error("[SAVE] insert error full:", JSON.stringify(error));
+
     logStorageError({
       operation: "analysis_results.upsert",
       table: "analysis_results",
