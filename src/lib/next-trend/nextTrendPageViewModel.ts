@@ -13,6 +13,7 @@ import type { AnalysisStatus } from "@/lib/analysis/types";
 import { buildTrendSignals } from "@/lib/next-trend/buildTrendSignals";
 import { buildTrendInsights } from "@/lib/next-trend/buildTrendInsights";
 import type { TrendItemVm as TrendItemVmBase } from "@/lib/next-trend/buildTrendInsights";
+import type { StrategicCommentVm } from "@/lib/shared/strategicCommentTypes";
 import {
   buildNextTrendExtensionBlock,
   buildNextTrendInternalBlocksSkipped,
@@ -48,6 +49,8 @@ export type NextTrendPageViewModel = {
   formatChanges: TrendItemVm[];
   evidenceNotes: string[];
   hasEnoughTrendSignal: boolean;
+  /** 페이지 하단 전략 코멘트 카드 */
+  strategicComment: StrategicCommentVm | null;
 };
 
 const EMPTY_ITEMS: TrendItemVm[] = [];
@@ -85,6 +88,7 @@ export function buildNextTrendPageViewModel(
       formatChanges: EMPTY_ITEMS,
       evidenceNotes: [],
       hasEnoughTrendSignal: false,
+      strategicComment: null,
     };
   }
 
@@ -107,6 +111,7 @@ export function buildNextTrendPageViewModel(
       formatChanges: EMPTY_ITEMS,
       evidenceNotes: [],
       hasEnoughTrendSignal: false,
+      strategicComment: null,
     };
   }
 
@@ -118,6 +123,11 @@ export function buildNextTrendPageViewModel(
     signalBundle,
     snapshot,
     data.latestResult
+  );
+
+  const strategicComment = buildNextTrendStrategicComment(
+    insights.trendSummary,
+    internal
   );
 
   return {
@@ -133,5 +143,48 @@ export function buildNextTrendPageViewModel(
     formatChanges: insights.formatChanges,
     evidenceNotes: insights.evidenceNotes,
     hasEnoughTrendSignal: insights.hasEnoughTrendSignal,
+    strategicComment,
+  };
+}
+
+function buildNextTrendStrategicComment(
+  trendSummary: string,
+  internal: NextTrendInternalBlocks
+): StrategicCommentVm | null {
+  const topCandidate = internal.candidates[0];
+  if (!topCandidate && trendSummary.length < 10) return null;
+
+  const headline = topCandidate
+    ? `다음 시도 방향: ${topCandidate.topic}`
+    : "다음 트렌드 방향 분석";
+
+  const summaryParts: string[] = [trendSummary];
+  const fmt = internal.format.recommendedFormat;
+  if (fmt && fmt !== "-") {
+    summaryParts.push(`권장 포맷은 "${fmt}"이며, ${internal.format.seriesPotential}`);
+  }
+
+  const takeaways: string[] = [];
+  if (internal.candidates.length > 0)
+    takeaways.push(`주력 방향: ${internal.candidates[0].topic}`);
+  if (internal.candidates.length > 1)
+    takeaways.push(`대안 방향: ${internal.candidates[1].topic}`);
+  if (fmt && fmt !== "-") takeaways.push(`추천 포맷: ${fmt}`);
+
+  const risk = internal.risk;
+  const riskCaution =
+    risk.riskyTopic && risk.riskyTopic !== "-" && risk.riskyTopic !== ""
+      ? `리스크 주의: ${risk.riskyTopic} — ${risk.confidenceBasis}`
+      : null;
+
+  const titleHint = internal.hints.titleDirection;
+
+  return {
+    headline,
+    summary: summaryParts[0],
+    keyTakeaways: takeaways.slice(0, 3),
+    priorityAction:
+      titleHint && titleHint !== "-" ? `제목 방향: ${titleHint}` : null,
+    caution: riskCaution,
   };
 }

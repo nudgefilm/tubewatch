@@ -9,6 +9,7 @@ import { ChannelContextHeader, type ChannelContext } from "@/components/features
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScoreBar } from "@/components/ui/ScoreBar"
 import { makeDiagnosticLabel } from "@/lib/utils/labelUtils"
+import { StrategicCommentCard } from "@/components/features/shared/StrategicCommentCard"
 import type { ChannelDnaPageViewModel } from "@/lib/channel-dna/channelDnaPageViewModel"
 import type { InternalChannelDnaSummaryVm } from "@/lib/channel-dna/internalChannelDnaSummary"
 
@@ -175,6 +176,11 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel }: Ch
         {/* C. DNA 카드 */}
         {(dnaCards.strengths.length > 0 || dnaCards.weaknesses.length > 0) && (
           <DnaCardsSection data={dnaCards} />
+        )}
+
+        {/* D. Strategic Comment */}
+        {viewModel.strategicComment && (
+          <StrategicCommentCard data={viewModel.strategicComment} />
         )}
       </div>
     )

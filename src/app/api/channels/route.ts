@@ -98,6 +98,8 @@ export async function POST(request: Request) {
     typeof body.channel_id === "string" ? body.channel_id.trim() : "";
   const raw = channelUrl || channelIdField;
 
+  console.log("[Channels API] request body:", JSON.stringify(body));
+
   if (!raw) {
     return NextResponse.json(
       { error: "channel_url 또는 channel_id를 입력해 주세요." },
@@ -106,6 +108,7 @@ export async function POST(request: Request) {
   }
 
   const authed = await getAuthenticatedClient(request);
+  console.log("[Channels API] user:", authed ? { id: authed.user.id } : null);
   if (!authed) {
     return NextResponse.json(
       { error: "로그인이 필요합니다." },
@@ -114,6 +117,12 @@ export async function POST(request: Request) {
   }
 
   const { supabase, user } = authed;
+
+  const { count: currentCount } = await supabase
+    .from("user_channels")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id);
+  console.log("[Channels API] current count:", currentCount);
 
   const lookup = parseChannelRegistrationInput(raw);
   if (!lookup) {
@@ -131,7 +140,7 @@ export async function POST(request: Request) {
     info = await getChannelInfo(lookup);
   } catch (e) {
     const msg = e instanceof Error ? e.message : "unknown";
-    console.error("[api/channels] getChannelInfo", msg);
+    console.error("[Channels API] error: getChannelInfo failed:", msg);
     return NextResponse.json(
       {
         error:
@@ -157,20 +166,28 @@ export async function POST(request: Request) {
     );
   }
 
+  const insertPayload = {
+    user_id: user.id,
+    channel_url: canonicalUrl,
+    channel_id: info.channel_id,
+    channel_title: info.channel_title,
+    thumbnail_url: info.thumbnail_url,
+    subscriber_count: info.subscriber_count,
+    video_count: info.video_count,
+    // view_count: user_channels 테이블에 해당 컬럼 없음 — 제거
+  };
+  console.log("[Channels API] insert payload:", JSON.stringify(insertPayload));
+
   const { data: inserted, error: insErr } = await supabase
     .from("user_channels")
-    .insert({
-      user_id: user.id,
-      channel_url: canonicalUrl,
-      channel_id: info.channel_id,
-      channel_title: info.channel_title,
-      thumbnail_url: info.thumbnail_url,
-      subscriber_count: info.subscriber_count,
-      video_count: info.video_count,
-      view_count: info.view_count,
-    })
+    .insert(insertPayload)
     .select()
     .single();
+
+  console.log("[Channels API] insert result:", inserted ? { id: inserted.id } : null);
+  if (insErr) {
+    console.error("[Channels API] error: insert failed:", JSON.stringify(insErr));
+  }
 
   if (insErr) {
     if (insErr.code === "23505") {
@@ -179,7 +196,6 @@ export async function POST(request: Request) {
         { status: 409 }
       );
     }
-    console.error("[api/channels] insert", insErr);
     return NextResponse.json(
       { error: "채널 등록에 실패했습니다." },
       { status: 500 }

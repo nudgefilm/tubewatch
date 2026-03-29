@@ -219,6 +219,8 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
       url.searchParams.set("channel", id)
       url.searchParams.delete("snapshot")
       router.replace(url.pathname + url.search, { scroll: false })
+      // 서버 컴포넌트 데이터 강제 갱신 (채널 변경 시 캐시 무효화)
+      router.refresh()
     }
   }
 

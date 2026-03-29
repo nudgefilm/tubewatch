@@ -19,6 +19,7 @@ import {
   buildInternalChannelDnaSummary,
   type InternalChannelDnaSummaryVm,
 } from "@/lib/channel-dna/internalChannelDnaSummary";
+import type { StrategicCommentVm } from "@/lib/shared/strategicCommentTypes";
 
 /**
  * /channel-dna 확장용 뷰모델.
@@ -42,6 +43,8 @@ export type ChannelDnaPageViewModel = {
   extensionNotice: string | null;
   /** 외부 시장 슬롯과 별도 — `feature_snapshot`·구간 점수·진단 문자열만으로 계산 */
   internalChannelDnaSummary: InternalChannelDnaSummaryVm;
+  /** 페이지 하단 전략 코멘트 카드 */
+  strategicComment: StrategicCommentVm | null;
 };
 
 export function buildChannelDnaPageViewModel(
@@ -57,6 +60,7 @@ export function buildChannelDnaPageViewModel(
   const yt = pickYoutubeAccessFieldsFromPageData(data);
   const channelDnaMenuStrategy = getMenuExtensionStrategy("channel_dna");
   const internalChannelDnaSummary = buildInternalChannelDnaSummary(data);
+  const strategicComment = buildChannelDnaStrategicComment(internalChannelDnaSummary);
 
   return {
     hasChannel,
@@ -76,5 +80,46 @@ export function buildChannelDnaPageViewModel(
       `확장 정책: ${channelDnaMenuStrategy.runSemantics}`,
     ].join(" "),
     internalChannelDnaSummary,
+    strategicComment,
+  };
+}
+
+function buildChannelDnaStrategicComment(
+  vm: InternalChannelDnaSummaryVm
+): StrategicCommentVm | null {
+  if (!vm.dominantFormat && vm.topPatternSignals.length === 0) return null;
+
+  const formatLabel = vm.dominantFormat ?? "포맷 데이터 없음";
+  const headlineBase = vm.dominantFormat
+    ? `${vm.dominantFormat} 중심 채널 구조`
+    : "채널 성과 구조 분석";
+
+  const summaryParts: string[] = [];
+  if (vm.sectionScoresLine) summaryParts.push(vm.sectionScoresLine + ".");
+  const narrativeFirst = vm.channelDnaNarrative.split(". ")[0];
+  if (narrativeFirst) summaryParts.push(narrativeFirst + ".");
+  if (summaryParts.length === 0) {
+    summaryParts.push("저장된 스냅샷 기반으로 채널 성과 구조를 분석했습니다.");
+  }
+
+  const takeaways: string[] = [];
+  if (vm.dominantFormat) takeaways.push(`주요 포맷: ${formatLabel}`);
+  if (vm.topPatternSignals.length > 0) takeaways.push(`반복 강점: ${vm.topPatternSignals[0]}`);
+  if (vm.weakPatternSignals.length > 0) takeaways.push(`약한 축: ${vm.weakPatternSignals[0]}`);
+
+  const caution =
+    vm.topPatternSignals.length === 0 && vm.weakPatternSignals.length === 0
+      ? "분석 스냅샷에 충분한 패턴 신호가 없습니다. 분석을 다시 실행하면 더 정교한 진단이 가능합니다."
+      : null;
+
+  return {
+    headline: headlineBase,
+    summary: summaryParts.slice(0, 2).join(" "),
+    keyTakeaways: takeaways.slice(0, 3),
+    priorityAction:
+      vm.weakPatternSignals.length > 0
+        ? `약한 축 집중 점검: ${vm.weakPatternSignals[0]}`
+        : null,
+    caution,
   };
 }

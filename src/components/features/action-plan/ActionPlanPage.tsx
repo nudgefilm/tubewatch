@@ -5,6 +5,7 @@ import { ActionPlanCardsSection } from "./sections/CardsSection"
 import { ActionPlanChecklistSection } from "./sections/ChecklistSection"
 import { ActionPlanEmptyState } from "./sections/EmptyState"
 import { ChannelContextHeader, type ChannelContext } from "@/components/features/shared/ChannelContextHeader"
+import { StrategicCommentCard } from "@/components/features/shared/StrategicCommentCard"
 import type {
   ActionPlanPageViewModel,
   ActionPlanCardVm,
@@ -105,6 +106,10 @@ export function ActionPlanPage({ channelId = "", channelContext, viewModel }: Ac
 
           {checklistData.length > 0 && (
             <ActionPlanChecklistSection items={checklistData} />
+          )}
+
+          {viewModel.strategicComment && (
+            <StrategicCommentCard data={viewModel.strategicComment} />
           )}
         </div>
       </div>

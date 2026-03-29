@@ -73,6 +73,8 @@ export default function RegisterChannelForm({
         error: sessionError,
       } = await supabase.auth.getSession()
 
+      console.log('[Channels Form] session:', sessionError ? 'error:' + sessionError.message : session ? { user: session.user?.id } : 'null')
+
       if (sessionError) {
         setErrorMessage('세션 정보를 불러오지 못했습니다.')
         return
@@ -85,6 +87,8 @@ export default function RegisterChannelForm({
 
       const normalizedUrl = normalizeChannelInput(channelUrl)
 
+      console.log('[Channels Form] sending payload:', { channel_url: normalizedUrl })
+
       const response = await fetch('/api/channels', {
         method: 'POST',
         credentials: 'include',
@@ -95,6 +99,7 @@ export default function RegisterChannelForm({
       })
 
       const result: RegisterChannelResponse = await response.json()
+      console.log('[Channels Form] response status:', response.status, 'body:', JSON.stringify(result))
 
       if (!response.ok) {
         setErrorMessage(result.error || '채널 등록에 실패했습니다.')

@@ -17,6 +17,8 @@ import {
 import { pickYoutubeAccessFieldsFromPageData } from "@/lib/analysis/pickYoutubeAccessFromPageData";
 import type { YoutubeVerificationUiState } from "@/lib/auth/youtubeVerificationTypes";
 import type { AnalysisStatus } from "@/lib/analysis/types";
+import type { StrategicCommentVm } from "@/lib/shared/strategicCommentTypes";
+import { parseSectionScores } from "@/lib/analysis/engine/parseSectionScores";
 import { buildInternalChannelDnaSummary } from "@/lib/channel-dna/internalChannelDnaSummary";
 import { pickChannelDnaSignalsForActionPlan } from "@/lib/channel-dna/channelDnaSignalsForActionPlan";
 import { makeDiagnosticLabel } from "@/lib/utils/labelUtils";
@@ -71,6 +73,8 @@ export type ActionPlanPageViewModel = {
   analysisRunsLoaded: boolean;
   coreAnalysisFeaturesEnabled: boolean;
   youtubeVerificationUi: YoutubeVerificationUiState;
+  /** 페이지 하단 전략 코멘트 카드 */
+  strategicComment: StrategicCommentVm | null;
 } & MarketExtensionSliceVm;
 
 export type ChannelSectionScores = {
@@ -135,43 +139,6 @@ function extractPatternFlags(snapshot: unknown): string[] {
     return [];
   }
   return raw.filter((x): x is string => typeof x === "string");
-}
-
-function parseSectionScores(raw: unknown): ChannelSectionScores | null {
-  if (!raw || typeof raw !== "object") {
-    return null;
-  }
-  const o = raw as Record<string, unknown>;
-  const keys: (keyof ChannelSectionScores)[] = [
-    "channelActivity",
-    "audienceResponse",
-    "contentStructure",
-    "seoOptimization",
-    "growthMomentum",
-  ];
-  const out: Partial<ChannelSectionScores> = {};
-  for (const k of keys) {
-    const v = o[k];
-    if (typeof v === "number" && Number.isFinite(v)) {
-      out[k] = Math.max(0, Math.min(100, v));
-    }
-  }
-  if (
-    out.channelActivity == null &&
-    out.audienceResponse == null &&
-    out.contentStructure == null &&
-    out.seoOptimization == null &&
-    out.growthMomentum == null
-  ) {
-    return null;
-  }
-  return {
-    channelActivity: out.channelActivity ?? 0,
-    audienceResponse: out.audienceResponse ?? 0,
-    contentStructure: out.contentStructure ?? 0,
-    seoOptimization: out.seoOptimization ?? 0,
-    growthMomentum: out.growthMomentum ?? 0,
-  };
 }
 
 function titleFromText(text: string): string {
@@ -581,6 +548,7 @@ export function buildActionPlanPageViewModel(
     cautions: [],
     sampleSizeNote: null,
     analysisConfidence: null,
+    strategicComment: null,
   };
 
   if (!data || data.channels.length === 0 || !data.selectedChannel) {
@@ -654,11 +622,11 @@ export function buildActionPlanPageViewModel(
         {
           id: "fallback-low-sections",
           title: "저장된 구간 점수 재확인",
-          whyNeeded: `다음 구간 점수가 50 미만으로 기록되었습니다: ${labels}. 세부 수치는 /analysis에서 확인할 수 있습니다.`,
+          whyNeeded: `다음 구간 점수가 50 미만으로 기록되었습니다: ${labels}. 세부 수치는 채널 분석 결과에서 확인할 수 있습니다.`,
           expectedEffect: CONSERVATIVE_EFFECT,
           difficulty: "medium" as const,
           executionHint:
-            "/analysis의 구간 카드와 표본 지표를 함께 보고, 원인 가설을 한 가지만 정한 뒤 작은 실험을 계획하세요.",
+            "구간 점수와 표본 지표를 함께 검토하고, 원인 가설을 한 가지만 정한 뒤 작은 실험을 계획하세요.",
         },
       ];
     }
@@ -694,21 +662,23 @@ export function buildActionPlanPageViewModel(
     actions.length <= 1
   ) {
     const extra =
-      "저장된 약점·병목 문구와 수치·채널 DNA 근거가 거의 없어 제안 범위가 매우 좁습니다.";
+      "저장된 약점·병목 문구와 수치·채널 패턴 근거가 거의 없어 제안 범위가 매우 좁습니다.";
     limitNotice = limitNotice ? `${limitNotice} ${extra}` : extra;
   }
 
   if (channelDnaRows.length > 0) {
     const benchLine =
-      "일부 우선순위 카드는 /channel-dna와 동일한 저장 스냅샷에서 계산된 내부 신호를 근거로 합니다.";
+      "일부 우선순위 카드는 채널 DNA와 동일한 저장 스냅샷에서 계산된 내부 신호를 근거로 합니다.";
     limitNotice = limitNotice ? `${limitNotice} ${benchLine}` : benchLine;
   }
 
   if (actions.length === 0) {
     const base =
-      "현재 확보된 데이터 기준으로 우선순위 액션 카드를 구성할 수 없습니다. /analysis에서 분석·스냅샷을 확인하세요.";
+      "현재 확보된 데이터 기준으로 우선순위 액션 카드를 구성할 수 없습니다. 채널 분석 결과를 먼저 확인하세요.";
     limitNotice = limitNotice ? `${limitNotice} ${base}` : base;
   }
+
+  const strategicComment = buildActionPlanStrategicComment(actions, totalScore, cautions);
 
   return {
     ...ext,
@@ -727,5 +697,44 @@ export function buildActionPlanPageViewModel(
     cautions,
     sampleSizeNote: sampleNote,
     analysisConfidence,
+    strategicComment,
+  };
+}
+
+function buildActionPlanStrategicComment(
+  actions: ActionPlanCardVm[],
+  totalScore: number | null,
+  cautions: string[]
+): StrategicCommentVm | null {
+  if (actions.length === 0) return null;
+
+  const p1 = actions.filter((a) => a.priority === "P1");
+  const p2 = actions.filter((a) => a.priority === "P2");
+
+  const headline =
+    p1.length > 0
+      ? `P1 최우선 실행: ${p1[0].title}`
+      : `총 ${actions.length}개 실행 액션 정리됨`;
+
+  const summaryParts: string[] = [
+    `총 ${actions.length}개 액션이 우선순위별로 구성되어 있습니다.`,
+  ];
+  if (p1.length > 0) {
+    summaryParts.push(
+      `P1 ${p1.length}개를 먼저 실행하고, P2 ${p2.length}개를 이어서 진행하세요.`
+    );
+  }
+  if (totalScore != null) {
+    summaryParts.push(`현재 채널 종합 점수 ${Math.round(totalScore)}점 기준으로 도출된 제안입니다.`);
+  }
+
+  const takeaways = actions.slice(0, 3).map((a) => `[${a.priority}] ${a.title}`);
+
+  return {
+    headline,
+    summary: summaryParts.slice(0, 2).join(" "),
+    keyTakeaways: takeaways,
+    priorityAction: p1[0]?.executionHint ?? null,
+    caution: cautions[0] ?? null,
   };
 }

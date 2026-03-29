@@ -28,6 +28,8 @@ export default function ChannelsPageClient(): JSX.Element {
   const [listError, setListError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [selectedChannelId, setSelectedChannelId] = useState<string | null>(null);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
 
   // localStorage에서 선택 채널 초기화
   useEffect(() => {
@@ -172,19 +174,82 @@ export default function ChannelsPageClient(): JSX.Element {
             )}
           </div>
         </div>
-        <div className="mt-4">
+        <div className="mt-4 space-y-2">
           <button
             type="button"
-            disabled={!selectedChannelId}
+            disabled={!selectedChannelId || isNavigating}
             onClick={() => {
-              if (selectedChannelId) {
-                router.push(`/analysis?channel=${selectedChannelId}`);
-              }
+              if (!selectedChannelId || isNavigating) return;
+              setIsNavigating(true);
+              setAnalysisError(null);
+
+              const channelId = selectedChannelId;
+              console.log("[Analysis Start UI] selected channel:", channelId);
+              console.log("[Analysis Start UI] clicked");
+
+              const payload = { user_channel_id: channelId };
+              console.log("[Analysis Start UI] request payload:", payload);
+
+              fetch("/api/analysis/request", {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+              })
+                .then(async (res) => {
+                  const result = await res.json().catch(() => ({})) as {
+                    ok?: boolean;
+                    code?: string;
+                    error?: string;
+                    analysisResultId?: string;
+                  };
+                  console.log("[Analysis Start UI] response:", result);
+
+                  if (!res.ok) {
+                    if (result.code === "COOLDOWN_ACTIVE") {
+                      // 쿨다운 중 → 기존 분석 결과 표시
+                      const dest = `/analysis?channel=${channelId}`;
+                      console.log("[Analysis Start UI] navigate to:", dest, "(cooldown)");
+                      router.push(dest);
+                    } else {
+                      setAnalysisError(result.error ?? "분석 요청에 실패했습니다.");
+                      setIsNavigating(false);
+                    }
+                    return;
+                  }
+
+                  if (result.analysisResultId) {
+                    const dest = `/analysis?channel=${channelId}&snapshot=${result.analysisResultId}`;
+                    console.log("[Analysis Start UI] navigate to:", dest);
+                    router.push(dest);
+                  } else {
+                    const dest = `/analysis?channel=${channelId}`;
+                    console.log("[Analysis Start UI] navigate to:", dest, "(no snapshotId)");
+                    router.push(dest);
+                  }
+                })
+                .catch((err: unknown) => {
+                  console.error("[Analysis Start UI] fetch error:", err);
+                  setAnalysisError("네트워크 오류가 발생했습니다. 다시 시도하세요.");
+                  setIsNavigating(false);
+                });
             }}
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            채널분석 시작
+            {isNavigating ? (
+              <>
+                <svg className="size-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                </svg>
+                데이터 분석 중… (30–60초 소요)
+              </>
+            ) : (
+              "채널분석 시작"
+            )}
           </button>
+          {analysisError && (
+            <p className="text-sm text-red-600">{analysisError}</p>
+          )}
         </div>
       </div>
 
@@ -194,7 +259,17 @@ export default function ChannelsPageClient(): JSX.Element {
           등록된 채널
         </h2>
         {loading ? (
-          <p className="text-sm text-muted-foreground">불러오는 중…</p>
+          <ul className="divide-y rounded-xl border border-border bg-card">
+            {[1, 2].map((i) => (
+              <li key={i} className="flex items-center justify-between gap-3 px-4 py-3">
+                <div className="flex-1 space-y-1.5">
+                  <div className="h-4 w-40 animate-pulse rounded bg-muted" />
+                  <div className="h-3 w-56 animate-pulse rounded bg-muted/60" />
+                </div>
+                <div className="h-7 w-12 animate-pulse rounded-lg bg-muted" />
+              </li>
+            ))}
+          </ul>
         ) : listError ? (
           <p className="text-sm text-red-600">{listError}</p>
         ) : channels.length === 0 ? (

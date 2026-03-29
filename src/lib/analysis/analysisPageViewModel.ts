@@ -24,6 +24,8 @@ import {
 import { pickYoutubeAccessFieldsFromPageData } from "@/lib/analysis/pickYoutubeAccessFromPageData";
 import type { YoutubeVerificationUiState } from "@/lib/auth/youtubeVerificationTypes";
 import type { AnalysisStatus } from "@/lib/analysis/types";
+import type { StrategicCommentVm } from "@/lib/shared/strategicCommentTypes";
+import { parseSectionScores } from "@/lib/analysis/engine/parseSectionScores";
 
 export type {
   AnalysisReportAiFieldsVm,
@@ -105,6 +107,8 @@ export type AnalysisPageViewModel = {
   reportCompare: AnalysisReportCompareVm | null;
   /** Gemini 텍스트·리스트 — DB 필드 스냅샷 */
   aiInsightFields: AnalysisReportAiFieldsVm | null;
+  /** 페이지 하단 전략 코멘트 카드 */
+  strategicComment: StrategicCommentVm | null;
 } & MarketExtensionSliceVm;
 
 const SECTION_ORDER: {
@@ -167,43 +171,6 @@ function extractPatternFlags(snapshot: unknown): string[] {
     return [];
   }
   return raw.filter((x): x is string => typeof x === "string");
-}
-
-function parseSectionScores(raw: unknown): ChannelSectionScores | null {
-  if (!raw || typeof raw !== "object") {
-    return null;
-  }
-  const o = raw as Record<string, unknown>;
-  const keys: (keyof ChannelSectionScores)[] = [
-    "channelActivity",
-    "audienceResponse",
-    "contentStructure",
-    "seoOptimization",
-    "growthMomentum",
-  ];
-  const out: Partial<ChannelSectionScores> = {};
-  for (const k of keys) {
-    const v = o[k];
-    if (typeof v === "number" && Number.isFinite(v)) {
-      out[k] = Math.max(0, Math.min(100, v));
-    }
-  }
-  if (
-    out.channelActivity == null &&
-    out.audienceResponse == null &&
-    out.contentStructure == null &&
-    out.seoOptimization == null &&
-    out.growthMomentum == null
-  ) {
-    return null;
-  }
-  return {
-    channelActivity: out.channelActivity ?? 0,
-    audienceResponse: out.audienceResponse ?? 0,
-    contentStructure: out.contentStructure ?? 0,
-    seoOptimization: out.seoOptimization ?? 0,
-    growthMomentum: out.growthMomentum ?? 0,
-  };
 }
 
 function scoreToGrade(score: number): string {
@@ -600,6 +567,7 @@ export function buildAnalysisPageViewModel(
     reportPresentation: null,
     reportCompare: null,
     aiInsightFields: null,
+    strategicComment: null,
   };
 
   if (!data || data.channels.length === 0 || !data.selectedChannel) {
@@ -792,6 +760,16 @@ export function buildAnalysisPageViewModel(
   const aiInsightFields = buildAnalysisReportAiFields(row);
   const reportCompare = buildAnalysisReportCompareVm(row, previousRow);
 
+  const strategicComment = buildAnalysisStrategicComment({
+    headline,
+    scoreGauge: total != null ? { score: Math.round(total), grade: scoreToGrade(total) } : null,
+    diagnosisCards,
+    strengths,
+    urgentImprovements: urgent,
+    patternSummaryLine: patternSummary,
+    limitNotice,
+  });
+
   return {
     ...ext,
     ...deriveBaseAnalysisMenuFields(data),
@@ -823,5 +801,49 @@ export function buildAnalysisPageViewModel(
     reportPresentation,
     reportCompare,
     aiInsightFields,
+    strategicComment,
+  };
+}
+
+function buildAnalysisStrategicComment(params: {
+  headline: string | null;
+  scoreGauge: { score: number; grade: string } | null;
+  diagnosisCards: AnalysisDiagnosisCardVm[];
+  strengths: string[];
+  urgentImprovements: string[];
+  patternSummaryLine: string | null;
+  limitNotice: string | null;
+}): StrategicCommentVm {
+  const { headline, scoreGauge, diagnosisCards, strengths, urgentImprovements, patternSummaryLine, limitNotice } = params;
+
+  const scoreText = scoreGauge
+    ? `총합 ${scoreGauge.score}점 (${scoreGauge.grade} 구간)`
+    : null;
+
+  const summaryParts: string[] = [];
+  if (scoreText) summaryParts.push(scoreText + "입니다.");
+  if (patternSummaryLine) summaryParts.push(patternSummaryLine);
+  const weakestCard = [...diagnosisCards].sort((a, b) => a.score - b.score)[0];
+  if (weakestCard && weakestCard.score < 60) {
+    summaryParts.push(
+      `"${weakestCard.title}" 구간(${weakestCard.score}점)이 전체 점수를 낮추고 있습니다.`
+    );
+  }
+  if (summaryParts.length === 0) {
+    summaryParts.push("채널 분석 데이터를 기반으로 현재 상태를 진단했습니다.");
+  }
+
+  const takeaways: string[] = [];
+  if (strengths.length > 0) takeaways.push(`강점: ${strengths[0]}`);
+  if (urgentImprovements.length > 0) takeaways.push(`개선 필요: ${urgentImprovements[0]}`);
+  const bestCard = [...diagnosisCards].sort((a, b) => b.score - a.score)[0];
+  if (bestCard) takeaways.push(`최고 구간: ${bestCard.title} (${bestCard.score}점)`);
+
+  return {
+    headline: headline ?? (scoreGauge ? `채널 종합 점수 ${scoreGauge.score}점` : "채널 현재 상태 진단"),
+    summary: summaryParts.slice(0, 3).join(" "),
+    keyTakeaways: takeaways.slice(0, 3),
+    priorityAction: urgentImprovements[0] ?? null,
+    caution: limitNotice,
   };
 }

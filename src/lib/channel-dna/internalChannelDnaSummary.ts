@@ -1,6 +1,7 @@
 import type { AnalysisPageData, AnalysisResultRow } from "@/lib/analysis/getAnalysisPageData";
 import type { ChannelMetrics } from "@/lib/analysis/engine/types";
 import { enrichRowScores } from "@/lib/server/analysis/mapAnalysisHistoryAndCompare";
+import { parseSectionScores } from "@/lib/analysis/engine/parseSectionScores";
 
 /** 세 구간 요약 — 스냅샷만으로 판별 불가 시 null */
 export type ChannelDnaTriLevel = "low" | "medium" | "high";
@@ -50,14 +51,6 @@ type SnapshotVideo = {
   publishedAt: string | null;
   viewCount: number | null;
   durationSeconds: number | null;
-};
-
-type SectionScores = {
-  channelActivity: number;
-  audienceResponse: number;
-  contentStructure: number;
-  seoOptimization: number;
-  growthMomentum: number;
 };
 
 function isRecord(v: unknown): v is Record<string, unknown> {
@@ -162,42 +155,6 @@ function meanStd(values: number[]): { mean: number; std: number } | null {
   }
   const std = Math.sqrt(varSum / (values.length - 1));
   return { mean, std };
-}
-
-function parseSectionScores(raw: unknown): SectionScores | null {
-  if (!isRecord(raw)) {
-    return null;
-  }
-  const keys: (keyof SectionScores)[] = [
-    "channelActivity",
-    "audienceResponse",
-    "contentStructure",
-    "seoOptimization",
-    "growthMomentum",
-  ];
-  const out: Partial<SectionScores> = {};
-  for (const k of keys) {
-    const v = raw[k];
-    if (typeof v === "number" && Number.isFinite(v)) {
-      out[k] = Math.max(0, Math.min(100, v));
-    }
-  }
-  if (
-    out.channelActivity == null &&
-    out.audienceResponse == null &&
-    out.contentStructure == null &&
-    out.seoOptimization == null &&
-    out.growthMomentum == null
-  ) {
-    return null;
-  }
-  return {
-    channelActivity: out.channelActivity ?? 0,
-    audienceResponse: out.audienceResponse ?? 0,
-    contentStructure: out.contentStructure ?? 0,
-    seoOptimization: out.seoOptimization ?? 0,
-    growthMomentum: out.growthMomentum ?? 0,
-  };
 }
 
 function triFromUploadInterval(days: number): ChannelDnaTriLevel {
@@ -533,6 +490,7 @@ export function buildInternalChannelDnaSummary(
   }
 
   const sections = parseSectionScores(scoredRow.feature_section_scores ?? null);
+
   let radarProfile: InternalChannelDnaRadarVm | null = null;
   let sectionScoresLine: string | null = null;
   if (sections) {

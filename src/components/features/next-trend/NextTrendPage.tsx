@@ -7,6 +7,7 @@ import { NextTrendExecutionHints } from "./sections/ExecutionHintsSection"
 import { NextTrendActionSection } from "./sections/ActionSection"
 import { NextTrendEmptyState } from "./sections/EmptyState"
 import { ChannelContextHeader, type ChannelContext } from "@/components/features/shared/ChannelContextHeader"
+import { StrategicCommentCard } from "@/components/features/shared/StrategicCommentCard"
 import type { NextTrendPageViewModel } from "@/lib/next-trend/nextTrendPageViewModel"
 import type {
   NextTrendCandidateVm,
@@ -179,6 +180,10 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel }: Nex
 
           {viewModel.hasAnalysisEffective && candidates.length === 0 && (
             <NextTrendEmptyState />
+          )}
+
+          {viewModel.strategicComment && (
+            <StrategicCommentCard data={viewModel.strategicComment} />
           )}
         </div>
       </div>

@@ -22,6 +22,8 @@ import { buildInternalChannelDnaSummary } from "@/lib/channel-dna/internalChanne
 import { buildSeoStrategySignals } from "@/lib/seo-lab/buildSeoStrategySignals";
 import { buildSeoRecommendations } from "@/lib/seo-lab/buildSeoRecommendations";
 import type { SeoStrategyItemVm } from "@/lib/seo-lab/seoLabStrategyTypes";
+import type { StrategicCommentVm } from "@/lib/shared/strategicCommentTypes";
+import { parseSectionScores } from "@/lib/analysis/engine/parseSectionScores";
 
 export type SeoLabCheckCardVm = {
   id: string;
@@ -72,6 +74,8 @@ export type SeoLabPageViewModel = {
   seoRelatedNotes: string[];
   sampleSizeNote: string | null;
   analysisConfidence: "low" | "medium" | "high" | null;
+  /** 페이지 하단 전략 코멘트 카드 */
+  strategicComment: StrategicCommentVm | null;
   menuStatus: AnalysisStatus;
   lastRunAt: string | null;
   analysisRunsLoaded: boolean;
@@ -157,43 +161,6 @@ function extractPatternFlags(snapshot: unknown): string[] {
     return [];
   }
   return raw.filter((x): x is string => typeof x === "string");
-}
-
-function parseSectionScores(raw: unknown): ChannelSectionScores | null {
-  if (!raw || typeof raw !== "object") {
-    return null;
-  }
-  const o = raw as Record<string, unknown>;
-  const keys: (keyof ChannelSectionScores)[] = [
-    "channelActivity",
-    "audienceResponse",
-    "contentStructure",
-    "seoOptimization",
-    "growthMomentum",
-  ];
-  const out: Partial<ChannelSectionScores> = {};
-  for (const k of keys) {
-    const v = o[k];
-    if (typeof v === "number" && Number.isFinite(v)) {
-      out[k] = Math.max(0, Math.min(100, v));
-    }
-  }
-  if (
-    out.channelActivity == null &&
-    out.audienceResponse == null &&
-    out.contentStructure == null &&
-    out.seoOptimization == null &&
-    out.growthMomentum == null
-  ) {
-    return null;
-  }
-  return {
-    channelActivity: out.channelActivity ?? 0,
-    audienceResponse: out.audienceResponse ?? 0,
-    contentStructure: out.contentStructure ?? 0,
-    seoOptimization: out.seoOptimization ?? 0,
-    growthMomentum: out.growthMomentum ?? 0,
-  };
 }
 
 function parseVideosFromSnapshot(snapshot: unknown): SnapshotVideo[] {
@@ -416,6 +383,7 @@ export function buildSeoLabPageViewModel(
     seoRelatedNotes: [],
     sampleSizeNote: null,
     analysisConfidence: null,
+    strategicComment: null,
   };
 
   if (!data || data.channels.length === 0 || !data.selectedChannel) {
@@ -571,6 +539,16 @@ export function buildSeoLabPageViewModel(
   }
   const limitNotice = noticeParts.join(" ");
 
+  const strategicComment = buildSeoLabStrategicComment({
+    seoSectionScore,
+    structureSectionScore,
+    seoStrategySummary: strategySection.seoStrategySummary ?? "",
+    recommendedKeywordAngles: strategySection.recommendedKeywordAngles ?? [],
+    recommendedTitlePatterns: strategySection.recommendedTitlePatterns ?? [],
+    checkCards,
+    analysisConfidence,
+  });
+
   return {
     ...ext,
     ...deriveExtensionMenuFields(data, "seo_lab"),
@@ -591,5 +569,85 @@ export function buildSeoLabPageViewModel(
     seoRelatedNotes,
     sampleSizeNote: sampleNote,
     analysisConfidence,
+    strategicComment,
+  };
+}
+
+function buildSeoLabStrategicComment(params: {
+  seoSectionScore: number | null;
+  structureSectionScore: number | null;
+  seoStrategySummary: string;
+  recommendedKeywordAngles: SeoStrategyItemVm[];
+  recommendedTitlePatterns: SeoStrategyItemVm[];
+  checkCards: SeoLabCheckCardVm[];
+  analysisConfidence: "low" | "medium" | "high" | null;
+}): StrategicCommentVm | null {
+  const {
+    seoSectionScore,
+    structureSectionScore,
+    seoStrategySummary,
+    recommendedKeywordAngles,
+    recommendedTitlePatterns,
+    checkCards,
+    analysisConfidence,
+  } = params;
+
+  const hasAnyData =
+    seoSectionScore != null ||
+    structureSectionScore != null ||
+    seoStrategySummary.length > 0 ||
+    recommendedKeywordAngles.length > 0;
+  if (!hasAnyData) return null;
+
+  const scoreText =
+    seoSectionScore != null
+      ? `SEO 구간 ${seoSectionScore}점`
+      : structureSectionScore != null
+        ? `콘텐츠 구조 ${structureSectionScore}점`
+        : null;
+
+  const qualLabel =
+    seoSectionScore != null
+      ? seoSectionScore >= 65
+        ? "기본 SEO 구조 확인됨"
+        : "SEO 메타 정교화가 필요한 수준"
+      : "채널 맞춤 SEO 방향 분석";
+
+  const headline = scoreText ? `${scoreText} — ${qualLabel}` : qualLabel;
+
+  const summaryParts: string[] = [];
+  if (seoStrategySummary.length > 0) {
+    summaryParts.push(
+      seoStrategySummary.length > 130
+        ? seoStrategySummary.slice(0, 130) + "…"
+        : seoStrategySummary
+    );
+  } else {
+    summaryParts.push(
+      "저장된 채널 스냅샷 기반으로 SEO 방향을 분석했습니다. 검색 순위와 직접 연결되지 않으며, 채널 구조 개선 참고용입니다."
+    );
+  }
+
+  const takeaways: string[] = [];
+  if (recommendedKeywordAngles.length > 0)
+    takeaways.push(`키워드 방향: ${recommendedKeywordAngles[0].title}`);
+  if (recommendedTitlePatterns.length > 0)
+    takeaways.push(`제목 패턴: ${recommendedTitlePatterns[0].title}`);
+  if (checkCards.length > 0) takeaways.push(`점검 항목: ${checkCards[0].itemName}`);
+
+  const caution =
+    analysisConfidence === "low"
+      ? "분석 신뢰도가 낮게 기록되어 SEO 방향의 정확도가 제한될 수 있습니다."
+      : null;
+
+  return {
+    headline,
+    summary: summaryParts[0],
+    keyTakeaways: takeaways.slice(0, 3),
+    priorityAction:
+      recommendedTitlePatterns[0]?.title ??
+      recommendedKeywordAngles[0]?.title ??
+      null,
+    caution,
   };
 }

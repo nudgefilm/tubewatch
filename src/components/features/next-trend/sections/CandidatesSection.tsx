@@ -63,8 +63,8 @@ export function NextTrendCandidatesSection({ data }: NextTrendCandidatesSectionP
                       <span>{candidate.signal}</span>
                     </div>
                   </div>
-                  <div className="flex flex-col items-end gap-2">
-                    <div className="flex gap-2">
+                  <div className="flex flex-col items-end gap-2 shrink-0">
+                    <div className="flex flex-wrap justify-end gap-2">
                       <Badge variant="outline" className={priorityConfig[candidate.priority].className}>
                         우선순위: {priorityConfig[candidate.priority].label}
                       </Badge>
@@ -72,9 +72,9 @@ export function NextTrendCandidatesSection({ data }: NextTrendCandidatesSectionP
                         {statusConfig[candidate.status].label}
                       </Badge>
                     </div>
-                    <div className="flex items-center gap-2 text-sm">
+                    <div className="flex items-center gap-2 text-sm whitespace-nowrap">
                       <span className="text-muted-foreground">실행 가능성</span>
-                      <Progress value={candidate.feasibility} className="h-2 w-20" />
+                      <Progress value={candidate.feasibility} className="h-2 w-16 shrink-0" />
                       <span className="font-medium">{candidate.feasibility}%</span>
                     </div>
                   </div>

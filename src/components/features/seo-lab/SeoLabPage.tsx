@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ScoreBar } from "@/components/ui/ScoreBar"
 import { ChannelContextHeader, type ChannelContext } from "@/components/features/shared/ChannelContextHeader"
+import { StrategicCommentCard } from "@/components/features/shared/StrategicCommentCard"
 import type { SeoLabPageViewModel } from "@/lib/seo-lab/seoLabPageViewModel"
 
 interface SeoLabPageProps {
@@ -104,7 +105,7 @@ export function SeoLabPage({ channelId = "", channelContext, viewModel }: SeoLab
                     <ScoreBar label="콘텐츠 구조" score={viewModel.structureSectionScore} />
                   )}
                   <p className="text-xs text-muted-foreground pt-1">
-                    feature_section_scores 기반 — 0–100 구간 점수
+                    채널 분석 스냅샷 기반 구간 점수 (0–100)
                   </p>
                 </CardContent>
               </Card>
@@ -217,6 +218,11 @@ export function SeoLabPage({ channelId = "", channelContext, viewModel }: SeoLab
               </section>
             )}
           </>
+        )}
+
+        {/* 전략 코멘트 */}
+        {viewModel.strategicComment && (
+          <StrategicCommentCard data={viewModel.strategicComment} />
         )}
       </div>
     </div>

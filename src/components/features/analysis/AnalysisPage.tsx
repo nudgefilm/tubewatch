@@ -8,6 +8,7 @@ import { AnalysisRecentVideosSection } from "./sections/RecentVideosSection"
 import { AnalysisTopBottomCompare } from "./sections/TopBottomCompareSection"
 import { AnalysisSummarySection } from "./sections/SummarySection"
 import { AnalysisEmptyState } from "./sections/EmptyState"
+import { StrategicCommentCard } from "@/components/features/shared/StrategicCommentCard"
 import type {
   ChannelData,
   KpiData,
@@ -267,7 +268,11 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel }: C
             <p className="mt-1 text-sm text-muted-foreground">채널 현재 상태를 구조화한 원천 데이터 허브</p>
           </div>
           <AnalysisHeaderSection channel={channelData} />
-          <AnalysisEmptyState type="no-data" title="분석 결과 없음" description="분석을 실행하면 채널 데이터가 여기에 표시됩니다." />
+          <AnalysisEmptyState
+            type="no-data"
+            title="아직 분석 결과가 없습니다"
+            description="채널 관리 페이지에서 '분석 요청' 버튼을 누르면 분석이 준비됩니다."
+          />
         </div>
       </div>
     )
@@ -319,6 +324,11 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel }: C
 
         {/* E. Summary Section */}
         <AnalysisSummarySection data={summaryData} />
+
+        {/* F. Strategic Comment */}
+        {viewModel.strategicComment && (
+          <StrategicCommentCard data={viewModel.strategicComment} />
+        )}
       </div>
     </div>
   )
