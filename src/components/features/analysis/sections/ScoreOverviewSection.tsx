@@ -64,10 +64,24 @@ const SECTION_INTERPRETATIONS: Record<SectionKey, [string, string, string]> = {
   ],
 }
 
+const SECTION_DISPLAY: { key: SectionKey; label: string }[] = [
+  { key: "channelActivity",  label: "활동" },
+  { key: "audienceResponse", label: "반응" },
+  { key: "contentStructure", label: "구조" },
+  { key: "seoOptimization",  label: "발견" },
+  { key: "growthMomentum",   label: "성장" },
+]
+
 function tierOf(score: number): 0 | 1 | 2 {
   if (score >= 80) return 0
   if (score >= 60) return 1
   return 2
+}
+
+function sectionBarColor(score: number) {
+  if (score >= 65) return "bg-emerald-500"
+  if (score >= 45) return "bg-amber-400"
+  return "bg-rose-400"
 }
 
 function deriveInterpretation(overallScore: number, sectionScores?: SectionScores): string {
@@ -91,32 +105,26 @@ export function AnalysisScoreOverview({ score, sectionScores }: AnalysisScoreOve
   const strokeDashoffset = circumference - (score / 100) * circumference
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
+    <Card className="h-full">
+      <CardHeader className="pb-3">
         <CardTitle className="text-xs font-medium text-muted-foreground">
           채널 종합 점수
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col items-center pb-5">
-        {/* Donut Chart */}
+      <CardContent className="flex flex-col items-center gap-3 pb-5">
+        {/* Donut */}
         <div className="relative">
-          <svg width="112" height="112" viewBox="0 0 120 120">
+          <svg width="100" height="100" viewBox="0 0 120 120">
             <circle
-              cx="60"
-              cy="60"
-              r="45"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="9"
+              cx="60" cy="60" r="45"
+              fill="none" stroke="currentColor" strokeWidth="10"
               className="text-muted"
             />
             <circle
-              cx="60"
-              cy="60"
-              r="45"
+              cx="60" cy="60" r="45"
               fill="none"
               stroke={getScoreTrackColor(score)}
-              strokeWidth="9"
+              strokeWidth="10"
               strokeLinecap="round"
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
@@ -128,31 +136,52 @@ export function AnalysisScoreOverview({ score, sectionScores }: AnalysisScoreOve
             <span className={`text-3xl font-bold tabular-nums ${getScoreColor(score)}`}>
               {score}
             </span>
-            <span className="text-xs text-muted-foreground">/100</span>
+            <span className="text-[10px] text-muted-foreground">/100</span>
           </div>
         </div>
 
-        {/* Score Label */}
-        <div className="mt-2.5 text-center">
-          <span
-            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-              score >= 80
-                ? "bg-emerald-50 text-emerald-700"
-                : score >= 60
-                  ? "bg-amber-50 text-amber-700"
-                  : "bg-rose-50 text-rose-700"
-            }`}
-          >
-            {getScoreLabel(score)}
-          </span>
-        </div>
+        {/* Grade badge */}
+        <span
+          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+            score >= 80
+              ? "bg-emerald-50 text-emerald-700"
+              : score >= 60
+                ? "bg-amber-50 text-amber-700"
+                : "bg-rose-50 text-rose-700"
+          }`}
+        >
+          {getScoreLabel(score)}
+        </span>
 
-        <p className="mt-2.5 line-clamp-2 text-center text-xs leading-relaxed text-muted-foreground">
+        {/* Section score mini-bars */}
+        {sectionScores && (
+          <div className="w-full space-y-1.5">
+            {SECTION_DISPLAY.map(({ key, label }) => {
+              const val = sectionScores[key]
+              if (val == null) return null
+              return (
+                <div key={key} className="flex items-center gap-2">
+                  <span className="w-[22px] shrink-0 text-right text-[10px] text-muted-foreground">
+                    {label}
+                  </span>
+                  <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
+                    <div
+                      className={`h-full rounded-full transition-all ${sectionBarColor(val)}`}
+                      style={{ width: `${val}%` }}
+                    />
+                  </div>
+                  <span className="w-5 text-right text-[10px] tabular-nums text-muted-foreground">
+                    {Math.round(val)}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Interpretation */}
+        <p className="line-clamp-2 text-center text-[11px] leading-relaxed text-muted-foreground">
           {deriveInterpretation(score, sectionScores)}
-        </p>
-
-        <p className="mt-2 text-center text-[11px] text-muted-foreground/50">
-          TubeWatch 엔진 분석 기준
         </p>
       </CardContent>
     </Card>

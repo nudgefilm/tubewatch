@@ -143,9 +143,12 @@ async function fetchRecentResultsForChannel(
   userChannelId: string,
   limit: number
 ): Promise<AnalysisResultRow[]> {
+  // feature_snapshot 등 대형 컬럼 제외 — 이력 목록·비교 표시에 필요한 컬럼만 조회
   const { data, error } = await supabase
     .from("analysis_results")
-    .select("*")
+    .select(
+      "id, user_channel_id, user_id, created_at, updated_at, gemini_analyzed_at, feature_total_score, total_score, overall_score, feature_section_scores, section_scores, status, gemini_status, job_id"
+    )
     .eq("user_id", userId)
     .eq("user_channel_id", userChannelId)
     .order("created_at", { ascending: false })
@@ -309,29 +312,35 @@ export async function getDefaultAnalysisChannel(
 }
 
 /**
- * 분석 페이지 데이터: 한 번의 `getUser` + 공유 Supabase 클라이언트로 조회하고,
+ * 분석 페이지 데이터: 공유 Supabase 클라이언트로 조회하고,
  * 선택 채널에 대한 최신/최근 결과·runs는 병렬로 가져온다.
  *
  * snapshotId가 제공되면 해당 analysis_results row를 기준으로 데이터를 조회한다.
- * snapshotId가 없으면 channelId 기준 최신 결과를 가져온다 (redirect 전 임시 사용).
+ * snapshotId가 없으면 channelId 기준 최신 결과를 가져온다.
+ *
+ * userId가 제공되면 별도 getUser() 호출을 생략한다 (페이지 진입 시 인증 1회만 발생).
  */
 export async function getAnalysisPageData(
-  params?: { channelId?: string; snapshotId?: string }
+  params?: { channelId?: string; snapshotId?: string; userId?: string }
 ): Promise<AnalysisPageData | null> {
   const channelId = params?.channelId;
   const snapshotId = params?.snapshotId;
 
   const supabase = await createClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
 
-  if (authError || !user) {
-    return null;
+  let userId: string;
+  if (params?.userId) {
+    userId = params.userId;
+  } else {
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return null;
+    }
+    userId = user.id;
   }
-
-  const userId = user.id;
   const youtubeFeatureAccess = CORE_LOGGED_IN_YOUTUBE_ACCESS;
 
   const channels = await getUserChannelsForUser(supabase, userId);

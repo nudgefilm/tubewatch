@@ -63,9 +63,10 @@ export async function GET(request: Request) {
   }
 
   const { supabase, user } = authed;
+  // Sidebar·채널 목록 렌더에 필요한 컬럼만 조회 (subscriber_count 등 미사용 컬럼 제외)
   const { data, error } = await supabase
     .from("user_channels")
-    .select("*")
+    .select("id, channel_title, channel_url, channel_id, created_at")
     .eq("user_id", user.id)
     .order("created_at", { ascending: true });
 

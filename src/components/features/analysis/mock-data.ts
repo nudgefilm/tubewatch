@@ -15,7 +15,7 @@ export interface ChannelData {
 
 export interface KpiData {
   uploadFrequency: {
-    value: number
+    value: number | null  // null = 미산출 (업로드 간격 데이터 없음)
     status: "양호" | "보통" | "부족"
     interpretation: string
   }
@@ -28,11 +28,12 @@ export interface KpiData {
     titleLengthVariance: number
     videoLengthVariance: number
     keywordClusterVariance: number
+    stabilityScore: number | null  // null = 미산출 (구조 지표 없음). 값 있으면 0–100 표시용
     status: "안정" | "불안정"
     interpretation: string
   }
   baselinePerformance: {
-    averageViews: number
+    averageViews: number | null  // null = 미산출 (조회 지표 없음)
     interpretation: string
   }
   auxiliaryBaseline: {
@@ -110,6 +111,7 @@ export const mockKpiData: KpiData = {
     titleLengthVariance: 0.15,
     videoLengthVariance: 0.22,
     keywordClusterVariance: 0.18,
+    stabilityScore: 85,
     status: "안정",
     interpretation: "제목/길이/주제 구성이 일관된 패턴 유지",
   },

@@ -78,6 +78,20 @@ function TinyBars({ values, maxValue }: { values: number[]; maxValue: number }) 
   )
 }
 
+function NullState() {
+  return (
+    <>
+      <div className="flex items-baseline gap-1">
+        <span className="text-2xl font-bold tabular-nums text-muted-foreground/30">표본 부족</span>
+      </div>
+      <p className="text-sm leading-relaxed text-muted-foreground">
+        현재 데이터 기준으로 계산 제한
+      </p>
+      <div className="h-1.5 w-full rounded-full bg-muted/50" />
+    </>
+  )
+}
+
 function formatNumber(num: number): string {
   if (num >= 1000000) {
     return `${(num / 1000000).toFixed(1)}M`
@@ -90,141 +104,174 @@ function formatNumber(num: number): string {
 
 export function AnalysisKpiCards({ data }: AnalysisKpiCardsProps) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-      {/* 1. Upload Frequency */}
-      <Card>
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-3">
+
+      {/* Top row: 2 cards */}
+      <div className="grid grid-cols-2 gap-3">
+
+        {/* 1. Upload Frequency */}
+        <Card>
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Upload className="size-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  업로드 빈도
+                </CardTitle>
+              </div>
+              {data.uploadFrequency.value != null && (
+                <Badge variant="outline" className={`text-[11px] px-1.5 py-0 ${getStatusBadgeStyle(data.uploadFrequency.status)}`}>
+                  {data.uploadFrequency.status}
+                </Badge>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-2 min-h-[88px]">
+            {data.uploadFrequency.value != null ? (
+              <>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-bold tabular-nums">{data.uploadFrequency.value}</span>
+                  <span className="text-sm text-muted-foreground">회/주</span>
+                </div>
+                <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                  {data.uploadFrequency.interpretation}
+                </p>
+                <MiniProgressBar value={data.uploadFrequency.value} max={5} color="bg-emerald-500" />
+              </>
+            ) : (
+              <NullState />
+            )}
+          </CardContent>
+        </Card>
+
+        {/* 2. View Trend */}
+        <Card>
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <TrendingUp className="size-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  조회 흐름
+                </CardTitle>
+              </div>
+              <Badge variant="outline" className={`text-[11px] px-1.5 py-0 ${getStatusBadgeStyle(data.viewTrend.trend)}`}>
+                {data.viewTrend.trend}
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-2 min-h-[88px]">
+            <div className="flex items-baseline gap-1">
+              <span className="text-2xl font-bold tabular-nums">
+                {data.viewTrend.value > 0 ? "+" : ""}
+                {data.viewTrend.value}
+              </span>
+              <span className="text-sm text-muted-foreground">%</span>
+            </div>
+            <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+              {data.viewTrend.interpretation}
+            </p>
+            <MiniSparkline trend={data.viewTrend.trend} />
+          </CardContent>
+        </Card>
+
+      </div>
+
+      {/* Bottom row: 3 cards */}
+      <div className="grid grid-cols-3 gap-3">
+
+        {/* 3. Content Stability */}
+        <Card>
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Layers className="size-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  구조 안정성
+                </CardTitle>
+              </div>
+              {data.contentStability.stabilityScore != null && (
+                <Badge variant="outline" className={`text-[11px] px-1.5 py-0 ${getStatusBadgeStyle(data.contentStability.status)}`}>
+                  {data.contentStability.status}
+                </Badge>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-2 min-h-[88px]">
+            {data.contentStability.stabilityScore != null ? (
+              <>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-bold tabular-nums">
+                    {data.contentStability.stabilityScore}
+                  </span>
+                  <span className="text-sm text-muted-foreground">/ 100</span>
+                </div>
+                <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                  {data.contentStability.interpretation}
+                </p>
+                <TinyBars values={[85, 78, 82, 88, 80]} maxValue={100} />
+              </>
+            ) : (
+              <NullState />
+            )}
+          </CardContent>
+        </Card>
+
+        {/* 4. Baseline Performance */}
+        <Card>
+          <CardHeader className="pb-2">
             <div className="flex items-center gap-1.5">
-              <Upload className="size-4 text-muted-foreground" />
-              <CardTitle className="text-xs font-medium text-muted-foreground">
-                최근 업로드 빈도
+              <Target className="size-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                기준 성과선
               </CardTitle>
             </div>
-            <Badge variant="outline" className={`text-[11px] px-1.5 py-0 ${getStatusBadgeStyle(data.uploadFrequency.status)}`}>
-              {data.uploadFrequency.status}
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-bold tabular-nums">{data.uploadFrequency.value}</span>
-            <span className="text-xs text-muted-foreground">회/주</span>
-          </div>
-          <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-            {data.uploadFrequency.interpretation}
-          </p>
-          <MiniProgressBar value={data.uploadFrequency.value} max={5} color="bg-emerald-500" />
-        </CardContent>
-      </Card>
+          </CardHeader>
+          <CardContent className="space-y-2 min-h-[88px]">
+            {data.baselinePerformance.averageViews != null ? (
+              <>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-bold tabular-nums">
+                    {formatNumber(data.baselinePerformance.averageViews)}
+                  </span>
+                  <span className="text-sm text-muted-foreground">평균</span>
+                </div>
+                <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                  {data.baselinePerformance.interpretation}
+                </p>
+              </>
+            ) : (
+              <NullState />
+            )}
+          </CardContent>
+        </Card>
 
-      {/* 2. View Trend */}
-      <Card>
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
+        {/* 5. Auxiliary Baseline */}
+        <Card>
+          <CardHeader className="pb-2">
             <div className="flex items-center gap-1.5">
-              <TrendingUp className="size-4 text-muted-foreground" />
-              <CardTitle className="text-xs font-medium text-muted-foreground">
-                최근 조회 흐름
+              <BarChart3 className="size-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                보조 기준선
               </CardTitle>
             </div>
-            <Badge variant="outline" className={`text-[11px] px-1.5 py-0 ${getStatusBadgeStyle(data.viewTrend.trend)}`}>
-              {data.viewTrend.trend}
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-bold tabular-nums">
-              {data.viewTrend.value > 0 ? "+" : ""}
-              {data.viewTrend.value}
-            </span>
-            <span className="text-xs text-muted-foreground">%</span>
-          </div>
-          <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-            {data.viewTrend.interpretation}
-          </p>
-          <MiniSparkline trend={data.viewTrend.trend} />
-        </CardContent>
-      </Card>
-
-      {/* 3. Content Stability */}
-      <Card>
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <Layers className="size-4 text-muted-foreground" />
-              <CardTitle className="text-xs font-medium text-muted-foreground">
-                콘텐츠 구조 안정성
-              </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 min-h-[88px]">
+            <div className="flex items-baseline gap-1">
+              <span className="text-2xl font-bold tabular-nums">
+                {formatNumber(data.auxiliaryBaseline.medianViews)}
+              </span>
+              <span className="text-sm text-muted-foreground">중앙</span>
             </div>
-            <Badge variant="outline" className={`text-[11px] px-1.5 py-0 ${getStatusBadgeStyle(data.contentStability.status)}`}>
-              {data.contentStability.status}
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-bold tabular-nums">
-              {((1 - data.contentStability.titleLengthVariance) * 100).toFixed(0)}
-            </span>
-            <span className="text-xs text-muted-foreground">%</span>
-          </div>
-          <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-            {data.contentStability.interpretation}
-          </p>
-          <TinyBars values={[85, 78, 82, 88, 80]} maxValue={100} />
-        </CardContent>
-      </Card>
+            <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+              {data.auxiliaryBaseline.interpretation}
+            </p>
+            <p className="text-sm text-muted-foreground/60">
+              상위 20%: {formatNumber(data.auxiliaryBaseline.top20Threshold)}
+            </p>
+          </CardContent>
+        </Card>
 
-      {/* 4. Baseline Performance */}
-      <Card>
-        <CardHeader className="pb-2">
-          <div className="flex items-center gap-1.5">
-            <Target className="size-4 text-muted-foreground" />
-            <CardTitle className="text-xs font-medium text-muted-foreground">
-              기준 성과선
-            </CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-bold tabular-nums">
-              {formatNumber(data.baselinePerformance.averageViews)}
-            </span>
-            <span className="text-xs text-muted-foreground">평균</span>
-          </div>
-          <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-            {data.baselinePerformance.interpretation}
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* 5. Auxiliary Baseline */}
-      <Card>
-        <CardHeader className="pb-2">
-          <div className="flex items-center gap-1.5">
-            <BarChart3 className="size-4 text-muted-foreground" />
-            <CardTitle className="text-xs font-medium text-muted-foreground">
-              보조 기준선
-            </CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-bold tabular-nums">
-              {formatNumber(data.auxiliaryBaseline.medianViews)}
-            </span>
-            <span className="text-xs text-muted-foreground">중앙</span>
-          </div>
-          <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-            {data.auxiliaryBaseline.interpretation}
-          </p>
-          <p className="text-[11px] text-muted-foreground/60">
-            상위 20%: {formatNumber(data.auxiliaryBaseline.top20Threshold)}
-          </p>
-        </CardContent>
-      </Card>
+      </div>
     </div>
   )
 }

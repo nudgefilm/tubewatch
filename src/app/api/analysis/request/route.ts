@@ -219,6 +219,13 @@ export async function POST(request: Request) {
     sampleVideoCount: youtubeVideos.length,
     metrics: channelMetrics,
     patterns: channelPatterns.flags,
+    videos: youtubeVideos.map((v) => ({
+      title: v.title,
+      publishedAt: v.published_at ?? null,
+      viewCount: v.view_count ?? null,
+      thumbnail: v.thumbnail_url ?? null,
+      duration: v.duration ?? null,
+    })),
   };
 
   // analysis_jobs 선삽입 (FK 제약 충족)

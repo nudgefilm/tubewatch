@@ -7,16 +7,15 @@ import { getAnalysisPageData } from "@/lib/analysis/getAnalysisPageData"
 import { buildSeoLabPageViewModel } from "@/lib/seo-lab/seoLabPageViewModel"
 
 type PageProps = {
-  searchParams?: { channel?: string; snapshot?: string }
+  searchParams?: { channel?: string }
 }
 
 export default async function Page({ searchParams }: PageProps) {
   const channelId = searchParams?.channel
-  const snapshotId = searchParams?.snapshot
-  await redirectToLandingAuthUnlessSignedIn(
+  const userId = await redirectToLandingAuthUnlessSignedIn(
     buildProtectedReturnPath("/seo-lab", channelId)
   )
-  const data = await getAnalysisPageData({ channelId, snapshotId })
+  const data = await getAnalysisPageData({ channelId, userId })
   const viewModel = buildSeoLabPageViewModel(data)
   const channelContext = data?.selectedChannel
     ? {

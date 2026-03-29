@@ -20,18 +20,20 @@ export function buildProtectedReturnPath(
 /**
  * 앱 보호 라oute: 세션이 없으면 랜딩 `/?authModal=1&next=...` 로 보낸다.
  * OAuth 완료 후 `next`는 `auth/callback` → `getSafeOAuthReturnPath`와 동일 규칙으로 복귀한다.
+ *
+ * 인증 성공 시 userId를 반환 — 호출부에서 재사용 가능(중복 getUser 제거용).
  */
 export async function redirectToLandingAuthUnlessSignedIn(
   postLoginPath: string
-): Promise<void> {
+): Promise<string> {
   const supabase = await createClient();
   const {
-    data: { session },
+    data: { user },
     error,
-  } = await supabase.auth.getSession();
+  } = await supabase.auth.getUser();
 
-  if (!error && session?.user) {
-    return;
+  if (!error && user) {
+    return user.id;
   }
 
   const safeNext = getSafeOAuthReturnPath(postLoginPath);

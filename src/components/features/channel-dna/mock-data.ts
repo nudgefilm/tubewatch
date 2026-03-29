@@ -168,4 +168,11 @@ export const channelDnaData = {
   },
 }
 
-export type ChannelDnaData = typeof channelDnaData
+// hitDependency는 null 가능 — topPerformerShare 데이터 없을 때 미산출 표시용
+export type ChannelDnaStructureSummary = Omit<typeof channelDnaData.structureSummary, "hitDependency"> & {
+  hitDependency: number | null
+}
+
+export type ChannelDnaData = Omit<typeof channelDnaData, "structureSummary"> & {
+  structureSummary: ChannelDnaStructureSummary
+}

@@ -85,7 +85,7 @@ export function DnaPatternAnalysisSection({ data }: DnaPatternAnalysisSectionPro
 
       {/* 구조적 패턴 상세 */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {/* 제목 구조 */}
+        {/* 반복 제목 구조 */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
@@ -94,13 +94,24 @@ export function DnaPatternAnalysisSection({ data }: DnaPatternAnalysisSectionPro
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm font-medium">{data.titleStructure.dominant}</p>
-            <div className="mt-2 flex items-center gap-2">
-              <Progress value={data.titleStructure.consistency} className="h-1.5 flex-1" />
-              <span className="text-xs text-muted-foreground">
-                {data.titleStructure.consistency}%
-              </span>
-            </div>
+            {data.titleStructure.dominant !== "-" ? (
+              <>
+                <p className="text-sm font-medium">{data.titleStructure.dominant}</p>
+                {data.titleStructure.consistency > 0 && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <Progress value={data.titleStructure.consistency} className="h-1.5 flex-1" />
+                    <span className="text-xs text-muted-foreground">
+                      {data.titleStructure.consistency}%
+                    </span>
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-medium text-muted-foreground">미산출</p>
+                <p className="mt-1 text-xs text-muted-foreground">제목 패턴 데이터가 없습니다</p>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -113,13 +124,26 @@ export function DnaPatternAnalysisSection({ data }: DnaPatternAnalysisSectionPro
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm font-medium">{data.formatRepetition.dominant}</p>
-            <div className="mt-2 flex items-center gap-2">
-              <Progress value={data.formatRepetition.consistency} className="h-1.5 flex-1" />
-              <span className="text-xs text-muted-foreground">
-                {data.formatRepetition.consistency}%
-              </span>
-            </div>
+            {data.formatRepetition.dominant !== "-" ? (
+              <>
+                <p className="text-sm font-medium">{data.formatRepetition.dominant}</p>
+                {data.formatRepetition.consistency > 0 ? (
+                  <div className="mt-2 flex items-center gap-2">
+                    <Progress value={data.formatRepetition.consistency} className="h-1.5 flex-1" />
+                    <span className="text-xs text-muted-foreground">
+                      {data.formatRepetition.consistency}%
+                    </span>
+                  </div>
+                ) : (
+                  <p className="mt-1 text-xs text-muted-foreground">일관성 데이터 미산출</p>
+                )}
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-medium text-muted-foreground">미산출</p>
+                <p className="mt-1 text-xs text-muted-foreground">포맷 반복 데이터가 없습니다</p>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -132,18 +156,25 @@ export function DnaPatternAnalysisSection({ data }: DnaPatternAnalysisSectionPro
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-1.5">
-            {data.topicClusters.slice(0, 3).map((cluster) => (
-              <div key={cluster.topic} className="flex items-center justify-between text-sm">
-                <span className="truncate">{cluster.topic}</span>
-                <Badge variant="outline" className="ml-2 text-xs">
-                  {cluster.weight}%
-                </Badge>
-              </div>
-            ))}
+            {data.topicClusters.length > 0 ? (
+              data.topicClusters.slice(0, 3).map((cluster) => (
+                <div key={cluster.topic} className="flex items-center justify-between text-sm">
+                  <span className="truncate">{cluster.topic}</span>
+                  <Badge variant="outline" className="ml-2 text-xs">
+                    {cluster.weight}%
+                  </Badge>
+                </div>
+              ))
+            ) : (
+              <>
+                <p className="text-sm font-medium text-muted-foreground">미산출</p>
+                <p className="text-xs text-muted-foreground">주제 분류 데이터가 없습니다</p>
+              </>
+            )}
           </CardContent>
         </Card>
 
-        {/* 업로드 주기 영향 */}
+        {/* 업로드 주기 */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
@@ -152,13 +183,22 @@ export function DnaPatternAnalysisSection({ data }: DnaPatternAnalysisSectionPro
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-baseline gap-2">
-              <span className="text-sm font-medium">{data.uploadCycleImpact.currentCycle}</span>
-              <span className="text-xs text-muted-foreground">
-                (최적: {data.uploadCycleImpact.optimalCycle})
-              </span>
-            </div>
-            <p className="mt-1 text-xs text-muted-foreground">{data.uploadCycleImpact.note}</p>
+            {data.uploadCycleImpact.currentCycle !== "-" ? (
+              <>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-sm font-medium">{data.uploadCycleImpact.currentCycle}</span>
+                  <span className="text-xs text-muted-foreground">
+                    (최적: {data.uploadCycleImpact.optimalCycle})
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">{data.uploadCycleImpact.note}</p>
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-medium text-muted-foreground">미산출</p>
+                <p className="mt-1 text-xs text-muted-foreground">{data.uploadCycleImpact.note}</p>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>

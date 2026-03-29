@@ -218,15 +218,10 @@ export default function ChannelsPageClient(): JSX.Element {
                     return;
                   }
 
-                  if (result.analysisResultId) {
-                    const dest = `/analysis?channel=${channelId}&snapshot=${result.analysisResultId}`;
-                    console.log("[Analysis Start UI] navigate to:", dest);
-                    router.push(dest);
-                  } else {
-                    const dest = `/analysis?channel=${channelId}`;
-                    console.log("[Analysis Start UI] navigate to:", dest, "(no snapshotId)");
-                    router.push(dest);
-                  }
+                  // snapshot은 URL에 포함하지 않는 정책 — channel만 전달하면 서버가 latestResult로 렌더
+                  const dest = `/analysis?channel=${channelId}`;
+                  console.log("[Analysis Start UI] navigate to:", dest);
+                  router.push(dest);
                 })
                 .catch((err: unknown) => {
                   console.error("[Analysis Start UI] fetch error:", err);

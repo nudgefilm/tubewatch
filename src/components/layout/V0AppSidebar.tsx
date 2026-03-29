@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import {
   BarChart3,
   ChevronDown,
@@ -101,7 +101,6 @@ type SidebarChannel = {
 export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [channels, setChannels] = React.useState<SidebarChannel[]>([])
   const [selectedChannelId, setSelectedChannelId] = React.useState<string | null>(null)
   const [userEmail, setUserEmail] = React.useState<string | null>(null)
@@ -118,14 +117,9 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
     (base: string) => {
       if (!selectedChannelId) return base
       const sep = base.includes("?") ? "&" : "?"
-      let href = `${base}${sep}channel=${encodeURIComponent(selectedChannelId)}`
-      const currentSnapshotId = searchParams.get("snapshot")
-      if (currentSnapshotId) {
-        href += `&snapshot=${encodeURIComponent(currentSnapshotId)}`
-      }
-      return href
+      return `${base}${sep}channel=${encodeURIComponent(selectedChannelId)}`
     },
-    [selectedChannelId, searchParams]
+    [selectedChannelId]
   )
 
   const loadChannels = React.useCallback(async () => {
@@ -205,11 +199,10 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
   const selectChannel = (id: string) => {
     setSelectedChannelId(id)
     writeSelectedChannelIdToStorage(id)
-    // URL 동기화: channel 교체 시 snapshot도 초기화 (새 채널의 최신 snapshot으로 재확정됨)
+    // URL 동기화: channel만 반영 (snapshot은 URL에 포함하지 않는 정책)
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href)
       url.searchParams.set("channel", id)
-      url.searchParams.delete("snapshot")
       router.replace(url.pathname + url.search, { scroll: false })
       // 서버 컴포넌트 데이터 강제 갱신 (채널 변경 시 캐시 무효화)
       router.refresh()

@@ -65,18 +65,24 @@ function mapToKpiData(vm: AnalysisPageViewModel): KpiData {
   const structureItems = structureCard?.items.filter((i) => i.label !== FALLBACK_LABEL) ?? []
 
   const intervalItem = activityItems.find((i) => i.label.includes("간격"))
-  const intervalDays = intervalItem ? parseNumFromItemValue(intervalItem.value) : 0
-  const uploadsPerWeek = intervalDays > 0 ? Math.round((7 / intervalDays) * 10) / 10 : 0
+  // intervalItem 미발견 시 null로 구분 — 0과 "데이터 없음"을 분리
+  const intervalDays = intervalItem != null ? parseNumFromItemValue(intervalItem.value) : null
+  const uploadsPerWeek: number | null =
+    intervalDays != null && intervalDays > 0
+      ? Math.round((7 / intervalDays) * 10) / 10
+      : intervalDays === 0
+        ? 0
+        : null
 
   const avgViewsItem = responseItems.find((i) => i.label.includes("평균 조회수"))
-  const avgViews = avgViewsItem
+  const avgViews: number | null = avgViewsItem
     ? parseNumFromItemValue(avgViewsItem.value)
-    : (vm.channel?.avgViews.value ?? 0)
+    : vm.channel?.avgViews.value ?? null
 
   const medianViewsItem = responseItems.find((i) => i.label.includes("중앙"))
   const medianViews = medianViewsItem
     ? parseNumFromItemValue(medianViewsItem.value)
-    : Math.round(avgViews * 0.8)
+    : avgViews != null ? Math.round(avgViews * 0.8) : 0
 
   // View trend: compare first vs last of recentVideos by viewCount
   const videosWithViews = vm.recentVideos.filter((v) => v.viewCount != null)
@@ -95,16 +101,22 @@ function mapToKpiData(vm: AnalysisPageViewModel): KpiData {
   const structureInterp = structureItems.length > 0
     ? structureItems.slice(0, 2).map((i) => `${i.label}: ${i.value}`).join(" / ")
     : "구조 지표 데이터 없음"
+  // stabilityScore: 구조 지표가 있으면 상태 기반 점수 추정, 없으면 null(미산출)
+  const stabilityScore: number | null = structureItems.length > 0
+    ? structureCard?.status === "good" ? 75 : 40
+    : null
 
   const uploadStatus: "양호" | "보통" | "부족" =
-    uploadsPerWeek >= 3 ? "양호" : uploadsPerWeek >= 1 ? "보통" : "부족"
+    uploadsPerWeek != null && uploadsPerWeek >= 3 ? "양호"
+    : uploadsPerWeek != null && uploadsPerWeek >= 1 ? "보통"
+    : "부족"
   const uploadInterp = activityItems.length > 0
     ? activityItems.map((i) => `${i.label}: ${i.value}`).join(", ")
     : "활동 지표 데이터 없음"
 
   return {
     uploadFrequency: {
-      value: uploadsPerWeek,
+      value: uploadsPerWeek,  // null이면 KPI 카드에서 "미산출" 표시
       status: uploadStatus,
       interpretation: uploadInterp,
     },
@@ -120,18 +132,21 @@ function mapToKpiData(vm: AnalysisPageViewModel): KpiData {
       titleLengthVariance: 0.2,
       videoLengthVariance: 0.2,
       keywordClusterVariance: 0.2,
+      stabilityScore,  // null이면 "미산출", 값 있으면 0–100 점수 표시
       status: structureStatus,
       interpretation: structureInterp,
     },
     baselinePerformance: {
       averageViews: avgViews,
-      interpretation: vm.channel?.avgViews.lowSampleWarning
-        ? "표본이 적어 추정 편차가 있을 수 있습니다"
-        : "최근 표본 영상 기준 평균 조회수",
+      interpretation: avgViews == null
+        ? "조회 지표 데이터 없음"
+        : vm.channel?.avgViews.lowSampleWarning
+          ? "표본이 적어 추정 편차가 있을 수 있습니다"
+          : "최근 표본 영상 기준 평균 조회수",
     },
     auxiliaryBaseline: {
       medianViews,
-      top20Threshold: Math.round(avgViews * 2),
+      top20Threshold: Math.round((avgViews ?? 0) * 2),
       interpretation: "표본 기반 추정치 — 채널 전체 성과를 보장하지 않습니다",
     },
   }
@@ -320,19 +335,19 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel }: C
         <AnalysisHeaderSection channel={channelData} />
 
         {/* B. Score Overview + KPI Cards */}
-        <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
+        <div className="grid gap-4 lg:grid-cols-[1.2fr_2fr]">
           <AnalysisScoreOverview score={score} sectionScores={sectionScores} />
           <AnalysisKpiCards data={kpiData} />
         </div>
 
         {/* F. View Trend Chart */}
-        {trendData.length >= 2 ? (
+        {trendData.length >= 1 ? (
           <AnalysisViewTrendChart
             data={trendData}
             interpretation={trendInterpretation}
           />
         ) : (
-          <AnalysisEmptyState type="insufficient-samples" title="조회 흐름 데이터 부족" description="최근 영상이 2개 이상 있으면 조회 추세 차트가 표시됩니다." />
+          <AnalysisEmptyState type="insufficient-samples" title="조회 흐름 데이터 부족" description="영상 데이터가 있으면 조회 추세 차트가 표시됩니다." />
         )}
 
         {/* C. Recent Videos List */}
@@ -343,11 +358,7 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel }: C
         )}
 
         {/* D. Top/Bottom Performance Comparison */}
-        {comparisonData ? (
-          <AnalysisTopBottomCompare data={comparisonData} />
-        ) : (
-          <AnalysisEmptyState type="insufficient-samples" />
-        )}
+        <AnalysisTopBottomCompare data={comparisonData} sampleCount={videosData.length} videos={videosData} />
 
         {/* E. Summary Section */}
         <AnalysisSummarySection data={summaryData} />

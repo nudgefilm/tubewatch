@@ -37,14 +37,14 @@ export function AnalysisEmptyState({
 
   return (
     <Card className="border-dashed">
-      <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-        <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-muted">
-          <Icon className="size-6 text-muted-foreground" />
+      <CardContent className="flex flex-col items-center justify-center py-8 text-center">
+        <div className="mb-3 flex size-10 items-center justify-center rounded-full bg-muted">
+          <Icon className="size-5 text-muted-foreground" />
         </div>
-        <h3 className="mb-2 text-sm font-medium text-foreground">
+        <h3 className="mb-1.5 text-sm font-medium text-foreground">
           {title || content.title}
         </h3>
-        <p className="max-w-sm text-sm text-muted-foreground">
+        <p className="max-w-sm text-xs text-muted-foreground leading-relaxed">
           {description || content.description}
         </p>
       </CardContent>

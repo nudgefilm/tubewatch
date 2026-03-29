@@ -26,8 +26,9 @@ function spreadLevelToStability(level: InternalChannelDnaSummaryVm["performanceS
 }
 
 function buildStructureSummaryFromVm(vm: InternalChannelDnaSummaryVm) {
-  const hitDependency =
-    vm.topPerformerShare != null ? Math.round(vm.topPerformerShare * 100) : 0
+  // topPerformerShare 없으면 null — 0과 "데이터 없음"을 구분
+  const hitDependency: number | null =
+    vm.topPerformerShare != null ? Math.round(vm.topPerformerShare * 100) : null
   const stability = spreadLevelToStability(vm.performanceSpreadLevel)
   const growthAxis = vm.topPatternSignals.slice(0, 2) as string[]
   return {

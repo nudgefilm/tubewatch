@@ -44,11 +44,22 @@ export function DnaStructureSummarySection({ data }: DnaStructureSummarySectionP
             <TrendingUp className="size-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data.hitDependency}%</div>
-            <Progress value={data.hitDependency} className="mt-2 h-1.5" />
-            <p className="mt-1 text-xs text-muted-foreground">
-              {data.hitDependency < 50 ? "안정적 분산 구조" : "히트 의존 구조"}
-            </p>
+            {data.hitDependency != null ? (
+              <>
+                <div className="text-2xl font-bold">{data.hitDependency}%</div>
+                <Progress value={data.hitDependency} className="mt-2 h-1.5" />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {data.hitDependency < 50 ? "안정적 분산 구조" : "히트 의존 구조"}
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="text-sm font-medium text-muted-foreground">미산출</div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  상위 성과 집중도 데이터가 없습니다
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -100,20 +111,28 @@ export function DnaStructureSummarySection({ data }: DnaStructureSummarySectionP
             <BarChart3 className="size-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="flex h-12 items-end gap-1">
-              {data.performanceDistribution.map((item) => (
-                <div
-                  key={item.range}
-                  className="flex-1 rounded-t bg-primary/80 transition-all hover:bg-primary"
-                  style={{ height: `${item.percentage * 1.2}%` }}
-                  title={`${item.range}: ${item.count}개 (${item.percentage}%)`}
-                />
-              ))}
-            </div>
-            <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
-              <span>0</span>
-              <span>50K+</span>
-            </div>
+            {data.performanceDistribution.length > 0 ? (
+              <>
+                <div className="flex h-12 items-end gap-1">
+                  {data.performanceDistribution.map((item) => (
+                    <div
+                      key={item.range}
+                      className="flex-1 rounded-t bg-primary/80 transition-all hover:bg-primary"
+                      style={{ height: `${item.percentage * 1.2}%` }}
+                      title={`${item.range}: ${item.count}개 (${item.percentage}%)`}
+                    />
+                  ))}
+                </div>
+                <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
+                  <span>0</span>
+                  <span>50K+</span>
+                </div>
+              </>
+            ) : (
+              <div className="flex h-12 items-center">
+                <p className="text-sm font-medium text-muted-foreground">미산출</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
