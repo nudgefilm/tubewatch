@@ -223,12 +223,9 @@ function buildNarrative(args: {
   const parts: string[] = [];
   if (args.recentVideosUsed === 0) {
     parts.push(
-      "최근 표본 영상 목록이 스냅샷에 없어 조회 분포·편차·히트 의존도를 수치화하지 못했습니다. 베이스 분석 스냅샷에 영상 표본이 있으면 이 페이지에서 같은 항목을 조금 더 채울 수 있습니다."
+      "최근 영상 데이터가 충분하지 않아 조회 분포와 편차를 판단하기 어렵습니다. 영상을 더 업로드한 뒤 분석을 다시 실행하면 더 정확한 진단이 가능합니다."
     );
   } else {
-    parts.push(
-      `최근 분석 스냅샷의 표본 영상 ${args.recentVideosUsed}개만을 기준으로 내부 편차를 봅니다. 채널 전체가 아닌 저장된 표본에 한정되므로 해석이 제한될 수 있습니다.`
-    );
     if (args.medianViews != null && args.averageViews != null) {
       parts.push(
         `표본 조회수 중앙값은 약 ${Math.round(args.medianViews).toLocaleString("ko-KR")}, 평균은 약 ${Math.round(args.averageViews).toLocaleString("ko-KR")}입니다.`
@@ -277,10 +274,10 @@ function buildNarrative(args: {
     }
   }
   if (args.topSignals.length > 0) {
-    parts.push(`베이스 진단에서 반복 언급된 문장: ${args.topSignals.slice(0, 4).join(" · ")}`);
+    parts.push(`반복 확인된 강점 패턴 — ${args.topSignals.slice(0, 4).join(", ")}`);
   }
   if (args.weakSignals.length > 0) {
-    parts.push(`주의·개선으로 기록된 문장: ${args.weakSignals.slice(0, 4).join(" · ")}`);
+    parts.push(`개선이 필요한 부분 — ${args.weakSignals.slice(0, 4).join(", ")}`);
   }
   return parts.join(" ");
 }
@@ -289,7 +286,7 @@ export function buildInternalChannelDnaSummary(
   data: AnalysisPageData | null
 ): InternalChannelDnaSummaryVm {
   const baseNote =
-    "외부 경쟁 채널·시장 평균 데이터는 없습니다. 아래는 저장된 베이스 분석(`analysis_results`)의 `feature_snapshot`·구간 점수·문자열 진단만으로 계산한 내부 비교입니다.";
+    "외부 경쟁 채널·시장 평균 데이터는 없습니다. 저장된 베이스 분석의 영상 표본·구간 점수·진단 문자열만으로 계산한 내부 비교입니다.";
 
   if (!data?.selectedChannel || !data.latestResult) {
     return {
@@ -303,16 +300,16 @@ export function buildInternalChannelDnaSummary(
       top3Share: null,
       uploadConsistencyLevel: null,
       uploadConsistencyFallback:
-        "베이스 분석 결과가 없어 업로드 일관성을 판정할 수 없습니다.",
+        "업로드 패턴을 확인하려면 분석을 실행하세요.",
       performanceSpreadLevel: null,
       performanceSpreadFallback:
-        "베이스 분석 결과가 없어 성과 편차를 판정할 수 없습니다.",
+        "성과 편차를 파악하려면 분석을 실행하세요.",
       breakoutDependencyLevel: null,
       breakoutDependencyFallback:
-        "베이스 분석 결과가 없어 히트 의존도를 판정할 수 없습니다.",
+        "히트 의존 구조를 파악하려면 분석을 실행하세요.",
       dominantFormat: null,
       dominantFormatFallback:
-        "베이스 분석 결과가 없어 포맷 추정을 하지 않습니다.",
+        "주요 포맷을 파악하려면 분석을 실행하세요.",
       topPatternSignals: [],
       weakPatternSignals: [],
       channelDnaNarrative:
@@ -406,11 +403,11 @@ export function buildInternalChannelDnaSummary(
         uploadConsistencyLevel = cv < 0.55 ? "high" : cv < 1.1 ? "medium" : "low";
       } else {
         uploadConsistencyFallback =
-          "표본 공개일 간격 데이터가 부족해 업로드 일관성 등급을 두지 않았습니다.";
+          "업로드 주기를 판단하기 어렵습니다. 더 많은 영상이 쌓이면 정확한 분석이 가능합니다.";
       }
     } else {
       uploadConsistencyFallback =
-        "스냅샷에 평균 업로드 간격(일)이 없고, 유효한 공개일이 3개 미만이어 공개일 간격의 변동(CV)으로도 추정하지 못했습니다.";
+        "업로드 이력이 충분하지 않아 주기를 파악하기 어렵습니다.";
     }
   }
 
@@ -423,7 +420,7 @@ export function buildInternalChannelDnaSummary(
     }
   } else {
     performanceSpreadFallback =
-      "조회수가 있는 표본이 3개 미만이라 성과 편차 등급을 두지 않았습니다.";
+      "영상 표본이 적어 성과 편차를 판단하기 어렵습니다.";
   }
 
   let breakoutDependencyLevel: ChannelDnaTriLevel | null = null;
@@ -434,11 +431,11 @@ export function buildInternalChannelDnaSummary(
     breakoutDependencyLevel = triFromTopShare(topPerformerShare);
     if (sortedViews.length < 3) {
       breakoutDependencyFallback =
-        "표본이 3개 미만이어 상위 3개 조회 비중은 계산하지 않았고, 상위 1개 조회 비중으로 등급을 보조했습니다.";
+        "표본이 적어 상위 1개 영상 기준으로 판단했습니다.";
     }
   } else {
     breakoutDependencyFallback =
-      "표본 조회 합계를 만들 수 없어 히트 의존도를 계산하지 못했습니다.";
+      "조회 데이터가 충분하지 않아 히트 의존 여부를 파악하기 어렵습니다.";
   }
 
   let dominantFormat: string | null = null;
@@ -453,7 +450,7 @@ export function buildInternalChannelDnaSummary(
     dominantFormat = formatDominantFromAvgSeconds(metrics.avgVideoDuration);
   } else {
     dominantFormatFallback =
-      "표본에 `durationSeconds`가 없고 `metrics.avgVideoDuration`도 없어 포맷을 추정하지 않았습니다.";
+      "영상 길이 데이터가 없어 주요 포맷을 파악하기 어렵습니다.";
   }
 
   const topPatternSignals: string[] = [];
@@ -467,9 +464,8 @@ export function buildInternalChannelDnaSummary(
     if (topPatternSignals.length >= 8) {
       break;
     }
-    const line = `스냅샷 플래그: ${p}`;
-    if (!topPatternSignals.includes(line)) {
-      topPatternSignals.push(line);
+    if (!topPatternSignals.includes(p)) {
+      topPatternSignals.push(p);
     }
   }
 

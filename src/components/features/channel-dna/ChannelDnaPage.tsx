@@ -45,13 +45,13 @@ function buildStructureSummaryFromVm(vm: InternalChannelDnaSummaryVm) {
 function buildPatternAnalysisFromVm(vm: InternalChannelDnaSummaryVm) {
   const highPerformancePatterns = vm.topPatternSignals.map((signal) => ({
     pattern: makeDiagnosticLabel(signal),
-    frequency: "스냅샷 기반",
+    frequency: "최근 분석",
     description: signal,
     examples: [] as string[],
   }))
   const lowPerformancePatterns = vm.weakPatternSignals.map((signal) => ({
     pattern: makeDiagnosticLabel(signal),
-    frequency: "스냅샷 기반",
+    frequency: "최근 분석",
     description: signal,
     examples: [] as never[],
   }))
@@ -68,7 +68,7 @@ function buildPatternAnalysisFromVm(vm: InternalChannelDnaSummaryVm) {
       optimalCycle: "-",
       currentCycle: "-",
       performanceCorrelation: vm.uploadConsistencyLevel ?? "-",
-      note: vm.uploadConsistencyFallback ?? "업로드 일관성 데이터는 스냅샷 기반입니다.",
+      note: vm.uploadConsistencyFallback ?? "업로드 주기 데이터가 충분하지 않습니다.",
     },
   }
 }
@@ -87,7 +87,7 @@ function buildDnaCardsFromVm(vm: InternalChannelDnaSummaryVm) {
     tags: [] as string[],
   }))
   const corePatterns = vm.dominantFormat
-    ? [{ pattern: vm.dominantFormat, importance: "핵심", note: "스냅샷 기반 주요 포맷" }]
+    ? [{ pattern: vm.dominantFormat, importance: "핵심", note: "최근 분석 기준 주요 포맷" }]
     : []
   const risks = [] as { type: string; level: string; description: string }[]
   if (vm.breakoutDependencyLevel === "high") {
@@ -160,7 +160,7 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel }: Ch
                   <ScoreBar key={item.label} label={item.label} score={item.score} />
                 ))}
                 <p className="text-xs text-muted-foreground pt-1">
-                  feature_section_scores 기반 — 0–100 구간 점수
+                  채널 활동·반응·구조·SEO·성장 기준 (0–100 구간 점수)
                 </p>
               </CardContent>
             </Card>

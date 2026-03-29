@@ -206,7 +206,7 @@ function buildMetricBackedActions(
   ) {
     out.push({
       id: "metric-activity-uploads",
-      title: "업로드·활동 점수와 최근 업로드 수 점검",
+      title: "업로드 활동과 최근 업로드 수 점검",
       whyNeeded: `저장된 업로드·활동 구간 점수가 ${Math.round(sections.channelActivity)}점이며, 스냅샷의 최근 30일 업로드 수는 ${metrics.recent30dUploadCount}건입니다.`,
       expectedEffect: CONSERVATIVE_EFFECT,
       difficulty: "low",
@@ -238,7 +238,7 @@ function buildMetricBackedActions(
   ) {
     out.push({
       id: "metric-audience-like",
-      title: "조회·반응 구간과 좋아요 비율 확인",
+      title: "좋아요 반응률 점검",
       whyNeeded: `조회·반응 구간 점수 ${Math.round(sections.audienceResponse)}점, 표본 평균 좋아요 비율은 약 ${(metrics.avgLikeRatio * 100).toFixed(2)}%입니다.`,
       expectedEffect: CONSERVATIVE_EFFECT,
       difficulty: "medium",
@@ -254,7 +254,7 @@ function buildMetricBackedActions(
   ) {
     out.push({
       id: "metric-structure-title",
-      title: "제목 길이·구조 점검",
+      title: "제목 길이와 구조 점검",
       whyNeeded: `콘텐츠·구조 점수 ${Math.round(sections.contentStructure)}점, 표본 평균 제목 길이는 약 ${Math.round(metrics.avgTitleLength)}자입니다.`,
       expectedEffect: CONSERVATIVE_EFFECT,
       difficulty: "low",
@@ -270,7 +270,7 @@ function buildMetricBackedActions(
   ) {
     out.push({
       id: "metric-tags",
-      title: "태그 수 점검(발견성 참고)",
+      title: "태그 활용 점검",
       whyNeeded: `표본 평균 태그 수는 약 ${metrics.avgTagCount.toFixed(1)}개입니다. 메타·발견성 또는 구조 점수가 낮게 기록된 경우 참고용으로 검토하세요.`,
       expectedEffect: CONSERVATIVE_EFFECT,
       difficulty: "low",
@@ -288,7 +288,7 @@ function buildMetricBackedActions(
     const seconds = Math.round(metrics.avgVideoDuration % 60);
     out.push({
       id: "metric-duration",
-      title: "영상 길이(표본 평균) 점검",
+      title: "영상 길이 적정성 점검",
       whyNeeded: `표본 평균 영상 길이는 약 ${minutes}분 ${seconds.toString().padStart(2, "0")}초로 기록되었습니다.`,
       expectedEffect: CONSERVATIVE_EFFECT,
       difficulty: "medium",
@@ -304,7 +304,7 @@ function buildMetricBackedActions(
   ) {
     out.push({
       id: "metric-growth-median",
-      title: "성장 신호·조회 분포 참고",
+      title: "성장 신호와 조회 분포 점검",
       whyNeeded: `성장 신호 구간 점수 ${Math.round(sections.growthMomentum)}점, 표본 중앙 조회수는 약 ${Math.round(metrics.medianViewCount)}회입니다.`,
       expectedEffect: CONSERVATIVE_EFFECT,
       difficulty: "high",
@@ -501,13 +501,13 @@ function buildCautions(weaknesses: string[], bottlenecks: string[]): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
   for (const t of uniqueTrimmedStrings(bottlenecks)) {
-    const line = `병목·주의: ${t}`;
+    const line = `${t} (병목 주의)`;
     if (seen.has(line) || out.length >= 5) continue;
     seen.add(line);
     out.push(line);
   }
   for (const t of uniqueTrimmedStrings(weaknesses)) {
-    const line = `약점 유의: ${t}`;
+    const line = `${t} (약점 유의)`;
     if (seen.has(line) || out.length >= 6) break;
     seen.add(line);
     out.push(line);
@@ -713,7 +713,7 @@ function buildActionPlanStrategicComment(
 
   const headline =
     p1.length > 0
-      ? `P1 최우선 실행: ${p1[0].title}`
+      ? `P1 우선 실행 — ${p1[0].title}`
       : `총 ${actions.length}개 실행 액션 정리됨`;
 
   const summaryParts: string[] = [

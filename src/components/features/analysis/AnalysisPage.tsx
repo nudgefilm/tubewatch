@@ -1,7 +1,7 @@
 "use client"
 
 import { AnalysisHeaderSection } from "./sections/HeaderSection"
-import { AnalysisScoreOverview } from "./sections/ScoreOverviewSection"
+import { AnalysisScoreOverview, type SectionScores } from "./sections/ScoreOverviewSection"
 import { AnalysisKpiCards } from "./sections/KpiCardsSection"
 import { AnalysisViewTrendChart } from "./sections/TrendChartSection"
 import { AnalysisRecentVideosSection } from "./sections/RecentVideosSection"
@@ -57,16 +57,23 @@ function mapToKpiData(vm: AnalysisPageViewModel): KpiData {
   const responseCard = vm.diagnosisCards.find((c) => c.title === "조회·반응")
   const structureCard = vm.diagnosisCards.find((c) => c.title === "콘텐츠·구조")
 
-  const intervalItem = activityCard?.items.find((i) => i.label.includes("간격"))
+  // ViewModel이 metrics 없을 때 삽입하는 fallback item ("표시 가능한 세부 지표")이
+  // label 기반 검색이나 interpretation 문자열로 노출되지 않도록 필터링
+  const FALLBACK_LABEL = "표시 가능한 세부 지표"
+  const activityItems = activityCard?.items.filter((i) => i.label !== FALLBACK_LABEL) ?? []
+  const responseItems = responseCard?.items.filter((i) => i.label !== FALLBACK_LABEL) ?? []
+  const structureItems = structureCard?.items.filter((i) => i.label !== FALLBACK_LABEL) ?? []
+
+  const intervalItem = activityItems.find((i) => i.label.includes("간격"))
   const intervalDays = intervalItem ? parseNumFromItemValue(intervalItem.value) : 0
   const uploadsPerWeek = intervalDays > 0 ? Math.round((7 / intervalDays) * 10) / 10 : 0
 
-  const avgViewsItem = responseCard?.items.find((i) => i.label.includes("평균 조회수"))
+  const avgViewsItem = responseItems.find((i) => i.label.includes("평균 조회수"))
   const avgViews = avgViewsItem
     ? parseNumFromItemValue(avgViewsItem.value)
     : (vm.channel?.avgViews.value ?? 0)
 
-  const medianViewsItem = responseCard?.items.find((i) => i.label.includes("중앙"))
+  const medianViewsItem = responseItems.find((i) => i.label.includes("중앙"))
   const medianViews = medianViewsItem
     ? parseNumFromItemValue(medianViewsItem.value)
     : Math.round(avgViews * 0.8)
@@ -85,15 +92,15 @@ function mapToKpiData(vm: AnalysisPageViewModel): KpiData {
   }
 
   const structureStatus = structureCard?.status === "good" ? "안정" : "불안정"
-  const structureInterp = structureCard
-    ? structureCard.items.slice(0, 2).map((i) => `${i.label}: ${i.value}`).join(" / ")
-    : "데이터 부족"
+  const structureInterp = structureItems.length > 0
+    ? structureItems.slice(0, 2).map((i) => `${i.label}: ${i.value}`).join(" / ")
+    : "구조 지표 데이터 없음"
 
   const uploadStatus: "양호" | "보통" | "부족" =
     uploadsPerWeek >= 3 ? "양호" : uploadsPerWeek >= 1 ? "보통" : "부족"
-  const uploadInterp = activityCard
-    ? activityCard.items.map((i) => `${i.label}: ${i.value}`).join(", ")
-    : "데이터 부족"
+  const uploadInterp = activityItems.length > 0
+    ? activityItems.map((i) => `${i.label}: ${i.value}`).join(", ")
+    : "활동 지표 데이터 없음"
 
   return {
     uploadFrequency: {
@@ -202,13 +209,32 @@ function mapToSummaryData(vm: AnalysisPageViewModel): SummaryData {
     strengths: vm.strengths.length > 0 ? vm.strengths : ["분석 데이터 부족"],
     improvements: vm.urgentImprovements.length > 0 ? vm.urgentImprovements : ["분석 데이터 부족"],
     evidenceSummary: vm.sampleSizeNote ?? "최근 영상 표본 기준 분석",
+    // analysisConfidence는 "low"/"medium"/"high" enum 값이므로 병목 텍스트로 직접 사용하면 안 됨
     keyBottleneck:
-      vm.analysisConfidence ?? vm.patternSummaryLine ?? "분석 데이터가 부족합니다",
+      vm.patternSummaryLine ?? vm.urgentImprovements[0] ?? "분석 데이터가 부족합니다",
     nextStepLinks: [
       { label: "Channel DNA", description: "반복 성과 패턴을 구조화하여 확인" },
       { label: "Action Plan", description: "실행 우선순위를 정리하여 확인" },
     ],
   }
+}
+
+const TITLE_TO_SECTION_KEY: Record<string, keyof SectionScores> = {
+  "업로드·활동": "channelActivity",
+  "조회·반응": "audienceResponse",
+  "콘텐츠·구조": "contentStructure",
+  "메타·발견성": "seoOptimization",
+  "성장 신호": "growthMomentum",
+}
+
+function mapToSectionScores(vm: AnalysisPageViewModel): SectionScores | undefined {
+  if (vm.diagnosisCards.length === 0) return undefined
+  const out: SectionScores = {}
+  for (const card of vm.diagnosisCards) {
+    const key = TITLE_TO_SECTION_KEY[card.title]
+    if (key != null) out[key] = card.score
+  }
+  return Object.keys(out).length > 0 ? out : undefined
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -236,6 +262,7 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel }: C
 
   const channelData = mapToChannelData(viewModel)
   const score = viewModel.scoreGauge?.score ?? 0
+  const sectionScores = mapToSectionScores(viewModel)
   const kpiData = mapToKpiData(viewModel)
   const trendData = mapToViewTrendData(viewModel.recentVideos)
   const videosData = mapToVideoData(viewModel.recentVideos)
@@ -293,8 +320,8 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel }: C
         <AnalysisHeaderSection channel={channelData} />
 
         {/* B. Score Overview + KPI Cards */}
-        <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
-          <AnalysisScoreOverview score={score} />
+        <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
+          <AnalysisScoreOverview score={score} sectionScores={sectionScores} />
           <AnalysisKpiCards data={kpiData} />
         </div>
 

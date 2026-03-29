@@ -106,6 +106,7 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
   const [selectedChannelId, setSelectedChannelId] = React.useState<string | null>(null)
   const [userEmail, setUserEmail] = React.useState<string | null>(null)
   const [userDisplayName, setUserDisplayName] = React.useState<string | null>(null)
+  const channelsFetchingRef = React.useRef(false)
 
   const activeChannelLabel = React.useMemo(() => {
     if (channels.length === 0) return "채널을 등록하세요"
@@ -128,6 +129,8 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
   )
 
   const loadChannels = React.useCallback(async () => {
+    if (channelsFetchingRef.current) return
+    channelsFetchingRef.current = true
     try {
       const res = await fetch("/api/channels", { credentials: "include" })
       const json: { data?: SidebarChannel[] } = await res.json().catch(() => ({}))
@@ -155,6 +158,8 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
       }
     } catch {
       setChannels([])
+    } finally {
+      channelsFetchingRef.current = false
     }
   }, [])
 
@@ -168,20 +173,6 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
 
   React.useEffect(() => {
     const supabase = createClient()
-
-    // mount 시 즉시 현재 세션 읽어 초기화 (INITIAL_SESSION 지연 보완)
-    void supabase.auth.getSession().then(({ data: { session } }) => {
-      const user = session?.user ?? null
-      setUserEmail(user?.email ?? null)
-      const meta = user?.user_metadata ?? {}
-      setUserDisplayName(
-        (meta.name as string | undefined) ||
-        (meta.full_name as string | undefined) ||
-        (meta.preferred_username as string | undefined) ||
-        user?.email ||
-        null
-      )
-    })
 
     const {
       data: { subscription },
@@ -204,6 +195,7 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
       if (event === "INITIAL_SESSION" || event === "SIGNED_IN") {
         void loadChannels()
       }
+      // TOKEN_REFRESHED: 채널/세션 재요청 불필요
     })
     return () => {
       subscription.unsubscribe()

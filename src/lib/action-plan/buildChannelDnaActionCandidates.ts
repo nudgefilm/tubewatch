@@ -43,7 +43,7 @@ function formatHitEvidence(s: ChannelDnaSignalsForActionPlan): string {
     return `상위 3개 조회 합 비중이 약 ${pct1(s.top3Share)}%로 높게 나타났습니다.`;
   }
   if (s.topPerformerShare != null) {
-    return `표본이 3개 미만이라 상위 1개 조회 비중 약 ${pct1(s.topPerformerShare)}%만 산출되었습니다.`;
+    return `상위 영상 1개가 전체 조회의 약 ${pct1(s.topPerformerShare)}%를 차지하고 있습니다.`;
   }
   return "채널 DNA에서 히트 의존도가 높게 기록되었습니다.";
 }
@@ -126,7 +126,7 @@ export function buildChannelDnaActionCandidates(
       bench.dominantFormat != null ? ` 추정 포맷: ${bench.dominantFormat}.` : "";
     out.push({
       id: "channel-dna-hit-concentration",
-      title: "조회 집중 완화를 위한 포맷·주제 분산 검토",
+      title: "조회 집중 완화를 위한 포맷과 주제 분산 검토",
       whyNeeded: `${formatHitEvidence(bench)} 성과가 일부 콘텐츠에 집중되어 있습니다.${formatTail}`.trim(),
       expectedEffect: CONSERVATIVE_EFFECT,
       difficulty: "medium",
@@ -142,7 +142,7 @@ export function buildChannelDnaActionCandidates(
       bench.dominantFormat != null ? ` 추정 포맷 ${bench.dominantFormat}.` : "";
     out.push({
       id: "channel-dna-spread-repro",
-      title: "표본 내 재현 가능한 포맷·패턴 정리",
+      title: "재현 가능한 포맷과 패턴 정리",
       whyNeeded: `표본 조회 편차가 크게(높음) 관측되었습니다.${formatTail ? ` ${formatTail}` : ""}`.trim(),
       expectedEffect: CONSERVATIVE_EFFECT,
       difficulty: "medium",
@@ -156,7 +156,7 @@ export function buildChannelDnaActionCandidates(
   if (bench.uploadConsistencyLevel === "low") {
     out.push({
       id: "channel-dna-upload-rhythm",
-      title: "발행 리듬·간격 안정화 점검",
+      title: "발행 리듬과 간격 안정화 점검",
       whyNeeded:
         "채널 DNA에서 업로드 일관성이 낮음으로 기록되었습니다. 공개 간격 변동이 큰 편으로 읽힙니다.",
       expectedEffect: CONSERVATIVE_EFFECT,
@@ -178,7 +178,7 @@ export function buildChannelDnaActionCandidates(
       out.push({
         id: `channel-dna-section-${k}`,
         title: `${SECTION_LABELS[k]} 구간 보완 점검`,
-        whyNeeded: `${SECTION_LABELS[k]} 구간 점수 ${Math.round(sections[k])}점입니다. 저장 스냅샷과 /channel-dna가 같은 값을 씁니다.`,
+        whyNeeded: `${SECTION_LABELS[k]} 영역에서 개선이 필요한 신호가 감지되었습니다.`,
         expectedEffect: CONSERVATIVE_EFFECT,
         difficulty: k === "growthMomentum" ? "high" : "medium",
         executionHint:
@@ -194,8 +194,8 @@ export function buildChannelDnaActionCandidates(
     const quoted = bench.topPatternSignals.slice(0, 2).join(" · ");
     out.push({
       id: "channel-dna-strength-extend",
-      title: "베이스에서 반복된 문장 유지·소폭 확장",
-      whyNeeded: `베이스 진단에서 반복된 문장: ${quoted}`,
+      title: "반복 확인된 강점 패턴 유지와 확장",
+      whyNeeded: `반복 확인된 강점 패턴 — ${quoted}`,
       expectedEffect: CONSERVATIVE_EFFECT,
       difficulty: "low",
       executionHint:

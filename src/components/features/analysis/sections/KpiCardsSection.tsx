@@ -70,7 +70,7 @@ function TinyBars({ values, maxValue }: { values: number[]; maxValue: number }) 
       {values.map((v, i) => (
         <div
           key={i}
-          className="w-1.5 rounded-sm bg-foreground/30"
+          className="w-1.5 rounded-sm bg-foreground/25"
           style={{ height: `${(v / maxValue) * 100}%` }}
         />
       ))}
@@ -90,28 +90,30 @@ function formatNumber(num: number): string {
 
 export function AnalysisKpiCards({ data }: AnalysisKpiCardsProps) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
       {/* 1. Upload Frequency */}
       <Card>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <Upload className="size-4 text-muted-foreground" />
               <CardTitle className="text-xs font-medium text-muted-foreground">
                 최근 업로드 빈도
               </CardTitle>
             </div>
-            <Badge variant="outline" className={getStatusBadgeStyle(data.uploadFrequency.status)}>
+            <Badge variant="outline" className={`text-[11px] px-1.5 py-0 ${getStatusBadgeStyle(data.uploadFrequency.status)}`}>
               {data.uploadFrequency.status}
             </Badge>
           </div>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-2">
           <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-bold">{data.uploadFrequency.value}</span>
-            <span className="text-sm text-muted-foreground">회/주</span>
+            <span className="text-2xl font-bold tabular-nums">{data.uploadFrequency.value}</span>
+            <span className="text-xs text-muted-foreground">회/주</span>
           </div>
-          <p className="text-xs text-muted-foreground">{data.uploadFrequency.interpretation}</p>
+          <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+            {data.uploadFrequency.interpretation}
+          </p>
           <MiniProgressBar value={data.uploadFrequency.value} max={5} color="bg-emerald-500" />
         </CardContent>
       </Card>
@@ -120,26 +122,28 @@ export function AnalysisKpiCards({ data }: AnalysisKpiCardsProps) {
       <Card>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <TrendingUp className="size-4 text-muted-foreground" />
               <CardTitle className="text-xs font-medium text-muted-foreground">
                 최근 조회 흐름
               </CardTitle>
             </div>
-            <Badge variant="outline" className={getStatusBadgeStyle(data.viewTrend.trend)}>
+            <Badge variant="outline" className={`text-[11px] px-1.5 py-0 ${getStatusBadgeStyle(data.viewTrend.trend)}`}>
               {data.viewTrend.trend}
             </Badge>
           </div>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-2">
           <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-bold">
+            <span className="text-2xl font-bold tabular-nums">
               {data.viewTrend.value > 0 ? "+" : ""}
               {data.viewTrend.value}
             </span>
-            <span className="text-sm text-muted-foreground">%</span>
+            <span className="text-xs text-muted-foreground">%</span>
           </div>
-          <p className="text-xs text-muted-foreground">{data.viewTrend.interpretation}</p>
+          <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+            {data.viewTrend.interpretation}
+          </p>
           <MiniSparkline trend={data.viewTrend.trend} />
         </CardContent>
       </Card>
@@ -148,25 +152,27 @@ export function AnalysisKpiCards({ data }: AnalysisKpiCardsProps) {
       <Card>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <Layers className="size-4 text-muted-foreground" />
               <CardTitle className="text-xs font-medium text-muted-foreground">
                 콘텐츠 구조 안정성
               </CardTitle>
             </div>
-            <Badge variant="outline" className={getStatusBadgeStyle(data.contentStability.status)}>
+            <Badge variant="outline" className={`text-[11px] px-1.5 py-0 ${getStatusBadgeStyle(data.contentStability.status)}`}>
               {data.contentStability.status}
             </Badge>
           </div>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-2">
           <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-bold">
+            <span className="text-2xl font-bold tabular-nums">
               {((1 - data.contentStability.titleLengthVariance) * 100).toFixed(0)}
             </span>
-            <span className="text-sm text-muted-foreground">%</span>
+            <span className="text-xs text-muted-foreground">%</span>
           </div>
-          <p className="text-xs text-muted-foreground">{data.contentStability.interpretation}</p>
+          <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+            {data.contentStability.interpretation}
+          </p>
           <TinyBars values={[85, 78, 82, 88, 80]} maxValue={100} />
         </CardContent>
       </Card>
@@ -174,46 +180,49 @@ export function AnalysisKpiCards({ data }: AnalysisKpiCardsProps) {
       {/* 4. Baseline Performance */}
       <Card>
         <CardHeader className="pb-2">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <Target className="size-4 text-muted-foreground" />
             <CardTitle className="text-xs font-medium text-muted-foreground">
               기준 성과선
             </CardTitle>
           </div>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-2">
           <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-bold">
+            <span className="text-2xl font-bold tabular-nums">
               {formatNumber(data.baselinePerformance.averageViews)}
             </span>
-            <span className="text-sm text-muted-foreground">평균</span>
+            <span className="text-xs text-muted-foreground">평균</span>
           </div>
-          <p className="text-xs text-muted-foreground">{data.baselinePerformance.interpretation}</p>
-          <div className="h-1.5 w-full rounded-full bg-foreground/20" />
+          <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+            {data.baselinePerformance.interpretation}
+          </p>
         </CardContent>
       </Card>
 
       {/* 5. Auxiliary Baseline */}
       <Card>
         <CardHeader className="pb-2">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <BarChart3 className="size-4 text-muted-foreground" />
             <CardTitle className="text-xs font-medium text-muted-foreground">
               보조 기준선
             </CardTitle>
           </div>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-2">
           <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-bold">
+            <span className="text-2xl font-bold tabular-nums">
               {formatNumber(data.auxiliaryBaseline.medianViews)}
             </span>
-            <span className="text-sm text-muted-foreground">중앙</span>
+            <span className="text-xs text-muted-foreground">중앙</span>
           </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span>상위 20%: {formatNumber(data.auxiliaryBaseline.top20Threshold)}</span>
-          </div>
-          <p className="text-xs text-muted-foreground">{data.auxiliaryBaseline.interpretation}</p>
+          <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+            {data.auxiliaryBaseline.interpretation}
+          </p>
+          <p className="text-[11px] text-muted-foreground/60">
+            상위 20%: {formatNumber(data.auxiliaryBaseline.top20Threshold)}
+          </p>
         </CardContent>
       </Card>
     </div>

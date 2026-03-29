@@ -2,8 +2,17 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
+export type SectionScores = {
+  channelActivity?: number
+  audienceResponse?: number
+  contentStructure?: number
+  seoOptimization?: number
+  growthMomentum?: number
+}
+
 interface AnalysisScoreOverviewProps {
   score: number
+  sectionScores?: SectionScores
 }
 
 function getScoreColor(score: number) {
@@ -24,39 +33,90 @@ function getScoreTrackColor(score: number) {
   return "#f43f5e"
 }
 
-export function AnalysisScoreOverview({ score }: AnalysisScoreOverviewProps) {
+type SectionKey = keyof Required<SectionScores>
+
+/** 섹션별 점수 구간(0=양호/1=보통/2=취약) × 해석 문장 */
+const SECTION_INTERPRETATIONS: Record<SectionKey, [string, string, string]> = {
+  channelActivity: [
+    "업로드 리듬이 안정적으로 유지되고 있는 상태입니다",
+    "업로드 간격이 불규칙하여 채널 운영 리듬이 흔들리고 있는 상태입니다",
+    "업로드 일관성이 낮아 채널 리듬이 무너진 상태입니다",
+  ],
+  audienceResponse: [
+    "시청자 반응이 콘텐츠 방향성과 잘 맞아떨어지고 있는 상태입니다",
+    "시청 반응은 있으나 타깃 적합성이 아직 충분히 구축되지 않은 상태입니다",
+    "조회 반응 지표가 콘텐츠와 맞지 않아 이탈이 발생하고 있는 상태입니다",
+  ],
+  contentStructure: [
+    "성과 포맷이 반복적으로 재현되고 있는 안정적인 구조 상태입니다",
+    "성과 포맷은 보이지만 전개 구조의 재현성이 더 보강이 필요한 상태입니다",
+    "콘텐츠 구조 일관성이 낮아 시청 유지에 취약한 상태입니다",
+  ],
+  seoOptimization: [
+    "키워드 구조와 제목 최적화가 검색 유입에 충분히 기여하고 있는 상태입니다",
+    "검색 유입을 받을 키워드 구조가 아직 충분히 정리되지 않은 상태입니다",
+    "제목과 키워드 설계가 검색 노출을 이끌어내기 어려운 상태입니다",
+  ],
+  growthMomentum: [
+    "조회 성장 흐름이 지속 가능한 구조로 형성되고 있는 상태입니다",
+    "성장 신호는 보이지만 재현 가능한 성장 구조가 아직 굳어지지 않은 상태입니다",
+    "뚜렷한 성장 신호가 감지되지 않고 있는 상태입니다",
+  ],
+}
+
+function tierOf(score: number): 0 | 1 | 2 {
+  if (score >= 80) return 0
+  if (score >= 60) return 1
+  return 2
+}
+
+function deriveInterpretation(overallScore: number, sectionScores?: SectionScores): string {
+  if (sectionScores) {
+    const entries = (Object.entries(sectionScores) as [SectionKey, number | undefined][]).filter(
+      (e): e is [SectionKey, number] => e[1] != null
+    )
+    if (entries.length > 0) {
+      const [weakKey, weakScore] = entries.reduce((a, b) => (b[1] < a[1] ? b : a))
+      return SECTION_INTERPRETATIONS[weakKey][tierOf(weakScore)]
+    }
+  }
+  // fallback: 전체 점수 기준
+  if (overallScore >= 80) return "전반적인 채널 지표가 안정적으로 관리되고 있는 상태입니다"
+  if (overallScore >= 60) return "일부 지표가 기준치 내에 있으나 개선 여지가 있는 상태입니다"
+  return "핵심 지표 다수에서 기준치 미달이 감지된 상태입니다"
+}
+
+export function AnalysisScoreOverview({ score, sectionScores }: AnalysisScoreOverviewProps) {
   const circumference = 2 * Math.PI * 45
   const strokeDashoffset = circumference - (score / 100) * circumference
 
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
+        <CardTitle className="text-xs font-medium text-muted-foreground">
           채널 종합 점수
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col items-center">
+      <CardContent className="flex flex-col items-center pb-5">
         {/* Donut Chart */}
         <div className="relative">
-          <svg width="120" height="120" viewBox="0 0 120 120">
-            {/* Background circle */}
+          <svg width="112" height="112" viewBox="0 0 120 120">
             <circle
               cx="60"
               cy="60"
               r="45"
               fill="none"
               stroke="currentColor"
-              strokeWidth="10"
+              strokeWidth="9"
               className="text-muted"
             />
-            {/* Progress circle */}
             <circle
               cx="60"
               cy="60"
               r="45"
               fill="none"
               stroke={getScoreTrackColor(score)}
-              strokeWidth="10"
+              strokeWidth="9"
               strokeLinecap="round"
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
@@ -65,7 +125,7 @@ export function AnalysisScoreOverview({ score }: AnalysisScoreOverviewProps) {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className={`text-3xl font-bold ${getScoreColor(score)}`}>
+            <span className={`text-3xl font-bold tabular-nums ${getScoreColor(score)}`}>
               {score}
             </span>
             <span className="text-xs text-muted-foreground">/100</span>
@@ -73,9 +133,9 @@ export function AnalysisScoreOverview({ score }: AnalysisScoreOverviewProps) {
         </div>
 
         {/* Score Label */}
-        <div className="mt-3 text-center">
+        <div className="mt-2.5 text-center">
           <span
-            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
               score >= 80
                 ? "bg-emerald-50 text-emerald-700"
                 : score >= 60
@@ -87,7 +147,11 @@ export function AnalysisScoreOverview({ score }: AnalysisScoreOverviewProps) {
           </span>
         </div>
 
-        <p className="mt-3 text-center text-xs text-muted-foreground">
+        <p className="mt-2.5 line-clamp-2 text-center text-xs leading-relaxed text-muted-foreground">
+          {deriveInterpretation(score, sectionScores)}
+        </p>
+
+        <p className="mt-2 text-center text-[11px] text-muted-foreground/50">
           TubeWatch 엔진 분석 기준
         </p>
       </CardContent>

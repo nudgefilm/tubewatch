@@ -1,5 +1,4 @@
 import type { AnalysisPageData } from "@/lib/analysis/getAnalysisPageData";
-import { getMenuExtensionStrategy } from "@/lib/analysis/menuExtensionDataStrategy";
 import {
   deriveAnalysisRunsLoaded,
   deriveExtensionMenuFields,
@@ -20,6 +19,7 @@ import {
   type InternalChannelDnaSummaryVm,
 } from "@/lib/channel-dna/internalChannelDnaSummary";
 import type { StrategicCommentVm } from "@/lib/shared/strategicCommentTypes";
+import { makeDiagnosticLabel } from "@/lib/utils/labelUtils";
 
 /**
  * /channel-dna 확장용 뷰모델.
@@ -58,7 +58,6 @@ export function buildChannelDnaPageViewModel(
   );
   const selectedChannelId = data?.selectedChannel?.id ?? null;
   const yt = pickYoutubeAccessFieldsFromPageData(data);
-  const channelDnaMenuStrategy = getMenuExtensionStrategy("channel_dna");
   const internalChannelDnaSummary = buildInternalChannelDnaSummary(data);
   const strategicComment = buildChannelDnaStrategicComment(internalChannelDnaSummary);
 
@@ -75,10 +74,8 @@ export function buildChannelDnaPageViewModel(
     comparativeMetrics: null,
     patternInsights: null,
     trendSignals: null,
-    extensionNotice: [
-      "Channel DNA는 저장된 채널 스냅샷(analysis_results + feature_snapshot)과 공개 API 지표를 기반으로 성과 구조·패턴을 설명합니다. 외부 시장 확장 슬롯은 별도이며, 연동 시 동일 메뉴에서 추가합니다.",
-      `확장 정책: ${channelDnaMenuStrategy.runSemantics}`,
-    ].join(" "),
+    extensionNotice:
+      "Channel DNA는 저장된 분석 결과와 채널 지표를 기반으로 성과 구조·패턴을 설명합니다. 외부 시장 확장 슬롯은 별도이며, 연동 시 동일 메뉴에서 추가합니다.",
     internalChannelDnaSummary,
     strategicComment,
   };
@@ -94,31 +91,49 @@ function buildChannelDnaStrategicComment(
     ? `${vm.dominantFormat} 중심 채널 구조`
     : "채널 성과 구조 분석";
 
+  // 1문장: 핵심 문제 (가장 약한 신호 기반)
   const summaryParts: string[] = [];
-  if (vm.sectionScoresLine) summaryParts.push(vm.sectionScoresLine + ".");
-  const narrativeFirst = vm.channelDnaNarrative.split(". ")[0];
-  if (narrativeFirst) summaryParts.push(narrativeFirst + ".");
-  if (summaryParts.length === 0) {
-    summaryParts.push("저장된 스냅샷 기반으로 채널 성과 구조를 분석했습니다.");
+  if (vm.weakPatternSignals.length > 0) {
+    summaryParts.push(`${makeDiagnosticLabel(vm.weakPatternSignals[0])} 부분이 현재 가장 약한 축입니다.`);
+  } else if (vm.dominantFormat) {
+    summaryParts.push(`${vm.dominantFormat} 구조로 운영되고 있습니다.`);
+  } else {
+    summaryParts.push("채널 성과 구조를 분석했습니다.");
+  }
+
+  // 2문장: 영향
+  if (vm.breakoutDependencyLevel === "high") {
+    summaryParts.push("히트 영상 의존이 높아 성과의 안정성이 낮을 수 있습니다.");
+  } else if (vm.uploadConsistencyLevel === "low") {
+    summaryParts.push("업로드 주기가 불규칙하면 시청자 유입이 끊어질 수 있습니다.");
+  } else if (vm.topPatternSignals.length > 0) {
+    summaryParts.push(`${makeDiagnosticLabel(vm.topPatternSignals[0])} 강점이 성장의 핵심 레버입니다.`);
+  }
+
+  // 3문장: 방향
+  if (vm.weakPatternSignals.length > 0) {
+    summaryParts.push("약한 축을 집중 점검하면서 강점 패턴을 유지하세요.");
+  } else {
+    summaryParts.push("현재 강점을 일관되게 유지하는 것이 중요합니다.");
   }
 
   const takeaways: string[] = [];
-  if (vm.dominantFormat) takeaways.push(`주요 포맷: ${formatLabel}`);
-  if (vm.topPatternSignals.length > 0) takeaways.push(`반복 강점: ${vm.topPatternSignals[0]}`);
-  if (vm.weakPatternSignals.length > 0) takeaways.push(`약한 축: ${vm.weakPatternSignals[0]}`);
+  if (vm.dominantFormat) takeaways.push(`주요 포맷 — ${formatLabel}`);
+  if (vm.topPatternSignals.length > 0) takeaways.push(`반복 강점 — ${makeDiagnosticLabel(vm.topPatternSignals[0])}`);
+  if (vm.weakPatternSignals.length > 0) takeaways.push(`약한 축 — ${makeDiagnosticLabel(vm.weakPatternSignals[0])}`);
 
   const caution =
     vm.topPatternSignals.length === 0 && vm.weakPatternSignals.length === 0
-      ? "분석 스냅샷에 충분한 패턴 신호가 없습니다. 분석을 다시 실행하면 더 정교한 진단이 가능합니다."
+      ? "분석을 다시 실행하면 더 정교한 진단이 가능합니다."
       : null;
 
   return {
     headline: headlineBase,
-    summary: summaryParts.slice(0, 2).join(" "),
+    summary: summaryParts.slice(0, 3).join(" "),
     keyTakeaways: takeaways.slice(0, 3),
     priorityAction:
       vm.weakPatternSignals.length > 0
-        ? `약한 축 집중 점검: ${vm.weakPatternSignals[0]}`
+        ? `${makeDiagnosticLabel(vm.weakPatternSignals[0])} 집중 점검`
         : null,
     caution,
   };
