@@ -426,6 +426,23 @@ export async function getAnalysisPageData(
   const analysisRuns: AnalysisRunRecord[] | null =
     runsRaw === null ? null : [...runsRaw];
 
+  // E2E 진단 로그 — /analysis 페이지 로드 시 데이터 상태
+  {
+    const snap = latestResult?.feature_snapshot;
+    const snapVideosLen =
+      snap && typeof snap === "object" && !Array.isArray(snap) && Array.isArray((snap as Record<string, unknown>).videos)
+        ? ((snap as Record<string, unknown>).videos as unknown[]).length
+        : snap == null ? -1 : -2;
+    const snapHasMetrics =
+      snap && typeof snap === "object" && !Array.isArray(snap)
+        ? (snap as Record<string, unknown>).metrics != null
+        : false;
+    console.log("[getAnalysisPageData] channelId param:", channelId ?? "(none)", "→ selectedChannel.id:", cid);
+    console.log("[getAnalysisPageData] latestResult.id:", latestResult?.id ?? null, "created_at:", latestResult?.created_at ?? null);
+    console.log("[getAnalysisPageData] feature_snapshot: videos:", snapVideosLen, "hasMetrics:", snapHasMetrics);
+    console.log("[getAnalysisPageData] recentAnalysisResults count:", recentAnalysisResults.length, "runs:", analysisRuns?.length ?? null);
+  }
+
   return {
     userId,
     channels,

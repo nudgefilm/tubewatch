@@ -587,9 +587,12 @@ export function buildAnalysisPageViewModel(
 
   // [pipe/4] normalize 직후 영상 배열 개수
   console.log(`[Analysis/pipe-4/normalize] version:${normalized.version} videos:${normalized.videos.length} hasMetrics:${normalized.metrics != null}`);
+  // isLegacySnapshot 판정: videos 없고 metrics 있을 때.
+  // 주의: YouTube API가 0개 반환했을 때도 이 조건이 true가 됨 (false positive 가능성 있음)
   const isLegacySnapshot = normalized.videos.length === 0 && normalized.metrics != null;
+  console.log(`[Analysis/pipe-4/normalize] isLegacySnapshot:${isLegacySnapshot} | resultId:${row.id} | created_at:${(row as Record<string,unknown>).created_at ?? "?"}`);
   if (isLegacySnapshot) {
-    console.log(`[ANALYSIS LEGACY SNAPSHOT DETECTED] channelId: ${ch.id}`);
+    console.warn(`[ANALYSIS LEGACY SNAPSHOT DETECTED] channelId:${ch.id} resultId:${row.id} — videos=0, metrics present. 재분석 CTA 표시됨`);
   }
 
   let rawVideos = normalized.videos.map(snapshotVideoToRow);

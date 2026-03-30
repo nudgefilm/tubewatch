@@ -268,27 +268,39 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel }: C
   const [requestError, setRequestError] = useState<string | null>(null)
 
   async function handleReanalyze() {
-    if (!viewModel?.selectedChannelId) return
+    if (!viewModel?.selectedChannelId) {
+      console.warn("[AnalysisPage/reanalyze] ABORTED: selectedChannelId is null")
+      return
+    }
     setIsRequesting(true)
     setRequestError(null)
+
+    const payload = { channelId: viewModel.selectedChannelId }
+    console.log("[AnalysisPage/reanalyze] payload:", payload)
+
     try {
       const res = await fetch("/api/analysis/request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ user_channel_id: viewModel.selectedChannelId }),
+        body: JSON.stringify(payload),
       })
-      const result = await res.json()
+      const result = await res.json().catch(() => ({})) as { ok?: boolean; code?: string; error?: string }
+      console.log("[AnalysisPage/reanalyze] response status:", res.status, "body:", result)
+
       if (result.code === "COOLDOWN_ACTIVE") {
         setRequestError(result.error ?? "분석 쿨다운 중입니다. 잠시 후 다시 시도하세요.")
         return
       }
       if (!result.ok) {
+        console.error("[AnalysisPage/reanalyze] FAILED:", result.error)
         setRequestError(result.error ?? "분석 요청에 실패했습니다.")
         return
       }
+      console.log("[AnalysisPage/reanalyze] SUCCESS → navigate to /analysis?channel=", viewModel.selectedChannelId)
       router.push(`/analysis?channel=${viewModel.selectedChannelId}`)
-    } catch {
+    } catch (err) {
+      console.error("[AnalysisPage/reanalyze] fetch exception:", err)
       setRequestError("네트워크 오류가 발생했습니다. 다시 시도해 주세요.")
     } finally {
       setIsRequesting(false)

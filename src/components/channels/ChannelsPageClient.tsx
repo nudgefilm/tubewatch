@@ -49,12 +49,16 @@ export default function ChannelsPageClient(): JSX.Element {
       const json: { ok?: boolean; data?: ChannelRow[]; error?: string } =
         await res.json().catch(() => ({}));
       if (!res.ok) {
+        console.error("[Channels/load] /api/channels GET failed:", res.status, json.error);
         setListError(json.error || "목록을 불러오지 못했습니다.");
         setChannels([]);
         return;
       }
-      setChannels(Array.isArray(json.data) ? json.data : []);
-    } catch {
+      const loaded = Array.isArray(json.data) ? json.data : [];
+      console.log("[Channels/load] loaded channels:", loaded.length, loaded.map(c => ({ id: c.id, title: c.channel_title })));
+      setChannels(loaded);
+    } catch (e) {
+      console.error("[Channels/load] fetch exception:", e);
       setListError("목록을 불러오지 못했습니다.");
       setChannels([]);
     } finally {
@@ -113,6 +117,9 @@ export default function ChannelsPageClient(): JSX.Element {
   const selectedChannel =
     channels.find((ch) => ch.id === selectedChannelId) ?? null;
 
+  // E2E 진단 로그 — 선택 상태 추적
+  console.log("[Channels/state] selectedChannelId:", selectedChannelId, "→ selectedChannel:", selectedChannel ? { id: selectedChannel.id, title: selectedChannel.channel_title } : null, "| channels.length:", channels.length);
+
   return (
     <div className="mx-auto max-w-3xl space-y-8 px-6 py-10">
       <div>
@@ -128,11 +135,16 @@ export default function ChannelsPageClient(): JSX.Element {
         onRegistered={async (newChannelId) => {
           // 목록을 먼저 갱신한 뒤 선택 상태를 설정해야 cleanup effect가 신규 채널을 찾을 수 있다.
           // loadChannels 전에 setSelectedChannelId를 하면 채널 목록에 없다고 판단해 null로 초기화되는 race condition 발생.
+          console.log("[Channels/register] onRegistered called. newChannelId:", newChannelId ?? "(none)");
           broadcastChannelsUpdated();
           await loadChannels();
+          console.log("[Channels/register] loadChannels done. channels.length after:", channels.length);
           if (newChannelId) {
             writeSelectedChannelIdToStorage(newChannelId);
             setSelectedChannelId(newChannelId);
+            console.log("[Channels/register] selectedChannelId set to:", newChannelId);
+          } else {
+            console.warn("[Channels/register] newChannelId is null/undefined — selected channel NOT set");
           }
         }}
       />

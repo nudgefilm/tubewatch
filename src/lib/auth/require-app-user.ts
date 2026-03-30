@@ -32,9 +32,17 @@ export async function redirectToLandingAuthUnlessSignedIn(
     error,
   } = await supabase.auth.getUser();
 
+  console.log("[Auth/require] getUser →", {
+    userId: user?.id ?? null,
+    error: error?.message ?? null,
+    postLoginPath,
+  });
+
   if (!error && user) {
     return user.id;
   }
+
+  console.warn("[Auth/require] REDIRECT to login — no valid session. postLoginPath:", postLoginPath);
 
   const safeNext = getSafeOAuthReturnPath(postLoginPath);
   const qs = new URLSearchParams({

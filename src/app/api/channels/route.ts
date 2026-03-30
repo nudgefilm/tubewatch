@@ -185,9 +185,9 @@ export async function POST(request: Request) {
     .select()
     .single();
 
-  console.log("[Channels API] insert result:", inserted ? { id: inserted.id } : null);
+  console.log("[Channels API] insert result:", inserted ? { id: inserted.id, user_id: inserted.user_id, channel_id: inserted.channel_id } : null);
   if (insErr) {
-    console.error("[Channels API] error: insert failed:", JSON.stringify(insErr));
+    console.error("[Channels API] error: insert failed code:", insErr.code, "msg:", insErr.message, "details:", insErr.details);
   }
 
   if (insErr) {
