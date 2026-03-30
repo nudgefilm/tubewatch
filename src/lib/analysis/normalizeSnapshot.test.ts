@@ -508,6 +508,124 @@ describe("normalizeFeatureSnapshot — 버전 통합", () => {
   })
 })
 
+// ─── JSON 인코딩 문자열 방어 처리 ─────────────────────────────────────────────
+
+describe("normalizeFeatureSnapshot — JSON 인코딩 문자열 입력", () => {
+  it("JSON 인코딩 문자열로 전달된 snapshot → 파싱 후 정상 처리", () => {
+    const snap = { videos: [{ title: "영상 A", viewCount: 1000 }], metrics: { avgViewCount: 1000 } }
+    const jsonString = JSON.stringify(snap)
+    const result = normalizeFeatureSnapshot(jsonString)
+    expect(result.videos).toHaveLength(1)
+    expect(result.videos[0].title).toBe("영상 A")
+    expect(result.videos[0].viewCount).toBe(1000)
+    expect(result.metrics).toEqual({ avgViewCount: 1000 })
+  })
+
+  it("유효하지 않은 JSON 문자열 → crash 없이 빈 배열 반환", () => {
+    const result = normalizeFeatureSnapshot("not-valid-json{")
+    expect(Array.isArray(result.videos)).toBe(true)
+    expect(result.videos).toHaveLength(0)
+  })
+
+  it("빈 문자열 → crash 없이 빈 배열 반환", () => {
+    const result = normalizeFeatureSnapshot("")
+    expect(Array.isArray(result.videos)).toBe(true)
+    expect(result.videos).toHaveLength(0)
+  })
+})
+
+// ─── 부분 null viewCount 허용 케이스 ──────────────────────────────────────────
+
+describe("normalizeFeatureSnapshot — 부분 null viewCount", () => {
+  it("일부 videos만 viewCount 있어도 전체 배열 보존", () => {
+    const snap = {
+      videos: [
+        { title: "A", viewCount: 5000 },
+        { title: "B", viewCount: null },
+        { title: "C" },  // viewCount 아예 없음
+        { title: "D", viewCount: 3000 },
+      ],
+    }
+    const result = normalizeFeatureSnapshot(snap)
+    // viewCount 유무와 무관하게 title 있는 항목은 모두 보존
+    expect(result.videos).toHaveLength(4)
+    expect(result.videos[0].viewCount).toBe(5000)
+    expect(result.videos[1].viewCount).toBeNull()
+    expect(result.videos[2].viewCount).toBeNull()
+    expect(result.videos[3].viewCount).toBe(3000)
+  })
+
+  it("모든 videos의 viewCount가 null → 배열은 비어있지 않음", () => {
+    const snap = {
+      videos: [
+        { title: "A", viewCount: null },
+        { title: "B" },
+        { title: "C", view_count: null },
+      ],
+    }
+    const result = normalizeFeatureSnapshot(snap)
+    expect(result.videos).toHaveLength(3)
+    for (const v of result.videos) {
+      expect(v.viewCount).toBeNull()
+    }
+  })
+
+  it("snake_case와 camelCase viewCount 혼재 → 모두 정상 처리", () => {
+    const snap = {
+      videos: [
+        { title: "camel", viewCount: 1000 },
+        { title: "snake", view_count: 2000 },
+        { title: "both", viewCount: 3000, view_count: 9999 },  // camelCase 우선
+      ],
+    }
+    const result = normalizeFeatureSnapshot(snap)
+    expect(result.videos).toHaveLength(3)
+    expect(result.videos[0].viewCount).toBe(1000)
+    expect(result.videos[1].viewCount).toBe(2000)
+    expect(result.videos[2].viewCount).toBe(3000)  // camelCase 우선
+  })
+})
+
+// ─── metrics 있고 videos 없는 v0 스냅샷 (레거시 패턴) ─────────────────────────
+
+describe("normalizeFeatureSnapshot — metrics 있고 videos 없는 구버전 snapshot", () => {
+  it("metrics만 있고 videos 없음 → version v0, videos 빈 배열, metrics 정상 파싱", () => {
+    const snap = {
+      metrics: { avgViewCount: 1500, avgLikeRatio: 0.05 },
+      patterns: ["low_upload_frequency"],
+    }
+    const result = normalizeFeatureSnapshot(snap)
+    expect(result.version).toBe("v0")  // videos 없으면 v0
+    expect(result.videos).toEqual([])
+    expect(result.metrics?.avgViewCount).toBe(1500)
+    expect(result.patterns).toContain("low_upload_frequency")
+  })
+
+  it("videos 빈 배열 + sample_videos 있음 → sample_videos fallback 사용 (empty array도 실패로 간주)", () => {
+    const snap = {
+      videos: [],  // 명시적 빈 배열 — 실패로 간주
+      sample_videos: [{ title: "fallback 영상", viewCount: 800 }],
+      metrics: { avgViewCount: 800 },
+    }
+    const result = normalizeFeatureSnapshot(snap)
+    // 빈 배열은 실패로 간주 → sample_videos로 fallback
+    expect(result.videos).toHaveLength(1)
+    expect(result.videos[0].title).toBe("fallback 영상")
+    expect(result.videos[0].viewCount).toBe(800)
+  })
+
+  it("videos 키 자체가 없을 때 sample_videos로 fallback", () => {
+    const snap = {
+      sample_videos: [{ title: "sample 영상", view_count: 500 }],
+      metrics: { avgViewCount: 500 },
+    }
+    const result = normalizeFeatureSnapshot(snap)
+    expect(result.videos).toHaveLength(1)
+    expect(result.videos[0].title).toBe("sample 영상")
+    expect(result.videos[0].viewCount).toBe(500)
+  })
+})
+
 // ─── 반환 타입 계약 (contract) ─────────────────────────────────────────────────
 
 describe("normalizeFeatureSnapshot — 반환 타입 계약", () => {

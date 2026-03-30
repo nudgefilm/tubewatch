@@ -1,5 +1,7 @@
 "use client"
 
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { AnalysisHeaderSection } from "./sections/HeaderSection"
 import { AnalysisScoreOverview, type SectionScores } from "./sections/ScoreOverviewSection"
 import { AnalysisKpiCards } from "./sections/KpiCardsSection"
@@ -156,8 +158,8 @@ function mapToKpiData(vm: AnalysisPageViewModel): KpiData {
 function mapToViewTrendData(
   videos: AnalysisVideoRow[]
 ): { index: number; views: number; date: string }[] {
+  // viewCount null인 영상도 0으로 처리해 차트에 포함 (최소 렌더 조건 완화)
   return videos
-    .filter((v) => v.viewCount != null)
     .slice(0, 10)
     .reverse()
     .map((v, i) => ({
@@ -261,6 +263,38 @@ interface ChannelAnalysisPageProps {
 }
 
 export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel }: ChannelAnalysisPageProps) {
+  const router = useRouter()
+  const [isRequesting, setIsRequesting] = useState(false)
+  const [requestError, setRequestError] = useState<string | null>(null)
+
+  async function handleReanalyze() {
+    if (!viewModel?.selectedChannelId) return
+    setIsRequesting(true)
+    setRequestError(null)
+    try {
+      const res = await fetch("/api/analysis/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ user_channel_id: viewModel.selectedChannelId }),
+      })
+      const result = await res.json()
+      if (result.code === "COOLDOWN_ACTIVE") {
+        setRequestError(result.error ?? "분석 쿨다운 중입니다. 잠시 후 다시 시도하세요.")
+        return
+      }
+      if (!result.ok) {
+        setRequestError(result.error ?? "분석 요청에 실패했습니다.")
+        return
+      }
+      router.push(`/analysis?channel=${viewModel.selectedChannelId}`)
+    } catch {
+      setRequestError("네트워크 오류가 발생했습니다. 다시 시도해 주세요.")
+    } finally {
+      setIsRequesting(false)
+    }
+  }
+
   // No viewModel — no channel selected or no data yet
   if (!viewModel) {
     return (
@@ -336,6 +370,28 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel }: C
           </div>
 
           <AnalysisHeaderSection channel={channelData} />
+
+          {/* 구버전 스냅샷 감지 — 재분석 유도 UI */}
+          {viewModel.isLegacySnapshot && (
+            <div className="rounded-lg border border-amber-300 bg-amber-50 px-5 py-4 space-y-3 dark:border-amber-700 dark:bg-amber-950/40">
+              <div>
+                <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">이 분석은 최신 데이터가 아닙니다</p>
+                <p className="mt-1 text-sm text-amber-800 dark:text-amber-300">
+                  이 채널은 이전 방식으로 생성된 분석 결과입니다. 최신 영상 데이터를 반영하려면 재분석이 필요합니다.
+                </p>
+              </div>
+              {requestError && (
+                <p className="text-xs text-red-600 dark:text-red-400">{requestError}</p>
+              )}
+              <button
+                onClick={handleReanalyze}
+                disabled={isRequesting}
+                className="inline-flex items-center justify-center rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-amber-700 disabled:opacity-60 transition-colors"
+              >
+                {isRequesting ? "분석 중…" : "지금 다시 분석하기"}
+              </button>
+            </div>
+          )}
 
           {/* 분석 결과 없음 안내 — 빈 화면 대신 최소 상태로 계속 렌더 */}
           {!viewModel.hasAnalysisResult && (

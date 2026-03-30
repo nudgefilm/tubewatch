@@ -114,6 +114,8 @@ export type AnalysisPageViewModel = {
   aiInsightFields: AnalysisReportAiFieldsVm | null;
   /** 페이지 하단 전략 코멘트 카드 */
   strategicComment: StrategicCommentVm | null;
+  /** feature_snapshot에 videos 배열이 없는 구버전 스냅샷 여부 */
+  isLegacySnapshot: boolean;
 } & MarketExtensionSliceVm;
 
 const SECTION_ORDER: {
@@ -400,7 +402,8 @@ function buildPerformanceSplit(videos: AnalysisVideoRow[]): {
   const scored = videos.filter(
     (v) => v.viewCount != null && Number.isFinite(v.viewCount)
   );
-  if (scored.length < 4) {
+  // 최소 2개 이상이어야 상위/하위 분리가 의미 있음 (기존 4→2로 완화)
+  if (scored.length < 2) {
     return { top: [], weak: [], summary: null };
   }
   const sorted = [...scored].sort(
@@ -497,6 +500,7 @@ export function buildAnalysisPageViewModel(
     reportCompare: null,
     aiInsightFields: null,
     strategicComment: null,
+    isLegacySnapshot: false,
   };
 
   if (!data || data.channels.length === 0 || !data.selectedChannel) {
@@ -562,8 +566,32 @@ export function buildAnalysisPageViewModel(
   const row = enrichRowScores(data.latestResult);
   const snapshot = row.feature_snapshot;
 
+  // [pipe/3] 저장 후 읽기 직후 — DB에서 읽어온 snapshot 구조 확인
+  {
+    const snapType = typeof snapshot;
+    const snapVideosLen =
+      snapshot && typeof snapshot === "object" && !Array.isArray(snapshot)
+        ? Array.isArray((snapshot as Record<string, unknown>).videos)
+          ? ((snapshot as Record<string, unknown>).videos as unknown[]).length
+          : -1
+        : -1;
+    const snapMetricsPresent =
+      snapshot && typeof snapshot === "object" && !Array.isArray(snapshot)
+        ? (snapshot as Record<string, unknown>).metrics != null
+        : false;
+    console.log(`[Analysis/pipe-3/db-read] snapshot type:${snapType} videos:${snapVideosLen} hasMetrics:${snapMetricsPresent}`);
+  }
+
   // 공통 정규화 레이어: DB raw snapshot → NormalizedSnapshot (단일 진입점)
   const normalized = normalizeFeatureSnapshot(snapshot);
+
+  // [pipe/4] normalize 직후 영상 배열 개수
+  console.log(`[Analysis/pipe-4/normalize] version:${normalized.version} videos:${normalized.videos.length} hasMetrics:${normalized.metrics != null}`);
+  const isLegacySnapshot = normalized.videos.length === 0 && normalized.metrics != null;
+  if (isLegacySnapshot) {
+    console.log(`[ANALYSIS LEGACY SNAPSHOT DETECTED] channelId: ${ch.id}`);
+  }
+
   let rawVideos = normalized.videos.map(snapshotVideoToRow);
   const sampleAvgForHeader = summarizeSampleAvgViews(rawVideos);
   const channelVm = {
@@ -702,6 +730,9 @@ export function buildAnalysisPageViewModel(
     limitNotice,
   });
 
+  // [pipe/5] ViewModel 생성 직후 — 최종 영상 배열 개수
+  console.log(`[Analysis/pipe-5/vm] recentVideos:${rawVideos.slice(0, 12).length} topVideos:${top.length} weakVideos:${weak.length}`);
+
   return {
     ...ext,
     ...deriveBaseAnalysisMenuFields(data),
@@ -734,6 +765,7 @@ export function buildAnalysisPageViewModel(
     reportCompare,
     aiInsightFields,
     strategicComment,
+    isLegacySnapshot,
   };
 }
 

@@ -153,6 +153,12 @@ export async function POST(request: Request) {
     );
   }
 
+  // [pipe/1] 원본 수집 직후 영상 개수
+  console.log(`[Analysis/pipe-1/collect] youtubeVideos: ${youtubeVideos.length}`);
+  if (youtubeVideos.length === 0) {
+    console.warn("[Analysis/pipe-1/collect] WARNING: YouTube API returned 0 videos — featureSnapshot.videos will be empty");
+  }
+
   // 분석 파이프라인
   const normalizedDataset = normalizeVideoMetrics({
     channel: {
@@ -214,18 +220,27 @@ export async function POST(request: Request) {
 
   const now = new Date().toISOString();
 
+  const featureSnapshotVideos = youtubeVideos.map((v) => ({
+    title: v.title,
+    publishedAt: v.published_at ?? null,
+    viewCount: v.view_count ?? null,
+    thumbnail: v.thumbnail_url ?? null,
+    duration: v.duration ?? null,
+  }));
+
+  // [pipe/2] 저장 직전 영상 배열 확인
+  console.log(`[Analysis/pipe-2/snapshot] featureSnapshot.videos: ${featureSnapshotVideos.length}, metrics keys: ${Object.keys(channelMetrics).length}`);
+  if (featureSnapshotVideos.length > 0) {
+    const sample = featureSnapshotVideos[0];
+    console.log(`[Analysis/pipe-2/snapshot] sample[0]: title="${sample.title}" viewCount=${sample.viewCount} publishedAt=${sample.publishedAt}`);
+  }
+
   const featureSnapshot = {
     collectedVideoCount: normalizedDataset.collectedVideoCount,
     sampleVideoCount: youtubeVideos.length,
     metrics: channelMetrics,
     patterns: channelPatterns.flags,
-    videos: youtubeVideos.map((v) => ({
-      title: v.title,
-      publishedAt: v.published_at ?? null,
-      viewCount: v.view_count ?? null,
-      thumbnail: v.thumbnail_url ?? null,
-      duration: v.duration ?? null,
-    })),
+    videos: featureSnapshotVideos,
   };
 
   // analysis_jobs 선삽입 (FK 제약 충족)

@@ -136,15 +136,20 @@ function parseThumbnailUrl(r: Record<string, unknown>): string | null {
 
 /**
  * feature_snapshot의 videos 배열 파싱.
- * `videos` 키 없으면 `sample_videos` 폴백.
+ * `videos` 키 없거나 빈 배열이면 `sample_videos` 폴백 (empty array도 실패로 간주).
  * 각 항목은 null-safe 처리 적용.
  */
 function parseSnapshotVideos(obj: Record<string, unknown>): NormalizedSnapshotVideo[] {
-  const arr = Array.isArray(obj.videos)
-    ? obj.videos
-    : Array.isArray(obj.sample_videos)
-      ? obj.sample_videos
-      : []
+  const candidateVideos = Array.isArray(obj.videos) ? (obj.videos as unknown[]) : null
+  const candidateSampleVideos = Array.isArray(obj.sample_videos) ? (obj.sample_videos as unknown[]) : null
+
+  // 빈 배열도 실패로 간주 → sample_videos fallback 적용
+  const arr =
+    candidateVideos != null && candidateVideos.length > 0
+      ? candidateVideos
+      : candidateSampleVideos != null
+        ? candidateSampleVideos
+        : []
 
   const result: NormalizedSnapshotVideo[] = []
   for (const item of arr) {
@@ -239,10 +244,23 @@ function parseInterpretationMode(obj: Record<string, unknown>): InterpretationMo
  * - interpretationMode: 항상 유효한 값 (기본 "early_stage_signal_based")
  * - durationLabel: 항상 표시 가능한 문자열 ("—" 포함)
  * - thumbnailUrl: string | null (빈 문자열 없음)
+ *
+ * 방어 처리:
+ * - JSON 인코딩 문자열로 넘어온 경우 먼저 파싱 시도 (일부 DB 설정에서 JSONB가 문자열로 반환될 수 있음)
  */
 export function normalizeFeatureSnapshot(raw: unknown): NormalizedSnapshot {
-  const version = detectSnapshotVersion(raw)
-  if (!raw || typeof raw !== "object") {
+  // 방어: JSON 인코딩 문자열이면 먼저 파싱 시도
+  let coerced: unknown = raw
+  if (typeof raw === "string" && raw.trim().length > 0) {
+    try {
+      coerced = JSON.parse(raw)
+    } catch {
+      // 파싱 실패 → 원본 string 유지 (아래에서 v0 처리됨)
+    }
+  }
+
+  const version = detectSnapshotVersion(coerced)
+  if (!coerced || typeof coerced !== "object") {
     return {
       version,
       videos: [],
@@ -251,7 +269,7 @@ export function normalizeFeatureSnapshot(raw: unknown): NormalizedSnapshot {
       interpretationMode: "early_stage_signal_based",
     }
   }
-  const obj = raw as Record<string, unknown>
+  const obj = coerced as Record<string, unknown>
   return {
     version,
     videos: parseSnapshotVideos(obj),
