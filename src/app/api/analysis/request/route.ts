@@ -177,61 +177,86 @@ export async function POST(request: Request) {
     console.warn("[Analysis/pipe-1/collect] WARNING: YouTube API returned 0 videos — featureSnapshot.videos will be empty");
   }
 
-  // 분석 파이프라인
-  const normalizedDataset = normalizeVideoMetrics({
-    channel: {
-      youtube_channel_id: youtubeChannelId,
-      title: (channelRow.channel_title as string | null) ?? "",
-      description: "",
-      published_at: null,
-      subscriber_count: (channelRow.subscriber_count as number | null) ?? null,
-      video_count: (channelRow.video_count as number | null) ?? null,
-      view_count: null,
-    },
-    videos: youtubeVideos.map((v) => ({
-      video_id: v.video_id,
-      title: v.title,
-      description: v.description,
-      published_at: v.published_at,
-      thumbnail: v.thumbnail_url,
-      view_count: v.view_count,
-      like_count: v.like_count,
-      comment_count: v.comment_count,
-      duration: v.duration,
-      tags: v.tags,
-      category_id: v.category_id,
-    })),
-  });
+  // 분석 파이프라인 — try/catch 없으면 unhandled throw → Next.js 500 (HTML) 반환
+  let normalizedDataset: ReturnType<typeof normalizeVideoMetrics>;
+  let featureMap: ReturnType<typeof buildChannelFeatures>;
+  let scoreResult: ReturnType<typeof featureScoring>;
+  let channelMetrics: ReturnType<typeof computeChannelMetrics>;
+  let channelPatterns: ReturnType<typeof detectPatterns>;
+  let analysisContext: ReturnType<typeof buildAnalysisContext>;
 
-  const featureMap = buildChannelFeatures(normalizedDataset);
-  const scoreResult = featureScoring(featureMap);
-  const channelMetrics = computeChannelMetrics(normalizedDataset);
-  const channelPatterns = detectPatterns(channelMetrics, featureMap);
-  const analysisContext = buildAnalysisContext(
-    channelMetrics,
-    channelPatterns,
-    scoreResult,
-    {
-      subscriberCount:
-        (channelRow.subscriber_count as number | null) ?? undefined,
-      sampleVideoCount: youtubeVideos.length,
-      collectedVideoCount: normalizedDataset.collectedVideoCount,
-    }
-  );
+  try {
+    normalizedDataset = normalizeVideoMetrics({
+      channel: {
+        youtube_channel_id: youtubeChannelId,
+        title: (channelRow.channel_title as string | null) ?? "",
+        description: "",
+        published_at: null,
+        subscriber_count: (channelRow.subscriber_count as number | null) ?? null,
+        video_count: (channelRow.video_count as number | null) ?? null,
+        view_count: null,
+      },
+      videos: youtubeVideos.map((v) => ({
+        video_id: v.video_id,
+        title: v.title,
+        description: v.description,
+        published_at: v.published_at,
+        thumbnail: v.thumbnail_url,
+        view_count: v.view_count,
+        like_count: v.like_count,
+        comment_count: v.comment_count,
+        duration: v.duration,
+        tags: v.tags,
+        category_id: v.category_id,
+      })),
+    });
+    featureMap = buildChannelFeatures(normalizedDataset);
+    scoreResult = featureScoring(featureMap);
+    channelMetrics = computeChannelMetrics(normalizedDataset);
+    channelPatterns = detectPatterns(channelMetrics, featureMap);
+    analysisContext = buildAnalysisContext(
+      channelMetrics,
+      channelPatterns,
+      scoreResult,
+      {
+        subscriberCount:
+          (channelRow.subscriber_count as number | null) ?? undefined,
+        sampleVideoCount: youtubeVideos.length,
+        collectedVideoCount: normalizedDataset.collectedVideoCount,
+      }
+    );
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("[Analysis Start API] PIPELINE ERROR (unhandled 500 방지):", msg);
+    return NextResponse.json(
+      { ok: false, error: "분석 파이프라인 오류가 발생했습니다. 잠시 후 다시 시도하세요." },
+      { status: 500 }
+    );
+  }
 
-  // Gemini AI 분석
-  const gemini = await analyzeChannelWithGemini({
-    channelTitle:
-      (channelRow.channel_title as string | null) ?? "Untitled Channel",
-    subscriberCount: (channelRow.subscriber_count as number | null) ?? null,
-    videos: toChannelVideoSamples(youtubeVideos),
-    analysisContext,
-  });
+  // Gemini AI 분석 — analyzeChannelWithGemini 내부의 throw(GEMINI_API_KEY 누락, JSON.parse 실패 등)도 잡음
+  let gemini: Awaited<ReturnType<typeof analyzeChannelWithGemini>>;
+  try {
+    gemini = await analyzeChannelWithGemini({
+      channelTitle:
+        (channelRow.channel_title as string | null) ?? "Untitled Channel",
+      subscriberCount: (channelRow.subscriber_count as number | null) ?? null,
+      videos: toChannelVideoSamples(youtubeVideos),
+      analysisContext,
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("[Analysis Start API] GEMINI THROW (unhandled 500 방지):", msg);
+    return NextResponse.json(
+      { ok: false, error: `AI 분석 호출 중 예외 발생: ${msg}` },
+      { status: 502 }
+    );
+  }
 
   if (!gemini.ok) {
     console.error("[Analysis Start API] error: Gemini failed:", gemini.error);
     return NextResponse.json(
-      { ok: false, error: "AI 분석에 실패했습니다. 잠시 후 다시 시도하세요." },
+      { ok: false, error: `AI 분석에 실패했습니다: ${gemini.error}` },
       { status: 502 }
     );
   }

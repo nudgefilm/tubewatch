@@ -289,7 +289,9 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel }: C
       console.log("[AnalysisPage/reanalyze] response status:", res.status, "body:", result)
 
       if (result.code === "COOLDOWN_ACTIVE") {
-        setRequestError(result.error ?? "분석 쿨다운 중입니다. 잠시 후 다시 시도하세요.")
+        // 쿨다운 중 → 이미 최신 분석 결과가 있으므로 해당 채널 분석 페이지로 이동 (에러 메시지로 막지 않음)
+        console.log("[AnalysisPage/reanalyze] cooldown active, navigating to existing result:", viewModel.selectedChannelId)
+        router.push(`/analysis?channel=${viewModel.selectedChannelId}`)
         return
       }
       if (!result.ok) {

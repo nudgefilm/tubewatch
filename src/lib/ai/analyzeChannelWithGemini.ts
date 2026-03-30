@@ -449,7 +449,21 @@ async function callGemini(
   });
 
   const rawBody = await response.text();
-  const parsedBody = rawBody ? (JSON.parse(rawBody) as unknown) : null;
+
+  // JSON.parse 실패 방어 — Gemini가 HTML/plain-text 오류 페이지를 반환하면 SyntaxError throw 발생.
+  // try/catch 없이 throw되면 callGemini → analyzeChannelWithGemini → route.ts 순으로 전파되어 unhandled 500 발생.
+  let parsedBody: unknown = null;
+  try {
+    parsedBody = rawBody ? (JSON.parse(rawBody) as unknown) : null;
+  } catch (parseErr) {
+    console.error("[Gemini] response body JSON.parse failed. status:", response.status, "body(first 200):", rawBody.slice(0, 200), "parseErr:", parseErr instanceof Error ? parseErr.message : parseErr);
+    return {
+      ok: false as const,
+      rawText: "",
+      rawBody,
+      error: `Gemini 응답 파싱 실패 (HTTP ${response.status}): ${rawBody.slice(0, 120)}`,
+    };
+  }
 
   if (!response.ok) {
     let message = "Gemini API 오류";
