@@ -125,14 +125,15 @@ export default function ChannelsPageClient(): JSX.Element {
 
       <RegisterChannelForm
         currentCount={channels.length}
-        onRegistered={(newChannelId) => {
-          // 등록 직후 새 채널 자동 선택
+        onRegistered={async (newChannelId) => {
+          // 목록을 먼저 갱신한 뒤 선택 상태를 설정해야 cleanup effect가 신규 채널을 찾을 수 있다.
+          // loadChannels 전에 setSelectedChannelId를 하면 채널 목록에 없다고 판단해 null로 초기화되는 race condition 발생.
+          broadcastChannelsUpdated();
+          await loadChannels();
           if (newChannelId) {
             writeSelectedChannelIdToStorage(newChannelId);
             setSelectedChannelId(newChannelId);
           }
-          broadcastChannelsUpdated();
-          void loadChannels();
         }}
       />
 
@@ -177,17 +178,20 @@ export default function ChannelsPageClient(): JSX.Element {
         <div className="mt-4 space-y-2">
           <button
             type="button"
-            disabled={!selectedChannelId || isNavigating}
+            disabled={!selectedChannel || isNavigating}
             onClick={() => {
-              if (!selectedChannelId || isNavigating) return;
+              // 반드시 selectedChannel 객체 기준으로만 판단
+              if (!selectedChannel || !selectedChannel.id || isNavigating) {
+                setAnalysisError("선택된 채널 정보를 찾을 수 없습니다. 채널을 다시 선택하세요.");
+                return;
+              }
               setIsNavigating(true);
               setAnalysisError(null);
 
-              const channelId = selectedChannelId;
-              console.log("[Analysis Start UI] selected channel:", channelId);
-              console.log("[Analysis Start UI] clicked");
+              const channelId = selectedChannel.id;
+              console.log("[Analysis Start UI] selectedChannel:", { id: channelId, title: selectedChannel.channel_title });
 
-              const payload = { user_channel_id: channelId };
+              const payload = { channelId };
               console.log("[Analysis Start UI] request payload:", payload);
 
               fetch("/api/analysis/request", {

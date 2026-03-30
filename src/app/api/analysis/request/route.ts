@@ -52,14 +52,21 @@ export async function POST(request: Request) {
   }
 
   const raw = body as Record<string, unknown>;
+  // 클라이언트는 { channelId } 형태로 전송한다. 구 필드명(user_channel_id)도 fallback으로 허용.
   const userChannelId =
-    typeof raw.user_channel_id === "string" ? raw.user_channel_id.trim() : "";
+    typeof raw.channelId === "string" && raw.channelId.trim()
+      ? raw.channelId.trim()
+      : typeof raw.user_channel_id === "string"
+        ? raw.user_channel_id.trim()
+        : "";
 
   console.log("[Analysis Start API] request body:", JSON.stringify(body));
+  console.log("[Analysis Start API] resolved userChannelId:", userChannelId || "(empty)");
 
   if (!userChannelId) {
+    console.error("[Analysis Start API] REJECTED: channelId missing. body keys:", Object.keys(raw));
     return NextResponse.json(
-      { ok: false, error: "user_channel_id가 필요합니다." },
+      { ok: false, error: "채널 ID가 누락되었습니다. (channelId 필드 필요)" },
       { status: 400 }
     );
   }
@@ -74,6 +81,7 @@ export async function POST(request: Request) {
   console.log("[Analysis Start API] user:", user ? { id: user.id } : null);
 
   if (authError || !user) {
+    console.error("[Analysis Start API] REJECTED: auth failed.", authError?.message ?? "no user");
     return NextResponse.json(
       { ok: false, error: "로그인이 필요합니다." },
       { status: 401 }
@@ -90,11 +98,20 @@ export async function POST(request: Request) {
     .eq("user_id", user.id)
     .maybeSingle();
 
-  console.log("[Analysis Start API] channelId:", channelRow?.channel_id ?? null);
+  console.log("[Analysis Start API] channel lookup — userChannelId:", userChannelId, "userId:", user.id);
+  console.log("[Analysis Start API] channel lookup result:", channelRow ? { id: channelRow.id, channel_id: channelRow.channel_id } : null);
 
-  if (channelErr || !channelRow) {
+  if (channelErr) {
+    console.error("[Analysis Start API] REJECTED: channel DB error:", channelErr.message, "code:", channelErr.code);
     return NextResponse.json(
-      { ok: false, error: "채널을 찾을 수 없습니다." },
+      { ok: false, error: "채널 조회 중 오류가 발생했습니다." },
+      { status: 500 }
+    );
+  }
+  if (!channelRow) {
+    console.error("[Analysis Start API] REJECTED: channel not found. userChannelId:", userChannelId, "userId:", user.id);
+    return NextResponse.json(
+      { ok: false, error: "채널을 찾을 수 없습니다. 올바른 채널을 선택했는지 확인하세요." },
       { status: 404 }
     );
   }
@@ -134,8 +151,9 @@ export async function POST(request: Request) {
 
   const youtubeChannelId = channelRow.channel_id as string | null;
   if (!youtubeChannelId) {
+    console.error("[Analysis Start API] REJECTED: channel_id (YouTube ID) is null. userChannelId:", userChannelId);
     return NextResponse.json(
-      { ok: false, error: "YouTube 채널 ID가 없습니다." },
+      { ok: false, error: "채널에 YouTube ID가 없습니다. 채널을 삭제 후 다시 등록하세요." },
       { status: 422 }
     );
   }
