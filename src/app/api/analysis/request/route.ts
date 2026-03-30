@@ -3,7 +3,7 @@
  *
  * 등록 채널에 대해 베이스 분석(analysis_results)을 실행한다.
  * YouTube API + Gemini AI 호출 후 analysis_results에 저장.
- * 쿨다운: last_analyzed_at 기준 72시간.
+ * 쿨다운: last_analyzed_at 기준 12시간.
  */
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
@@ -20,9 +20,10 @@ import {
 } from "@/lib/ai/analyzeChannelWithGemini";
 import { saveAnalysisResult } from "@/lib/server/analysis/saveAnalysisResult";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { isAdminUser } from "@/lib/server/isAdminUser";
 import type { VideoInfo } from "@/lib/youtube";
 
-const COOLDOWN_HOURS = 72;
+const COOLDOWN_HOURS = 12;
 
 function toChannelVideoSamples(videos: VideoInfo[]): ChannelVideoSample[] {
   return videos.map((v) => ({
@@ -88,6 +89,10 @@ export async function POST(request: Request) {
     );
   }
 
+  // admin 판별 — profiles.role 기준, 이메일 하드코딩 없음
+  const isAdmin = await isAdminUser(user.id);
+  console.log("[Analysis Start API] isAdmin:", isAdmin, "userId:", user.id);
+
   // 채널 소유권 확인
   const { data: channelRow, error: channelErr } = await supabase
     .from("user_channels")
@@ -116,8 +121,8 @@ export async function POST(request: Request) {
     );
   }
 
-  // 쿨다운 체크
-  if (channelRow.last_analyzed_at) {
+  // 쿨다운 체크 — admin은 bypass
+  if (!isAdmin && channelRow.last_analyzed_at) {
     const lastAt = new Date(channelRow.last_analyzed_at as string).getTime();
     const hoursElapsed = (Date.now() - lastAt) / (1000 * 60 * 60);
     if (hoursElapsed < COOLDOWN_HOURS) {
@@ -132,6 +137,8 @@ export async function POST(request: Request) {
         { status: 429 }
       );
     }
+  } else if (isAdmin && channelRow.last_analyzed_at) {
+    console.log("[Analysis Start API] admin: cooldown bypassed");
   }
 
   // 기존 스냅샷 확인 (로그용)
