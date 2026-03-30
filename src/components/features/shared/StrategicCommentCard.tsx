@@ -1,8 +1,6 @@
 "use client"
 
 import { Lightbulb, ChevronRight, AlertTriangle } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import type { StrategicCommentVm } from "@/lib/shared/strategicCommentTypes"
 
 export type { StrategicCommentVm }
@@ -15,32 +13,23 @@ export function StrategicCommentCard({ data }: StrategicCommentCardProps) {
   return (
     <div className="space-y-3 pt-2">
 
-      {/* ── 섹션 구분: "종합 결론" 레이블 ── */}
-      <div className="flex items-center gap-3">
-        <div className="h-px flex-1 bg-border" />
-        <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/60">
-          종합 결론
-        </span>
-        <div className="h-px flex-1 bg-border" />
-      </div>
-
       {/*
         border-t-2 + border-t-primary/50 : 상단 강조 라인
         border-primary/40                : 나머지 3면 테두리 (일반 카드 /25 대비 강화)
         shadow-sm                        : 약간의 elevation
       */}
-      <Card className="border-t-2 border-primary/40 border-t-primary/60 bg-primary/[0.05] dark:bg-primary/[0.09] shadow-sm">
-        <CardContent className="p-6 space-y-4">
+      <div className="rounded-xl border border-border bg-slate-100 dark:bg-slate-800 shadow-sm" style={{ borderTopWidth: "3px", borderTopColor: "var(--primary)" }}>
+        <div className="p-6 space-y-4">
 
           {/* ── 배지 ── */}
           <div className="flex items-center gap-2">
-            <Lightbulb className="size-4 text-primary shrink-0" />
-            <Badge
-              variant="outline"
-              className="text-[11px] font-semibold tracking-wide px-2.5 border-primary/30 text-primary bg-primary/5"
+            <Lightbulb className="size-4 text-primary-foreground shrink-0" style={{ color: "var(--primary)" }} />
+            <span
+              className="inline-flex items-center rounded-md px-2.5 py-1 text-[11px] font-semibold tracking-wide text-primary-foreground"
+              style={{ backgroundColor: "var(--primary)" }}
             >
               TubeWatch 전략 코멘트
-            </Badge>
+            </span>
           </div>
 
           {/* ── 핵심 결론 — headline 강조 ── */}
@@ -97,8 +86,8 @@ export function StrategicCommentCard({ data }: StrategicCommentCardProps) {
             </div>
           )}
 
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }

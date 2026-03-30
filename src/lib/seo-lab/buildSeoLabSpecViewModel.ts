@@ -116,7 +116,7 @@ function countTokens(
 }
 
 function topN(counts: Map<string, number>, n: number): string[] {
-  return [...counts.entries()]
+  return Array.from(counts.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, n)
     .map(([k]) => k);
@@ -252,7 +252,7 @@ export function buildSeoLabSpecViewModel(
     });
   }
   const under: string[] = [];
-  for (const t of highTokens) {
+  for (const t of Array.from(highTokens)) {
     if (!tagSet.has(t) && topKw.slice(0, 5).includes(t)) {
       under.push(t);
     }

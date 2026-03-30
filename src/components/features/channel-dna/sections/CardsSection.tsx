@@ -3,7 +3,8 @@
 import { CircleCheck, CircleAlert, Fingerprint, AlertTriangle } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
+import { ScoreBar } from "@/components/ui/ScoreBar"
+import { getDnaScoreInterpretation } from "../utils/dnaHelper"
 import type { ChannelDnaData } from "../mock-data"
 
 interface DnaCardsSectionProps {
@@ -25,14 +26,7 @@ export function DnaCardsSection({ data }: DnaCardsSectionProps) {
   }
 
   return (
-    <section className="space-y-4">
-      <div className="flex items-center gap-2">
-        <h2 className="text-lg font-semibold">DNA 카드</h2>
-        <Badge variant="outline" className="text-xs">
-          Core Patterns
-        </Badge>
-      </div>
-
+    <div className="space-y-4">
       {/* 강점 / 약점 2열 구조 */}
       <div className="grid gap-4 lg:grid-cols-2">
         {/* 강점 패턴 */}
@@ -45,23 +39,22 @@ export function DnaCardsSection({ data }: DnaCardsSectionProps) {
           </CardHeader>
           <CardContent className="space-y-3">
             {data.strengths.map((item) => (
-              <div key={item.title} className="rounded-lg border bg-emerald-500/5 p-3">
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">{item.title}</span>
-                  <span className="text-sm font-semibold text-emerald-600">{item.score}</span>
-                </div>
-                <Progress
-                  value={item.score}
-                  className="mt-2 h-1.5 [&>div]:bg-emerald-500"
+              <div key={item.title} className="rounded-lg border bg-emerald-500/5 p-3 space-y-2">
+                <ScoreBar
+                  label={item.title}
+                  score={item.score}
+                  hint={getDnaScoreInterpretation(item.score)}
                 />
-                <p className="mt-2 text-sm text-muted-foreground">{item.description}</p>
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {item.tags.map((tag) => (
-                    <Badge key={tag} variant="outline" className="text-xs">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
+                <p className="text-xs text-muted-foreground">{item.description}</p>
+                {item.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {item.tags.map((tag) => (
+                      <Badge key={tag} variant="outline" className="text-xs">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </CardContent>
@@ -77,23 +70,22 @@ export function DnaCardsSection({ data }: DnaCardsSectionProps) {
           </CardHeader>
           <CardContent className="space-y-3">
             {data.weaknesses.map((item) => (
-              <div key={item.title} className="rounded-lg border bg-red-500/5 p-3">
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">{item.title}</span>
-                  <span className="text-sm font-semibold text-red-600">{item.score}</span>
-                </div>
-                <Progress
-                  value={item.score}
-                  className="mt-2 h-1.5 [&>div]:bg-red-500"
+              <div key={item.title} className="rounded-lg border bg-red-500/5 p-3 space-y-2">
+                <ScoreBar
+                  label={item.title}
+                  score={item.score}
+                  hint={getDnaScoreInterpretation(item.score)}
                 />
-                <p className="mt-2 text-sm text-muted-foreground">{item.description}</p>
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {item.tags.map((tag) => (
-                    <Badge key={tag} variant="outline" className="text-xs">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
+                <p className="text-xs text-muted-foreground">{item.description}</p>
+                {item.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {item.tags.map((tag) => (
+                      <Badge key={tag} variant="outline" className="text-xs">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </CardContent>
@@ -152,6 +144,6 @@ export function DnaCardsSection({ data }: DnaCardsSectionProps) {
           </CardContent>
         </Card>
       </div>
-    </section>
+    </div>
   )
 }

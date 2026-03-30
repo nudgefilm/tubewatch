@@ -60,15 +60,12 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
   }
 
   return (
-    <section className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold">액션 카드</h2>
-        <p className="text-sm text-muted-foreground">
-          총 {data.length}개 액션
-        </p>
-      </div>
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        총 {data.length}개 실행 항목 · 카드를 펼쳐 실행 방법을 확인하세요
+      </p>
 
-      <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {data.map((action) => {
           const isExpanded = expandedCards[action.id]
 
@@ -110,55 +107,58 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                   </Button>
                 </div>
 
-                {/* 문제 요약 - 항상 표시 */}
+                {/* 현재 진단 — 항상 표시 */}
                 <div className="flex items-start gap-2 mt-3 p-3 bg-muted/50 rounded-lg">
                   <AlertCircle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
-                  <p className="text-sm">{action.problemSummary}</p>
+                  <div>
+                    <p className="text-xs font-semibold text-destructive mb-0.5">현재 진단</p>
+                    <p className="text-sm">{action.problemSummary}</p>
+                  </div>
                 </div>
               </CardHeader>
 
               {isExpanded && (
                 <CardContent className="pt-0 space-y-6">
-                  {/* 근거 데이터 */}
+                  {/* 진단 근거 */}
                   {action.evidenceData && (
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm font-medium">
                         <Database className="h-4 w-4 text-primary" />
-                        근거 데이터
+                        진단 근거
                       </div>
                       <div className="grid grid-cols-3 gap-3">
                         <div className="p-3 bg-muted/50 rounded-lg">
-                          <p className="text-xs text-muted-foreground">현재</p>
+                          <p className="text-xs text-muted-foreground">현재 상태</p>
                           <p className="font-medium">{action.evidenceData.current}</p>
                         </div>
                         <div className="p-3 bg-muted/50 rounded-lg">
-                          <p className="text-xs text-muted-foreground">벤치마크</p>
+                          <p className="text-xs text-muted-foreground">기준점</p>
                           <p className="font-medium">{action.evidenceData.benchmark}</p>
                         </div>
                         <div className="p-3 bg-muted/50 rounded-lg">
-                          <p className="text-xs text-muted-foreground">표본 수</p>
+                          <p className="text-xs text-muted-foreground">분석 표본</p>
                           <p className="font-medium">{action.evidenceData.sampleSize}개</p>
                         </div>
                       </div>
                     </div>
                   )}
 
-                  {/* 왜 필요한지 */}
+                  {/* 실행이 필요한 이유 */}
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm font-medium">
                       <Lightbulb className="h-4 w-4 text-amber-500" />
-                      왜 필요한지
+                      실행이 필요한 이유
                     </div>
                     <p className="text-sm text-muted-foreground pl-6">
                       {action.whyNeeded}
                     </p>
                   </div>
 
-                  {/* 실행 방법 */}
+                  {/* 지금 실행하세요 */}
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm font-medium">
                       <ListChecks className="h-4 w-4 text-emerald-500" />
-                      실행 방법
+                      지금 실행하세요
                     </div>
                     <ul className="space-y-1 pl-6">
                       {action.howToExecute.map((step, index) => (
@@ -170,12 +170,12 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                     </ul>
                   </div>
 
-                  {/* 예상 효과 & 적용 범위 */}
+                  {/* 실행 후 변화 시나리오 & 적용 범위 */}
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm font-medium">
                         <TrendingUp className="h-4 w-4 text-emerald-500" />
-                        예상 효과
+                        실행 후 변화 시나리오
                       </div>
                       <p className="text-sm text-muted-foreground pl-6">
                         {action.expectedEffect}
@@ -194,14 +194,14 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                     )}
                   </div>
 
-                  {/* 실험 기간 & 주의사항 */}
+                  {/* 확인 기간 & 주의사항 */}
                   {(action.experimentPeriod || action.caution) && (
                     <div className="grid gap-4 md:grid-cols-2">
                       {action.experimentPeriod && (
                         <div className="space-y-2">
                           <div className="flex items-center gap-2 text-sm font-medium">
                             <Clock className="h-4 w-4 text-muted-foreground" />
-                            실험 기간
+                            확인 기간
                           </div>
                           <p className="text-sm text-muted-foreground pl-6">
                             {action.experimentPeriod}
@@ -222,7 +222,7 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                     </div>
                   )}
 
-                  {/* 신뢰도 */}
+                  {/* 데이터 신뢰도 */}
                   {action.confidence != null && (
                     <div className="pt-4 border-t">
                       <div className="flex items-center justify-between mb-2">
@@ -235,7 +235,7 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                       <Progress value={action.confidence} className="h-2" />
                       {action.evidenceData && (
                         <p className="text-xs text-muted-foreground mt-1">
-                          표본 {action.evidenceData.sampleSize}개 기준, 패턴 일관성 분석 결과
+                          표본 {action.evidenceData.sampleSize}개 기준 · 패턴 일관성 분석
                         </p>
                       )}
                     </div>
@@ -246,6 +246,6 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
           )
         })}
       </div>
-    </section>
+    </div>
   )
 }

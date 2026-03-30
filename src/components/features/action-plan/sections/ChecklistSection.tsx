@@ -30,9 +30,9 @@ interface ActionPlanChecklistProps {
 }
 
 const difficultyLabel: Record<FlatChecklistItem["difficulty"], string> = {
-  easy: "쉬움",
-  medium: "보통",
-  hard: "어려움",
+  easy: "바로 가능",
+  medium: "준비 필요",
+  hard: "신중 접근",
 }
 
 const difficultyColor: Record<FlatChecklistItem["difficulty"], string> = {
@@ -44,34 +44,29 @@ const difficultyColor: Record<FlatChecklistItem["difficulty"], string> = {
 export function ActionPlanChecklistSection({ data, items }: ActionPlanChecklistProps) {
   if (items && items.length > 0) {
     return (
-      <section className="space-y-4">
-        <h2 className="text-xl font-bold">실행 체크리스트</h2>
-        <div className="grid gap-3 md:grid-cols-2">
-          {items.map((item) => (
-            <Card key={item.id} className="flex gap-3 p-4">
-              <div className="mt-1 h-2 w-2 rounded-full bg-primary shrink-0" />
-              <div className="space-y-1 flex-1">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-medium">{item.title}</p>
-                  <span className={`text-xs font-medium ${difficultyColor[item.difficulty]}`}>
-                    {difficultyLabel[item.difficulty]}
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground">{item.description}</p>
+      <div className="grid gap-3 md:grid-cols-2">
+        {items.map((item) => (
+          <Card key={item.id} className="flex gap-3 p-4">
+            <div className="mt-1 h-2 w-2 rounded-full bg-primary shrink-0" />
+            <div className="space-y-1 flex-1">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm font-medium">{item.title}</p>
+                <span className={`text-xs font-medium ${difficultyColor[item.difficulty]}`}>
+                  {difficultyLabel[item.difficulty]}
+                </span>
               </div>
-            </Card>
-          ))}
-        </div>
-      </section>
+              <p className="text-xs text-muted-foreground">{item.description}</p>
+            </div>
+          </Card>
+        ))}
+      </div>
     )
   }
 
   if (!data) return null
 
   return (
-    <section className="space-y-4">
-      <h2 className="text-xl font-bold">실행 체크리스트</h2>
-
+    <div className="space-y-4">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {/* 먼저 바꿀 것 */}
         <Card className="border-emerald-200 bg-emerald-50/50 dark:bg-emerald-950/20">
@@ -175,6 +170,6 @@ export function ActionPlanChecklistSection({ data, items }: ActionPlanChecklistP
           </CardContent>
         </Card>
       </div>
-    </section>
+    </div>
   )
 }

@@ -8,8 +8,10 @@ import { DnaEmptyState } from "./sections/EmptyState"
 import { ChannelContextHeader, type ChannelContext } from "@/components/features/shared/ChannelContextHeader"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScoreBar } from "@/components/ui/ScoreBar"
-import { makeDiagnosticLabel } from "@/lib/utils/labelUtils"
 import { StrategicCommentCard } from "@/components/features/shared/StrategicCommentCard"
+import { PageFlowConnector } from "@/components/features/shared/PageFlowConnector"
+import { FeaturePaywallBlock } from "@/components/features/shared/FeaturePaywallBlock"
+import { humanizeSignal, getSectionScoreHint } from "./utils/dnaHelper"
 import type { ChannelDnaPageViewModel } from "@/lib/channel-dna/channelDnaPageViewModel"
 import type { InternalChannelDnaSummaryVm } from "@/lib/channel-dna/internalChannelDnaSummary"
 
@@ -17,6 +19,7 @@ interface ChannelDnaPageProps {
   channelId?: string
   channelContext?: ChannelContext
   viewModel?: ChannelDnaPageViewModel
+  isStarterPlan?: boolean
 }
 
 function spreadLevelToStability(level: InternalChannelDnaSummaryVm["performanceSpreadLevel"]): string {
@@ -30,7 +33,7 @@ function buildStructureSummaryFromVm(vm: InternalChannelDnaSummaryVm) {
   const hitDependency: number | null =
     vm.topPerformerShare != null ? Math.round(vm.topPerformerShare * 100) : null
   const stability = spreadLevelToStability(vm.performanceSpreadLevel)
-  const growthAxis = vm.topPatternSignals.slice(0, 2) as string[]
+  const growthAxis = vm.topPatternSignals.slice(0, 2).map((s) => humanizeSignal(s).label)
   return {
     hitDependency,
     growthType: vm.dominantFormat ?? "분석 중",
@@ -44,18 +47,26 @@ function buildStructureSummaryFromVm(vm: InternalChannelDnaSummaryVm) {
 }
 
 function buildPatternAnalysisFromVm(vm: InternalChannelDnaSummaryVm) {
-  const highPerformancePatterns = vm.topPatternSignals.map((signal) => ({
-    pattern: makeDiagnosticLabel(signal),
-    frequency: "최근 분석",
-    description: signal,
-    examples: [] as string[],
-  }))
-  const lowPerformancePatterns = vm.weakPatternSignals.map((signal) => ({
-    pattern: makeDiagnosticLabel(signal),
-    frequency: "최근 분석",
-    description: signal,
-    examples: [] as never[],
-  }))
+  const highPerformancePatterns = vm.topPatternSignals.map((signal, i) => {
+    const { label, description } = humanizeSignal(signal)
+    return {
+      pattern: label,
+      frequency: "반복 확인됨",
+      description,
+      examples: [] as string[],
+      score: Math.max(60, 85 - i * 5),
+    }
+  })
+  const lowPerformancePatterns = vm.weakPatternSignals.map((signal, i) => {
+    const { label, description } = humanizeSignal(signal)
+    return {
+      pattern: label,
+      frequency: "개선 필요",
+      description,
+      examples: [] as never[],
+      score: Math.min(45, 40 + i * 3),
+    }
+  })
   return {
     highPerformancePatterns,
     lowPerformancePatterns,
@@ -75,18 +86,14 @@ function buildPatternAnalysisFromVm(vm: InternalChannelDnaSummaryVm) {
 }
 
 function buildDnaCardsFromVm(vm: InternalChannelDnaSummaryVm) {
-  const strengths = vm.topPatternSignals.map((signal, i) => ({
-    title: makeDiagnosticLabel(signal),
-    description: signal,
-    score: Math.max(60, 85 - i * 5),
-    tags: [] as string[],
-  }))
-  const weaknesses = vm.weakPatternSignals.map((signal, i) => ({
-    title: makeDiagnosticLabel(signal),
-    description: signal,
-    score: Math.min(45, 40 + i * 3),
-    tags: [] as string[],
-  }))
+  const strengths = vm.topPatternSignals.map((signal, i) => {
+    const { label, description } = humanizeSignal(signal)
+    return { title: label, description, score: Math.max(60, 85 - i * 5), tags: [] as string[] }
+  })
+  const weaknesses = vm.weakPatternSignals.map((signal, i) => {
+    const { label, description } = humanizeSignal(signal)
+    return { title: label, description, score: Math.min(45, 40 + i * 3), tags: [] as string[] }
+  })
   const corePatterns = vm.dominantFormat
     ? [{ pattern: vm.dominantFormat, importance: "핵심", note: "최근 분석 기준 주요 포맷" }]
     : []
@@ -107,7 +114,7 @@ function buildDnaCardsFromVm(vm: InternalChannelDnaSummaryVm) {
   return { strengths, weaknesses, corePatterns, risks }
 }
 
-export function ChannelDnaPage({ channelId = "", channelContext, viewModel }: ChannelDnaPageProps) {
+export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isStarterPlan = false }: ChannelDnaPageProps) {
   // Real data path
   if (viewModel) {
     const vm = viewModel.internalChannelDnaSummary
@@ -115,74 +122,127 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel }: Ch
     const patternAnalysis = buildPatternAnalysisFromVm(vm)
     const dnaCards = buildDnaCardsFromVm(vm)
 
+    const scoreBarItems = (() => {
+      if (!vm.radarProfile) return []
+      const [activity, response, structure] = vm.radarProfile.channel
+      return [
+        { label: "콘텐츠 구조", score: structure },
+        { label: "성과 반응", score: response },
+        { label: "채널 활동성", score: activity },
+      ].filter((x): x is { label: string; score: number } => x.score != null)
+    })()
+
     return (
-      <div className="flex flex-col gap-6 p-6">
-        <header className="flex flex-col gap-2">
-          <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
-              <Dna className="size-5 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">Channel DNA</h1>
-              <p className="text-sm text-muted-foreground">
-                채널 성과가 발생하는 구조를 해석합니다
-              </p>
+      <div className="min-h-screen bg-background">
+        <div className="mx-auto max-w-7xl space-y-8 p-6 lg:p-8">
+
+          {/* Page Header */}
+          <div>
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
+                <Dna className="size-5 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-semibold tracking-tight lg:text-3xl">Channel DNA</h1>
+                <p className="mt-1 text-sm text-muted-foreground">성공 공식 추출기</p>
+              </div>
             </div>
           </div>
-        </header>
 
-        <ChannelContextHeader channelContext={channelContext} />
+          <ChannelContextHeader channelContext={channelContext} />
 
-        {viewModel.extensionNotice && (
-          <div className="rounded-lg border border-muted px-4 py-3 text-sm text-muted-foreground">
-            {viewModel.extensionNotice}
-          </div>
-        )}
+          {viewModel.extensionNotice && (
+            <div className="rounded-lg border border-muted px-4 py-3 text-sm text-muted-foreground">
+              {viewModel.extensionNotice}
+            </div>
+          )}
 
-        {/* A. 성과 구조 요약 */}
-        <DnaStructureSummarySection data={structureSummary} />
+          {/* 내 채널을 움직이는 구조 패턴 */}
+          <section className="space-y-4">
+            <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
+              <h2 className="text-xl font-bold tracking-tight">내 채널을 움직이는 구조 패턴</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">성과를 만들어낸 패턴과 발목 잡는 패턴을 분류합니다</p>
+            </div>
 
-        {/* A-1. 구간 점수 (radarProfile 실데이터 기반) */}
-        {vm.radarProfile && (() => {
-          const [activity, response, structure] = vm.radarProfile.channel
-          const items = [
-            { label: "콘텐츠 구조", score: structure },
-            { label: "성과 반응", score: response },
-            { label: "채널 활동성", score: activity },
-          ].filter((x): x is { label: string; score: number } => x.score != null)
-          if (items.length === 0) return null
-          return (
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">구간 점수</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {items.map((item) => (
-                  <ScoreBar key={item.label} label={item.label} score={item.score} />
-                ))}
-                <p className="text-xs text-muted-foreground pt-1">
-                  채널 활동·반응·구조·SEO·성장 기준 (0–100 구간 점수)
-                </p>
-              </CardContent>
-            </Card>
-          )
-        })()}
+            {(patternAnalysis.highPerformancePatterns.length > 0 ||
+              patternAnalysis.lowPerformancePatterns.length > 0) ? (
+              <DnaPatternAnalysisSection data={patternAnalysis} />
+            ) : (
+              <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                패턴 분석 데이터가 아직 없습니다. 분석 후 자동으로 채워집니다.
+              </div>
+            )}
 
-        {/* B. 반복 패턴 분석 */}
-        {(patternAnalysis.highPerformancePatterns.length > 0 ||
-          patternAnalysis.lowPerformancePatterns.length > 0) && (
-          <DnaPatternAnalysisSection data={patternAnalysis} />
-        )}
+            {scoreBarItems.length > 0 && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">구간 점수</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {scoreBarItems.map((item) => (
+                    <ScoreBar
+                      key={item.label}
+                      label={item.label}
+                      score={item.score}
+                      hint={getSectionScoreHint(item.label, item.score)}
+                    />
+                  ))}
+                  <p className="text-xs text-muted-foreground pt-1">
+                    0–100 구간 점수 · 스냅샷 기반 내부 산출값
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </section>
 
-        {/* C. DNA 카드 */}
-        {(dnaCards.strengths.length > 0 || dnaCards.weaknesses.length > 0) && (
-          <DnaCardsSection data={dnaCards} />
-        )}
+          {/* 압도적 강점 vs 치명적 약점 */}
+          <section className="space-y-4">
+            <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
+              <h2 className="text-xl font-bold tracking-tight">압도적 강점 vs 치명적 약점</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">채널 성과에 가장 큰 영향을 주는 요소를 강점과 약점으로 정리합니다</p>
+            </div>
+            {(dnaCards.strengths.length > 0 || dnaCards.weaknesses.length > 0) ? (
+              <DnaCardsSection data={dnaCards} />
+            ) : (
+              <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                강점·약점 데이터가 아직 없습니다. 분석 후 자동으로 채워집니다.
+              </div>
+            )}
+          </section>
 
-        {/* D. Strategic Comment */}
-        {viewModel.strategicComment && (
-          <StrategicCommentCard data={viewModel.strategicComment} />
-        )}
+          {/* Paywall — Starter 전용 */}
+          {isStarterPlan && (
+            <FeaturePaywallBlock
+              title="채널 구조를 끝까지 읽어야 반복 성장 패턴이 보입니다."
+              description="전체 DNA 해석은 Growth에서 확인하세요."
+              ctaLabel="지금 전체 구조 확인하기"
+              planLabel="Growth"
+              previewHint="다음 구간에서 반복 성장 패턴이 이어집니다"
+            />
+          )}
+
+          {/* 떡상 영상의 반복 설계도 */}
+          <section className="space-y-4">
+            <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
+              <h2 className="text-xl font-bold tracking-tight">떡상 영상의 반복 설계도</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">성과가 반복되는 구조의 안정성과 핵심 변수를 확인합니다</p>
+            </div>
+            <DnaStructureSummarySection data={structureSummary} />
+          </section>
+
+          {/* TubeWatch 전략 코멘트 — 한눈에 보는 채널 정체성 */}
+          {viewModel.strategicComment && (
+            <StrategicCommentCard data={viewModel.strategicComment} />
+          )}
+
+          {/* 다음 단계 연결 — Action Plan */}
+          <PageFlowConnector
+            message="이 분석을 실행 전략으로 바꾸세요."
+            ctaLabel="Action Plan 보기"
+            href="/action-plan"
+          />
+
+        </div>
       </div>
     )
   }
@@ -197,9 +257,7 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel }: Ch
           </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Channel DNA</h1>
-            <p className="text-sm text-muted-foreground">
-              채널 성과가 발생하는 구조를 해석합니다
-            </p>
+            <p className="text-sm text-muted-foreground">성공 공식 추출기</p>
           </div>
         </div>
       </header>

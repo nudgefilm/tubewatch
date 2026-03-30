@@ -8,6 +8,8 @@ import { NextTrendActionSection } from "./sections/ActionSection"
 import { NextTrendEmptyState } from "./sections/EmptyState"
 import { ChannelContextHeader, type ChannelContext } from "@/components/features/shared/ChannelContextHeader"
 import { StrategicCommentCard } from "@/components/features/shared/StrategicCommentCard"
+import { PageFlowConnector } from "@/components/features/shared/PageFlowConnector"
+import { FeaturePaywallBlock } from "@/components/features/shared/FeaturePaywallBlock"
 import type { NextTrendPageViewModel } from "@/lib/next-trend/nextTrendPageViewModel"
 import type {
   NextTrendCandidateVm,
@@ -22,6 +24,7 @@ interface NextTrendPageProps {
   channelId?: string
   channelContext?: ChannelContext
   viewModel?: NextTrendPageViewModel
+  isStarterPlan?: boolean
 }
 
 function toCandidates(vms: NextTrendCandidateVm[]): TrendCandidate[] {
@@ -122,11 +125,13 @@ function toExecutionActions(vm: NextTrendActionsVm): ExecutionAction[] {
   ]
 }
 
-export function NextTrendPage({ channelId = "", channelContext, viewModel }: NextTrendPageProps) {
+export function NextTrendPage({ channelId = "", channelContext, viewModel, isStarterPlan = false }: NextTrendPageProps) {
   // Real data path
   if (viewModel) {
     const internal = viewModel.internal
-    const candidates = toCandidates(internal.candidates)
+    const allCandidates = toCandidates(internal.candidates)
+    const candidates = isStarterPlan ? allCandidates.slice(0, 2) : allCandidates
+    const hasLockedCandidates = isStarterPlan && allCandidates.length > 2
     const formats = toFormatRecommendations(internal.format)
     const risks = toRiskMemos(internal.risk)
     const hints = toExecutionHints(internal.hints)
@@ -134,12 +139,10 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel }: Nex
 
     return (
       <div className="min-h-screen bg-background">
-        <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
+        <div className="mx-auto max-w-7xl space-y-8 p-6 lg:p-8">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight lg:text-3xl">Next Trend</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              내부 신호 기반 다음 시도 방향 제안
-            </p>
+            <p className="mt-1 text-sm text-muted-foreground">다음 영상 아이디어를 지금 결정하세요</p>
           </div>
 
           <ChannelContextHeader channelContext={channelContext} />
@@ -156,32 +159,83 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel }: Nex
                 {viewModel.dataPipelineNotice}
               </div>
 
-              {candidates.length > 0 && (
-                <NextTrendCandidatesSection data={candidates} />
-              )}
+              {/* 다음 영상의 힌트 */}
+              <section className="space-y-4">
+                <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
+                  <h2 className="text-xl font-bold tracking-tight">다음 영상의 힌트</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">다음 영상의 제목·훅·썸네일을 지금 결정하세요</p>
+                </div>
+                {hints.length > 0 ? (
+                  <NextTrendExecutionHints data={hints} />
+                ) : (
+                  <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                    실행 힌트 데이터가 아직 없습니다. 분석 후 자동으로 채워집니다.
+                  </div>
+                )}
+              </section>
 
-              {formats.length > 0 && (
-                <NextTrendFormatSection data={formats} />
-              )}
+              {/* 시청자가 기다리는 미개척 주제 */}
+              <section className="space-y-4">
+                <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
+                  <h2 className="text-xl font-bold tracking-tight">시청자가 기다리는 미개척 주제</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">이 중 하나를 골라 다음 영상 주제로 결정하세요</p>
+                </div>
+                {candidates.length > 0 ? (
+                  <NextTrendCandidatesSection data={candidates} />
+                ) : (
+                  <NextTrendEmptyState />
+                )}
+                {hasLockedCandidates && (
+                  <FeaturePaywallBlock
+                    title="지금 흐름에서 시도할 다음 후보가 더 있습니다."
+                    description="Top 2 이후의 아이디어까지 열어보세요."
+                    ctaLabel="지금 다음 영상 설계하기"
+                    planLabel="Growth"
+                    previewHint="지금 흐름에서 가장 유력한 다음 주제가 포함됩니다"
+                  />
+                )}
+                {candidates.length > 0 && !hasLockedCandidates && (
+                  <PageFlowConnector
+                    message="이 주제를 SEO 전략으로 구체화하세요."
+                    ctaLabel="SEO 전략 적용하기"
+                    href="/seo-lab"
+                  />
+                )}
+              </section>
 
-              {hints.length > 0 && (
-                <NextTrendExecutionHints data={hints} />
-              )}
+              {/* 조회수 하락 방지용 트렌드 가이드 */}
+              <section className="space-y-4">
+                <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
+                  <h2 className="text-xl font-bold tracking-tight">조회수 하락 방지용 트렌드 가이드</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">포맷·리스크 신호를 확인하고 방향을 조정하세요</p>
+                </div>
+                {formats.length > 0 && (
+                  <NextTrendFormatSection data={formats} />
+                )}
+                {risks.length > 0 && (
+                  <NextTrendRiskSection data={risks} />
+                )}
+                {formats.length === 0 && risks.length === 0 && (
+                  <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                    포맷·리스크 데이터가 아직 없습니다. 분석 후 자동으로 채워집니다.
+                  </div>
+                )}
+              </section>
 
+              {/* 시장의 결핍을 채우는 법 */}
               {actions.length > 0 && (
-                <NextTrendActionSection data={actions} />
-              )}
-
-              {risks.length > 0 && (
-                <NextTrendRiskSection data={risks} />
+                <section className="space-y-4">
+                  <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
+                    <h2 className="text-xl font-bold tracking-tight">시장의 결핍을 채우는 법</h2>
+                    <p className="text-xs text-muted-foreground mt-0.5">지금 바로 실행할 영상 기획안입니다</p>
+                  </div>
+                  <NextTrendActionSection data={actions} />
+                </section>
               )}
             </>
           )}
 
-          {viewModel.hasAnalysisEffective && candidates.length === 0 && (
-            <NextTrendEmptyState />
-          )}
-
+          {/* TubeWatch 전략 코멘트 */}
           {viewModel.strategicComment && (
             <StrategicCommentCard data={viewModel.strategicComment} />
           )}
@@ -196,9 +250,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel }: Nex
       <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight lg:text-3xl">Next Trend</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            내부 신호 기반 다음 시도 방향 제안
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">미래 조회수 선점 도구</p>
         </div>
         <ChannelContextHeader channelContext={channelContext} />
         <NextTrendEmptyState channelId={channelId || undefined} />

@@ -3,7 +3,8 @@
 import { TrendingUp, Target, Shield, BarChart3 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
+import { ScoreBar } from "@/components/ui/ScoreBar"
+import { getDnaScoreInterpretation } from "../utils/dnaHelper"
 import type { ChannelDnaData } from "../mock-data"
 
 interface DnaStructureSummarySectionProps {
@@ -25,14 +26,7 @@ export function DnaStructureSummarySection({ data }: DnaStructureSummarySectionP
   }
 
   return (
-    <section className="space-y-4">
-      <div className="flex items-center gap-2">
-        <h2 className="text-lg font-semibold">성과 구조 요약</h2>
-        <Badge variant="outline" className="text-xs">
-          DNA Core
-        </Badge>
-      </div>
-
+    <div className="space-y-4">
       {/* KPI Cards Row */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* 히트 영상 의존도 */}
@@ -43,20 +37,22 @@ export function DnaStructureSummarySection({ data }: DnaStructureSummarySectionP
             </CardTitle>
             <TrendingUp className="size-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-2">
             {data.hitDependency != null ? (
-              <>
-                <div className="text-2xl font-bold">{data.hitDependency}%</div>
-                <Progress value={data.hitDependency} className="mt-2 h-1.5" />
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {data.hitDependency < 50 ? "안정적 분산 구조" : "히트 의존 구조"}
-                </p>
-              </>
+              <ScoreBar
+                label=""
+                score={data.hitDependency}
+                hint={
+                  data.hitDependency < 50
+                    ? "조회가 여러 영상에 고르게 분산되어 있습니다."
+                    : "조회가 일부 영상에 집중되어 있습니다."
+                }
+              />
             ) : (
               <>
-                <div className="text-sm font-medium text-muted-foreground">미산출</div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  상위 성과 집중도 데이터가 없습니다
+                <div className="h-2 w-full rounded-full bg-muted" />
+                <p className="text-xs text-muted-foreground">
+                  분석 데이터가 충분하지 않아 수집 중입니다.
                 </p>
               </>
             )}
@@ -72,7 +68,7 @@ export function DnaStructureSummarySection({ data }: DnaStructureSummarySectionP
             <Target className="size-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data.growthType}</div>
+            <div className="text-lg font-bold leading-tight">{data.growthType}</div>
             <div className="mt-2 flex flex-wrap gap-1">
               {data.growthAxis.map((axis) => (
                 <Badge key={axis} variant="secondary" className="text-xs">
@@ -91,14 +87,17 @@ export function DnaStructureSummarySection({ data }: DnaStructureSummarySectionP
             </CardTitle>
             <Shield className="size-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-2">
             <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold">{data.structureStabilityScore}</span>
               <Badge className={getStabilityColor(data.structureStability)}>
                 {data.structureStability}
               </Badge>
             </div>
-            <Progress value={data.structureStabilityScore} className="mt-2 h-1.5" />
+            <ScoreBar
+              label=""
+              score={data.structureStabilityScore}
+              hint={getDnaScoreInterpretation(data.structureStabilityScore)}
+            />
           </CardContent>
         </Card>
 
@@ -143,6 +142,6 @@ export function DnaStructureSummarySection({ data }: DnaStructureSummarySectionP
           <p className="text-sm leading-relaxed text-foreground/80">{data.summaryText}</p>
         </CardContent>
       </Card>
-    </section>
+    </div>
   )
 }

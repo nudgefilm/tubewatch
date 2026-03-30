@@ -1,6 +1,7 @@
 /**
  * 저장된 `feature_snapshot` 표본 영상만 사용. 외부 API·미래 추정 없음.
  */
+import { normalizeFeatureSnapshot, type NormalizedSnapshotVideo } from "@/lib/analysis/normalizeSnapshot";
 
 export type TrendSignalStrength = "low" | "medium" | "clear";
 
@@ -24,13 +25,6 @@ export type TrendSignalsBundle = {
   records: TrendSignalRecord[];
   evidenceNotes: string[];
   recentVideosUsed: number;
-};
-
-type TrendVideo = {
-  title: string;
-  publishedAt: string | null;
-  viewCount: number | null;
-  durationSeconds: number | null;
 };
 
 const SHORT_SEC = 180;
@@ -62,47 +56,6 @@ const STOP_TOKENS = new Set([
   "pt",
 ]);
 
-function isRecord(v: unknown): v is Record<string, unknown> {
-  return typeof v === "object" && v !== null && !Array.isArray(v);
-}
-
-function parseTrendVideos(snapshot: unknown): TrendVideo[] {
-  if (!isRecord(snapshot)) {
-    return [];
-  }
-  const raw = snapshot.videos ?? snapshot.sample_videos;
-  if (!Array.isArray(raw)) {
-    return [];
-  }
-  const out: TrendVideo[] = [];
-  for (const item of raw) {
-    if (!isRecord(item)) continue;
-    const title = typeof item.title === "string" ? item.title.trim() : "";
-    if (!title) continue;
-    const publishedAt =
-      typeof item.publishedAt === "string"
-        ? item.publishedAt
-        : typeof item.published_at === "string"
-          ? item.published_at
-          : null;
-    const viewCount =
-      typeof item.viewCount === "number" && Number.isFinite(item.viewCount)
-        ? item.viewCount
-        : typeof item.view_count === "number" && Number.isFinite(item.view_count)
-          ? item.view_count
-          : null;
-    const durationSeconds =
-      typeof item.durationSeconds === "number" && Number.isFinite(item.durationSeconds)
-        ? item.durationSeconds
-        : typeof item.duration_seconds === "number" &&
-            Number.isFinite(item.duration_seconds)
-          ? item.duration_seconds
-          : null;
-    out.push({ title, publishedAt, viewCount, durationSeconds });
-  }
-  return out;
-}
-
 function parseTime(iso: string | null): number | null {
   if (!iso) return null;
   const t = Date.parse(iso);
@@ -110,7 +63,7 @@ function parseTime(iso: string | null): number | null {
 }
 
 function tokenizeTitle(title: string): string[] {
-  const parts = title.split(/[\s|·•,:;()[\]"'/\\]+/u);
+  const parts = title.split(/[\s|·•,:;()[\]"'/\\]+/);
   const out: string[] = [];
   for (const p of parts) {
     const t = p.trim().toLowerCase();
@@ -120,13 +73,6 @@ function tokenizeTitle(title: string): string[] {
     out.push(t);
   }
   return out;
-}
-
-function extractPatternStrings(snapshot: unknown): string[] {
-  if (!isRecord(snapshot)) return [];
-  const raw = snapshot.patterns;
-  if (!Array.isArray(raw)) return [];
-  return raw.filter((x): x is string => typeof x === "string" && x.trim() !== "");
 }
 
 let sigSeq = 0;
@@ -145,7 +91,8 @@ function mean(nums: number[]): number | null {
  */
 export function buildTrendSignals(snapshot: unknown): TrendSignalsBundle {
   sigSeq = 0;
-  const videos = parseTrendVideos(snapshot);
+  const normalized = normalizeFeatureSnapshot(snapshot);
+  const videos = normalized.videos;
   const recentVideosUsed = videos.length;
   const records: TrendSignalRecord[] = [];
   const evidenceNotes: string[] = [];
@@ -184,7 +131,7 @@ export function buildTrendSignals(snapshot: unknown): TrendSignalsBundle {
   });
 
   const repeatedTokens: { token: string; count: number }[] = [];
-  for (const [token, set] of tokenToIndices) {
+  for (const [token, set] of Array.from(tokenToIndices)) {
     if (set.size >= 2) {
       repeatedTokens.push({ token, count: set.size });
     }
@@ -283,7 +230,7 @@ export function buildTrendSignals(snapshot: unknown): TrendSignalsBundle {
     const mid = Math.floor(withDur.length / 2);
     const older = withDur.slice(0, mid);
     const newer = withDur.slice(mid);
-    const shortRatio = (list: TrendVideo[]): number | null => {
+    const shortRatio = (list: NormalizedSnapshotVideo[]): number | null => {
       const durs = list
         .map((x) => x.durationSeconds)
         .filter((d): d is number => d != null && d > 0);
@@ -390,7 +337,7 @@ export function buildTrendSignals(snapshot: unknown): TrendSignalsBundle {
     }
   }
 
-  const flags = extractPatternStrings(snapshot);
+  const flags = normalized.patterns;
   for (const flag of flags) {
     if (flag === "high_view_variance") {
       records.push({
@@ -432,7 +379,7 @@ export function getSnapshotVideoDurationStats(snapshot: unknown): {
   sampleCount: number;
   avgDurationSec: number | null;
 } {
-  const videos = parseTrendVideos(snapshot);
+  const videos = normalizeFeatureSnapshot(snapshot).videos;
   const durs = videos
     .map((v) => v.durationSeconds)
     .filter((d): d is number => d != null && d > 0);

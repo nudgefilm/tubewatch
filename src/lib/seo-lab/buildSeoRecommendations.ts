@@ -109,7 +109,7 @@ export function buildSeoRecommendations(
         id: nextRecId("kw"),
         title: `${bench.dominantFormat}에 맞춘 주제·형식 표현`,
         shortReason:
-          "표본 길이로 추정한 포맷과 제목·설명의 정보 밀도가 맞을 때, 채널 내 반복 시청 맥락과 어긋나지 않기 쉽습니다. 검색량이 아니라 구조 적합성 관점입니다.",
+          "이 포맷에 맞게 제목 앞부분의 정보 밀도를 조정하세요. 핵심 주제가 첫 한 줄에 압축되면 클릭 후 이탈이 줄어듭니다. 지금 이 조합으로 다음 영상 키워드를 구성하세요.",
         signalSource: formatRec.sourceLabel,
       }
     );
@@ -120,7 +120,7 @@ export function buildSeoRecommendations(
         id: nextRecId("tp"),
         title: "포맷에 맞는 ‘첫 한 줄’ 정보 구조",
         shortReason:
-          "이 채널에서 추정된 포맷에 맞게, 핵심 주제를 앞쪽에 두고 부가 수식어는 뒤로 미루는 패턴을 표본 제목끼리 맞춰 보세요.",
+          "핵심 주제를 앞쪽에 두고 부가 수식어는 뒤로 이동하세요. 지금 표본 제목 3개를 골라 이 패턴으로 바로 수정해 보세요.",
         signalSource: formatRec.sourceLabel,
       }
     );
@@ -134,7 +134,7 @@ export function buildSeoRecommendations(
       id: nextRecId("kw"),
       title: makeDiagnosticLabel(line),
       shortReason:
-        `${line} — 베이스 진단에서 반복 언급된 내용입니다. 제목 앞부분의 단어 선택이 이 축과 겹치면 채널 안에서 메시지가 한 줄로 읽히기 쉽습니다.`,
+        `${line} — 이 패턴이 채널에서 반복적으로 성과를 내고 있습니다. 다음 영상 제목에서 이 축의 언어를 앞부분에 배치하세요.`,
       signalSource: "베이스 강점·패턴",
     });
   }
@@ -144,7 +144,7 @@ export function buildSeoRecommendations(
       id: nextRecId("kw"),
       title: "시리즈·반복 주제를 드러내는 접두 키워드",
       shortReason:
-        "스냅샷에 주제 반복 패턴이 있습니다. 의도된 시리즈라면 회차·파트·공통 접두를 제목 정책으로 고정하는 편이 구조 파악에 유리합니다.",
+        "주제 반복 패턴이 감지되었습니다. 회차·파트 접두어를 고정하면 시청자가 연속성을 바로 인식합니다. 지금 시리즈 제목 정책을 만드세요.",
       signalSource: "스냅샷 패턴",
     });
   }
@@ -155,7 +155,7 @@ export function buildSeoRecommendations(
       id: nextRecId("kw"),
       title: "히트 편과 비히트 편을 가르는 주제·형식 표현",
       shortReason:
-        "표본에서 조회가 소수 영상에 몰린 신호가 큽니다. ‘대표 편’ 톤만 반복하기보다, 편마다 주제 축이 제목에서 구분되는지 점검하세요.",
+        "소수 영상에 조회가 집중되어 있습니다. 히트 편 톤만 반복하기보다, 다음 영상에서 다른 주제 축을 제목 앞에 배치해 분산 실험을 하세요.",
       signalSource: brk.sourceLabel,
     });
   }
@@ -164,9 +164,9 @@ export function buildSeoRecommendations(
   if (spr && bench.performanceSpreadLevel === "high") {
     dedupePush(keywordAngles, sharedTitleSeen, {
       id: nextRecId("kw"),
-      title: "편차가 큰 표본 — 상대적으로 반응 좋았던 축의 언어 유지",
+      title: "편차가 큰 표본 — 상위 영상의 언어 구조를 지금 분석하세요",
       shortReason:
-        "같은 채널 안에서도 조회 격차가 큽니다. 상대적으로 반응이 나았던 편의 제목 구조·어휘를 표본 범위에서만 비교해 보존할지 정하세요.",
+        "조회 편차가 큽니다. 상위 영상의 제목 구조를 하위 영상과 비교하고, 반응 좋았던 어휘를 다음 영상 앞부분에 적용하세요.",
       signalSource: spr.sourceLabel,
     });
   }
@@ -177,7 +177,7 @@ export function buildSeoRecommendations(
       id: nextRecId("tp"),
       title: "발행 리듬이 보이는 제목 표기(회차·주기)",
       shortReason:
-        "업로드 간격 변동이 크게 기록되었습니다. 시청자가 기대하는 리듬을 제목·시리즈 표기로 보조할 수 있는지 확인하세요. 효과를 단정하지 않습니다.",
+        "업로드 간격이 불규칙합니다. 제목에 회차·파트 표기를 고정하면 구독자가 다음 편을 기다리게 됩니다. 지금 시리즈 표기 정책을 만드세요.",
       signalSource: upl.sourceLabel,
     });
   }
@@ -187,7 +187,7 @@ export function buildSeoRecommendations(
       id: nextRecId("tp"),
       title: "첫 구절에서 주제·포맷 구분",
       shortReason:
-        "상위 몇 편에 조회가 집중된 비중이 높게 나타났습니다. 제목 앞부분만으로 편이 구분되는지, 동일한 문구 반복이 없는지 살펴보세요.",
+        "상위 영상에 조회가 집중됩니다. 제목 첫 구절에서 편마다 주제 차이가 드러나게 바꾸면 비히트 편의 클릭률이 올라갑니다. 지금 표본 제목을 편집하세요.",
       signalSource: "채널 DNA·조회 분포",
     });
   }
@@ -200,7 +200,7 @@ export function buildSeoRecommendations(
       id: nextRecId("av"),
       title: makeDiagnosticLabel(t),
       shortReason:
-        `${t} — 베이스 진단의 주의·병목 문장과 같은 톤을 제목·태그에 반복하면, 채널 구조상 개선 여지가 줄어들 수 있습니다. 확정 진단은 아닙니다.`,
+        `${t} — 이 패턴이 제목·태그에 반복되면 채널 개선 여지가 줄어듭니다. 이 톤 대신 강점 패턴의 언어로 대체하세요.`,
       signalSource: "베이스 주의·병목",
     });
   }
@@ -210,7 +210,7 @@ export function buildSeoRecommendations(
       id: nextRecId("av"),
       title: "태그 없이 제목만으로 모든 주제를 흡수하려는 접근",
       shortReason:
-        "스냅샷에 태그 부족 패턴이 있습니다. 메타 일관성을 위해 주제 태그와 제목 앞단어를 맞추는 쪽이 이 채널 구조에 더 잘 맞을 수 있습니다.",
+        "태그 없이 제목만으로 모든 주제를 담으면 알고리즘 인식이 약해집니다. 제목 키워드와 태그를 일치시키는 구조로 지금 전환하세요.",
       signalSource: "스냅샷 패턴",
     });
   }
@@ -220,7 +220,7 @@ export function buildSeoRecommendations(
       id: nextRecId("av"),
       title: "표본 내 ‘한 방’ 히트 문법만 복제하는 제목",
       shortReason:
-        "편차가 큰 표본에서는 단일 히트 편의 문법이 다른 편에 그대로 맞지 않을 수 있습니다. 표본 전체와의 정합을 우선하세요.",
+        "편차가 큰 상태에서 히트 편 문법만 복제하면 다른 편에서 역효과가 납니다. 표본 전체와 일관된 구조를 먼저 만드세요.",
       signalSource: spr.sourceLabel,
     });
   }
@@ -231,7 +231,9 @@ export function buildSeoRecommendations(
       dedupePush(keywordAngles, sharedTitleSeen, {
         id: nextRecId("kw"),
         title: makeDiagnosticLabel(r.summaryLine),
-        shortReason: r.summaryLine ? `${r.summaryLine} — ${r.forSeo}` : r.forSeo,
+        shortReason: r.summaryLine
+          ? `${r.summaryLine} — ${r.forSeo} 지금 이 방향으로 다음 영상 키워드를 구성하세요.`
+          : `${r.forSeo} 지금 적용하세요.`,
         signalSource: r.sourceLabel,
       });
     }
@@ -244,7 +246,9 @@ export function buildSeoRecommendations(
       dedupePush(titlePatterns, sharedTitleSeen, {
         id: nextRecId("tp"),
         title: makeDiagnosticLabel(r.summaryLine),
-        shortReason: r.summaryLine ? `${r.summaryLine} — ${r.forSeo}` : r.forSeo,
+        shortReason: r.summaryLine
+          ? `${r.summaryLine} — ${r.forSeo} 지금 바로 제목에 적용하세요.`
+          : `${r.forSeo} 지금 적용하세요.`,
         signalSource: r.sourceLabel,
       });
     }
@@ -263,13 +267,13 @@ export function buildSeoRecommendations(
   let summary: string;
   if (bench.recentVideosUsed < 3) {
     summary =
-      "표본이 매우 적어 관찰 가능한 내부 신호 중심으로만 방향을 제안합니다. 검색량·순위 효과를 단정하지 않으며, /analysis·/channel-dna와 같은 저장 데이터 해석과 톤을 맞췄습니다.";
+      "표본이 적어 관찰 가능한 신호 중심으로 방향을 제시합니다. 제목·태그·포맷 중 지금 바로 바꿀 수 있는 한 가지부터 실행하세요.";
   } else if (!hasEnoughSeoSignal) {
     summary =
-      "내부 신호가 제한적입니다. 아래는 이 채널 표본 구조에 맞는지 점검하는 용도이며, 범용 키워드 탐색이 아닙니다. 근거는 저장된 스냅샷·베이스 진단·구간 점수에 한정됩니다.";
+      "내부 신호가 제한적입니다. 아래 전략은 이 채널 표본 구조에 맞는 방향이며, 지금 바로 제목 앞부분 키워드 배치부터 시작하세요.";
   } else {
     summary =
-      "이 페이지는 외부 검색량이 아니라, 저장된 분석·채널 DNA에서 읽힌 채널 구조에 맞는 제목·키워드 방향을 제안합니다. Action Plan·채널 DNA에서 쓰는 내부 해석과 같은 결을 유지했습니다.";
+      "채널 구조에서 읽어낸 알고리즘 침투 전략입니다. 아래 키워드 조합과 제목 패턴을 지금 다음 영상에 적용하세요.";
   }
 
   return {

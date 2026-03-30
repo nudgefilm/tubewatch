@@ -75,16 +75,16 @@ export function buildTrendInsights(bundle: TrendSignalsBundle): TrendInsightsBun
   let trendSummary: string;
   if (recentVideosUsed < 3) {
     trendSummary =
-      "최근 데이터가 제한적이어서 일부 흐름만 확인됩니다. 아래는 저장된 표본 범위 안에서만 해석됩니다.";
+      "데이터가 적어 일부 신호만 확인됩니다. 기존 포맷을 반복하는 전략으로 지금 시작하세요.";
   } else if (hasClear) {
     trendSummary =
-      "최근 영상에서 특정 패턴 변화가 일부 감지됩니다. 예측이나 외부 트렌드가 아니라 표본 내부 비교 결과입니다.";
+      "최근 영상에서 명확한 성과 패턴이 감지됩니다. 아래 후보 방향으로 다음 영상을 기획하세요.";
   } else if (hasMedium || records.length > 0) {
     trendSummary =
-      "뚜렷한 변화보다는 기존 패턴이 유지되는 경향이 있습니다. 일부 지표에서만 작은 차이가 보일 수 있습니다.";
+      "기존 패턴이 유지되고 있습니다. 성과를 낸 포맷을 지금 반복 제작하세요.";
   } else {
     trendSummary =
-      "뚜렷한 변화보다는 기존 패턴이 유지되는 경향이 있습니다. 표본에서 추가 신호를 만들지 않았습니다.";
+      "뚜렷한 신호가 없습니다. 기존 포맷을 유지하며 1편 실험하세요.";
   }
 
   const maxR = maxPerCategory(recentVideosUsed, hasEnoughTrendSignal);

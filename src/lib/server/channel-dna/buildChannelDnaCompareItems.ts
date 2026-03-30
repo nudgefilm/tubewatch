@@ -1,30 +1,9 @@
-import { CHANNEL_DNA_AXES, type ChannelDnaAxisKey } from "./channelDnaAxes";
+import { CHANNEL_DNA_AXES } from "./channelDnaAxes";
 import type {
   ChannelDnaCompareItem,
   ChannelDnaResultRow,
 } from "@/components/channel-dna/channelDnaPageTypes";
-
-function extractMetrics(
-  snapshot: Record<string, unknown> | null
-): Record<ChannelDnaAxisKey, number> | null {
-  if (!snapshot || typeof snapshot !== "object") return null;
-  const raw = snapshot.metrics;
-  if (!raw || typeof raw !== "object") return null;
-  const m = raw as Record<string, unknown>;
-  const keys: ChannelDnaAxisKey[] = [
-    "avgViewCount",
-    "avgLikeRatio",
-    "avgCommentRatio",
-    "avgUploadIntervalDays",
-  ];
-  const hasAny = keys.some((k) => typeof m[k] === "number");
-  if (!hasAny) return null;
-  const out: Record<string, number> = {};
-  for (const k of keys) {
-    out[k] = typeof m[k] === "number" ? (m[k] as number) : 0;
-  }
-  return out as Record<ChannelDnaAxisKey, number>;
-}
+import { normalizeFeatureSnapshot } from "@/lib/analysis/normalizeSnapshot";
 
 /**
  * current_score vs baseline_score → status_label
@@ -47,7 +26,7 @@ export function buildChannelDnaCompareItems(
 ): ChannelDnaCompareItem[] {
   const items: ChannelDnaCompareItem[] = [];
 
-  if (!row || !row.feature_snapshot) {
+  if (!row) {
     for (const axis of CHANNEL_DNA_AXES) {
       items.push({
         title: axis.label,
@@ -60,12 +39,15 @@ export function buildChannelDnaCompareItems(
     return items;
   }
 
-  const metrics = extractMetrics(row.feature_snapshot);
+  // 공통 정규화 레이어: raw snapshot → NormalizedSnapshot (단일 진입점)
+  const normalized = normalizeFeatureSnapshot(row.feature_snapshot);
+  const metricsNorm = normalized.metrics; // Record<string, number> | null
 
   for (const axis of CHANNEL_DNA_AXES) {
+    // metricsNorm[axis.key]는 Record<string, number>로 타입되지만 키 미존재 시 undefined(런타임)
     const rawValue =
-      metrics && typeof metrics[axis.key] === "number"
-        ? metrics[axis.key]
+      metricsNorm != null && typeof (metricsNorm as Record<string, unknown>)[axis.key] === "number"
+        ? metricsNorm[axis.key]
         : 0;
     const current_score = Math.round(axis.normalize(rawValue));
     const baseline_score = axis.baseline;
@@ -74,7 +56,7 @@ export function buildChannelDnaCompareItems(
       current_score,
       baseline_score,
       status_label: getStatusLabel(current_score, baseline_score),
-      source: metrics ? "feature_snapshot" : "fallback",
+      source: metricsNorm ? "feature_snapshot" : "fallback",
     });
   }
 

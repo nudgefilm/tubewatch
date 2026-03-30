@@ -173,6 +173,30 @@ export type ChannelDnaStructureSummary = Omit<typeof channelDnaData.structureSum
   hitDependency: number | null
 }
 
-export type ChannelDnaData = Omit<typeof channelDnaData, "structureSummary"> & {
+/** 패턴 카드 항목 — score는 선택적 (0–100, 없으면 placeholder 렌더) */
+export type DnaPatternItem = {
+  pattern: string
+  frequency: string
+  description: string
+  examples: string[]
+  score?: number
+}
+
+export type ChannelDnaPatternAnalysis = {
+  highPerformancePatterns: DnaPatternItem[]
+  lowPerformancePatterns: DnaPatternItem[]
+  titleStructure: { dominant: string; consistency: number }
+  formatRepetition: { dominant: string; consistency: number }
+  topicClusters: { topic: string; weight: number }[]
+  uploadCycleImpact: {
+    optimalCycle: string
+    currentCycle: string
+    performanceCorrelation: string
+    note: string
+  }
+}
+
+export type ChannelDnaData = Omit<typeof channelDnaData, "structureSummary" | "patternAnalysis"> & {
   structureSummary: ChannelDnaStructureSummary
+  patternAnalysis: ChannelDnaPatternAnalysis
 }

@@ -100,6 +100,85 @@ function strengthForVm(
   return r?.strength ?? "low";
 }
 
+/**
+ * 신호 기반 관찰 문장을 "다음 영상 아이디어" 제목 형태로 변환한다.
+ * 계산 로직 없음, 표현 레이어만.
+ */
+function toActionTopic(headline: string): string {
+  const h = headline;
+  const tokenMatch = h.match(/제목에서 '([^']+)' 표현이/);
+  if (tokenMatch) {
+    const tok = tokenMatch[1];
+    return `'${tok}' 주제로 이어지는 다음 편 — 이 축으로 시리즈를 이어가세요`;
+  }
+  if (h.includes("최근 공개 쪽이") && h.includes("높게")) {
+    return "상승 흐름 유지 — 이 포맷으로 다음 영상을 바로 이어 제작하세요";
+  }
+  if (h.includes("최근 공개 쪽이") && h.includes("낮게")) {
+    return "조회 하락 대응 — 포맷을 점검하고 다음 편 방향을 전환하세요";
+  }
+  if (h.includes("표본 평균 대비 조회가 높게")) {
+    return "고조회 포맷 재현 — 이 패턴으로 다음 영상을 기획하세요";
+  }
+  if (h.includes("짧은 길이") || (h.includes("비중") && h.includes("높게"))) {
+    return "숏폼 전환 신호 — 짧은 포맷으로 1편 실험하세요";
+  }
+  if (h.includes("긴 영상 비중") || (h.includes("재생 길이") && h.includes("길게"))) {
+    return "롱폼 전환 신호 — 깊이 있는 주제 1편을 기획하세요";
+  }
+  if (h.includes("편차가 크다")) {
+    return "성과 편차 분석 — 고조회 영상 패턴을 찾아 다음 편에 적용하세요";
+  }
+  if (h.includes("주제·포맷 반복 패턴")) {
+    return "반복 패턴 강화 — 시리즈로 명시화해 다음 편을 연속 제작하세요";
+  }
+  if (h.includes("공개 간격이") && h.includes("짧게")) {
+    return "업로드 리듬 유지 — 이 속도로 다음 편을 바로 기획하세요";
+  }
+  if (h.includes("공개 간격이") && h.includes("길게")) {
+    return "업로드 간격 회복 — 다음 편 공개일을 지금 달력에 고정하세요";
+  }
+  return h;
+}
+
+/**
+ * 신호 기반 설명을 "실행 방향" 문장으로 변환한다.
+ */
+function toActionReason(originalTopic: string, originalReason: string): string {
+  const h = originalTopic;
+  if (h.includes("주제로 이어지는")) {
+    return "이 키워드가 여러 편 제목에 반복 등장합니다. 시청자에게 이 주제의 연속성이 각인되고 있습니다. 다음 편에서도 같은 축을 유지하면 시리즈 효과를 기대할 수 있습니다.";
+  }
+  if (h.includes("상승 흐름 유지")) {
+    return "최근 공개 편의 조회가 이전 평균보다 높아지고 있습니다. 이 포맷과 주제 방향을 유지하며 연속 제작하세요.";
+  }
+  if (h.includes("조회 하락 대응")) {
+    return "최근 편의 조회가 이전 평균보다 낮아지고 있습니다. 제목·썸네일·첫 15초 중 하나를 변경해 2~3편 테스트하세요.";
+  }
+  if (h.includes("고조회 포맷 재현")) {
+    return "특정 영상의 조회가 표본 평균을 크게 웃돌고 있습니다. 이 포맷과 주제 구조를 분석하고, 같은 접근으로 다음 편을 만드세요.";
+  }
+  if (h.includes("숏폼 전환")) {
+    return "최근 표본에서 짧은 영상 비중이 높아지고 있습니다. 숏폼 1편을 테스트해 반응 차이를 직접 측정하세요.";
+  }
+  if (h.includes("롱폼 전환")) {
+    return "최근 표본에서 긴 영상 비중이 높아지고 있습니다. 깊이 있는 주제 1편을 기획해 시청 유지율을 테스트하세요.";
+  }
+  if (h.includes("성과 편차 분석")) {
+    return "조회수 편차가 크게 기록되었습니다. 고조회 영상과 저조회 영상의 제목·포맷 차이를 비교해 반복 가능한 패턴을 찾으세요.";
+  }
+  if (h.includes("반복 패턴 강화")) {
+    return "주제·포맷 반복 패턴이 감지되었습니다. 시리즈 제목에 회차·파트 표기를 추가하면 시청자 기대감을 높일 수 있습니다.";
+  }
+  if (h.includes("업로드 리듬")) {
+    return "공개 간격이 짧아지는 흐름입니다. 이 리듬을 유지하면 알고리즘이 채널을 활성 상태로 인식합니다.";
+  }
+  if (h.includes("업로드 간격 회복")) {
+    return "공개 간격이 길어지고 있습니다. 다음 달 업로드 예정일을 달력에 먼저 배치하고 병목 구간을 점검하세요.";
+  }
+  return originalReason;
+}
+
 /** 우선순위: 반복 주제 > 패턴, 같은 출처면 신호 강도(clear>medium>low) */
 function sortKey(
   vm: TrendItemVm,
@@ -176,11 +255,14 @@ function mergeCandidates(
     }
   }
 
-  return merged.slice(0, max).map(({ topic, reason, signal }) => ({
-    topic,
-    reason,
-    signal,
-  }));
+  return merged.slice(0, max).map(({ topic, reason, signal }) => {
+    const actionTopic = toActionTopic(topic);
+    return {
+      topic: actionTopic,
+      reason: toActionReason(actionTopic, reason),
+      signal,
+    };
+  });
 }
 
 function readAnalysisConfidence(
@@ -260,8 +342,8 @@ export function buildNextTrendInternalSpec(
 
   const seriesPotential =
     insights.repeatedTopics.length > 0
-      ? "제목에 같은 표현이 반복되는 신호가 있어, 같은 축의 시리즈로 묶을 여지가 있습니다. 시청 반응과 함께 판단하세요."
-      : "반복 주제 신호가 약해 표본만으로는 시리즈성을 강하게 단정하지 않았습니다.";
+      ? "반복 주제 신호가 있습니다. 지금 이 주제를 시리즈로 명시화하고 다음 편에서 회차 표기를 시작하세요."
+      : "시리즈 신호가 약합니다. 기존 포맷을 유지하면서 1편 실험하세요.";
 
   const riskyFromFlags = bundle.records.some(
     (r) =>
@@ -270,8 +352,8 @@ export function buildNextTrendInternalSpec(
   );
   const riskyTopic =
     riskyFromFlags || insights.detectedPatterns.some((p) => p.title.includes("편차"))
-      ? "표본에서 조회 격차·최근 구간 하락 신호가 보이면 주제 피로·썸네일·첫 15초 품질을 의심해볼 수 있습니다."
-      : "저장된 표본만으로는 특정 ‘위험 주제’를 지목하지 않습니다. 채널 정책·민감 주제는 별도 검토하세요.";
+      ? "조회 격차나 하락 신호가 있습니다. 제목·썸네일·첫 15초 중 하나를 변경해 2~3편 테스트하세요."
+      : "표본에서 뚜렷한 리스크 신호가 없습니다. 기존 방향을 유지하세요.";
 
   const confidence = deriveConfidence(
     bundle.recentVideosUsed,
@@ -297,10 +379,10 @@ export function buildNextTrendInternalSpec(
   const hints: NextTrendHintsVm = {
     titleDirection:
       insights.repeatedTopics[0]?.title
-        ? `반복되는 표현(예: ${insights.repeatedTopics[0].title.slice(0, 48)}…)을 제목 앞부분에 유지하는 방향을 검토할 수 있습니다.`
-        : "표본 상위 키워드가 있으면 제목 앞쪽에 배치해 검색·시청 연속성을 맞춥니다.",
-    hook: "첫 15초 안에 결론·숫자·변화 요약을 제시해 이탈을 줄입니다.",
-    thumbnail: "반복 시청자에게 익숙한 색·구도를 유지하되, 클릭베이트와 내용 괴리는 피합니다.",
+        ? `반복 확인된 표현 '${insights.repeatedTopics[0].title.slice(0, 48)}'을 다음 제목 앞부분에 유지하세요.`
+        : "표본 상위 키워드를 제목 앞쪽에 배치하세요. 검색과 시청 연속성이 높아집니다.",
+    hook: "첫 15초에 결론·숫자·핵심 변화를 먼저 보여주세요. 이탈률이 떨어집니다.",
+    thumbnail: "기존 시청자에게 익숙한 색·구도를 유지하세요. 클릭베이트는 이탈률을 높입니다.",
     contentAngle: insights.trendSummary,
   };
 
@@ -308,12 +390,12 @@ export function buildNextTrendInternalSpec(
     videoPlanDraft: [
       `1) ${insights.trendSummary}`,
       candidates[0]
-        ? `2) 후보 주제: ${candidates[0].topic} — ${candidates[0].reason}`
-        : "2) 표본에서 뚜렷한 후보 한 줄이 없으면 최근 반응이 좋았던 편과 동일 각도로 1편 테스트.",
-      `3) 포맷: ${formatHeadline}`,
+        ? `2) 지금 만들 영상: ${candidates[0].topic}`
+        : "2) 후보 신호가 없으면 최근 반응이 좋았던 편과 동일 포맷으로 1편 먼저 제작하세요.",
+      `3) 포맷 방향: ${formatHeadline}`,
     ].join("\n"),
     titleThumbnail:
-      "제목: 반복되는 키워드 + 이번 편만의 구체 결과(숫자·기간). 썸네일: 대표 프레임 + 짧은 라벨로 기대값을 맞춥니다.",
+      "제목: 반복 키워드 + 이번 편만의 구체 숫자·기간을 앞쪽에 배치하세요. 썸네일: 대표 프레임 + 짧은 라벨로 클릭 기대값을 맞추세요.",
     contentPlan: [
       formatDetail,
       formatDurationHint(dur.avgDurationSec, dur.sampleCount),
@@ -331,9 +413,9 @@ export function buildNextTrendInternalSpec(
         ? candidates
         : [
             {
-              topic: "표본에서 후보 한 줄을 만들지 않았습니다",
+              topic: "신호 부족 — 기존 포맷 반복 전략으로 시작하세요",
               reason:
-                "반복·패턴 신호가 비어 있거나 중복만 있었습니다. 표본을 늘리거나 다음 분석 후 다시 확인하세요.",
+                "반복·패턴 신호가 충분하지 않습니다. 최근 반응이 좋았던 영상과 동일한 포맷으로 1편을 먼저 제작하고, 표본을 늘린 뒤 다시 확인하세요.",
               signal: "내부 표본 신호",
             },
           ],

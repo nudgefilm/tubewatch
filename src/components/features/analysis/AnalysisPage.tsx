@@ -9,6 +9,7 @@ import { AnalysisTopBottomCompare } from "./sections/TopBottomCompareSection"
 import { AnalysisSummarySection } from "./sections/SummarySection"
 import { AnalysisEmptyState } from "./sections/EmptyState"
 import { StrategicCommentCard } from "@/components/features/shared/StrategicCommentCard"
+import { PageFlowConnector } from "@/components/features/shared/PageFlowConnector"
 import type {
   ChannelData,
   KpiData,
@@ -267,7 +268,7 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel }: C
         <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight lg:text-3xl">Channel Analysis</h1>
-            <p className="mt-1 text-sm text-muted-foreground">채널 현재 상태를 구조화한 원천 데이터 허브</p>
+            <p className="mt-1 text-sm text-muted-foreground">채널 건강검진 리포트</p>
           </div>
           <AnalysisEmptyState type="no-data" title="채널 분석 결과가 없습니다" description="사이드바에서 채널을 선택하거나, 채널을 등록하면 분석을 시작할 수 있습니다." />
         </div>
@@ -285,16 +286,34 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel }: C
   const summaryData = mapToSummaryData(viewModel)
   const trendInterpretation = viewModel.growthScenarioLine ?? undefined
 
-  // No-channel guard
+  // 재진단 상태 신호
+  const isAnalysisRunning = viewModel.menuStatus === "queued" || viewModel.menuStatus === "running"
+  const isAnalysisCompleted = viewModel.menuStatus === "completed"
+  const isNeedsRefresh = viewModel.menuStatus === "needs_refresh"
+  // 슬라이딩 윈도우 N값 — ViewModel에서 우선 사용, fallback은 recentVideos 길이
+  const sampleCount: number | null =
+    (viewModel.reportPresentation?.sampleVideoCount ?? null) ??
+    (viewModel.recentVideos.length > 0 ? viewModel.recentVideos.length : null)
+
+  // No-channel guard — 온보딩형 안내
   if (!viewModel.hasChannel) {
     return (
       <div className="min-h-screen bg-background">
         <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight lg:text-3xl">Channel Analysis</h1>
-            <p className="mt-1 text-sm text-muted-foreground">채널 현재 상태를 구조화한 원천 데이터 허브</p>
+            <p className="mt-1 text-sm text-muted-foreground">채널 건강검진 리포트</p>
           </div>
-          <AnalysisEmptyState type="no-data" title="채널이 없습니다" description="채널을 먼저 등록하면 분석을 시작할 수 있습니다." />
+          <div className="flex min-h-[280px] flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
+            <h3 className="mb-2 text-lg font-semibold">먼저 분석할 채널을 추가하세요</h3>
+            <p className="mb-6 text-sm text-muted-foreground">채널을 등록하면 바로 분석을 시작할 수 있습니다</p>
+            <a
+              href="/channels"
+              className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 transition-colors"
+            >
+              채널 추가하기
+            </a>
+          </div>
         </div>
       </div>
     )
@@ -302,75 +321,145 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel }: C
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
+      <div className="mx-auto max-w-7xl space-y-8 p-6 lg:p-8">
         {/* Page Header */}
         <div>
           <h1 className="text-2xl font-semibold tracking-tight lg:text-3xl">Channel Analysis</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            채널 현재 상태를 구조화한 원천 데이터 허브
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">채널 건강검진 리포트</p>
         </div>
 
-        {/* A. Channel Header */}
-        <AnalysisHeaderSection channel={channelData} />
-
-        {/* 분석 결과 없음 안내 — 빈 화면 대신 최소 상태로 계속 렌더 */}
-        {!viewModel.hasAnalysisResult && (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-950/30">
-            <p className="text-sm text-amber-800 dark:text-amber-200">
-              {viewModel.headlineDiagnosis ??
-                "아직 이 채널에 대한 분석 결과가 없습니다. 분석이 완료되면 아래 항목들이 채워집니다."}
-            </p>
+        {/* 실시간 채널 컨디션 보드 */}
+        <section className="space-y-4">
+          <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
+            <h2 className="text-xl font-bold tracking-tight">실시간 채널 컨디션 보드</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">현재 채널 상태와 진단 결과를 한눈에 확인합니다</p>
           </div>
-        )}
 
-        {/* 데이터 제한 안내 (부분 데이터) */}
-        {viewModel.hasAnalysisResult && viewModel.limitNotice && (
-          <div className="rounded-lg border border-muted bg-muted/30 px-4 py-3">
-            <p className="text-sm text-muted-foreground">{viewModel.limitNotice}</p>
+          <AnalysisHeaderSection channel={channelData} />
+
+          {/* 분석 결과 없음 안내 — 빈 화면 대신 최소 상태로 계속 렌더 */}
+          {!viewModel.hasAnalysisResult && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-950/30">
+              <p className="text-sm text-amber-800 dark:text-amber-200">
+                {viewModel.headlineDiagnosis ??
+                  "아직 이 채널에 대한 분석 결과가 없습니다. 분석이 완료되면 아래 항목들이 채워집니다."}
+              </p>
+            </div>
+          )}
+
+          {/* STEP 1 — 재진단 실행 중 안내 */}
+          {isAnalysisRunning && (
+            <div className="rounded-lg border border-blue-200 bg-blue-50/60 px-4 py-3 space-y-1 dark:border-blue-800 dark:bg-blue-950/20">
+              <p className="text-sm font-medium text-blue-800 dark:text-blue-300">채널을 분석 중입니다. 새로 추가된 영상을 반영하고 있습니다.</p>
+              <p className="text-xs text-blue-700 dark:text-blue-400">기존 결과를 모두 다시 계산하는 방식이 아니라, 새 영상 중심으로 분석이 업데이트됩니다.</p>
+            </div>
+          )}
+
+          {/* 데이터 제한 안내 (부분 데이터) */}
+          {viewModel.hasAnalysisResult && viewModel.limitNotice && (
+            <div className="rounded-lg border border-muted bg-muted/30 px-4 py-3">
+              <p className="text-sm text-muted-foreground">{viewModel.limitNotice}</p>
+            </div>
+          )}
+
+          {/* STEP 2 — 재진단 제한 상태 보강 (needs_refresh) */}
+          {viewModel.hasAnalysisResult && isNeedsRefresh && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50/50 px-4 py-3 space-y-1 dark:border-amber-800 dark:bg-amber-950/20">
+              <p className="text-xs text-amber-800 dark:text-amber-300">최근 12시간 이내에는 새 영상 데이터가 충분히 쌓이지 않아 결과 변화가 작을 수 있습니다.</p>
+              <p className="text-xs text-amber-700 dark:text-amber-400">지금은 기존 분석 기준을 유지하고, 데이터가 더 쌓인 뒤 다시 반영됩니다.</p>
+            </div>
+          )}
+
+          {/* STEP 3 — 재진단 완료 상태 안내 */}
+          {viewModel.hasAnalysisResult && isAnalysisCompleted && (
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 px-4 py-2.5 dark:border-emerald-800 dark:bg-emerald-950/20">
+              <p className="text-xs text-emerald-800 dark:text-emerald-300">새로 추가된 영상이 분석에 반영되었습니다.</p>
+              <p className="text-xs text-emerald-700 dark:text-emerald-400">
+                {sampleCount != null
+                  ? `최신 기준으로 최근 ${sampleCount}개 영상 구성이 업데이트되었습니다.`
+                  : "최신 기준으로 영상 구성이 업데이트되었습니다."}
+              </p>
+            </div>
+          )}
+        </section>
+
+        {/* 성장 엔진 핵심 지표 */}
+        <section className="space-y-4">
+          <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
+            <h2 className="text-xl font-bold tracking-tight">성장 엔진 핵심 지표</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">업로드 빈도·조회 반응·콘텐츠 구조 등 핵심 수치를 구간별로 확인합니다</p>
           </div>
-        )}
+          <div className="grid gap-4 lg:grid-cols-[1.2fr_2fr]">
+            <AnalysisScoreOverview score={score} sectionScores={sectionScores} />
+            <AnalysisKpiCards data={kpiData} />
+          </div>
+        </section>
 
-        {/* B. Score Overview + KPI Cards (최소 상태라도 항상 렌더) */}
-        <div className="grid gap-4 lg:grid-cols-[1.2fr_2fr]">
-          <AnalysisScoreOverview score={score} sectionScores={sectionScores} />
-          <AnalysisKpiCards data={kpiData} />
-        </div>
+        {/* 조회수 흐름 시그널 */}
+        <section className="space-y-4">
+          <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
+            <h2 className="text-xl font-bold tracking-tight">조회수 흐름 시그널</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">최근 표본 영상의 조회수 변화 흐름을 시각화합니다</p>
+          </div>
+          {trendData.length >= 1 ? (
+            <AnalysisViewTrendChart
+              data={trendData}
+              interpretation={trendInterpretation}
+            />
+          ) : (
+            <AnalysisEmptyState
+              type="insufficient-samples"
+              title="조회 흐름 데이터 부족"
+              description="영상 데이터가 있으면 조회 추세 차트가 표시됩니다."
+            />
+          )}
+        </section>
 
-        {/* F. View Trend Chart */}
-        {trendData.length >= 1 ? (
-          <AnalysisViewTrendChart
-            data={trendData}
-            interpretation={trendInterpretation}
-          />
-        ) : (
-          <AnalysisEmptyState
-            type="insufficient-samples"
-            title="조회 흐름 데이터 부족"
-            description="영상 데이터가 있으면 조회 추세 차트가 표시됩니다."
-          />
-        )}
+        {/* 최근 성과 히스토리 */}
+        <section className="space-y-4">
+          <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
+            <h2 className="text-xl font-bold tracking-tight">최근 성과 히스토리</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">스냅샷에 포함된 최근 영상과 상위·하위 성과 비교를 확인합니다</p>
+          </div>
+          {videosData.length > 0 ? (
+            <AnalysisRecentVideosSection videos={videosData} />
+          ) : (
+            <AnalysisEmptyState
+              type="no-data"
+              title="최근 영상 없음"
+              description="분석 대상 영상이 없습니다."
+            />
+          )}
+          <AnalysisTopBottomCompare data={comparisonData} sampleCount={videosData.length} videos={videosData} />
+        </section>
 
-        {/* C. Recent Videos List */}
-        {videosData.length > 0 ? (
-          <AnalysisRecentVideosSection videos={videosData} />
-        ) : (
-          <AnalysisEmptyState
-            type="no-data"
-            title="최근 영상 없음"
-            description="분석 대상 영상이 없습니다."
-          />
-        )}
-
-        {/* D. Top/Bottom Performance Comparison */}
-        <AnalysisTopBottomCompare data={comparisonData} sampleCount={videosData.length} videos={videosData} />
-
-        {/* E. Summary Section */}
+        {/* 종합 해석 */}
         <AnalysisSummarySection data={summaryData} />
 
-        {/* F. Strategic Comment */}
+        {/* STEP 4 — 슬라이딩 윈도우 안내 */}
+        {viewModel.hasAnalysisResult && (
+          <div className="rounded-lg border border-muted bg-muted/20 px-4 py-3 space-y-1">
+            <p className="text-xs text-muted-foreground">
+              {sampleCount != null
+                ? `분석 기준은 항상 최근 ${sampleCount}개 영상으로 유지됩니다.`
+                : "분석 기준은 항상 최근 영상 중심으로 유지됩니다."}
+            </p>
+            <p className="text-xs text-muted-foreground">새 영상이 들어오면 가장 오래된 일부 영상은 이번 분석 기준에서 빠질 수 있습니다.</p>
+          </div>
+        )}
+
+        {/* TubeWatch 전략 코멘트 */}
         {viewModel.strategicComment && (
           <StrategicCommentCard data={viewModel.strategicComment} />
+        )}
+
+        {/* 분석 완료 → Action Plan 유도 */}
+        {viewModel.hasAnalysisResult && (
+          <PageFlowConnector
+            message="분석이 완료되었습니다. 이제 실행 전략을 확인하세요."
+            ctaLabel="Action Plan 보기"
+            href="/action-plan"
+          />
         )}
       </div>
     </div>

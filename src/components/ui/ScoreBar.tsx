@@ -4,9 +4,11 @@ interface ScoreBarProps {
   label: string
   /** 0–100 scale */
   score: number
+  /** 점수 아래 해석 문장 (선택) */
+  hint?: string
 }
 
-export function ScoreBar({ label, score }: ScoreBarProps) {
+export function ScoreBar({ label, score, hint }: ScoreBarProps) {
   const safe = Math.max(0, Math.min(100, Math.round(score)))
   return (
     <div className="space-y-1">
@@ -20,6 +22,9 @@ export function ScoreBar({ label, score }: ScoreBarProps) {
           style={{ width: `${safe}%` }}
         />
       </div>
+      {hint && (
+        <p className="text-xs text-muted-foreground">{hint}</p>
+      )}
     </div>
   )
 }

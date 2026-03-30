@@ -2,6 +2,10 @@ import type { AnalysisPageData, AnalysisResultRow } from "@/lib/analysis/getAnal
 import type { ChannelMetrics } from "@/lib/analysis/engine/types";
 import { enrichRowScores } from "@/lib/server/analysis/mapAnalysisHistoryAndCompare";
 import { parseSectionScores } from "@/lib/analysis/engine/parseSectionScores";
+import {
+  normalizeFeatureSnapshot,
+  type NormalizedSnapshotVideo,
+} from "@/lib/analysis/normalizeSnapshot";
 
 /** 세 구간 요약 — 스냅샷만으로 판별 불가 시 null */
 export type ChannelDnaTriLevel = "low" | "medium" | "high";
@@ -46,82 +50,11 @@ export type InternalChannelDnaSummaryVm = {
   readonly sectionScoresLine: string | null;
 };
 
-type SnapshotVideo = {
-  title: string;
-  publishedAt: string | null;
-  viewCount: number | null;
-  durationSeconds: number | null;
-};
-
-function isRecord(v: unknown): v is Record<string, unknown> {
-  return typeof v === "object" && v !== null && !Array.isArray(v);
-}
-
 function safeStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) {
     return [];
   }
   return value.filter((x): x is string => typeof x === "string" && x.trim() !== "");
-}
-
-function extractMetrics(snapshot: unknown): Partial<Record<keyof ChannelMetrics, number>> | null {
-  if (!isRecord(snapshot)) {
-    return null;
-  }
-  const raw = snapshot.metrics;
-  if (!isRecord(raw)) {
-    return null;
-  }
-  return raw as Partial<Record<keyof ChannelMetrics, number>>;
-}
-
-function extractPatternStrings(snapshot: unknown): string[] {
-  if (!isRecord(snapshot)) {
-    return [];
-  }
-  const raw = snapshot.patterns;
-  if (!Array.isArray(raw)) {
-    return [];
-  }
-  return raw.filter((x): x is string => typeof x === "string" && x.trim() !== "");
-}
-
-function parseSnapshotVideos(snapshot: unknown): SnapshotVideo[] {
-  if (!isRecord(snapshot)) {
-    return [];
-  }
-  const raw = snapshot.videos ?? snapshot.sample_videos;
-  if (!Array.isArray(raw)) {
-    return [];
-  }
-  const out: SnapshotVideo[] = [];
-  for (const item of raw) {
-    if (!isRecord(item)) {
-      continue;
-    }
-    const title = typeof item.title === "string" ? item.title.trim() : "";
-    if (!title) {
-      continue;
-    }
-    const publishedAt =
-      typeof item.publishedAt === "string"
-        ? item.publishedAt
-        : typeof item.published_at === "string"
-          ? item.published_at
-          : null;
-    const viewCount =
-      typeof item.viewCount === "number"
-        ? item.viewCount
-        : typeof item.view_count === "number"
-          ? item.view_count
-          : null;
-    const durationSeconds =
-      typeof item.durationSeconds === "number" && Number.isFinite(item.durationSeconds)
-        ? item.durationSeconds
-        : null;
-    out.push({ title, publishedAt, viewCount, durationSeconds });
-  }
-  return out;
 }
 
 function medianSorted(sorted: number[]): number | null {
@@ -321,10 +254,12 @@ export function buildInternalChannelDnaSummary(
 
   const rawRow = data.latestResult as AnalysisResultRow;
   const scoredRow = enrichRowScores(rawRow);
-  const snapshot = rawRow.feature_snapshot;
-  const videos = parseSnapshotVideos(snapshot);
-  const metrics = extractMetrics(snapshot);
-  const patterns = extractPatternStrings(snapshot);
+
+  // 공통 정규화 레이어: raw snapshot → NormalizedSnapshot (단일 진입점)
+  const normalized = normalizeFeatureSnapshot(rawRow.feature_snapshot);
+  const videos: NormalizedSnapshotVideo[] = normalized.videos;
+  const metrics = normalized.metrics as Partial<Record<keyof ChannelMetrics, number>> | null;
+  const patterns = normalized.patterns;
   const strengths = safeStringArray(rawRow.strengths);
   const weaknesses = safeStringArray(rawRow.weaknesses);
   const bottlenecks = safeStringArray(rawRow.bottlenecks);

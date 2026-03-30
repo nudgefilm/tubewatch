@@ -24,6 +24,7 @@ import { buildSeoRecommendations } from "@/lib/seo-lab/buildSeoRecommendations";
 import type { SeoStrategyItemVm } from "@/lib/seo-lab/seoLabStrategyTypes";
 import type { StrategicCommentVm } from "@/lib/shared/strategicCommentTypes";
 import { parseSectionScores } from "@/lib/analysis/engine/parseSectionScores";
+import { normalizeFeatureSnapshot } from "@/lib/analysis/normalizeSnapshot";
 
 export type SeoLabCheckCardVm = {
   id: string;
@@ -93,11 +94,6 @@ type ChannelSectionScores = {
 
 type MetricsPartial = Partial<Record<keyof ChannelMetrics, number>>;
 
-type SnapshotVideo = {
-  title: string;
-  publishedAt: string | null;
-};
-
 const SEO_TEXT_KEYS = [
   "seo",
   "제목",
@@ -141,65 +137,17 @@ function uniqueTrimmed(items: string[]): string[] {
   return out;
 }
 
-function extractMetricsFromSnapshot(snapshot: unknown): MetricsPartial | null {
-  if (!snapshot || typeof snapshot !== "object") {
-    return null;
-  }
-  const raw = (snapshot as Record<string, unknown>).metrics;
-  if (!raw || typeof raw !== "object") {
-    return null;
-  }
-  return raw as MetricsPartial;
-}
-
-function extractPatternFlags(snapshot: unknown): string[] {
-  if (!snapshot || typeof snapshot !== "object") {
-    return [];
-  }
-  const raw = (snapshot as Record<string, unknown>).patterns;
-  if (!Array.isArray(raw)) {
-    return [];
-  }
-  return raw.filter((x): x is string => typeof x === "string");
-}
-
-function parseVideosFromSnapshot(snapshot: unknown): SnapshotVideo[] {
-  if (!snapshot || typeof snapshot !== "object") {
-    return [];
-  }
-  const obj = snapshot as Record<string, unknown>;
-  const raw = obj.videos ?? obj.sample_videos;
-  if (!Array.isArray(raw)) {
-    return [];
-  }
-  const rows: SnapshotVideo[] = [];
-  for (const item of raw) {
-    if (!item || typeof item !== "object") continue;
-    const r = item as Record<string, unknown>;
-    const title = typeof r.title === "string" ? r.title.trim() : "";
-    if (!title) continue;
-    const publishedAt =
-      typeof r.publishedAt === "string"
-        ? r.publishedAt
-        : typeof r.published_at === "string"
-          ? r.published_at
-          : null;
-    rows.push({ title, publishedAt });
-  }
-  return rows;
-}
-
 function hintForTitle(title: string, avgTitleLen: number | null): string {
   const len = title.length;
   if (avgTitleLen != null && Number.isFinite(avgTitleLen) && avgTitleLen > 0) {
     if (len < avgTitleLen * 0.65) {
-      return `이 표본 제목(${len}자)은 스냅샷 평균 제목 길이(약 ${Math.round(avgTitleLen)}자)보다 짧습니다. 핵심 주제가 드러나는지 확인하세요. 예시 문구는 생성하지 않습니다.`;
+      return `이 제목(${len}자)은 평균(${Math.round(avgTitleLen)}자)보다 짧습니다. 핵심 주제가 앞에 드러나도록 지금 수정하세요.`;
     }
     if (len > avgTitleLen * 1.35) {
-      return `이 표본 제목(${len}자)은 평균보다 깁니다. 앞부분에서 주제가 보이는지, 모바일에서 잘리는지 확인하세요. 대체 제목은 제안하지 않습니다.`;
+      return `이 제목(${len}자)이 평균보다 깁니다. 앞 15자 안에 핵심 키워드가 오도록 다듬으세요.`;
     }
   }
-  return "저장된 표본 제목입니다. 검색 의도·주제가 앞쪽에 드러나는지 검토하세요. 외부 검색량 데이터는 연동되어 있지 않습니다.";
+  return "이 제목이 검색 의도와 맞는지 확인하세요. 핵심 주제가 앞쪽에 드러나면 클릭률이 올라갑니다.";
 }
 
 const PATTERN_INSIGHTS: Record<
@@ -207,45 +155,45 @@ const PATTERN_INSIGHTS: Record<
   { title: string; description: string; tone: "neutral" | "caution" }
 > = {
   low_tag_usage: {
-    title: "태그 사용량이 낮게 탐지됨",
+    title: "태그 부족 — 지금 바로 주제 태그를 추가하세요",
     description:
-      "스냅샷 패턴에 low_tag_usage가 포함되어 있습니다. 주제와 직접 연관된 태그를 빠짐없이 쓰는지, 불필요한 나열은 없는지 점검하세요.",
+      "태그 수가 낮게 탐지되었습니다. 영상 주제와 직접 연관된 태그 5~10개를 지금 추가하고, 제목 앞부분 키워드와 일치시키세요.",
     tone: "caution",
   },
   repeated_topic_pattern: {
-    title: "주제·포맷 반복 패턴",
+    title: "반복 주제 — 시리즈 접두어를 통일하세요",
     description:
-      "repeated_topic_pattern 플래그가 있습니다. 시리즈 의도라면 일관성을 유지하고, 피로 요인인지는 직접 시청 데이터로 판단하세요.",
+      "주제·포맷 반복 패턴이 감지되었습니다. 의도적 시리즈라면 회차·파트 표기를 제목 정책으로 고정하세요. 시청자가 연속성을 바로 인식할 수 있도록 접두어를 통일합니다.",
     tone: "neutral",
   },
   irregular_upload_interval: {
-    title: "업로드 간격 불규칙",
+    title: "업로드 간격 불규칙 — 발행 달력을 만드세요",
     description:
-      "irregular_upload_interval이 기록되었습니다. 검색 노출과 간접적으로 연관될 수 있으나, 인과관계는 단정하지 않습니다.",
+      "업로드 간격이 불규칙하게 기록되었습니다. 다음 달 업로드 예정일을 달력에 고정하고, 제목·시리즈 표기와 리듬을 맞추세요.",
     tone: "neutral",
   },
   low_upload_frequency: {
-    title: "업로드 빈도 낮음",
+    title: "업로드 빈도 낮음 — 주기 확보가 우선입니다",
     description:
-      "low_upload_frequency가 기록되었습니다. 채널 신호 측면에서 점검 가치는 있으나, 순위 보장과 연결하지 않습니다.",
+      "업로드 빈도가 낮게 기록되었습니다. 월 최소 업로드 횟수를 정하고 달력에 먼저 배치한 뒤, 제목 구조를 정비하세요.",
     tone: "neutral",
   },
   short_video_dominant: {
-    title: "짧은 영상 비중",
+    title: "숏폼 중심 — 제목과 설명 길이를 숏폼에 맞추세요",
     description:
-      "short_video_dominant 플래그입니다. 숏폼/롱폼 전략과 제목·설명 길이의 일관성만 점검하세요.",
+      "짧은 영상 비중이 높게 탐지되었습니다. 숏폼 제목은 첫 한 줄에 핵심 내용을 압축하고, 설명란도 2~3줄 이내로 최적화하세요.",
     tone: "neutral",
   },
   long_video_dominant: {
-    title: "긴 영상 비중",
+    title: "롱폼 중심 — 설명란에 목차와 타임스탬프를 추가하세요",
     description:
-      "long_video_dominant 플래그입니다. 제목이 길이에 맞게 정보를 담는지, 설명란에 목차·타임스탬프를 쓸 여지가 있는지 검토하세요.",
+      "긴 영상 비중이 높게 탐지되었습니다. 설명란에 목차와 타임스탬프를 추가하면 검색 노출과 시청 유지에 유리합니다. 지금 최근 영상 3개부터 적용하세요.",
     tone: "neutral",
   },
   high_view_variance: {
-    title: "조회수 편차 큼",
+    title: "조회수 편차 큼 — 상위 영상 제목 구조를 분석하세요",
     description:
-      "high_view_variance가 기록되었습니다. 제목·썸네일 패턴 차이를 표본 내에서만 비교하고, 외부 순위로 해석하지 마세요.",
+      "조회수 편차가 크게 기록되었습니다. 상위 영상의 제목·썸네일 구조를 하위 영상과 표로 비교하고, 반복 가능한 패턴을 찾으세요.",
     tone: "neutral",
   },
 };
@@ -289,40 +237,55 @@ function buildCheckCards(
 
   if (metrics?.avgTitleLength != null && Number.isFinite(metrics.avgTitleLength)) {
     const n = Math.round(metrics.avgTitleLength);
+    const isShort = n < 20;
+    const isLong = n > 40;
     cards.push({
       id: "chk-title-len",
-      itemName: "제목 길이(표본 평균)",
-      currentState: `스냅샷 표본 기준 평균 제목 길이 약 ${n}자입니다.`,
-      whyCheck:
-        "제목이 너무 짧으면 주제 파악이 어렵고, 지나치게 길면 기기별 미리보기에서 잘릴 수 있습니다.",
+      itemName: isShort
+        ? "제목 길이 — 핵심 주제가 보이지 않습니다"
+        : isLong
+          ? "제목 길이 — 앞부분을 더 짧게 다듬으세요"
+          : "제목 길이 — 키워드 배치를 점검하세요",
+      currentState: `표본 평균 제목 길이 약 ${n}자입니다.`,
+      whyCheck: isLong
+        ? "제목이 길면 모바일 미리보기에서 핵심 주제가 잘립니다. 클릭을 결정하는 건 앞 15자입니다."
+        : "제목이 너무 짧으면 주제와 차별점이 전달되지 않습니다.",
       improveDirection:
-        "핵심 주제·차별점을 앞쪽에 두고, 불필요한 수식어를 줄이는 방향을 검토하세요.",
-      hint: "대체 제목 문구는 데이터가 없어 생성하지 않습니다.",
+        "핵심 키워드를 앞 15자 안에 배치하고, 불필요한 수식어는 뒤로 이동하거나 제거하세요.",
+      hint: isShort || isLong
+        ? "지금 영상 3개를 골라 제목을 다시 써 보세요."
+        : "현재 길이는 적정 수준입니다. 키워드 배치만 점검하세요.",
     });
   }
 
   if (metrics?.avgTagCount != null && Number.isFinite(metrics.avgTagCount)) {
+    const n = metrics.avgTagCount;
+    const isFew = n < 5;
     cards.push({
       id: "chk-tag-count",
-      itemName: "태그 수(표본 평균)",
-      currentState: `표본 평균 태그 수 약 ${metrics.avgTagCount.toFixed(1)}개입니다.`,
-      whyCheck:
-        "태그는 주제 표시용이며, 외부 검색량·경쟁도는 이 페이지에서 다루지 않습니다.",
-      improveDirection:
-        "주제와 직접 연관된 태그 위주로 정리하고, 중복·무관 태그를 줄이는 편이 안전합니다.",
-      hint: "검색 순위나 상위노출을 보장하지 않습니다.",
+      itemName: isFew
+        ? "태그 수 — 지금 태그를 더 추가하세요"
+        : "태그 수 — 무관 태그를 정리하세요",
+      currentState: `표본 평균 태그 수 약 ${n.toFixed(1)}개입니다.`,
+      whyCheck: isFew
+        ? "태그가 적으면 알고리즘이 주제를 파악하기 어렵습니다. 주제 태그를 빠짐없이 사용하세요."
+        : "태그가 많아도 무관 태그는 주제 신호를 희석합니다. 주제와 직접 연관된 태그만 남기세요.",
+      improveDirection: isFew
+        ? "영상 주제와 직접 연관된 태그 5~10개를 지금 추가하세요."
+        : "주제와 직접 연관된 태그만 남기고, 중복·무관 태그를 제거하세요.",
+      hint: "제목 앞부분 키워드와 태그를 일치시키면 알고리즘 주제 인식이 강화됩니다.",
     });
   }
 
   if (flags.includes("low_tag_usage")) {
     cards.push({
       id: "chk-flag-low-tags",
-      itemName: "패턴: 태그 사용 부족",
-      currentState: "스냅샷에 low_tag_usage 플래그가 포함되어 있습니다.",
-      whyCheck: "메타 정보가 부족하면 주제 전달이 약해질 수 있습니다.",
+      itemName: "태그 부족 패턴 — 지금 태그를 추가하세요",
+      currentState: "태그 사용이 부족한 패턴이 탐지되었습니다.",
+      whyCheck: "태그 부족은 알고리즘이 영상 주제를 파악하는 데 불리하게 작용합니다.",
       improveDirection:
-        "영상 주제를 한두 단어로 정리한 뒤, 그에 맞는 태그만 추가해 보세요.",
-      hint: "플래그는 참고 신호이며 단정적 진단이 아닙니다.",
+        "영상 주제를 한두 단어로 정리한 뒤, 주제에 맞는 태그 5~8개를 지금 바로 추가하세요.",
+      hint: "제목 앞부분 키워드와 태그를 일치시키는 것이 가장 효과적입니다.",
     });
   }
 
@@ -330,23 +293,25 @@ function buildCheckCards(
     if (sections.seoOptimization < 55) {
       cards.push({
         id: "chk-seo-score-low",
-        itemName: "메타·발견성 구간 점수",
-        currentState: `저장된 메타·발견성(seoOptimization) 구간 점수는 약 ${Math.round(sections.seoOptimization)}점입니다.`,
-        whyCheck: "엔진이 낮게 기록한 구간이므로 메타·제목·태그 일관성을 점검할 가치가 있습니다.",
+        itemName: "SEO 최적화 구간 — 노출이 제한되는 상태입니다",
+        currentState: `메타·발견성 구간이 ${Math.round(sections.seoOptimization)}점으로 기준(55점) 이하입니다.`,
+        whyCheck:
+          "지금은 메타 구조가 약해 알고리즘이 채널 주제를 명확히 인식하지 못하고 있습니다.",
         improveDirection:
-          "/analysis의 동일 구간 카드와 수치를 함께 보고, 한 가지 요소만 실험적으로 조정하세요.",
-        hint: "점수는 내부 모델 기준이며 외부 검색 결과와 일치하지 않을 수 있습니다.",
+          "/analysis 동일 구간과 함께 보며 제목·태그·설명 중 한 가지 요소만 바꿔 2~3회 업로드에서 변화를 측정하세요.",
+        hint: "점수를 올리려면 제목 앞부분 키워드 → 태그 일치 → 설명란 첫 줄 순서로 개선하세요.",
       });
     }
     if (sections.contentStructure < 55) {
       cards.push({
         id: "chk-structure-score-low",
-        itemName: "콘텐츠·구조 구간 점수",
-        currentState: `콘텐츠·구조(contentStructure) 구간 점수는 약 ${Math.round(sections.contentStructure)}점입니다.`,
-        whyCheck: "제목 형식·길이·포맷 일관성 등이 검색 친화적 메타와 연결될 수 있습니다.",
+        itemName: "콘텐츠 구조 구간 — 포맷 일관성을 높이세요",
+        currentState: `콘텐츠·구조 구간이 ${Math.round(sections.contentStructure)}점으로 기준(55점) 이하입니다.`,
+        whyCheck:
+          "제목 형식·길이·포맷이 불규칙하면 알고리즘과 시청자 모두 채널 정체성을 파악하기 어렵습니다.",
         improveDirection:
-          "최근 표본 제목들의 패턴(길이, 접두어, 시리즈 표기)을 통일할지 검토하세요.",
-        hint: "구조 개선이 조회나 순위를 보장하지는 않습니다.",
+          "최근 표본 제목들의 길이, 접두어, 시리즈 표기를 통일하고 다음 3편에 바로 적용하세요.",
+        hint: "포맷 통일은 SEO 점수와 채널 브랜딩을 동시에 개선하는 가장 빠른 방법입니다.",
       });
     }
   }
@@ -417,9 +382,9 @@ export function buildSeoLabPageViewModel(
   }
 
   const row = enrichRowScores(data.latestResult);
-  const snapshot = row.feature_snapshot;
-  const metrics = extractMetricsFromSnapshot(snapshot);
-  const flags = extractPatternFlags(snapshot);
+  const normalized = normalizeFeatureSnapshot(row.feature_snapshot);
+  const metrics = normalized.metrics as MetricsPartial | null;
+  const flags = normalized.patterns;
   const sections = parseSectionScores(row.feature_section_scores);
 
   const seoSectionScore =
@@ -431,7 +396,7 @@ export function buildSeoLabPageViewModel(
   const bottlenecks = safeStringArray(row.bottlenecks);
   const seoRelatedNotes = collectSeoRelatedNotes(weaknesses, bottlenecks);
 
-  const videos = parseVideosFromSnapshot(snapshot);
+  const videos = normalized.videos;
   const avgTitleLen =
     metrics?.avgTitleLength != null && Number.isFinite(metrics.avgTitleLength)
       ? metrics.avgTitleLength
@@ -477,35 +442,39 @@ export function buildSeoLabPageViewModel(
   const summaryLines: SeoLabSummaryLineVm[] = [];
 
   summaryLines.push({
-    label: "제목·메타(발견성) 구간",
+    label: "제목 전략",
     body:
       seoSectionScore != null
-        ? `저장된 점수 ${seoSectionScore}점(내부 모델). 검색 순위와 동일하지 않을 수 있습니다.`
-        : "구간 점수가 스냅샷에 없습니다.",
+        ? seoSectionScore >= 65
+          ? `SEO 구조(${seoSectionScore}점)가 기본 수준입니다. 제목 첫 15자에 핵심 주제를 명시하고, 중복 수식어를 제거하면 클릭률을 더 높일 수 있습니다.`
+          : `지금은 메타 구조(${seoSectionScore}점)가 약해 노출이 제한됩니다. 제목 앞부분에 핵심 키워드를 배치하고 불필요한 감탄사를 제거하세요.`
+        : "제목 앞 15자에 핵심 주제가 드러나도록 수정하세요.",
   });
 
   summaryLines.push({
-    label: "콘텐츠·구조 구간",
-    body:
-      structureSectionScore != null
-        ? `저장된 점수 ${structureSectionScore}점. 제목·포맷 일관성 참고용입니다.`
-        : "구간 점수가 스냅샷에 없습니다.",
-  });
-
-  summaryLines.push({
-    label: "태그·메타 일관성",
+    label: "태그 전략",
     body:
       metrics?.avgTagCount != null
-        ? `표본 평균 태그 수 약 ${metrics.avgTagCount.toFixed(1)}개. 범용 키워드 탐색이 아니라 이 채널 표본과 제목 앞단어의 정합만 참고하세요.`
-        : "태그 수 등 메트릭이 없어 수치 요약을 생략합니다.",
+        ? `현재 표본 평균 태그 수 ${metrics.avgTagCount.toFixed(1)}개입니다. 주제와 직접 연관된 5~10개 태그로 압축하고, 제목 앞부분 키워드와 일치시키세요.`
+        : "주제 태그와 제목 앞단어를 일치시키세요. 무관 태그는 제거합니다.",
   });
 
+  if (structureSectionScore != null) {
+    summaryLines.push({
+      label: "포맷 전략",
+      body:
+        structureSectionScore >= 65
+          ? `콘텐츠 구조(${structureSectionScore}점)가 안정적입니다. 이 포맷을 유지하면서 제목 앞부분만 추가 최적화하세요.`
+          : `콘텐츠 구조(${structureSectionScore}점)가 불규칙합니다. 제목 길이와 포맷을 표본끼리 통일하고 다음 3편에 바로 적용하세요.`,
+    });
+  }
+
   summaryLines.push({
-    label: "데이터 범위",
+    label: "노출 확장 방향",
     body:
       titleSamples.length > 0
-        ? `표본 제목 ${titleSamples.length}개까지 표시합니다. 전체 영상과 다를 수 있습니다.`
-        : "스냅샷에 제목 표본이 없어 제목별 점검은 방향 안내만 제공합니다.",
+        ? `표본 ${titleSamples.length}개 제목을 기반으로 방향을 분석했습니다. 위 바로 적용 예시를 참고해 다음 영상 제목을 수정하세요.`
+        : "제목 샘플이 없어 일반 방향 안내를 제공합니다. 분석을 실행하면 맞춤 샘플이 생성됩니다.",
   });
 
   const sampleNote =
@@ -521,13 +490,13 @@ export function buildSeoLabPageViewModel(
       : null;
 
   const noticeParts: string[] = [
-    "SEO Lab은 범용 키워드 도구가 아니라, 저장된 분석·채널 DNA에서 읽힌 이 채널 구조에 맞는 제목·메타 방향만 제한적으로 제안합니다. 검색 순위·상위노출을 보장하지 않으며, 외부 검색량·경쟁 지표는 연동되어 있지 않습니다.",
+    "이 채널 데이터 기반 알고리즘 침투 전략입니다. 외부 검색량은 연동되어 있지 않으며, 채널 구조 개선을 통한 발견성 향상에 집중합니다.",
   ];
   if (!metrics) {
-    noticeParts.push("스냅샷 메트릭이 없어 세부 수치 기반 카드가 줄어듭니다.");
+    noticeParts.push("스냅샷 메트릭이 없어 수치 기반 카드 일부가 생략됩니다.");
   }
   if (analysisConfidence === "low") {
-    noticeParts.push("분석 신뢰도가 낮게 기록되었습니다.");
+    noticeParts.push("분석 표본이 적어 방향의 정확도가 제한됩니다. 더 많은 영상을 분석하면 정확도가 높아집니다.");
   }
   if (
     checkCards.length === 0 &&
@@ -535,7 +504,7 @@ export function buildSeoLabPageViewModel(
     patternInsights.length === 0 &&
     seoRelatedNotes.length === 0
   ) {
-    noticeParts.push("SEO 관련 표본·패턴·문구가 거의 없어 화면이 최소 구성입니다.");
+    noticeParts.push("SEO 관련 표본·패턴이 충분하지 않아 화면이 최소 구성입니다.");
   }
   const limitNotice = noticeParts.join(" ");
 
@@ -609,9 +578,9 @@ function buildSeoLabStrategicComment(params: {
   const qualLabel =
     seoSectionScore != null
       ? seoSectionScore >= 65
-        ? "기본 SEO 구조 확인됨"
-        : "SEO 메타 정교화가 필요한 수준"
-      : "채널 맞춤 SEO 방향 분석";
+        ? "기본 SEO 구조 확인 — 추가 최적화로 노출 확장 가능"
+        : "SEO 메타 개선 필요 — 제목·태그 정비가 우선입니다"
+      : "채널 맞춤 알고리즘 침투 전략";
 
   const headline = scoreText ? `${scoreText} — ${qualLabel}` : qualLabel;
 
@@ -624,7 +593,7 @@ function buildSeoLabStrategicComment(params: {
     );
   } else {
     summaryParts.push(
-      "저장된 채널 스냅샷 기반으로 SEO 방향을 분석했습니다. 검색 순위와 직접 연결되지 않으며, 채널 구조 개선 참고용입니다."
+      "채널 구조 분석 기반으로 알고리즘 침투 전략을 생성했습니다. 제목·태그·포맷 개선 순서로 실행하세요."
     );
   }
 

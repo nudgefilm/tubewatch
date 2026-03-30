@@ -3,7 +3,8 @@
 import { TrendingUp, TrendingDown, FileText, Layout, FolderTree, Clock } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
+import { ScoreBar } from "@/components/ui/ScoreBar"
+import { getDnaScoreInterpretation } from "../utils/dnaHelper"
 import type { ChannelDnaData } from "../mock-data"
 
 interface DnaPatternAnalysisSectionProps {
@@ -12,14 +13,7 @@ interface DnaPatternAnalysisSectionProps {
 
 export function DnaPatternAnalysisSection({ data }: DnaPatternAnalysisSectionProps) {
   return (
-    <section className="space-y-4">
-      <div className="flex items-center gap-2">
-        <h2 className="text-lg font-semibold">반복 패턴 분석</h2>
-        <Badge variant="outline" className="text-xs">
-          Pattern Detection
-        </Badge>
-      </div>
-
+    <div className="space-y-4">
       <div className="grid gap-4 lg:grid-cols-2">
         {/* 고성과 반복 패턴 */}
         <Card>
@@ -33,17 +27,26 @@ export function DnaPatternAnalysisSection({ data }: DnaPatternAnalysisSectionPro
             {data.highPerformancePatterns.map((pattern) => (
               <div
                 key={pattern.pattern}
-                className="rounded-lg border bg-emerald-500/5 p-3"
+                className="rounded-lg border bg-emerald-500/5 p-3 space-y-2"
               >
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">{pattern.pattern}</span>
-                  <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-600">
-                    {pattern.frequency}
-                  </Badge>
-                </div>
-                <p className="mt-1 text-sm text-muted-foreground">{pattern.description}</p>
+                <p className="font-medium text-sm">{pattern.pattern}</p>
+                {pattern.score != null ? (
+                  <ScoreBar
+                    label=""
+                    score={pattern.score}
+                    hint={getDnaScoreInterpretation(pattern.score)}
+                  />
+                ) : (
+                  <div className="space-y-1">
+                    <div className="h-2 w-full rounded-full bg-muted" />
+                    <p className="text-xs text-muted-foreground">
+                      분석 데이터가 충분하지 않아 수집 중입니다.
+                    </p>
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground">{pattern.description}</p>
                 {pattern.examples.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-1">
                     {pattern.examples.map((ex) => (
                       <Badge key={ex} variant="outline" className="text-xs">
                         {ex}
@@ -68,15 +71,24 @@ export function DnaPatternAnalysisSection({ data }: DnaPatternAnalysisSectionPro
             {data.lowPerformancePatterns.map((pattern) => (
               <div
                 key={pattern.pattern}
-                className="rounded-lg border bg-red-500/5 p-3"
+                className="rounded-lg border bg-red-500/5 p-3 space-y-2"
               >
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">{pattern.pattern}</span>
-                  <Badge variant="secondary" className="bg-red-500/10 text-red-600">
-                    {pattern.frequency}
-                  </Badge>
-                </div>
-                <p className="mt-1 text-sm text-muted-foreground">{pattern.description}</p>
+                <p className="font-medium text-sm">{pattern.pattern}</p>
+                {pattern.score != null ? (
+                  <ScoreBar
+                    label=""
+                    score={pattern.score}
+                    hint={getDnaScoreInterpretation(pattern.score)}
+                  />
+                ) : (
+                  <div className="space-y-1">
+                    <div className="h-2 w-full rounded-full bg-muted" />
+                    <p className="text-xs text-muted-foreground">
+                      분석 데이터가 충분하지 않아 수집 중입니다.
+                    </p>
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground">{pattern.description}</p>
               </div>
             ))}
           </CardContent>
@@ -98,11 +110,8 @@ export function DnaPatternAnalysisSection({ data }: DnaPatternAnalysisSectionPro
               <>
                 <p className="text-sm font-medium">{data.titleStructure.dominant}</p>
                 {data.titleStructure.consistency > 0 && (
-                  <div className="mt-2 flex items-center gap-2">
-                    <Progress value={data.titleStructure.consistency} className="h-1.5 flex-1" />
-                    <span className="text-xs text-muted-foreground">
-                      {data.titleStructure.consistency}%
-                    </span>
+                  <div className="mt-2">
+                    <ScoreBar label="일관성" score={data.titleStructure.consistency} />
                   </div>
                 )}
               </>
@@ -128,11 +137,8 @@ export function DnaPatternAnalysisSection({ data }: DnaPatternAnalysisSectionPro
               <>
                 <p className="text-sm font-medium">{data.formatRepetition.dominant}</p>
                 {data.formatRepetition.consistency > 0 ? (
-                  <div className="mt-2 flex items-center gap-2">
-                    <Progress value={data.formatRepetition.consistency} className="h-1.5 flex-1" />
-                    <span className="text-xs text-muted-foreground">
-                      {data.formatRepetition.consistency}%
-                    </span>
+                  <div className="mt-2">
+                    <ScoreBar label="일관성" score={data.formatRepetition.consistency} />
                   </div>
                 ) : (
                   <p className="mt-1 text-xs text-muted-foreground">일관성 데이터 미산출</p>
@@ -202,6 +208,6 @@ export function DnaPatternAnalysisSection({ data }: DnaPatternAnalysisSectionPro
           </CardContent>
         </Card>
       </div>
-    </section>
+    </div>
   )
 }

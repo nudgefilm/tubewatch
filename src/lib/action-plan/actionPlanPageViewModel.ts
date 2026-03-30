@@ -7,6 +7,7 @@ import type {
   AnalysisResultRow,
 } from "@/lib/analysis/getAnalysisPageData";
 import type { ChannelMetrics } from "@/lib/analysis/engine/types";
+import { normalizeFeatureSnapshot } from "@/lib/analysis/normalizeSnapshot";
 import { enrichRowScores } from "@/lib/server/analysis/mapAnalysisHistoryAndCompare";
 import type { MarketExtensionSliceVm } from "@/lib/data/marketExtensionSlice";
 import { buildDefaultMarketExtensionSlice } from "@/lib/data/marketExtensionSlice";
@@ -96,7 +97,7 @@ const SECTION_LABELS: Record<keyof ChannelSectionScores, string> = {
 };
 
 const CONSERVATIVE_EFFECT =
-  "지표 개선을 보장하지 않으며, 소규모 실험 후 변화를 직접 확인하는 방식이 안전합니다.";
+  "2~3회 업로드 후 조회·반응 변화를 직접 측정하면, 어느 요소가 실제로 작동하는지 확인할 수 있습니다.";
 
 function safeStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) {
@@ -117,28 +118,6 @@ function uniqueTrimmedStrings(items: string[]): string[] {
     out.push(t);
   }
   return out;
-}
-
-function extractMetricsFromSnapshot(snapshot: unknown): MetricsPartial | null {
-  if (!snapshot || typeof snapshot !== "object") {
-    return null;
-  }
-  const raw = (snapshot as Record<string, unknown>).metrics;
-  if (!raw || typeof raw !== "object") {
-    return null;
-  }
-  return raw as MetricsPartial;
-}
-
-function extractPatternFlags(snapshot: unknown): string[] {
-  if (!snapshot || typeof snapshot !== "object") {
-    return [];
-  }
-  const raw = (snapshot as Record<string, unknown>).patterns;
-  if (!Array.isArray(raw)) {
-    return [];
-  }
-  return raw.filter((x): x is string => typeof x === "string");
 }
 
 function titleFromText(text: string): string {
@@ -179,11 +158,11 @@ function buildTextBackedActions(
     out.push({
       id,
       title: titleFromText(item.text),
-      whyNeeded: `${label}으로 저장된 내용: ${item.text}`,
+      whyNeeded: `${item.kind === "weakness" ? "약점 신호" : "병목 지점"}으로 진단된 구간입니다. ${item.text} — 이 패턴이 지속되면 성과 회복이 어려워집니다.`,
       expectedEffect: CONSERVATIVE_EFFECT,
       difficulty: item.kind === "bottleneck" ? "high" : "medium",
       executionHint:
-        "해당 문구를 기준으로 원인을 한 가지씩 좁힌 뒤, 다음 1~2회 업로드에서만 작은 범위로 바꿔 보고 결과를 기록하세요.",
+        "이 신호를 유발하는 원인을 하나로 좁히고, 다음 1~2회 업로드에서 그 요소만 바꿔 결과를 기록하세요.",
     });
   }
   return out;
@@ -206,12 +185,12 @@ function buildMetricBackedActions(
   ) {
     out.push({
       id: "metric-activity-uploads",
-      title: "업로드 활동과 최근 업로드 수 점검",
-      whyNeeded: `저장된 업로드·활동 구간 점수가 ${Math.round(sections.channelActivity)}점이며, 스냅샷의 최근 30일 업로드 수는 ${metrics.recent30dUploadCount}건입니다.`,
+      title: "업로드 빈도 복구 — 활동 구간이 기준 이하입니다",
+      whyNeeded: `업로드·활동 구간이 ${Math.round(sections.channelActivity)}점으로 기준(55점) 이하입니다. 최근 30일 업로드 ${metrics.recent30dUploadCount}건은 알고리즘이 채널을 활성 상태로 인식하기에 부족할 수 있습니다. 지금 업로드 계획을 달력에 확정하세요.`,
       expectedEffect: CONSERVATIVE_EFFECT,
       difficulty: "low",
       executionHint:
-        "업로드 빈도 목표를 현실적인 수준으로 정한 뒤, 달력에만 먼저 반영하고 영상 제작 일정과 맞는지 확인하세요.",
+        "이번 달 업로드 목표 횟수를 달력에 먼저 고정하고, 촬영·편집 일정과 충돌 없이 맞는지 확인하세요.",
     });
   }
 
@@ -222,12 +201,12 @@ function buildMetricBackedActions(
   ) {
     out.push({
       id: "metric-activity-interval",
-      title: "평균 업로드 간격 점검",
-      whyNeeded: `표본 기준 평균 업로드 간격이 약 ${metrics.avgUploadIntervalDays.toFixed(1)}일로 기록되어 있습니다.`,
+      title: "업로드 간격 단축 — 불규칙한 주기가 이탈을 만듭니다",
+      whyNeeded: `표본 기준 평균 업로드 간격이 약 ${metrics.avgUploadIntervalDays.toFixed(1)}일로 측정됩니다. 간격이 고르지 않으면 구독자 기대 주기가 형성되지 않아 이탈이 생깁니다. 먼저 병목 구간을 파악하세요.`,
       expectedEffect: CONSERVATIVE_EFFECT,
       difficulty: "low",
       executionHint:
-        "간격이 길다고 판단되면, 주기를 바꾸기 전에 한 달 단위로 현재 간격을 유지한 채 원인(기획·촬영 병목)부터 정리하세요.",
+        "간격을 바꾸기 전에 기획·촬영·편집 중 어느 단계에서 병목이 생기는지 한 주 단위로 기록하세요.",
     });
   }
 
@@ -238,12 +217,12 @@ function buildMetricBackedActions(
   ) {
     out.push({
       id: "metric-audience-like",
-      title: "좋아요 반응률 점검",
-      whyNeeded: `조회·반응 구간 점수 ${Math.round(sections.audienceResponse)}점, 표본 평균 좋아요 비율은 약 ${(metrics.avgLikeRatio * 100).toFixed(2)}%입니다.`,
+      title: "반응률 회복 — 조회 대비 좋아요가 낮습니다",
+      whyNeeded: `조회·반응 구간이 ${Math.round(sections.audienceResponse)}점으로 낮고, 좋아요 비율은 약 ${(metrics.avgLikeRatio * 100).toFixed(2)}%입니다. 반응이 낮을수록 알고리즘의 추천 범위가 좁아집니다. 제목·썸네일·첫 30초를 점검하세요.`,
       expectedEffect: CONSERVATIVE_EFFECT,
       difficulty: "medium",
       executionHint:
-        "비율만으로 품질을 단정하지 말고, 최근 영상 몇 개의 제목·썸네일·첫 30초 구성을 /analysis 표본과 비교해 보세요.",
+        "최근 영상 3개의 제목·썸네일·첫 30초를 비교하고, 반응이 가장 높은 영상과 낮은 영상의 차이점을 한 줄로 정리하세요.",
     });
   }
 
@@ -254,12 +233,12 @@ function buildMetricBackedActions(
   ) {
     out.push({
       id: "metric-structure-title",
-      title: "제목 길이와 구조 점검",
-      whyNeeded: `콘텐츠·구조 점수 ${Math.round(sections.contentStructure)}점, 표본 평균 제목 길이는 약 ${Math.round(metrics.avgTitleLength)}자입니다.`,
+      title: "제목 구조 개선 — 핵심 키워드가 앞으로 와야 합니다",
+      whyNeeded: `콘텐츠·구조 구간이 ${Math.round(sections.contentStructure)}점이며, 표본 평균 제목 길이가 약 ${Math.round(metrics.avgTitleLength)}자입니다. 제목이 길거나 핵심어가 뒷부분에 몰리면 클릭률이 떨어집니다. 지금 바로 제목을 다시 써 보세요.`,
       expectedEffect: CONSERVATIVE_EFFECT,
       difficulty: "low",
       executionHint:
-        "핵심 키워드가 앞쪽에 오는지, 과도하게 길지 않은지 위주로 몇 개 제목만 직접 편집해 실험하세요.",
+        "핵심 키워드가 앞 15자 안에 들어오는지 확인하고, 최근 3개 제목을 직접 편집해 비교해 보세요.",
     });
   }
 
@@ -270,12 +249,12 @@ function buildMetricBackedActions(
   ) {
     out.push({
       id: "metric-tags",
-      title: "태그 활용 점검",
-      whyNeeded: `표본 평균 태그 수는 약 ${metrics.avgTagCount.toFixed(1)}개입니다. 메타·발견성 또는 구조 점수가 낮게 기록된 경우 참고용으로 검토하세요.`,
+      title: "태그 정비 — 무관 태그를 줄이고 주제 적합도를 높이세요",
+      whyNeeded: `표본 평균 태그 수가 약 ${metrics.avgTagCount.toFixed(1)}개입니다. 태그가 많아도 주제와 맞지 않으면 발견성에 도움이 되지 않습니다. 지금 태그 목록을 주제 기준으로 정리하세요.`,
       expectedEffect: CONSERVATIVE_EFFECT,
       difficulty: "low",
       executionHint:
-        "태그를 늘리기보다, 실제 주제와 맞는 소수의 태그만 남기고 중복·무관 태그를 줄이는 방향도 함께 검토하세요.",
+        "태그를 늘리기보다 실제 주제와 맞는 5~10개만 남기고 중복·무관 태그를 제거하세요.",
     });
   }
 
@@ -288,12 +267,12 @@ function buildMetricBackedActions(
     const seconds = Math.round(metrics.avgVideoDuration % 60);
     out.push({
       id: "metric-duration",
-      title: "영상 길이 적정성 점검",
-      whyNeeded: `표본 평균 영상 길이는 약 ${minutes}분 ${seconds.toString().padStart(2, "0")}초로 기록되었습니다.`,
+      title: "영상 길이 최적화 — 주제에 맞는 길이를 찾으세요",
+      whyNeeded: `콘텐츠·구조 구간이 ${Math.round(sections.contentStructure)}점이고, 표본 평균 영상 길이가 약 ${minutes}분 ${seconds.toString().padStart(2, "0")}초입니다. 주제에 맞지 않는 길이는 시청 이탈률을 높입니다. 어느 구간이 늘어지는지 직접 확인하세요.`,
       expectedEffect: CONSERVATIVE_EFFECT,
       difficulty: "medium",
       executionHint:
-        "주제에 맞는 길이인지, 시청 유지에 불리한 패턴이 반복되는지 최근 2~3개 작품만 골라 직접 시청하며 점검하세요.",
+        "최근 2~3개 영상을 직접 시청하며 어느 구간에서 내용이 늘어지거나 끊기는지 시간대를 기록하세요.",
     });
   }
 
@@ -304,12 +283,12 @@ function buildMetricBackedActions(
   ) {
     out.push({
       id: "metric-growth-median",
-      title: "성장 신호와 조회 분포 점검",
-      whyNeeded: `성장 신호 구간 점수 ${Math.round(sections.growthMomentum)}점, 표본 중앙 조회수는 약 ${Math.round(metrics.medianViewCount)}회입니다.`,
+      title: "조회 분포 정상화 — 특정 영상 의존을 줄여야 합니다",
+      whyNeeded: `성장 신호 구간이 ${Math.round(sections.growthMomentum)}점이며, 표본 중앙 조회수는 약 ${Math.round(metrics.medianViewCount)}회입니다. 중앙값이 낮으면 일부 히트 영상에 의존하는 구조일 수 있습니다. 반복 가능한 포맷을 찾아야 합니다.`,
       expectedEffect: CONSERVATIVE_EFFECT,
       difficulty: "high",
       executionHint:
-        "상위 소수 영상에 의존하는지 표본 목록을 다시 보고, 반복 가능한 주제인지 여부만 우선 정리하세요. 성장을 보장하지 않습니다.",
+        "상위·하위 표본을 나란히 놓고 반복 가능한 주제인지 판단한 뒤, 다음 1편에서 중간 성과 영상의 포맷을 따라 실험하세요.",
     });
   }
 
@@ -582,9 +561,11 @@ export function buildActionPlanPageViewModel(
   }
 
   const row = enrichRowScores(data.latestResult);
-  const snapshot = row.feature_snapshot;
-  const metrics = extractMetricsFromSnapshot(snapshot);
-  const flags = extractPatternFlags(snapshot);
+
+  // 공통 정규화 레이어: raw snapshot → NormalizedSnapshot (단일 진입점)
+  const normalized = normalizeFeatureSnapshot(row.feature_snapshot);
+  const metrics = normalized.metrics as MetricsPartial | null;
+  const flags = normalized.patterns;
   const sections = parseSectionScores(row.feature_section_scores);
 
   const totalRaw = row.feature_total_score;

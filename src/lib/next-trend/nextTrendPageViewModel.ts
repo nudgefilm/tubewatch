@@ -27,7 +27,7 @@ import type {
 export type TrendItemVm = TrendItemVmBase;
 
 const DATA_PIPELINE_NOTICE =
-  "이 페이지는 저장된 분석 스냅샷(feature_snapshot) 표본만 사용합니다. 외부 트렌드·시즌·검색 API 데이터는 포함하지 않으며, 아래 ‘확장 기능’ 블록만 외부 연동 전용입니다.";
+  "저장된 분석 표본 기반입니다. 외부 검색량·시즌 트렌드는 포함하지 않습니다.";
 
 export type NextTrendPageViewModel = {
   hasChannel: boolean;
@@ -74,7 +74,7 @@ export function buildNextTrendPageViewModel(
 
   if (!data || data.channels.length === 0 || !data.selectedChannel) {
     const summary =
-      "채널이 연결되지 않아 표본 흐름을 계산하지 않았습니다. 채널 연결 후 분석을 완료하면 이 페이지에 반영됩니다.";
+      "채널을 연결하고 분석을 완료하면 다음 영상 아이디어가 자동으로 생성됩니다.";
     return {
       ...base,
       hasChannel: false,
@@ -97,7 +97,7 @@ export function buildNextTrendPageViewModel(
 
   if (!data.latestResult) {
     const summary =
-      "저장된 분석 결과가 없어 표본 흐름을 만들 수 없습니다. /analysis에서 분석을 완료한 뒤 다시 열어 주세요.";
+      "분석을 먼저 완료하세요. /analysis에서 실행하면 다음 영상 아이디어가 바로 생성됩니다.";
     return {
       ...base,
       hasChannel: true,
@@ -156,25 +156,25 @@ function buildNextTrendStrategicComment(
 
   const headline = topCandidate
     ? `다음 시도 방향: ${topCandidate.topic}`
-    : "다음 트렌드 방향 분석";
+    : "표본 신호 기반 방향 요약";
 
   const summaryParts: string[] = [trendSummary];
   const fmt = internal.format.recommendedFormat;
   if (fmt && fmt !== "-") {
-    summaryParts.push(`권장 포맷은 "${fmt}"이며, ${internal.format.seriesPotential}`);
+    summaryParts.push(`권장 포맷: ${fmt} — ${internal.format.seriesPotential}`);
   }
 
   const takeaways: string[] = [];
   if (internal.candidates.length > 0)
-    takeaways.push(`주력 방향: ${internal.candidates[0].topic}`);
+    takeaways.push(`1순위 주제: ${internal.candidates[0].topic}`);
   if (internal.candidates.length > 1)
-    takeaways.push(`대안 방향: ${internal.candidates[1].topic}`);
-  if (fmt && fmt !== "-") takeaways.push(`추천 포맷: ${fmt}`);
+    takeaways.push(`2순위 주제: ${internal.candidates[1].topic}`);
+  if (fmt && fmt !== "-") takeaways.push(`권장 포맷: ${fmt}`);
 
   const risk = internal.risk;
   const riskCaution =
     risk.riskyTopic && risk.riskyTopic !== "-" && risk.riskyTopic !== ""
-      ? `리스크 주의: ${risk.riskyTopic} — ${risk.confidenceBasis}`
+      ? `주의할 주제: ${risk.riskyTopic} — ${risk.confidenceBasis}`
       : null;
 
   const titleHint = internal.hints.titleDirection;
@@ -184,7 +184,7 @@ function buildNextTrendStrategicComment(
     summary: summaryParts[0],
     keyTakeaways: takeaways.slice(0, 3),
     priorityAction:
-      titleHint && titleHint !== "-" ? `제목 방향: ${titleHint}` : null,
+      titleHint && titleHint !== "-" ? `지금 제목에 적용: ${titleHint}` : null,
     caution: riskCaution,
   };
 }

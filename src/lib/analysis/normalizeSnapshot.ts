@@ -111,7 +111,11 @@ function parseDuration(r: Record<string, unknown>): {
     if (sec > 0) {
       return { durationSeconds: sec, durationLabel: formatDurationSecondsLabel(sec) }
     }
-    // ISO 8601 파싱 실패 — 레거시 문자열 그대로 통과 (예: "5분 13초")
+    // ISO 8601 형식이지만 0초 (예: PT0S) → "—"
+    if (/^PT/i.test(r.duration.trim())) {
+      return { durationSeconds: null, durationLabel: "—" }
+    }
+    // ISO 8601 파싱 불가 — 레거시 문자열 그대로 통과 (예: "5분 13초")
     return { durationSeconds: null, durationLabel: r.duration }
   }
   return { durationSeconds: null, durationLabel: "—" }
@@ -193,7 +197,9 @@ function parseSnapshotMetrics(obj: Record<string, unknown>): Record<string, numb
 function parseSnapshotPatterns(obj: Record<string, unknown>): string[] {
   const p = obj.patterns
   if (!Array.isArray(p)) return []
-  return p.filter((x): x is string => typeof x === "string" && x.trim().length > 0)
+  return p
+    .filter((x): x is string => typeof x === "string" && x.trim().length > 0)
+    .map((x) => x.trim())
 }
 
 const VALID_INTERPRETATION_MODES: InterpretationMode[] = [
