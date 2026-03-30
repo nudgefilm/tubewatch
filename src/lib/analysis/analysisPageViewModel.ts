@@ -26,6 +26,11 @@ import type { YoutubeVerificationUiState } from "@/lib/auth/youtubeVerificationT
 import type { AnalysisStatus } from "@/lib/analysis/types";
 import type { StrategicCommentVm } from "@/lib/shared/strategicCommentTypes";
 import { parseSectionScores } from "@/lib/analysis/engine/parseSectionScores";
+import {
+  normalizeFeatureSnapshot,
+  formatDurationSecondsLabel,
+  type NormalizedSnapshotVideo,
+} from "@/lib/analysis/normalizeSnapshot";
 
 export type {
   AnalysisReportAiFieldsVm,
@@ -130,20 +135,8 @@ type ChannelSectionScores = {
   growthMomentum: number;
 };
 
+/** DB snapshot.metrics の型ガード — normalizeFeatureSnapshot().metrics との橋渡し */
 type MetricsPartial = Partial<Record<keyof ChannelMetrics, number>>;
-
-function extractMetricsFromSnapshot(
-  snapshot: unknown
-): MetricsPartial | null {
-  if (!snapshot || typeof snapshot !== "object") {
-    return null;
-  }
-  const raw = (snapshot as Record<string, unknown>).metrics;
-  if (!raw || typeof raw !== "object") {
-    return null;
-  }
-  return raw as MetricsPartial;
-}
 
 function metricsPartialToChannelMetrics(m: MetricsPartial): ChannelMetrics {
   return {
@@ -160,17 +153,6 @@ function metricsPartialToChannelMetrics(m: MetricsPartial): ChannelMetrics {
     avgTitleLength: typeof m.avgTitleLength === "number" ? m.avgTitleLength : 0,
     avgTagCount: typeof m.avgTagCount === "number" ? m.avgTagCount : 0,
   };
-}
-
-function extractPatternFlags(snapshot: unknown): string[] {
-  if (!snapshot || typeof snapshot !== "object") {
-    return [];
-  }
-  const raw = (snapshot as Record<string, unknown>).patterns;
-  if (!Array.isArray(raw)) {
-    return [];
-  }
-  return raw.filter((x): x is string => typeof x === "string");
 }
 
 function scoreToGrade(score: number): string {
@@ -195,15 +177,6 @@ function formatInt(n: number): string {
 
 function formatPercentRatio(ratio: number): string {
   return `${(ratio * 100).toFixed(2)}%`;
-}
-
-function formatDurationSeconds(sec: number): string {
-  if (!Number.isFinite(sec) || sec < 0) {
-    return "—";
-  }
-  const m = Math.floor(sec / 60);
-  const s = Math.floor(sec % 60);
-  return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
 function safeStringArray(value: unknown): string[] {
@@ -281,7 +254,7 @@ function buildCardItemsForSection(
     if (metrics.avgVideoDuration != null) {
       items.push({
         label: "평균 영상 길이",
-        value: formatDurationSeconds(metrics.avgVideoDuration),
+        value: formatDurationSecondsLabel(metrics.avgVideoDuration),
       });
     }
   }
@@ -310,6 +283,21 @@ function buildCardItemsForSection(
   }
 
   return items;
+}
+
+/**
+ * NormalizedSnapshotVideo → AnalysisVideoRow 변환.
+ * normalizeFeatureSnapshot() 결과를 ViewModel 타입으로 매핑하는 유일한 변환 지점.
+ */
+function snapshotVideoToRow(v: NormalizedSnapshotVideo): AnalysisVideoRow {
+  return {
+    title: v.title,
+    thumbnailUrl: v.thumbnailUrl,
+    publishedAt: v.publishedAt,
+    viewCount: v.viewCount,
+    durationLabel: v.durationLabel !== "—" ? v.durationLabel : null,
+    relativeBadge: null,
+  };
 }
 
 /** 스냅샷 영상 배열 순서를 유지한 채, 조회수가 있는 항목만으로 산술 평균 */
@@ -366,65 +354,6 @@ function buildAvgViewsVm(
     sampleVideoCount: null,
     lowSampleWarning: false,
   };
-}
-
-function parseVideosFromSnapshot(snapshot: unknown): AnalysisVideoRow[] {
-  if (!snapshot || typeof snapshot !== "object") {
-    return [];
-  }
-  const obj = snapshot as Record<string, unknown>;
-  const raw = obj.videos ?? obj.sample_videos;
-  if (!Array.isArray(raw)) {
-    return [];
-  }
-
-  const rows: AnalysisVideoRow[] = [];
-  for (const item of raw) {
-    if (!item || typeof item !== "object") {
-      continue;
-    }
-    const r = item as Record<string, unknown>;
-    const title = typeof r.title === "string" ? r.title : null;
-    if (!title) {
-      continue;
-    }
-    const thumbnailUrl =
-      typeof r.thumbnail === "string"
-        ? r.thumbnail
-        : typeof r.thumbnailUrl === "string"
-          ? r.thumbnailUrl
-          : null;
-    const publishedAt =
-      typeof r.publishedAt === "string"
-        ? r.publishedAt
-        : typeof r.published_at === "string"
-          ? r.published_at
-          : null;
-    const viewCount =
-      typeof r.viewCount === "number"
-        ? r.viewCount
-        : typeof r.view_count === "number"
-          ? r.view_count
-          : null;
-
-    let durationLabel: string | null = null;
-    if (typeof r.durationSeconds === "number") {
-      durationLabel = formatDurationSeconds(r.durationSeconds);
-    } else if (typeof r.duration === "string" && r.duration.trim() !== "") {
-      durationLabel = r.duration;
-    }
-
-    rows.push({
-      title,
-      thumbnailUrl,
-      publishedAt,
-      viewCount,
-      durationLabel,
-      relativeBadge: null,
-    });
-  }
-
-  return rows;
 }
 
 function assignRelativeBadges(videos: AnalysisVideoRow[]): AnalysisVideoRow[] {
@@ -633,7 +562,9 @@ export function buildAnalysisPageViewModel(
   const row = enrichRowScores(data.latestResult);
   const snapshot = row.feature_snapshot;
 
-  let rawVideos = parseVideosFromSnapshot(snapshot);
+  // 공통 정규화 레이어: DB raw snapshot → NormalizedSnapshot (단일 진입점)
+  const normalized = normalizeFeatureSnapshot(snapshot);
+  let rawVideos = normalized.videos.map(snapshotVideoToRow);
   const sampleAvgForHeader = summarizeSampleAvgViews(rawVideos);
   const channelVm = {
     title: ch.channel_title ?? null,
@@ -644,11 +575,12 @@ export function buildAnalysisPageViewModel(
     avgViews: buildAvgViewsVm(sampleAvgForHeader, chViews, vcount),
   };
 
-  const metrics = extractMetricsFromSnapshot(snapshot);
+  // normalized.metrics는 Record<string, number> | null — MetricsPartial로 캐스트
+  const metrics = normalized.metrics as MetricsPartial | null;
   const snapshotMetricsForRadar = metrics
     ? metricsPartialToChannelMetrics(metrics)
     : null;
-  const flags = extractPatternFlags(snapshot);
+  const flags = normalized.patterns;
   const sections = parseSectionScores(row.feature_section_scores);
 
   const total =

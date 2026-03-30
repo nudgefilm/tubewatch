@@ -300,26 +300,6 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel }: C
     )
   }
 
-  // No-result guard
-  if (!viewModel.hasAnalysisResult) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight lg:text-3xl">Channel Analysis</h1>
-            <p className="mt-1 text-sm text-muted-foreground">채널 현재 상태를 구조화한 원천 데이터 허브</p>
-          </div>
-          <AnalysisHeaderSection channel={channelData} />
-          <AnalysisEmptyState
-            type="no-data"
-            title="아직 분석 결과가 없습니다"
-            description="채널 관리 페이지에서 '분석 요청' 버튼을 누르면 분석이 준비됩니다."
-          />
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
@@ -334,7 +314,24 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel }: C
         {/* A. Channel Header */}
         <AnalysisHeaderSection channel={channelData} />
 
-        {/* B. Score Overview + KPI Cards */}
+        {/* 분석 결과 없음 안내 — 빈 화면 대신 최소 상태로 계속 렌더 */}
+        {!viewModel.hasAnalysisResult && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-950/30">
+            <p className="text-sm text-amber-800 dark:text-amber-200">
+              {viewModel.headlineDiagnosis ??
+                "아직 이 채널에 대한 분석 결과가 없습니다. 분석이 완료되면 아래 항목들이 채워집니다."}
+            </p>
+          </div>
+        )}
+
+        {/* 데이터 제한 안내 (부분 데이터) */}
+        {viewModel.hasAnalysisResult && viewModel.limitNotice && (
+          <div className="rounded-lg border border-muted bg-muted/30 px-4 py-3">
+            <p className="text-sm text-muted-foreground">{viewModel.limitNotice}</p>
+          </div>
+        )}
+
+        {/* B. Score Overview + KPI Cards (최소 상태라도 항상 렌더) */}
         <div className="grid gap-4 lg:grid-cols-[1.2fr_2fr]">
           <AnalysisScoreOverview score={score} sectionScores={sectionScores} />
           <AnalysisKpiCards data={kpiData} />
@@ -347,14 +344,22 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel }: C
             interpretation={trendInterpretation}
           />
         ) : (
-          <AnalysisEmptyState type="insufficient-samples" title="조회 흐름 데이터 부족" description="영상 데이터가 있으면 조회 추세 차트가 표시됩니다." />
+          <AnalysisEmptyState
+            type="insufficient-samples"
+            title="조회 흐름 데이터 부족"
+            description="영상 데이터가 있으면 조회 추세 차트가 표시됩니다."
+          />
         )}
 
         {/* C. Recent Videos List */}
         {videosData.length > 0 ? (
           <AnalysisRecentVideosSection videos={videosData} />
         ) : (
-          <AnalysisEmptyState type="no-data" title="최근 영상 없음" description="분석 대상 영상이 없습니다." />
+          <AnalysisEmptyState
+            type="no-data"
+            title="최근 영상 없음"
+            description="분석 대상 영상이 없습니다."
+          />
         )}
 
         {/* D. Top/Bottom Performance Comparison */}
