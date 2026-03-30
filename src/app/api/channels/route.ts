@@ -5,6 +5,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { parseChannelRegistrationInput } from "@/lib/channels/parseChannelRegistrationInput";
 import { getChannelInfo } from "@/lib/youtube/getChannelInfo";
 import { createClient as createServerClient } from "@/lib/supabase/server";
+import { isAdminUser } from "@/lib/server/isAdminUser";
+import { getEffectiveLimits } from "@/lib/server/subscription/getEffectiveLimits";
 
 function createSupabaseWithBearer(request: Request) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -124,6 +126,17 @@ export async function POST(request: Request) {
     .select("id", { count: "exact", head: true })
     .eq("user_id", user.id);
   console.log("[Channels API] current count:", currentCount);
+
+  const isAdmin = await isAdminUser(user.id);
+  if (!isAdmin) {
+    const limits = await getEffectiveLimits(supabase, user.id);
+    if ((currentCount ?? 0) >= limits.channelLimit) {
+      return NextResponse.json(
+        { error: `채널은 최대 ${limits.channelLimit}개까지 등록할 수 있습니다.` },
+        { status: 403 }
+      );
+    }
+  }
 
   const lookup = parseChannelRegistrationInput(raw);
   if (!lookup) {

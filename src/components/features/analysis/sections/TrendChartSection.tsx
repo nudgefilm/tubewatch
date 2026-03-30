@@ -7,6 +7,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  ResponsiveContainer,
 } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
@@ -53,32 +54,28 @@ function deriveSummaryLine(
 }
 
 export function AnalysisViewTrendChart({ data, interpretation }: AnalysisViewTrendChartProps) {
-  // 1개: 차트 대신 단일 수치 카드
-  if (data.length === 1) {
+  // Fallback 1: 표본 2개 미만 — 추세 그래프를 그릴 수 없음
+  if (data.length < 2) {
     return (
       <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">최근 조회 흐름</CardTitle>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            현재 1개 영상 기준입니다. 표본이 늘면 추세 정확도가 높아집니다.
+        <CardContent className="flex items-center justify-center py-10">
+          <p className="text-sm text-muted-foreground">
+            표본 부족으로 조회 흐름 그래프를 표시할 수 없습니다.
           </p>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-8 rounded-lg bg-muted/40 px-5 py-4">
-            <div>
-              <p className="mb-0.5 text-xs text-muted-foreground">조회수</p>
-              <p className="text-2xl font-bold tabular-nums">{formatViews(data[0].views)}</p>
-            </div>
-            <div>
-              <p className="mb-0.5 text-xs text-muted-foreground">업로드</p>
-              <p className="text-sm font-medium">{data[0].date}</p>
-            </div>
-          </div>
-          {interpretation && (
-            <p className="mt-3 text-xs leading-relaxed text-muted-foreground/70">
-              {interpretation}
-            </p>
-          )}
+        </CardContent>
+      </Card>
+    )
+  }
+
+  // Fallback 2: 유효한 조회수 값이 전혀 없는 경우 (전부 0 또는 null)
+  const hasValidViews = data.some((d) => d.views > 0)
+  if (!hasValidViews) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-10">
+          <p className="text-sm text-muted-foreground">
+            유효한 조회수 데이터가 부족합니다.
+          </p>
         </CardContent>
       </Card>
     )
@@ -86,11 +83,20 @@ export function AnalysisViewTrendChart({ data, interpretation }: AnalysisViewTre
 
   const maxViews = Math.max(...data.map((d) => d.views))
   const minViews = Math.min(...data.map((d) => d.views))
+  // domain 안전 처리: min === max 이거나 0일 때 recharts가 빈 축을 그리는 것을 방지
+  const yDomainMin = minViews > 0 ? minViews * 0.8 : 0
+  const yDomainMax = maxViews > 0 ? maxViews * 1.1 : 100
   const trendDirection = data[data.length - 1].views > data[0].views ? "상승" : "하락"
   const summaryLine = deriveSummaryLine(data, trendDirection, maxViews, minViews)
   const smallSampleGuidance = data.length <= 4
     ? `현재 ${data.length}개 영상 기준 흐름입니다. 표본이 늘면 추세 정확도가 높아집니다.`
     : null
+
+  if (process.env.NODE_ENV === "development") {
+    if (!data || data.length === 0) {
+      console.warn("[TrendChart] empty data")
+    }
+  }
 
   return (
     <Card>
@@ -113,6 +119,7 @@ export function AnalysisViewTrendChart({ data, interpretation }: AnalysisViewTre
       </CardHeader>
       <CardContent className="pt-2">
         <ChartContainer config={chartConfig} className="h-[224px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={data}
             margin={{ top: 8, right: 10, left: -20, bottom: 0 }}
@@ -131,7 +138,7 @@ export function AnalysisViewTrendChart({ data, interpretation }: AnalysisViewTre
               axisLine={false}
               tick={{ fontSize: 11 }}
               className="text-muted-foreground"
-              domain={[minViews * 0.8, maxViews * 1.1]}
+              domain={[yDomainMin, yDomainMax]}
             />
             <Tooltip
               content={
@@ -148,10 +155,11 @@ export function AnalysisViewTrendChart({ data, interpretation }: AnalysisViewTre
               dataKey="views"
               stroke="var(--color-views)"
               strokeWidth={2}
-              dot={data.length <= 3}
+              dot={data.length <= 6}
               activeDot={{ r: 4, strokeWidth: 0 }}
             />
           </LineChart>
+          </ResponsiveContainer>
         </ChartContainer>
 
         {smallSampleGuidance && (
@@ -164,6 +172,9 @@ export function AnalysisViewTrendChart({ data, interpretation }: AnalysisViewTre
             {interpretation}
           </p>
         )}
+        <p className="mt-2 text-xs leading-relaxed text-muted-foreground/60">
+          최신 snapshot 기준 최근 영상 흐름입니다.
+        </p>
       </CardContent>
     </Card>
   )
