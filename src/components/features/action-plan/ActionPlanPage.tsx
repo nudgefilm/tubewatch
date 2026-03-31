@@ -49,6 +49,7 @@ function toCardsSection(actions: ActionPlanCardVm[]) {
     whyNeeded: a.whyNeeded,
     howToExecute: a.executionHint.split("\n").filter(Boolean),
     expectedEffect: a.expectedEffect,
+    scenarioBlocks: a.scenarioText?.split("\n").filter(Boolean) ?? [],
     priority: a.priority,
     dnaConnection:
       a.evidenceSource === "channel_dna" ? "채널 DNA 기반" : null,

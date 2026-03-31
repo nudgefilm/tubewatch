@@ -37,6 +37,11 @@ export type ActionPlanCardVm = {
   title: string;
   whyNeeded: string;
   expectedEffect: string;
+  /**
+   * 3단 변화 시나리오. "\n" 구분자로 3파트:
+   * [0] 실행 전 상태  [1] 변화 메커니즘  [2] 기대 시나리오
+   */
+  scenarioText?: string;
   difficulty: "low" | "medium" | "high";
   executionHint: string;
   /** `/channel-dna`와 동일 스냅샷에서 계산된 룰 기반 근거 */
@@ -162,6 +167,13 @@ function buildTextBackedActions(
       expectedEffect: item.kind === "bottleneck"
         ? "병목이 해소되면 콘텐츠 제작 흐름이 안정되고, 그 결과가 업로드 주기·품질로 이어집니다."
         : "약점 요인을 하나씩 줄이면 전체 구간 점수가 회복되고 알고리즘 추천 신호가 강화됩니다.",
+      scenarioText: item.kind === "bottleneck"
+        ? `현재 병목으로 진단된 구간으로 제작 흐름 또는 성과 회복에 제동이 걸린 상태입니다.\n` +
+          `병목이 해소되면 콘텐츠 제작 주기가 먼저 안정되고, 이후 업로드 일관성이 회복됩니다.\n` +
+          `제작 주기 안정화 → 업로드 일관성 회복 → 활동 신호 개선 순으로 변화가 나타날 수 있습니다.`
+        : `현재 약점 신호로 진단된 구간으로 성과 불안정 요인이 남아 있는 상태입니다.\n` +
+          `해당 요인을 개선하면 구간 점수 신호가 먼저 반응하고, 전체 추천 신호 안정성이 높아집니다.\n` +
+          `구간 신호 개선 → 성과 구조 안정화 → 알고리즘 추천 신호 강화 순으로 변화가 나타날 수 있습니다.`,
       difficulty: item.kind === "bottleneck" ? "high" : "medium",
       executionHint:
         "이 신호를 유발하는 원인을 하나로 좁히세요.\n다음 1~2회 업로드에서 그 요소만 바꿔 결과를 기록하세요.",
@@ -190,6 +202,10 @@ function buildMetricBackedActions(
       title: "업로드 빈도 복구 — 활동 구간이 기준 이하입니다",
       whyNeeded: `업로드·활동 구간 ${Math.round(sections.channelActivity)}점(기준 55점). 최근 30일 ${metrics.recent30dUploadCount}건 업로드는 알고리즘이 채널을 활성으로 분류하기에 부족할 수 있습니다. 업로드 공백이 길어질수록 채널 노출 빈도가 감소합니다.`,
       expectedEffect: "업로드 주기가 안정되면 알고리즘이 채널을 활성으로 인식해 노출 빈도가 회복됩니다. 구독자 복귀율과 신규 추천 트리거에 직접 영향을 줍니다.",
+      scenarioText:
+        `최근 30일 ${metrics.recent30dUploadCount}건 업로드로 활동 신호가 알고리즘 임계점에 미치지 못하는 상태입니다.\n` +
+        `업로드가 재개되면 활동 신호가 먼저 반응하고, 알고리즘이 채널을 활성 상태로 재분류합니다.\n` +
+        `초기 노출 빈도 회복 → 기존 구독자 복귀율 안정화 → 신규 추천 범위 점진적 확장 순으로 변화가 나타날 수 있습니다.`,
       difficulty: "low",
       executionHint:
         "이번 달 업로드 목표 횟수를 달력에 고정하세요.\n촬영·편집 일정을 역산해 공백이 2주를 넘지 않도록 조정하세요.\n다음 영상 주제를 지금 바로 1개 정해두세요.",
@@ -206,6 +222,10 @@ function buildMetricBackedActions(
       title: "업로드 간격 단축 — 불규칙한 주기가 이탈을 만듭니다",
       whyNeeded: `표본 기준 평균 업로드 간격 약 ${metrics.avgUploadIntervalDays.toFixed(1)}일. 간격이 고르지 않으면 구독자의 기대 주기가 형성되지 않아 자연 이탈이 발생합니다. 알고리즘도 업로드 주기가 불규칙한 채널에는 추천 신호를 줄이는 경향이 있습니다.`,
       expectedEffect: "일정한 간격이 구독자의 복귀 패턴을 만들고, 알고리즘 추천 빈도를 안정적으로 유지하는 기반이 됩니다.",
+      scenarioText:
+        `평균 업로드 간격 약 ${metrics.avgUploadIntervalDays.toFixed(1)}일로 구독자의 기대 주기가 형성되지 않는 구조입니다.\n` +
+        `간격이 일정해지면 구독자 복귀 패턴이 먼저 안정되고, 이후 알고리즘 추천 주기도 규칙화됩니다.\n` +
+        `복귀율 개선 → 초기 반응 안정화 → 추천 노출 빈도 유지 순으로 변화가 나타날 수 있습니다.`,
       difficulty: "low",
       executionHint:
         "기획·촬영·편집 중 어느 단계에서 병목이 생기는지 한 주 단위로 기록하세요.\n병목 단계 하나만 골라 시간을 줄일 방법을 실험하세요.\n목표 간격을 정하고 달력에 다음 2회 업로드 날짜를 고정하세요.",
@@ -222,6 +242,10 @@ function buildMetricBackedActions(
       title: "반응률 회복 — 조회 대비 좋아요가 낮습니다",
       whyNeeded: `조회·반응 구간 ${Math.round(sections.audienceResponse)}점(기준 55점). 표본 평균 좋아요 비율 약 ${(metrics.avgLikeRatio * 100).toFixed(2)}%. 반응률이 낮으면 알고리즘이 영상을 관련 시청자에게 추천하는 범위를 줄입니다.`,
       expectedEffect: "좋아요 비율이 올라가면 알고리즘이 해당 영상을 더 넓은 범위에 추천하여 신규 시청자 유입이 증가합니다.",
+      scenarioText:
+        `표본 평균 좋아요 비율 약 ${(metrics.avgLikeRatio * 100).toFixed(2)}%로 반응 신호가 낮아 알고리즘 추천 범위가 좁은 상태입니다.\n` +
+        `제목·썸네일·첫 30초 개선 시 CTR이 먼저 반응하고, 반응 신호 누적으로 추천 범위가 확장됩니다.\n` +
+        `CTR 개선 → 반응 신호 누적 → 알고리즘 추천 범위 확장 → 신규 시청자 유입 순으로 변화가 나타날 수 있습니다.`,
       difficulty: "medium",
       executionHint:
         "최근 영상 3개의 제목·썸네일·첫 30초를 비교하세요.\n반응이 가장 높은 영상과 낮은 영상의 차이를 한 줄로 적어두세요.\n다음 영상에서 차이점 중 하나만 바꿔 반응 변화를 측정하세요.",
@@ -238,6 +262,10 @@ function buildMetricBackedActions(
       title: "제목 구조 개선 — 핵심 키워드가 앞으로 와야 합니다",
       whyNeeded: `콘텐츠·구조 구간 ${Math.round(sections.contentStructure)}점(기준 55점). 표본 평균 제목 길이 약 ${Math.round(metrics.avgTitleLength)}자. 핵심 키워드가 제목 뒤에 있거나 제목이 지나치게 길면 클릭률(CTR)이 낮아지고 노출 대비 유입이 줄어듭니다.`,
       expectedEffect: "핵심 키워드가 앞 15자 안에 오면 썸네일 클릭률이 개선되고, CTR 상승은 알고리즘 추천 빈도를 직접 높입니다.",
+      scenarioText:
+        `평균 제목 길이 약 ${Math.round(metrics.avgTitleLength)}자로 핵심 키워드 위치에 따라 클릭률에 영향을 줄 수 있는 구조입니다.\n` +
+        `핵심 키워드를 앞 15자 안에 배치하면 CTR이 먼저 반응하고, CTR 개선이 노출 확대로 이어집니다.\n` +
+        `CTR 개선 → 알고리즘 노출 확대 → 동일 주제 관련 영상 추천 빈도 상승 순으로 변화가 나타날 수 있습니다.`,
       difficulty: "low",
       executionHint:
         "최근 영상 3개의 제목에서 핵심 키워드 위치를 확인하세요.\n핵심어가 앞 15자 안에 오도록 제목을 수정해 비교안을 만드세요.\n수정 전후 CTR 변화를 다음 업로드에서 직접 측정하세요.",
@@ -254,6 +282,10 @@ function buildMetricBackedActions(
       title: "태그 정비 — 무관 태그를 줄이고 주제 적합도를 높이세요",
       whyNeeded: `표본 평균 태그 수 약 ${metrics.avgTagCount.toFixed(1)}개. 태그가 많아도 주제와 맞지 않으면 잘못된 시청자에게 노출되어 발견성이 오히려 떨어집니다. 주제 적합 태그 5~10개가 무관 태그 30개보다 효과적입니다.`,
       expectedEffect: "주제에 맞는 태그를 정리하면 검색 발견성이 높아지고, 관심사가 맞는 시청자에게 노출되어 반응률이 올라갑니다.",
+      scenarioText:
+        `평균 태그 수 약 ${metrics.avgTagCount.toFixed(1)}개로 주제 적합도가 낮은 태그가 섞인 경우 잘못된 시청자에게 노출되는 구조입니다.\n` +
+        `주제 적합 태그 정리 시 검색 노출 대상이 먼저 좁혀지고, 이후 클릭 반응률이 개선됩니다.\n` +
+        `노출 대상 정교화 → 클릭 반응 개선 → 관심사 매칭 시청자 유입 증가 순으로 변화가 나타날 수 있습니다.`,
       difficulty: "low",
       executionHint:
         "최근 영상 하나의 태그 목록을 열어 주제와 무관한 태그를 골라내세요.\n주제 핵심어·관련 검색어 기준 5~10개만 남기고 나머지를 제거하세요.\n다음 업로드부터 이 기준을 그대로 적용하세요.",
@@ -272,6 +304,10 @@ function buildMetricBackedActions(
       title: "영상 길이 최적화 — 주제에 맞는 길이를 찾으세요",
       whyNeeded: `콘텐츠·구조 구간 ${Math.round(sections.contentStructure)}점(기준 55점). 표본 평균 영상 길이 약 ${minutes}분 ${seconds.toString().padStart(2, "0")}초. 주제에 비해 지나치게 길거나 짧으면 시청 유지율이 낮아지고, 이탈 신호가 알고리즘 추천을 줄이는 방향으로 작용합니다.`,
       expectedEffect: "불필요한 구간을 제거해 시청 유지율을 높이면 알고리즘이 해당 영상을 더 긴 시간 노출하고 추천합니다.",
+      scenarioText:
+        `평균 영상 길이 약 ${minutes}분 ${seconds.toString().padStart(2, "0")}초로 주제 대비 구간이 늘어지면 시청 유지율이 낮아지는 구조입니다.\n` +
+        `불필요한 구간 제거 시 시청 유지율이 먼저 반응하고, 이탈 신호 감소가 추천 빈도로 이어집니다.\n` +
+        `시청 유지율 개선 → 이탈 신호 감소 → 알고리즘 추천 유지 → 평균 노출 시간 확대 순으로 변화가 나타날 수 있습니다.`,
       difficulty: "medium",
       executionHint:
         "최근 영상 2개를 직접 시청하며 내용이 늘어지는 구간의 시간대를 기록하세요.\n늘어지는 구간이 30초 이상이면 다음 편집에서 해당 부분을 줄이세요.\n수정 후 시청 유지율 그래프의 변화를 YouTube 스튜디오에서 확인하세요.",
@@ -288,6 +324,10 @@ function buildMetricBackedActions(
       title: "조회 분포 정상화 — 특정 영상 의존을 줄여야 합니다",
       whyNeeded: `성장 신호 구간 ${Math.round(sections.growthMomentum)}점(기준 55점). 표본 중앙 조회수 약 ${Math.round(metrics.medianViewCount)}회. 중앙값이 낮으면 채널 성과가 일부 히트 영상에 집중되는 구조로, 히트 영상이 없으면 전체 조회가 급감하는 리스크가 있습니다.`,
       expectedEffect: "반복 가능한 포맷이 정착되면 중앙 조회수가 상승하고, 히트 의존 없이도 안정적인 조회 흐름이 만들어집니다.",
+      scenarioText:
+        `표본 중앙 조회수 약 ${Math.round(metrics.medianViewCount)}회로 일부 히트 영상에 조회가 집중되는 구조로 볼 수 있습니다.\n` +
+        `반복 가능한 포맷 실험 시 중간 성과 영상 수가 먼저 늘어나고, 전체 조회 분포가 고르게 됩니다.\n` +
+        `중간 성과 영상 증가 → 조회 분포 안정화 → 히트 의존도 감소 → 채널 구조 안정화 순으로 변화가 나타날 수 있습니다.`,
       difficulty: "high",
       executionHint:
         "상위 3개 영상과 하위 3개 영상을 나란히 비교해 주제·포맷·제목 패턴 차이를 정리하세요.\n중간 성과(중앙값 근처) 영상 중 반복 가능한 포맷 하나를 선택하세요.\n다음 1편에서 그 포맷을 따라 업로드하고 결과를 이전 중앙값과 비교하세요.",
@@ -699,14 +739,14 @@ function buildActionPlanStrategicComment(
       ? `P1 우선 실행 — ${p1[0].title}`
       : `총 ${actions.length}개 실행 액션 정리됨`;
 
-  const summaryParts: string[] = [
-    `총 ${actions.length}개 액션이 우선순위별로 구성되어 있습니다.`,
-  ];
-  if (p1.length > 0) {
-    summaryParts.push(
-      `P1 ${p1.length}개를 먼저 실행하고, P2 ${p2.length}개를 이어서 진행하세요.`
-    );
-  }
+  const p3 = actions.filter((a) => a.priority === "P3");
+  const summaryParts: string[] = [];
+  summaryParts.push(
+    `총 ${actions.length}개 액션이 P1(${p1.length}개) · P2(${p2.length}개) · P3(${p3.length}개)로 나뉩니다.`
+  );
+  summaryParts.push(
+    `P1은 지금 당장 막힌 병목을 해결하는 핵심 실행입니다. P2는 초기 반응을 안정화하고 구조를 보완합니다. P3는 업로드 전 점검할 세부 최적화 항목입니다.`
+  );
   if (totalScore != null) {
     summaryParts.push(`현재 채널 종합 점수 ${Math.round(totalScore)}점 기준으로 도출된 제안입니다.`);
   }
@@ -715,7 +755,7 @@ function buildActionPlanStrategicComment(
 
   return {
     headline,
-    summary: summaryParts.slice(0, 2).join(" "),
+    summary: summaryParts.join(" "),
     keyTakeaways: takeaways,
     priorityAction: p1[0]?.executionHint ?? null,
     caution: cautions[0] ?? null,

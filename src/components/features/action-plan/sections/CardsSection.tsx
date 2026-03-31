@@ -1,12 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { 
-  ChevronDown, 
-  ChevronUp, 
-  AlertCircle, 
-  Database, 
-  Lightbulb, 
+import {
+  ChevronDown,
+  ChevronUp,
+  AlertCircle,
+  Database,
   ListChecks,
   TrendingUp,
   Target,
@@ -33,6 +32,7 @@ interface ActionCard {
   whyNeeded: string
   howToExecute: string[]
   expectedEffect: string
+  scenarioBlocks?: string[]
   applicationScope?: string | null
   experimentPeriod?: string | null
   caution?: string | null
@@ -107,11 +107,11 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                   </Button>
                 </div>
 
-                {/* 현재 진단 — 항상 표시 */}
+                {/* 현재 상태 — 항상 표시 */}
                 <div className="flex items-start gap-2 mt-3 p-3 bg-muted/50 rounded-lg">
                   <AlertCircle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-xs font-semibold text-destructive mb-0.5">현재 진단</p>
+                    <p className="text-xs font-semibold text-destructive mb-0.5">현재 상태</p>
                     <p className="text-sm">{action.problemSummary}</p>
                   </div>
                 </div>
@@ -143,17 +143,6 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                     </div>
                   )}
 
-                  {/* 실행이 필요한 이유 */}
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm font-medium">
-                      <Lightbulb className="h-4 w-4 text-amber-500" />
-                      실행이 필요한 이유
-                    </div>
-                    <p className="text-sm text-muted-foreground pl-6">
-                      {action.whyNeeded}
-                    </p>
-                  </div>
-
                   {/* 지금 실행하세요 */}
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm font-medium">
@@ -177,9 +166,20 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                         <TrendingUp className="h-4 w-4 text-emerald-500" />
                         실행 후 변화 시나리오
                       </div>
-                      <p className="text-sm text-muted-foreground pl-6">
-                        {action.expectedEffect}
-                      </p>
+                      {action.scenarioBlocks && action.scenarioBlocks.length === 3 ? (
+                        <div className="pl-6 space-y-2">
+                          {(["실행 전 상태", "변화 메커니즘", "기대 시나리오"] as const).map((label, i) => (
+                            <div key={label}>
+                              <p className="text-xs font-semibold text-muted-foreground mb-0.5">{label}</p>
+                              <p className="text-sm text-muted-foreground leading-relaxed">{action.scenarioBlocks![i]}</p>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground pl-6">
+                          {action.expectedEffect}
+                        </p>
+                      )}
                     </div>
                     {action.applicationScope && (
                       <div className="space-y-2">
