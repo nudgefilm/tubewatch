@@ -50,35 +50,35 @@ export function ActionPlanPrioritySection({ data }: ActionPlanPriorityProps) {
               {priorityActionLabel[action.level] ?? `STEP ${action.order}`}
             </p>
             {/* 1. 헤드라인 */}
-            <CardTitle className="text-base pr-10 leading-snug">{action.title}</CardTitle>
+            <CardTitle className="text-xl pr-10 leading-snug">{action.title}</CardTitle>
           </CardHeader>
 
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-4">
             {/* 2. DNA 근거 */}
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-0.5">
+              <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-0.5">
                 DNA 근거
               </p>
-              <p className="text-xs text-foreground/80 leading-relaxed">{action.reason}</p>
+              <p className="text-sm text-foreground/80 leading-7">{action.reason}</p>
             </div>
 
             {/* 3. 기대 효과 */}
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-0.5">
+              <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-0.5">
                 기대 효과
               </p>
-              <p className="text-xs text-foreground/80 leading-relaxed">{action.expectedEffect}</p>
+              <p className="text-sm text-foreground/80 leading-7">{action.expectedEffect}</p>
             </div>
 
             {/* 4. 실행 방법 */}
             {action.executionSteps.length > 0 && (
               <div className="pt-2 border-t">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+                <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-1">
                   실행 방법
                 </p>
-                <ol className="space-y-1">
+                <ol className="space-y-2">
                   {action.executionSteps.slice(0, 2).map((step, i) => (
-                    <li key={i} className="flex gap-2 text-xs text-foreground/80 leading-relaxed">
+                    <li key={i} className="flex gap-2 text-base text-foreground/80 leading-7">
                       <span className="shrink-0 font-semibold text-primary">{i + 1}.</span>
                       <span>{step}</span>
                     </li>
