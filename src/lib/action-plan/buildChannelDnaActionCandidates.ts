@@ -19,6 +19,7 @@ export type ChannelDnaActionCandidate = {
     current: string;
     targetRange: string;
     expectedChanges: string[];
+    predictionBasis?: string;
   };
   executionSpec?: {
     videoCount: string;
@@ -203,7 +204,7 @@ export function buildChannelDnaActionCandidates(
       bench.dominantFormat != null ? ` 추정 포맷: ${bench.dominantFormat}.` : "";
     out.push({
       id: "channel-dna-hit-concentration",
-      title: "조회 집중 완화를 위한 포맷과 주제 분산 검토",
+      title: "조회 히트 집중도 과다",
       whyNeeded: `${formatHitEvidence(bench)} 성과 대부분이 소수 영상에 집중되어 있어, 히트 영상이 없을 때 채널 전체 조회가 급감할 수 있습니다.${formatTail} 지금 다른 주제·포맷으로 한 편을 실험하세요.`.trim(),
       expectedEffect: "소수 실험 후 중간 성과 영상이 늘어나면, 히트 의존 없이도 안정적인 조회 구조로 이동하는 신호입니다.",
       difficulty: "medium",
@@ -237,7 +238,7 @@ export function buildChannelDnaActionCandidates(
       bench.dominantFormat != null ? ` 추정 포맷 ${bench.dominantFormat}.` : "";
     out.push({
       id: "channel-dna-spread-repro",
-      title: "재현 가능한 포맷과 패턴 정리",
+      title: "성과 편차 과대",
       whyNeeded: `조회수 편차가 크게 측정되었습니다.${formatTail ? ` ${formatTail}` : ""} 편차가 크면 어느 요소가 성과를 만드는지 파악하기 어려워져, 좋은 영상을 반복 제작하기 힘들어집니다. 지금 상·하위 영상을 비교해 패턴을 찾으세요.`.trim(),
       expectedEffect: "반복 실험을 3~4회 진행하면, 재현 가능한 포맷 패턴을 도출할 수 있습니다.",
       difficulty: "medium",
@@ -265,7 +266,7 @@ export function buildChannelDnaActionCandidates(
   if (bench.uploadConsistencyLevel === "low") {
     out.push({
       id: "channel-dna-upload-rhythm",
-      title: "발행 리듬과 간격 안정화 점검",
+      title: "업로드 리듬 불안정",
       whyNeeded:
         "업로드 일관성이 낮음으로 기록되었습니다. 간격이 불규칙하면 구독자 기대 주기가 형성되지 않고, 알고리즘이 채널을 비활성으로 판단할 수 있습니다. 지금 한 달 업로드 일정을 달력에 배치하세요.",
       expectedEffect: "4주 이상 일정한 간격으로 업로드하면, 알고리즘이 채널을 활성 상태로 인식하기 시작합니다.",
@@ -301,7 +302,7 @@ export function buildChannelDnaActionCandidates(
       const secScore = Math.round(sections[k]);
       out.push({
         id: `channel-dna-section-${k}`,
-        title: `${SECTION_LABELS[k]} 구간 집중 보완`,
+        title: `${SECTION_LABELS[k]} 구간 보완 필요`,
         whyNeeded: SECTION_WHY_NEEDED[k],
         expectedEffect: CONSERVATIVE_EFFECT,
         difficulty: k === "growthMomentum" ? "high" : "medium",
@@ -313,6 +314,7 @@ export function buildChannelDnaActionCandidates(
           current: `${SECTION_LABELS[k]} 구간 ${secScore}점`,
           targetRange: "목표 55점 이상 회복",
           expectedChanges: SECTION_PERF_CHANGES[k],
+          predictionBasis: `${SECTION_LABELS[k]} 구간 ${secScore}점 기준`,
         },
         executionSpec: {
           videoCount: "1~2개",
@@ -328,7 +330,7 @@ export function buildChannelDnaActionCandidates(
     const quoted = bench.topPatternSignals.slice(0, 2).join(" · ");
     out.push({
       id: "channel-dna-strength-extend",
-      title: "반복 확인된 강점 패턴 유지와 확장",
+      title: "강점 패턴 유지 필요",
       whyNeeded: `강점 패턴 — ${quoted} — 이 반복 확인되었습니다. 이 패턴이 성과의 핵심이며, 흔들리면 기존 시청자 반응도 낮아질 수 있습니다. 지금 이 패턴을 명문화하세요.`,
       expectedEffect: "강점 패턴을 유지하면서 점진적으로 확장하면, 기존 시청자를 유지하며 새로운 반응 구간을 열 수 있습니다.",
       difficulty: "low",
