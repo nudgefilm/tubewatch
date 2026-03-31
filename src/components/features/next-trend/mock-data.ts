@@ -9,6 +9,9 @@ export interface TrendCandidate {
   feasibility: number
   source: "dna" | "seo" | "action"
   status: "executable" | "observe" | "hold"
+  signalStrength: "clear" | "medium" | "low"
+  /** ViewModel에서 생성된 근거 항목 — 없으면 빈 배열 */
+  evidence?: { label: string; value: string }[]
 }
 
 export interface FormatRecommendation {
@@ -81,6 +84,11 @@ export const trendCandidates: TrendCandidate[] = [
     feasibility: 85,
     source: "dna",
     status: "executable",
+    signalStrength: "clear",
+    evidence: [
+      { label: "발생 신호", value: "DNA: 반복 성공 패턴 / SEO: 상위 키워드 클러스터" },
+      { label: "신호 강도", value: "반복 신호 확인됨" },
+    ],
   },
   {
     id: "2",
@@ -91,6 +99,11 @@ export const trendCandidates: TrendCandidate[] = [
     feasibility: 90,
     source: "action",
     status: "executable",
+    signalStrength: "clear",
+    evidence: [
+      { label: "발생 신호", value: "DNA: 안정 성과 패턴 / Action: 실행 우선순위 P1" },
+      { label: "신호 강도", value: "반복 신호 확인됨" },
+    ],
   },
   {
     id: "3",
@@ -101,6 +114,11 @@ export const trendCandidates: TrendCandidate[] = [
     feasibility: 70,
     source: "seo",
     status: "observe",
+    signalStrength: "medium",
+    evidence: [
+      { label: "발생 신호", value: "SEO: 관련 검색어 증가 / DNA: 미활용 패턴" },
+      { label: "신호 강도", value: "신호 감지 중" },
+    ],
   },
   {
     id: "4",
@@ -111,6 +129,11 @@ export const trendCandidates: TrendCandidate[] = [
     feasibility: 75,
     source: "dna",
     status: "observe",
+    signalStrength: "medium",
+    evidence: [
+      { label: "발생 신호", value: "DNA: 반복 시도 가능 / SEO: 뉴스 키워드 공백" },
+      { label: "신호 강도", value: "신호 감지 중" },
+    ],
   },
   {
     id: "5",
@@ -121,6 +144,8 @@ export const trendCandidates: TrendCandidate[] = [
     feasibility: 55,
     source: "action",
     status: "hold",
+    signalStrength: "low",
+    evidence: [],
   },
 ]
 

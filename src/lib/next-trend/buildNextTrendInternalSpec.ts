@@ -12,10 +12,17 @@ import { getSnapshotVideoDurationStats } from "@/lib/next-trend/buildTrendSignal
 
 export type NextTrendConfidenceLabelKo = "낮음" | "중간" | "높음";
 
+/** ViewModel 단계에서 생성 — 저장·API 없이 기존 candidate 필드만 재조합 */
+export type EvidenceItem = { label: string; value: string };
+
 export type NextTrendCandidateVm = {
   topic: string;
   reason: string;
   signal: string;
+  /** 원 신호 강도 — UI에서 "신호 약함" / "반복 신호 확인됨" 표시에 사용 */
+  signalStrength: "clear" | "medium" | "low";
+  /** 발생 신호·강도에서 파생한 근거 항목 — 새 계산 없음, 빈 배열 허용 */
+  evidence?: EvidenceItem[];
 };
 
 export type NextTrendFormatVm = {
@@ -62,6 +69,119 @@ export type NextTrendInternalBlocks = {
   actions: NextTrendActionsVm;
 };
 
+/**
+ * actionTopic 텍스트로 신호 카테고리를 역추적해 구체적 Evidence를 만든다.
+ * 기존 데이터(sortKey 인코딩, detail 원문, recentVideosUsed)만 사용.
+ * 없는 값은 빈 배열 반환 — 임의 수치 생성 없음.
+ */
+function buildCandidateEvidence(
+  actionTopic: string,
+  signalStrength: "clear" | "medium" | "low",
+  originalDetail: string,
+  recentVideosUsed: number
+): EvidenceItem[] {
+  const items: EvidenceItem[] = [];
+
+  // ── 반복 키워드 (repeat 토큰) ──────────────────────────────────
+  // toActionTopic: `'${tok}' 주제로 이어지는 다음 편…`
+  const tokenMatch = actionTopic.match(/'([^']+)' 주제로 이어지는/);
+  if (tokenMatch) {
+    items.push({ label: "반복 키워드", value: `'${tokenMatch[1]}'` });
+    // sortKey % 100: 0=clear(4편+), 1=medium(3편), 2=low(2편)
+    const countLabel =
+      signalStrength === "clear" ? "표본 내 4편 이상"
+      : signalStrength === "medium" ? "표본 내 3편"
+      : "표본 내 2편";
+    items.push({ label: "등장 횟수", value: countLabel });
+    return items;
+  }
+
+  // ── 조회 최고 편 패턴 (view 신호) ───────────────────────────────
+  // detail 원문: "표본 평균 조회 대비 최고 편이 약 X.XX배…"
+  if (actionTopic.includes("반복 가능 패턴 확인")) {
+    const ratioMatch = originalDetail.match(/약\s*([\d.]+)배/);
+    if (ratioMatch) {
+      items.push({ label: "최고 편 조회", value: `평균 대비 약 ${ratioMatch[1]}배` });
+    } else {
+      items.push({ label: "조회 신호", value: "표본 평균 대비 높게 감지" });
+    }
+    if (recentVideosUsed >= 3) {
+      items.push({ label: "표본", value: `${recentVideosUsed}개 영상 기준` });
+    }
+    return items;
+  }
+
+  // ── 최근 조회 상승 흐름 ──────────────────────────────────────────
+  if (actionTopic.includes("상승 흐름 유지")) {
+    items.push({ label: "최근 흐름", value: "이전 절반 대비 조회 상승 감지" });
+    if (recentVideosUsed >= 4) {
+      items.push({ label: "비교 기준", value: `표본 ${recentVideosUsed}개 앞뒤 절반` });
+    }
+    return items;
+  }
+
+  // ── 최근 조회 하락 흐름 ──────────────────────────────────────────
+  if (actionTopic.includes("조회 하락 대응")) {
+    items.push({ label: "최근 흐름", value: "이전 절반 대비 조회 하락 감지" });
+    if (recentVideosUsed >= 4) {
+      items.push({ label: "비교 기준", value: `표본 ${recentVideosUsed}개 앞뒤 절반` });
+    }
+    return items;
+  }
+
+  // ── 숏폼 전환 신호 (format 신호) ────────────────────────────────
+  // clear: |delta| >= 0.35, medium: >= 0.20
+  if (actionTopic.includes("숏폼 전환")) {
+    items.push({ label: "포맷 변화", value: "최근 표본 내 짧은 영상 비중 증가" });
+    items.push({
+      label: "차이 정도",
+      value: signalStrength === "clear" ? "35%p 이상 차이" : "20%p 이상 차이",
+    });
+    return items;
+  }
+
+  // ── 롱폼 전환 신호 ───────────────────────────────────────────────
+  if (actionTopic.includes("롱폼 전환")) {
+    items.push({ label: "포맷 변화", value: "최근 표본 내 긴 영상 비중 증가" });
+    items.push({
+      label: "차이 정도",
+      value: signalStrength === "clear" ? "35%p 이상 차이" : "20%p 이상 차이",
+    });
+    return items;
+  }
+
+  // ── 주제·포맷 반복 패턴 (snapshot_pattern) ───────────────────────
+  if (actionTopic.includes("반복 패턴 강화")) {
+    items.push({ label: "패턴 출처", value: "스냅샷 주제 반복 플래그" });
+    if (recentVideosUsed >= 3) {
+      items.push({ label: "표본", value: `${recentVideosUsed}개 영상` });
+    }
+    return items;
+  }
+
+  // ── 조회 편차 (snapshot_pattern: high_view_variance) ─────────────
+  if (actionTopic.includes("성과 편차 분석")) {
+    items.push({ label: "패턴 출처", value: "스냅샷 조회 편차 플래그" });
+    if (recentVideosUsed >= 3) {
+      items.push({ label: "표본", value: `${recentVideosUsed}개 영상` });
+    }
+    return items;
+  }
+
+  // ── 업로드 리듬 신호 ─────────────────────────────────────────────
+  if (actionTopic.includes("업로드 리듬 유지")) {
+    items.push({ label: "리듬 신호", value: "최근 공개 간격 단축 감지" });
+    return items;
+  }
+  if (actionTopic.includes("업로드 간격 회복")) {
+    items.push({ label: "리듬 신호", value: "공개 간격 증가 감지" });
+    return items;
+  }
+
+  // ── fallback — 유효 Evidence 없음 ───────────────────────────────
+  return [];
+}
+
 /** 공백·대소문자·구두점 차이를 줄인 키로 묶어 중복 후보를 줄입니다. */
 function normalizeTopicBucket(title: string): string {
   return title
@@ -92,6 +212,13 @@ function strengthRank(s: TrendSignalStrength): number {
   return 2;
 }
 
+function signalStrengthFromSortKey(sk: number): "clear" | "medium" | "low" {
+  const rank = sk % 100;
+  if (rank === 0) return "clear";
+  if (rank === 1) return "medium";
+  return "low";
+}
+
 function strengthForVm(
   vm: TrendItemVm,
   records: TrendSignalRecord[]
@@ -118,7 +245,7 @@ function toActionTopic(headline: string): string {
     return "조회 하락 대응 — 포맷을 점검하고 다음 편 방향을 전환하세요";
   }
   if (h.includes("표본 평균 대비 조회가 높게")) {
-    return "고조회 포맷 재현 — 이 패턴으로 다음 영상을 기획하세요";
+    return "반복 가능 패턴 확인 — 이 포맷 구조로 다음 1편 시도하세요";
   }
   if (h.includes("짧은 길이") || (h.includes("비중") && h.includes("높게"))) {
     return "숏폼 전환 신호 — 짧은 포맷으로 1편 실험하세요";
@@ -155,8 +282,8 @@ function toActionReason(originalTopic: string, originalReason: string): string {
   if (h.includes("조회 하락 대응")) {
     return "최근 편의 조회가 이전 평균보다 낮아지고 있습니다. 제목·썸네일·첫 15초 중 하나를 변경해 2~3편 테스트하세요.";
   }
-  if (h.includes("고조회 포맷 재현")) {
-    return "특정 영상의 조회가 표본 평균을 크게 웃돌고 있습니다. 이 포맷과 주제 구조를 분석하고, 같은 접근으로 다음 편을 만드세요.";
+  if (h.includes("반복 가능 패턴 확인")) {
+    return "특정 영상의 조회가 표본 평균을 웃돌고 있습니다. 이 포맷과 주제 구조를 분석하고, 같은 접근으로 다음 1편을 시도하세요.";
   }
   if (h.includes("숏폼 전환")) {
     return "최근 표본에서 짧은 영상 비중이 높아지고 있습니다. 숏폼 1편을 테스트해 반응 차이를 직접 측정하세요.";
@@ -194,30 +321,39 @@ function mergeCandidates(
   repeated: TrendItemVm[],
   patterns: TrendItemVm[],
   records: TrendSignalRecord[],
-  max: number
+  max: number,
+  recentVideosUsed: number
 ): NextTrendCandidateVm[] {
   type Row = {
     topic: string;
     reason: string;
     signal: string;
     sortKey: number;
+    signalStrength: "clear" | "medium" | "low";
+    originalReason: string; // it.shortReason before toActionReason — for evidence
   };
 
   const rows: Row[] = [];
   for (const it of repeated) {
+    const sk = sortKey(it, records, "repeat");
     rows.push({
       topic: it.title,
       reason: it.shortReason,
       signal: it.evidenceSource,
-      sortKey: sortKey(it, records, "repeat"),
+      sortKey: sk,
+      signalStrength: signalStrengthFromSortKey(sk),
+      originalReason: it.shortReason,
     });
   }
   for (const it of patterns) {
+    const sk = sortKey(it, records, "pattern");
     rows.push({
       topic: it.title,
       reason: it.shortReason,
       signal: it.evidenceSource,
-      sortKey: sortKey(it, records, "pattern"),
+      sortKey: sk,
+      signalStrength: signalStrengthFromSortKey(sk),
+      originalReason: it.shortReason,
     });
   }
 
@@ -250,17 +386,20 @@ function mergeCandidates(
       ex.reason = row.reason;
       ex.signal = row.signal;
       ex.sortKey = row.sortKey;
-    } else if (!ex.reason.includes(row.reason.slice(0, 28))) {
-      ex.reason = `${ex.reason} ${row.reason}`;
+      ex.signalStrength = row.signalStrength;
+      ex.originalReason = row.originalReason;
     }
+    // 유사 후보 병합 — reason 중복 연결 제거 (세부 각도는 signal에 통합)
   }
 
-  return merged.slice(0, max).map(({ topic, reason, signal }) => {
+  return merged.slice(0, max).map(({ topic, reason, signal, signalStrength, originalReason }) => {
     const actionTopic = toActionTopic(topic);
     return {
       topic: actionTopic,
       reason: toActionReason(actionTopic, reason),
       signal,
+      signalStrength,
+      evidence: buildCandidateEvidence(actionTopic, signalStrength, originalReason, recentVideosUsed),
     };
   });
 }
@@ -329,7 +468,8 @@ export function buildNextTrendInternalSpec(
     insights.repeatedTopics,
     insights.detectedPatterns,
     bundle.records,
-    5
+    5,
+    bundle.recentVideosUsed
   );
 
   const formatHeadline =
@@ -413,10 +553,12 @@ export function buildNextTrendInternalSpec(
         ? candidates
         : [
             {
-              topic: "신호 부족 — 기존 포맷 반복 전략으로 시작하세요",
+              topic: "반복성 미확인 — 기존 포맷으로 1편 먼저 시도하세요",
               reason:
-                "반복·패턴 신호가 충분하지 않습니다. 최근 반응이 좋았던 영상과 동일한 포맷으로 1편을 먼저 제작하고, 표본을 늘린 뒤 다시 확인하세요.",
-              signal: "내부 표본 신호",
+                "반복·패턴 신호가 충분하지 않습니다. 최근 반응이 있었던 영상과 동일한 포맷으로 1편을 먼저 제작하고, 표본을 늘린 뒤 다시 확인하세요.",
+              signal: "표본 부족",
+              signalStrength: "low" as const,
+              evidence: [],
             },
           ],
     format: {
@@ -442,9 +584,11 @@ export function buildNextTrendInternalBlocksSkipped(
   return {
     candidates: [
       {
-        topic: "표본을 계산할 수 없음",
+        topic: "표본 부족 — 분석 후 재확인하세요",
         reason: summaryLine,
-        signal: "—",
+        signal: "표본 부족",
+        signalStrength: "low" as const,
+        evidence: [],
       },
     ],
     format: {

@@ -78,7 +78,7 @@ export function buildTrendInsights(bundle: TrendSignalsBundle): TrendInsightsBun
       "데이터가 적어 일부 신호만 확인됩니다. 기존 포맷을 반복하는 전략으로 지금 시작하세요.";
   } else if (hasClear) {
     trendSummary =
-      "최근 영상에서 명확한 성과 패턴이 감지됩니다. 아래 후보 방향으로 다음 영상을 기획하세요.";
+      "최근 영상에서 반복 신호가 확인됩니다. 아래 후보 방향으로 다음 1편을 시도하세요.";
   } else if (hasMedium || records.length > 0) {
     trendSummary =
       "기존 패턴이 유지되고 있습니다. 성과를 낸 포맷을 지금 반복 제작하세요.";

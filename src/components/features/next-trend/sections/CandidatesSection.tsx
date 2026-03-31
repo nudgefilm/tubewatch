@@ -1,32 +1,55 @@
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { Sparkles, TrendingUp, Search, Zap } from "lucide-react"
+import { TrendingUp } from "lucide-react"
+import { EvidenceBlock } from "@/components/common/EvidenceBlock"
 import type { TrendCandidate } from "../mock-data"
 
 interface NextTrendCandidatesSectionProps {
   data: TrendCandidate[]
 }
 
-const priorityConfig = {
-  high: { label: "높음", className: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" },
-  medium: { label: "중간", className: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400" },
-  low: { label: "낮음", className: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400" },
+// [3] signalStrength → 행동 연결
+function signalAction(strength: "clear" | "medium" | "low"): string {
+  if (strength === "clear") return "지금 바로 실행 가능"
+  if (strength === "medium") return "2~3편 테스트 후 확장"
+  return "탐색 단계, 1편 테스트 권장"
 }
 
-const statusConfig = {
-  executable: { label: "실행 가능", className: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
-  observe: { label: "관찰 필요", className: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" },
-  hold: { label: "보류", className: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400" },
+// [2] 실행 가능성 해석
+function feasibilityHint(feasibility: number): string {
+  if (feasibility >= 76) return "기존 포맷 유지 시 바로 적용 가능"
+  if (feasibility >= 60) return "약간의 준비로 시작 가능"
+  return "추가 리소스 필요"
 }
 
-const sourceConfig = {
-  dna: { icon: Sparkles, label: "DNA 기반" },
-  seo: { icon: Search, label: "SEO 기반" },
-  action: { icon: Zap, label: "Action 기반" },
+// [3] 후보 역할 라벨
+function getTierLabel(index: number): string {
+  if (index === 0) return "우선 실행 후보"
+  if (index <= 2) return "보조 후보"
+  return "탐색 후보"
 }
+
+type RankTier = "primary" | "secondary" | "experimental"
+function rankTier(index: number): RankTier {
+  if (index === 0) return "primary"
+  if (index < 3) return "secondary"
+  return "experimental"
+}
+
+const tierCardClass: Record<RankTier, string> = {
+  primary: "border-primary/40 bg-primary/5 dark:bg-primary/10",
+  secondary: "border-border bg-card",
+  experimental: "border-dashed border-muted-foreground/30 bg-muted/20",
+}
+
+const tierRankClass: Record<RankTier, string> = {
+  primary: "bg-primary text-primary-foreground",
+  secondary: "bg-primary/10 text-primary",
+  experimental: "bg-muted text-muted-foreground",
+}
+
 
 export function NextTrendCandidatesSection({ data }: NextTrendCandidatesSectionProps) {
   return (
@@ -34,48 +57,63 @@ export function NextTrendCandidatesSection({ data }: NextTrendCandidatesSectionP
       <CardHeader>
         <div className="flex items-center gap-2">
           <TrendingUp className="h-5 w-5 text-primary" />
-          <CardTitle>다음 시도 후보</CardTitle>
+          <CardTitle>내부 신호 기반 다음 시도 후보</CardTitle>
         </div>
         <CardDescription>
-          내부 데이터 신호 기반으로 도출된 시도 가능 주제 (최대 5개)
+          채널 내부 반복 신호에서 도출한 시도 가능 주제 — 1순위부터 순서대로 결정하세요
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
+        <div className="space-y-3">
           {data.map((candidate, index) => {
-            const SourceIcon = sourceConfig[candidate.source].icon
+            const tier = rankTier(index)
             return (
               <div
                 key={candidate.id}
-                className="rounded-lg border bg-card p-4 transition-colors hover:bg-muted/50"
+                className={`rounded-lg border p-4 transition-colors hover:brightness-[0.97] ${tierCardClass[tier]}`}
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                        {index + 1}
-                      </span>
-                      <h4 className="font-semibold">{candidate.topic}</h4>
-                    </div>
+                <div className="flex items-start gap-3">
+                  {/* 순위 뱃지 */}
+                  <span className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold shrink-0 mt-0.5 ${tierRankClass[tier]}`}>
+                    {index + 1}
+                  </span>
+                  <div className="flex-1 space-y-2 min-w-0">
+                    {/* [3] 역할 라벨 — 제목 위 */}
+                    <span className={`inline-block text-xs font-medium px-1.5 py-0.5 rounded ${
+                      tier === "primary"
+                        ? "bg-primary/10 text-primary"
+                        : tier === "experimental"
+                          ? "bg-muted text-muted-foreground"
+                          : "bg-muted/60 text-foreground/60"
+                    }`}>
+                      {getTierLabel(index)}
+                    </span>
+
+                    {/* 주제 후보 */}
+                    <h4 className={`font-semibold leading-snug ${tier === "primary" ? "text-base" : "text-sm"}`}>
+                      {candidate.topic}
+                    </h4>
+
+                    {/* [4] 행동 문장 — 주제 바로 아래, 항상 1줄 */}
+                    <p className="text-sm text-muted-foreground">
+                      {signalAction(candidate.signalStrength)}
+                    </p>
+
+                    {/* 추천 이유 */}
                     <p className="text-sm text-muted-foreground">{candidate.reason}</p>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <SourceIcon className="h-3.5 w-3.5" />
-                      <span>{candidate.signal}</span>
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end gap-2 shrink-0">
-                    <div className="flex flex-wrap justify-end gap-2">
-                      <Badge variant="outline" className={priorityConfig[candidate.priority].className}>
-                        우선순위: {priorityConfig[candidate.priority].label}
-                      </Badge>
-                      <Badge variant="outline" className={statusConfig[candidate.status].className}>
-                        {statusConfig[candidate.status].label}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm whitespace-nowrap">
-                      <span className="text-muted-foreground">실행 가능성</span>
-                      <Progress value={candidate.feasibility} className="h-2 w-16 shrink-0" />
-                      <span className="font-medium">{candidate.feasibility}%</span>
+
+                    {/* Evidence — ViewModel에서 생성한 근거 항목 */}
+                    {(candidate.evidence ?? []).length > 0 && (
+                      <EvidenceBlock items={candidate.evidence!} />
+                    )}
+
+                    {/* [5] 실행 가능성 — 해석 문장 우선, % 보조 */}
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium text-foreground/80">
+                        {feasibilityHint(candidate.feasibility)}{" "}
+                        <span className="font-normal text-muted-foreground">({candidate.feasibility}%)</span>
+                      </p>
+                      <Progress value={candidate.feasibility} className="h-1 max-w-[120px]" />
                     </div>
                   </div>
                 </div>

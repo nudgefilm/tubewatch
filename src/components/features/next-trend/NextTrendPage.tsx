@@ -10,6 +10,10 @@ import { ChannelContextHeader, type ChannelContext } from "@/components/features
 import { StrategicCommentCard } from "@/components/features/shared/StrategicCommentCard"
 import { PageFlowConnector } from "@/components/features/shared/PageFlowConnector"
 import { FeaturePaywallBlock } from "@/components/features/shared/FeaturePaywallBlock"
+import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
+import { AlertCircle, ArrowRight, TrendingUp } from "lucide-react"
+import { EvidenceBlock } from "@/components/common/EvidenceBlock"
 import type { NextTrendPageViewModel } from "@/lib/next-trend/nextTrendPageViewModel"
 import type {
   NextTrendCandidateVm,
@@ -37,6 +41,8 @@ function toCandidates(vms: NextTrendCandidateVm[]): TrendCandidate[] {
     feasibility: Math.max(40, 80 - i * 8),
     source: "dna" as const,
     status: "executable" as const,
+    signalStrength: vm.signalStrength,
+    evidence: vm.evidence ?? [],
   }))
 }
 
@@ -125,6 +131,31 @@ function toExecutionActions(vm: NextTrendActionsVm): ExecutionAction[] {
   ]
 }
 
+const signalStrengthBadgeConfig = {
+  clear: { label: "반복 신호 확인됨", className: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
+  medium: { label: "신호 감지 중", className: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400" },
+  low: { label: "신호 약함", className: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400" },
+}
+
+function signalAction(strength: "clear" | "medium" | "low"): string {
+  if (strength === "clear") return "지금 바로 실행 가능"
+  if (strength === "medium") return "2~3편 테스트 후 확장"
+  return "탐색 단계, 1편 테스트 권장"
+}
+
+function feasibilityHint(feasibility: number): string {
+  if (feasibility >= 76) return "기존 포맷 유지 시 바로 적용 가능"
+  if (feasibility >= 60) return "약간의 준비로 시작 가능"
+  return "추가 리소스 필요"
+}
+
+// [1] Top Block — 왜 1순위인지 한 줄
+function getTopReason(strength: "clear" | "medium" | "low"): string {
+  if (strength === "clear") return "반복 신호가 가장 명확하고, 기존 흐름 유지로 바로 시도 가능한 주제입니다."
+  if (strength === "medium") return "신호가 확인되고 있으며, 소규모 테스트 후 확장 가치가 있는 주제입니다."
+  return "초기 신호가 감지된 단계로, 탐색 목적의 1편 테스트가 적합한 주제입니다."
+}
+
 export function NextTrendPage({ channelId = "", channelContext, viewModel, isStarterPlan = false }: NextTrendPageProps) {
   // Real data path
   if (viewModel) {
@@ -132,6 +163,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
     const allCandidates = toCandidates(internal.candidates)
     const candidates = isStarterPlan ? allCandidates.slice(0, 2) : allCandidates
     const hasLockedCandidates = isStarterPlan && allCandidates.length > 2
+    const topCandidates = allCandidates.slice(0, 3)
     const formats = toFormatRecommendations(internal.format)
     const risks = toRiskMemos(internal.risk)
     const hints = toExecutionHints(internal.hints)
@@ -142,7 +174,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
         <div className="mx-auto max-w-7xl space-y-8 p-6 lg:p-8">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight lg:text-3xl">Next Trend</h1>
-            <p className="mt-1 text-sm text-muted-foreground">다음 영상 아이디어를 지금 결정하세요</p>
+            <p className="mt-1 text-sm text-muted-foreground">내부 흐름 기반 다음 시도</p>
           </div>
 
           <ChannelContextHeader channelContext={channelContext} />
@@ -159,25 +191,90 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                 {viewModel.dataPipelineNotice}
               </div>
 
-              {/* 다음 영상의 힌트 */}
-              <section className="space-y-4">
-                <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-                  <h2 className="text-xl font-bold tracking-tight">다음 영상의 힌트</h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">다음 영상의 제목·훅·썸네일을 지금 결정하세요</p>
-                </div>
-                {hints.length > 0 ? (
-                  <NextTrendExecutionHints data={hints} />
-                ) : (
-                  <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-                    실행 힌트 데이터가 아직 없습니다. 분석 후 자동으로 채워집니다.
-                  </div>
-                )}
-              </section>
+              {/* 지금 주목할 다음 시도 — top block */}
+              {topCandidates.length > 0 && (() => {
+                const top1 = topCandidates[0]!
+                const rest = topCandidates.slice(1)
+                return (
+                  <section className="space-y-3">
+                    {/* 1순위 강조 카드 */}
+                    <div className="rounded-lg border-2 border-primary/50 bg-primary/5 dark:bg-primary/10 p-5 space-y-3">
+                      <div className="flex items-center gap-2 text-primary">
+                        <ArrowRight className="h-4 w-4 shrink-0" />
+                        <span className="text-xs font-bold uppercase tracking-wider">지금 1순위</span>
+                      </div>
+                      <p className="text-lg font-bold leading-snug">{top1.topic}</p>
+                      {/* [1] 왜 1순위인지 한 줄 */}
+                      <p className="text-sm font-semibold text-foreground/80 leading-snug">
+                        {getTopReason(top1.signalStrength)}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="outline" className={`text-xs ${signalStrengthBadgeConfig[top1.signalStrength].className}`}>
+                          {signalStrengthBadgeConfig[top1.signalStrength].label}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">→</span>
+                        <span className="text-xs font-semibold text-foreground">
+                          {signalAction(top1.signalStrength)}
+                        </span>
+                      </div>
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <span className="shrink-0">실행 가능성</span>
+                          <Progress value={top1.feasibility} className="h-1.5 w-24" />
+                          <span className="font-medium text-foreground">{top1.feasibility}%</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{feasibilityHint(top1.feasibility)}</p>
+                      </div>
+                      {/* Evidence — ViewModel에서 생성한 근거 항목 + UI 계산 feasibility */}
+                      {(() => {
+                        const evidenceItems = [
+                          ...(top1.evidence ?? []),
+                          { label: "실행 가능성", value: `${top1.feasibility}%` },
+                        ].slice(0, 3)
+                        return evidenceItems.length > 0
+                          ? <EvidenceBlock items={evidenceItems} />
+                          : null
+                      })()}
+                      {/* [2] 선택 강제 CTA */}
+                      <p className="text-sm font-semibold text-primary pt-1 border-t border-primary/20">
+                        이번 업로드는 이 주제로 먼저 시도하세요
+                      </p>
+                    </div>
 
-              {/* 시청자가 기다리는 미개척 주제 */}
+                    {/* 2·3순위 — 소형 리스트 */}
+                    {rest.length > 0 && (
+                      <div className="space-y-2">
+                        {rest.map((c, i) => (
+                          <div key={c.id} className="flex items-center gap-3 rounded-md border bg-card px-3 py-2.5">
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary shrink-0">
+                              {i + 2}
+                            </span>
+                            <span className="flex-1 text-sm font-medium leading-snug">{c.topic}</span>
+                            <span className="text-xs text-muted-foreground whitespace-nowrap shrink-0">
+                              {signalAction(c.signalStrength)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </section>
+                )
+              })()}
+
+              {/* 신호 부족 알림 */}
+              {!viewModel.hasEnoughTrendSignal && (
+                <div className="flex items-start gap-3 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 dark:border-yellow-900/40 dark:bg-yellow-900/10">
+                  <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400 shrink-0 mt-0.5" />
+                  <p className="text-sm text-yellow-700 dark:text-yellow-400">
+                    반복 신호가 충분하지 않습니다. 아래 후보는 현재 표본에서 도출한 초기 방향입니다. 영상이 쌓일수록 신호가 정교해집니다.
+                  </p>
+                </div>
+              )}
+
+              {/* 내부 신호 기반 다음 시도 후보 */}
               <section className="space-y-4">
                 <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-                  <h2 className="text-xl font-bold tracking-tight">시청자가 기다리는 미개척 주제</h2>
+                  <h2 className="text-xl font-bold tracking-tight">내부 신호 기반 다음 시도 후보</h2>
                   <p className="text-xs text-muted-foreground mt-0.5">이 중 하나를 골라 다음 영상 주제로 결정하세요</p>
                 </div>
                 {candidates.length > 0 ? (
@@ -203,10 +300,10 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                 )}
               </section>
 
-              {/* 조회수 하락 방지용 트렌드 가이드 */}
+              {/* 포맷·리스크 신호 점검 */}
               <section className="space-y-4">
                 <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-                  <h2 className="text-xl font-bold tracking-tight">조회수 하락 방지용 트렌드 가이드</h2>
+                  <h2 className="text-xl font-bold tracking-tight">포맷·리스크 신호 점검</h2>
                   <p className="text-xs text-muted-foreground mt-0.5">포맷·리스크 신호를 확인하고 방향을 조정하세요</p>
                 </div>
                 {formats.length > 0 && (
@@ -222,11 +319,26 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                 )}
               </section>
 
-              {/* 시장의 결핍을 채우는 법 */}
+              {/* 다음 영상의 힌트 */}
+              <section className="space-y-4">
+                <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
+                  <h2 className="text-xl font-bold tracking-tight">다음 영상의 힌트</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">다음 영상의 제목·훅·썸네일을 지금 결정하세요</p>
+                </div>
+                {hints.length > 0 ? (
+                  <NextTrendExecutionHints data={hints} />
+                ) : (
+                  <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                    실행 힌트 데이터가 아직 없습니다. 분석 후 자동으로 채워집니다.
+                  </div>
+                )}
+              </section>
+
+              {/* 영상 기획안 */}
               {actions.length > 0 && (
                 <section className="space-y-4">
                   <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-                    <h2 className="text-xl font-bold tracking-tight">시장의 결핍을 채우는 법</h2>
+                    <h2 className="text-xl font-bold tracking-tight">영상 기획안</h2>
                     <p className="text-xs text-muted-foreground mt-0.5">지금 바로 실행할 영상 기획안입니다</p>
                   </div>
                   <NextTrendActionSection data={actions} />
@@ -250,7 +362,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
       <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight lg:text-3xl">Next Trend</h1>
-          <p className="mt-1 text-sm text-muted-foreground">미래 조회수 선점 도구</p>
+          <p className="mt-1 text-sm text-muted-foreground">내부 흐름 기반 다음 시도</p>
         </div>
         <ChannelContextHeader channelContext={channelContext} />
         <NextTrendEmptyState channelId={channelId || undefined} />

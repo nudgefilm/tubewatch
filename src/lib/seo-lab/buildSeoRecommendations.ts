@@ -111,6 +111,7 @@ export function buildSeoRecommendations(
         shortReason:
           "이 포맷에 맞게 제목 앞부분의 정보 밀도를 조정하세요. 핵심 주제가 첫 한 줄에 압축되면 클릭 후 이탈이 줄어듭니다. 지금 이 조합으로 다음 영상 키워드를 구성하세요.",
         signalSource: formatRec.sourceLabel,
+        placement: "제목 앞 배치",
       }
     );
     dedupePush(
@@ -122,6 +123,7 @@ export function buildSeoRecommendations(
         shortReason:
           "핵심 주제를 앞쪽에 두고 부가 수식어는 뒤로 이동하세요. 지금 표본 제목 3개를 골라 이 패턴으로 바로 수정해 보세요.",
         signalSource: formatRec.sourceLabel,
+        placement: "제목 구조 적용",
       }
     );
   }
@@ -136,6 +138,7 @@ export function buildSeoRecommendations(
       shortReason:
         `${line} — 이 패턴이 채널에서 반복적으로 성과를 내고 있습니다. 다음 영상 제목에서 이 축의 언어를 앞부분에 배치하세요.`,
       signalSource: "베이스 강점·패턴",
+      placement: i === 0 ? "제목 앞 배치" : "태그 추가",
     });
   }
 
@@ -146,6 +149,7 @@ export function buildSeoRecommendations(
       shortReason:
         "주제 반복 패턴이 감지되었습니다. 회차·파트 접두어를 고정하면 시청자가 연속성을 바로 인식합니다. 지금 시리즈 제목 정책을 만드세요.",
       signalSource: "스냅샷 패턴",
+      placement: "제목 접두어 고정",
     });
   }
 
@@ -157,6 +161,7 @@ export function buildSeoRecommendations(
       shortReason:
         "소수 영상에 조회가 집중되어 있습니다. 히트 편 톤만 반복하기보다, 다음 영상에서 다른 주제 축을 제목 앞에 배치해 분산 실험을 하세요.",
       signalSource: brk.sourceLabel,
+      placement: "제목 앞 주제 구분",
     });
   }
 
@@ -168,6 +173,7 @@ export function buildSeoRecommendations(
       shortReason:
         "조회 편차가 큽니다. 상위 영상의 제목 구조를 하위 영상과 비교하고, 반응 좋았던 어휘를 다음 영상 앞부분에 적용하세요.",
       signalSource: spr.sourceLabel,
+      placement: "제목 앞 배치",
     });
   }
 
@@ -179,6 +185,7 @@ export function buildSeoRecommendations(
       shortReason:
         "업로드 간격이 불규칙합니다. 제목에 회차·파트 표기를 고정하면 구독자가 다음 편을 기다리게 됩니다. 지금 시리즈 표기 정책을 만드세요.",
       signalSource: upl.sourceLabel,
+      placement: "제목 회차 표기",
     });
   }
 
@@ -189,6 +196,7 @@ export function buildSeoRecommendations(
       shortReason:
         "상위 영상에 조회가 집중됩니다. 제목 첫 구절에서 편마다 주제 차이가 드러나게 바꾸면 비히트 편의 클릭률이 올라갑니다. 지금 표본 제목을 편집하세요.",
       signalSource: "채널 DNA·조회 분포",
+      placement: "제목 구조 적용",
     });
   }
 
@@ -235,6 +243,7 @@ export function buildSeoRecommendations(
           ? `${r.summaryLine} — ${r.forSeo} 지금 이 방향으로 다음 영상 키워드를 구성하세요.`
           : `${r.forSeo} 지금 적용하세요.`,
         signalSource: r.sourceLabel,
+        placement: keywordAngles.length === 0 ? "제목 앞 배치" : keywordAngles.length === 1 ? "태그 추가" : "설명란 첫 줄",
       });
     }
   }
@@ -250,6 +259,7 @@ export function buildSeoRecommendations(
           ? `${r.summaryLine} — ${r.forSeo} 지금 바로 제목에 적용하세요.`
           : `${r.forSeo} 지금 적용하세요.`,
         signalSource: r.sourceLabel,
+        placement: "제목 구조 적용",
       });
     }
   }

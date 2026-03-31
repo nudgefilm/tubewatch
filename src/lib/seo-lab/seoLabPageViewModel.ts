@@ -43,7 +43,23 @@ export type SeoLabSummaryLineVm = {
 export type SeoLabTitleSampleVm = {
   title: string;
   publishedAt: string | null;
-  directionHint: string;
+  /** 제목의 문제 요약 1줄 */
+  problem: string;
+  /** 교체 가능한 수정 방향 1줄 */
+  suggestion: string;
+};
+
+export type SeoLabActionBlockItemVm = {
+  label: string;
+  target: string;
+  scope: string;
+};
+
+export type SeoLabImprovedRangeVm = {
+  current: number;
+  min: number;
+  max: number;
+  reasons: string[];
 };
 
 export type SeoLabPatternInsightVm = {
@@ -73,6 +89,12 @@ export type SeoLabPageViewModel = {
   titleSamples: SeoLabTitleSampleVm[];
   patternInsights: SeoLabPatternInsightVm[];
   seoRelatedNotes: string[];
+  /** 페이지 최상단 즉시 실행 블록 */
+  actionBlockItems: SeoLabActionBlockItemVm[];
+  /** SEO 점수 현재 → 개선 후 범위 시뮬레이션 */
+  seoImprovedRange: SeoLabImprovedRangeVm | null;
+  /** 복붙 가능한 제목 패턴 템플릿 2~3개 */
+  titleTemplates: { pattern: string; example: string }[];
   sampleSizeNote: string | null;
   analysisConfidence: "low" | "medium" | "high" | null;
   /** 페이지 하단 전략 코멘트 카드 */
@@ -137,17 +159,111 @@ function uniqueTrimmed(items: string[]): string[] {
   return out;
 }
 
-function hintForTitle(title: string, avgTitleLen: number | null): string {
+function hintForTitle(
+  title: string,
+  avgTitleLen: number | null
+): { problem: string; suggestion: string } {
   const len = title.length;
   if (avgTitleLen != null && Number.isFinite(avgTitleLen) && avgTitleLen > 0) {
     if (len < avgTitleLen * 0.65) {
-      return `이 제목(${len}자)은 평균(${Math.round(avgTitleLen)}자)보다 짧습니다. 핵심 주제가 앞에 드러나도록 지금 수정하세요.`;
+      return {
+        problem: `제목이 ${len}자로 짧아 핵심 주제와 차별점이 보이지 않습니다.`,
+        suggestion: `[핵심 키워드] + [구체적 숫자/결과] 형태로 확장하세요`,
+      };
     }
     if (len > avgTitleLen * 1.35) {
-      return `이 제목(${len}자)이 평균보다 깁니다. 앞 15자 안에 핵심 키워드가 오도록 다듬으세요.`;
+      return {
+        problem: `제목이 ${len}자로 길어 앞부분 핵심 키워드가 묻힙니다.`,
+        suggestion: `수식어를 뒤로 이동하고 앞 15자에 핵심 주제를 드러내세요`,
+      };
     }
   }
-  return "이 제목이 검색 의도와 맞는지 확인하세요. 핵심 주제가 앞쪽에 드러나면 클릭률이 올라갑니다.";
+  return {
+    problem: "핵심 키워드가 제목 앞 15자 안에 배치됐는지 확인 필요합니다.",
+    suggestion: "[핵심 키워드] + [결과/혜택] 구조인지 지금 검토하세요",
+  };
+}
+
+function buildActionBlockItems(
+  checkCards: SeoLabCheckCardVm[],
+  seoScore: number | null,
+  metrics: MetricsPartial | null
+): SeoLabActionBlockItemVm[] {
+  const items: SeoLabActionBlockItemVm[] = [];
+  for (const card of checkCards.slice(0, 3)) {
+    items.push({
+      label: card.itemName,
+      target: card.improveDirection,
+      scope: "다음 2~3개 영상에서 수정 테스트",
+    });
+  }
+  if (items.length === 0 && seoScore != null && seoScore < 55) {
+    items.push({
+      label: "SEO 최적화 구간 낮음",
+      target: "제목 앞 15자에 핵심 키워드 배치",
+      scope: "다음 2개 영상에서 수정 테스트",
+    });
+    if (metrics?.avgTagCount != null && metrics.avgTagCount < 5) {
+      items.push({
+        label: `태그 수 부족 (평균 ${metrics.avgTagCount.toFixed(1)}개)`,
+        target: "주제 적합 태그 5~10개 추가",
+        scope: "다음 2개 영상에서 수정 테스트",
+      });
+    }
+  }
+  return items.slice(0, 3);
+}
+
+function buildSeoImprovedRange(
+  seoScore: number | null,
+  checkCards: SeoLabCheckCardVm[]
+): SeoLabImprovedRangeVm | null {
+  if (seoScore == null) return null;
+  const gains: number[] = [];
+  const reasons: string[] = [];
+  if (checkCards.some((c) => c.id === "chk-title-len")) {
+    gains.push(8);
+    reasons.push("키워드 위치 개선");
+  }
+  if (checkCards.some((c) => c.id === "chk-tag-count" || c.id === "chk-flag-low-tags")) {
+    gains.push(10);
+    reasons.push("태그 정렬 효과");
+  }
+  if (checkCards.some((c) => c.id === "chk-seo-score-low")) {
+    gains.push(8);
+    reasons.push("SEO 구간 종합 개선");
+  }
+  if (checkCards.some((c) => c.id === "chk-structure-score-low")) {
+    gains.push(6);
+    reasons.push("포맷 일관성 확보");
+  }
+  const totalGain = gains.reduce((a, b) => a + b, 0);
+  if (totalGain === 0) return null;
+  return {
+    current: seoScore,
+    min: Math.min(seoScore + Math.floor(totalGain * 0.7), 95),
+    max: Math.min(seoScore + totalGain, 100),
+    reasons: reasons.slice(0, 3),
+  };
+}
+
+function buildTitleTemplates(
+  dominantFormat: string | null
+): { pattern: string; example: string }[] {
+  const isShort =
+    dominantFormat != null &&
+    /쇼츠|shorts|short/i.test(dominantFormat);
+  if (isShort) {
+    return [
+      { pattern: "[핵심 키워드] + [숫자/결과]", example: "쇼츠 수익화 3가지" },
+      { pattern: "[질문형] + [핵심 주제]", example: "왜 쇼츠가 안 뜰까?" },
+    ];
+  }
+  return [
+    { pattern: "[키워드] + [결과/혜택]", example: "유튜브 SEO 완전 정복" },
+    { pattern: "[숫자] + [문제 해결]", example: "조회수 터지는 썸네일 5가지 법칙" },
+    { pattern: "[질문형] + [해결 키워드]", example: "왜 내 영상은 알고리즘에 안 뜰까?" },
+  ];
 }
 
 const PATTERN_INSIGHTS: Record<
@@ -346,6 +462,9 @@ export function buildSeoLabPageViewModel(
     titleSamples: [],
     patternInsights: [],
     seoRelatedNotes: [],
+    actionBlockItems: [],
+    seoImprovedRange: null,
+    titleTemplates: [],
     sampleSizeNote: null,
     analysisConfidence: null,
     strategicComment: null,
@@ -402,13 +521,14 @@ export function buildSeoLabPageViewModel(
       ? metrics.avgTitleLength
       : null;
 
-  const titleSamples: SeoLabTitleSampleVm[] = videos.slice(0, 6).map((v) => ({
-    title: v.title,
-    publishedAt: v.publishedAt,
-    directionHint: hintForTitle(v.title, avgTitleLen),
-  }));
+  const titleSamples: SeoLabTitleSampleVm[] = videos.slice(0, 6).map((v) => {
+    const { problem, suggestion } = hintForTitle(v.title, avgTitleLen);
+    return { title: v.title, publishedAt: v.publishedAt, problem, suggestion };
+  });
 
   const checkCards = buildCheckCards(metrics, sections, flags);
+  const actionBlockItems = buildActionBlockItems(checkCards, seoSectionScore, metrics);
+  const seoImprovedRange = buildSeoImprovedRange(seoSectionScore, checkCards);
   let patternInsights = buildPatternInsights(flags);
   const knownPatternKeys = new Set(Object.keys(PATTERN_INSIGHTS));
   const unknownFlags = flags.filter((f) => !knownPatternKeys.has(f));
@@ -427,6 +547,7 @@ export function buildSeoLabPageViewModel(
   }
 
   const benchVm = buildInternalChannelDnaSummary(data);
+  const titleTemplates = buildTitleTemplates(benchVm.dominantFormat ?? null);
   const signalPayload = buildSeoStrategySignals(benchVm, {
     patternFlags: flags,
     avgTitleLength: avgTitleLen,
@@ -536,6 +657,9 @@ export function buildSeoLabPageViewModel(
     titleSamples,
     patternInsights,
     seoRelatedNotes,
+    actionBlockItems,
+    seoImprovedRange,
+    titleTemplates,
     sampleSizeNote: sampleNote,
     analysisConfidence,
     strategicComment,

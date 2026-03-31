@@ -7,4 +7,6 @@ export type SeoStrategyItemVm = {
   title: string;
   shortReason: string;
   signalSource: string;
+  /** 키워드·패턴을 어디에 삽입할지 — "제목 앞 배치" / "태그 추가" / "설명란 첫 줄" 등 */
+  placement?: string;
 };
