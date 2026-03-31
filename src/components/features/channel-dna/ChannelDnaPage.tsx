@@ -7,7 +7,6 @@ import { DnaCardsSection } from "./sections/CardsSection"
 import { DnaEmptyState } from "./sections/EmptyState"
 import { ChannelContextHeader, type ChannelContext } from "@/components/features/shared/ChannelContextHeader"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ScoreBar } from "@/components/ui/ScoreBar"
 import { StrategicCommentCard } from "@/components/features/shared/StrategicCommentCard"
 import { PageFlowConnector } from "@/components/features/shared/PageFlowConnector"
 import { FeaturePaywallBlock } from "@/components/features/shared/FeaturePaywallBlock"
@@ -34,7 +33,8 @@ function buildStructureSummaryFromVm(vm: InternalChannelDnaSummaryVm) {
     vm.topPerformerShare != null ? Math.round(vm.topPerformerShare * 100) : null
   const stability = spreadLevelToStability(vm.performanceSpreadLevel)
   const growthAxis = vm.topPatternSignals.slice(0, 2).map((s) => humanizeSignal(s).label)
-  return {
+
+  const result = {
     hitDependency,
     growthType: vm.dominantFormat ?? "분석 중",
     growthAxis: growthAxis.length > 0 ? growthAxis : ["패턴 분석 중"],
@@ -44,6 +44,29 @@ function buildStructureSummaryFromVm(vm: InternalChannelDnaSummaryVm) {
     performanceDistribution: [] as { range: string; count: number; percentage: number }[],
     summaryText: vm.channelDnaNarrative,
   }
+
+  console.log("DNA metric debug", {
+    key: "structureSummary",
+    snapshot: {
+      topPerformerShare: vm.topPerformerShare,
+      top3Share: vm.top3Share,
+      performanceSpreadLevel: vm.performanceSpreadLevel,
+      dominantFormat: vm.dominantFormat,
+      medianViews: vm.medianViews,
+      averageViews: vm.averageViews,
+    },
+    computed: { stability, growthAxis },
+    finalValue: { hitDependency: result.hitDependency, structureStabilityScore: result.structureStabilityScore },
+  })
+
+  return result
+}
+
+function uploadLevelToLabel(level: InternalChannelDnaSummaryVm["uploadConsistencyLevel"]): string {
+  if (level === "high") return "안정적"
+  if (level === "medium") return "불규칙"
+  if (level === "low") return "불안정"
+  return "-"
 }
 
 function buildPatternAnalysisFromVm(vm: InternalChannelDnaSummaryVm) {
@@ -67,10 +90,20 @@ function buildPatternAnalysisFromVm(vm: InternalChannelDnaSummaryVm) {
       score: Math.min(45, 40 + i * 3),
     }
   })
-  return {
+
+  // 반복 제목 구조: topPatternSignals에 title_keyword_repetition이 있으면 표시
+  const hasTitleRepeat = vm.topPatternSignals.includes("title_keyword_repetition")
+  const titleDominant = hasTitleRepeat ? "제목 키워드 반복 패턴" : "-"
+
+  // 업로드 주기: uploadConsistencyLevel → 표시용 레이블 (null만 차단, 값이 있으면 표시)
+  const currentCycle = vm.uploadConsistencyLevel != null
+    ? uploadLevelToLabel(vm.uploadConsistencyLevel)
+    : "-"
+
+  const result = {
     highPerformancePatterns,
     lowPerformancePatterns,
-    titleStructure: { dominant: "-", consistency: 0 },
+    titleStructure: { dominant: titleDominant, consistency: 0 },
     formatRepetition: {
       dominant: vm.dominantFormat ?? "-",
       consistency: 0,
@@ -78,11 +111,31 @@ function buildPatternAnalysisFromVm(vm: InternalChannelDnaSummaryVm) {
     topicClusters: [] as { topic: string; weight: number }[],
     uploadCycleImpact: {
       optimalCycle: "-",
-      currentCycle: "-",
+      currentCycle,
       performanceCorrelation: vm.uploadConsistencyLevel ?? "-",
       note: vm.uploadConsistencyFallback ?? "업로드 주기 데이터가 충분하지 않습니다.",
     },
   }
+
+  console.log("DNA metric debug", {
+    key: "patternAnalysis",
+    snapshot: {
+      topPatternSignals: vm.topPatternSignals,
+      weakPatternSignals: vm.weakPatternSignals,
+      uploadConsistencyLevel: vm.uploadConsistencyLevel,
+      uploadConsistencyFallback: vm.uploadConsistencyFallback,
+      dominantFormat: vm.dominantFormat,
+    },
+    computed: { hasTitleRepeat, currentCycle },
+    finalValue: {
+      titleDominant: result.titleStructure.dominant,
+      currentCycle: result.uploadCycleImpact.currentCycle,
+      highCount: highPerformancePatterns.length,
+      lowCount: lowPerformancePatterns.length,
+    },
+  })
+
+  return result
 }
 
 function buildDnaCardsFromVm(vm: InternalChannelDnaSummaryVm) {
@@ -111,7 +164,24 @@ function buildDnaCardsFromVm(vm: InternalChannelDnaSummaryVm) {
       description: vm.breakoutDependencyFallback ?? "히트 영상 의존도가 중간 수준입니다.",
     })
   }
-  return { strengths, weaknesses, corePatterns, risks }
+
+  const result = { strengths, weaknesses, corePatterns, risks }
+
+  console.log("DNA metric debug", {
+    key: "dnaCards",
+    snapshot: {
+      breakoutDependencyLevel: vm.breakoutDependencyLevel,
+      breakoutDependencyFallback: vm.breakoutDependencyFallback,
+      dominantFormat: vm.dominantFormat,
+    },
+    computed: { strengthsCount: strengths.length, weaknessesCount: weaknesses.length },
+    finalValue: {
+      corePatterns: result.corePatterns.length,
+      risks: result.risks.map((r) => r.type),
+    },
+  })
+
+  return result
 }
 
 export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isStarterPlan = false }: ChannelDnaPageProps) {
@@ -174,24 +244,40 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
             )}
 
             {scoreBarItems.length > 0 && (
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">구간 점수</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {scoreBarItems.map((item) => (
-                    <ScoreBar
-                      key={item.label}
-                      label={item.label}
-                      score={item.score}
-                      hint={getSectionScoreHint(item.label, item.score)}
-                    />
-                  ))}
-                  <p className="text-xs text-muted-foreground pt-1">
-                    0–100 구간 점수 · 스냅샷 기반 내부 산출값
-                  </p>
-                </CardContent>
-              </Card>
+              <div className="space-y-3">
+                <p className="text-xs text-muted-foreground">구간 점수 · 스냅샷 기반 내부 산출값</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {scoreBarItems.map((item) => {
+                    const safe = Math.max(0, Math.min(100, Math.round(item.score)))
+                    const status =
+                      safe >= 71
+                        ? { label: "강점", emoji: "🟢", bg: "bg-emerald-500/10", text: "text-emerald-700 dark:text-emerald-400" }
+                        : safe >= 41
+                        ? { label: "보통", emoji: "🟡", bg: "bg-amber-500/10", text: "text-amber-700 dark:text-amber-400" }
+                        : { label: "위험", emoji: "🔴", bg: "bg-red-500/10", text: "text-red-700 dark:text-red-400" }
+                    return (
+                      <Card key={item.label} className="rounded-xl border shadow-sm">
+                        <CardContent className="pt-5 pb-4 px-5 flex flex-col gap-2.5">
+                          <p className="text-xs text-muted-foreground font-medium tracking-wide uppercase">
+                            {item.label}
+                          </p>
+                          <p className="text-5xl font-bold tabular-nums leading-none tracking-tight">
+                            {safe}
+                          </p>
+                          <span
+                            className={`inline-flex items-center gap-1 self-start rounded-full px-2.5 py-0.5 text-xs font-semibold ${status.bg} ${status.text}`}
+                          >
+                            {status.emoji} {status.label}
+                          </span>
+                          <p className="text-xs text-muted-foreground leading-snug">
+                            {getSectionScoreHint(item.label, item.score)}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
+                </div>
+              </div>
             )}
           </section>
 

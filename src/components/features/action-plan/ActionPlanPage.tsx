@@ -45,7 +45,7 @@ function toCardsSection(actions: ActionPlanCardVm[]) {
     title: a.title,
     problemSummary: a.whyNeeded,
     whyNeeded: a.whyNeeded,
-    howToExecute: [a.executionHint],
+    howToExecute: a.executionHint.split("\n").filter(Boolean),
     expectedEffect: a.expectedEffect,
     priority: a.priority,
     dnaConnection:

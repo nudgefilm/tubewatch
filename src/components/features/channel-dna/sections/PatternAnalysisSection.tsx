@@ -3,8 +3,8 @@
 import { TrendingUp, TrendingDown, FileText, Layout, FolderTree, Clock } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ScoreBar } from "@/components/ui/ScoreBar"
-import { getDnaScoreInterpretation } from "../utils/dnaHelper"
+import { SegmentGauge } from "@/components/ui/SegmentGauge"
+import { StatusBar } from "@/components/ui/StatusBar"
 import type { ChannelDnaData } from "../mock-data"
 
 interface DnaPatternAnalysisSectionProps {
@@ -31,16 +31,20 @@ export function DnaPatternAnalysisSection({ data }: DnaPatternAnalysisSectionPro
               >
                 <p className="font-medium text-sm">{pattern.pattern}</p>
                 {pattern.score != null ? (
-                  <ScoreBar
-                    label=""
+                  <SegmentGauge
                     score={pattern.score}
-                    hint={getDnaScoreInterpretation(pattern.score)}
+                    variant="primary"
+                    hint="상위 영상에서 반복되는 패턴 강도"
                   />
                 ) : (
                   <div className="space-y-1">
-                    <div className="h-2 w-full rounded-full bg-muted" />
+                    <div className="flex gap-[3px]">
+                      {Array.from({ length: 10 }).map((_, i) => (
+                        <div key={i} className="h-3 flex-1 rounded-sm bg-muted" />
+                      ))}
+                    </div>
                     <p className="text-xs text-muted-foreground">
-                      분석 데이터가 충분하지 않아 수집 중입니다.
+                      데이터 부족으로 구조 분석이 제한됩니다
                     </p>
                   </div>
                 )}
@@ -75,16 +79,20 @@ export function DnaPatternAnalysisSection({ data }: DnaPatternAnalysisSectionPro
               >
                 <p className="font-medium text-sm">{pattern.pattern}</p>
                 {pattern.score != null ? (
-                  <ScoreBar
-                    label=""
+                  <SegmentGauge
                     score={pattern.score}
-                    hint={getDnaScoreInterpretation(pattern.score)}
+                    variant="destructive"
+                    hint="저성과 영상에서 반복되는 발목 패턴 강도"
                   />
                 ) : (
                   <div className="space-y-1">
-                    <div className="h-2 w-full rounded-full bg-muted" />
+                    <div className="flex gap-[3px]">
+                      {Array.from({ length: 10 }).map((_, i) => (
+                        <div key={i} className="h-3 flex-1 rounded-sm bg-muted" />
+                      ))}
+                    </div>
                     <p className="text-xs text-muted-foreground">
-                      분석 데이터가 충분하지 않아 수집 중입니다.
+                      데이터 부족으로 구조 분석이 제한됩니다
                     </p>
                   </div>
                 )}
@@ -111,7 +119,7 @@ export function DnaPatternAnalysisSection({ data }: DnaPatternAnalysisSectionPro
                 <p className="text-sm font-medium">{data.titleStructure.dominant}</p>
                 {data.titleStructure.consistency > 0 && (
                   <div className="mt-2">
-                    <ScoreBar label="일관성" score={data.titleStructure.consistency} />
+                    <StatusBar label="일관성" score={data.titleStructure.consistency} />
                   </div>
                 )}
               </>
@@ -138,7 +146,7 @@ export function DnaPatternAnalysisSection({ data }: DnaPatternAnalysisSectionPro
                 <p className="text-sm font-medium">{data.formatRepetition.dominant}</p>
                 {data.formatRepetition.consistency > 0 ? (
                   <div className="mt-2">
-                    <ScoreBar label="일관성" score={data.formatRepetition.consistency} />
+                    <StatusBar label="일관성" score={data.formatRepetition.consistency} />
                   </div>
                 ) : (
                   <p className="mt-1 text-xs text-muted-foreground">일관성 데이터 미산출</p>

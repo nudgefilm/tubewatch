@@ -159,10 +159,12 @@ function buildTextBackedActions(
       id,
       title: titleFromText(item.text),
       whyNeeded: `${item.kind === "weakness" ? "약점 신호" : "병목 지점"}으로 진단된 구간입니다. ${item.text} — 이 패턴이 지속되면 성과 회복이 어려워집니다.`,
-      expectedEffect: CONSERVATIVE_EFFECT,
+      expectedEffect: item.kind === "bottleneck"
+        ? "병목이 해소되면 콘텐츠 제작 흐름이 안정되고, 그 결과가 업로드 주기·품질로 이어집니다."
+        : "약점 요인을 하나씩 줄이면 전체 구간 점수가 회복되고 알고리즘 추천 신호가 강화됩니다.",
       difficulty: item.kind === "bottleneck" ? "high" : "medium",
       executionHint:
-        "이 신호를 유발하는 원인을 하나로 좁히고, 다음 1~2회 업로드에서 그 요소만 바꿔 결과를 기록하세요.",
+        "이 신호를 유발하는 원인을 하나로 좁히세요.\n다음 1~2회 업로드에서 그 요소만 바꿔 결과를 기록하세요.",
     });
   }
   return out;
@@ -186,11 +188,11 @@ function buildMetricBackedActions(
     out.push({
       id: "metric-activity-uploads",
       title: "업로드 빈도 복구 — 활동 구간이 기준 이하입니다",
-      whyNeeded: `업로드·활동 구간이 ${Math.round(sections.channelActivity)}점으로 기준(55점) 이하입니다. 최근 30일 업로드 ${metrics.recent30dUploadCount}건은 알고리즘이 채널을 활성 상태로 인식하기에 부족할 수 있습니다. 지금 업로드 계획을 달력에 확정하세요.`,
-      expectedEffect: CONSERVATIVE_EFFECT,
+      whyNeeded: `업로드·활동 구간 ${Math.round(sections.channelActivity)}점(기준 55점). 최근 30일 ${metrics.recent30dUploadCount}건 업로드는 알고리즘이 채널을 활성으로 분류하기에 부족할 수 있습니다. 업로드 공백이 길어질수록 채널 노출 빈도가 감소합니다.`,
+      expectedEffect: "업로드 주기가 안정되면 알고리즘이 채널을 활성으로 인식해 노출 빈도가 회복됩니다. 구독자 복귀율과 신규 추천 트리거에 직접 영향을 줍니다.",
       difficulty: "low",
       executionHint:
-        "이번 달 업로드 목표 횟수를 달력에 먼저 고정하고, 촬영·편집 일정과 충돌 없이 맞는지 확인하세요.",
+        "이번 달 업로드 목표 횟수를 달력에 고정하세요.\n촬영·편집 일정을 역산해 공백이 2주를 넘지 않도록 조정하세요.\n다음 영상 주제를 지금 바로 1개 정해두세요.",
     });
   }
 
@@ -202,11 +204,11 @@ function buildMetricBackedActions(
     out.push({
       id: "metric-activity-interval",
       title: "업로드 간격 단축 — 불규칙한 주기가 이탈을 만듭니다",
-      whyNeeded: `표본 기준 평균 업로드 간격이 약 ${metrics.avgUploadIntervalDays.toFixed(1)}일로 측정됩니다. 간격이 고르지 않으면 구독자 기대 주기가 형성되지 않아 이탈이 생깁니다. 먼저 병목 구간을 파악하세요.`,
-      expectedEffect: CONSERVATIVE_EFFECT,
+      whyNeeded: `표본 기준 평균 업로드 간격 약 ${metrics.avgUploadIntervalDays.toFixed(1)}일. 간격이 고르지 않으면 구독자의 기대 주기가 형성되지 않아 자연 이탈이 발생합니다. 알고리즘도 업로드 주기가 불규칙한 채널에는 추천 신호를 줄이는 경향이 있습니다.`,
+      expectedEffect: "일정한 간격이 구독자의 복귀 패턴을 만들고, 알고리즘 추천 빈도를 안정적으로 유지하는 기반이 됩니다.",
       difficulty: "low",
       executionHint:
-        "간격을 바꾸기 전에 기획·촬영·편집 중 어느 단계에서 병목이 생기는지 한 주 단위로 기록하세요.",
+        "기획·촬영·편집 중 어느 단계에서 병목이 생기는지 한 주 단위로 기록하세요.\n병목 단계 하나만 골라 시간을 줄일 방법을 실험하세요.\n목표 간격을 정하고 달력에 다음 2회 업로드 날짜를 고정하세요.",
     });
   }
 
@@ -218,11 +220,11 @@ function buildMetricBackedActions(
     out.push({
       id: "metric-audience-like",
       title: "반응률 회복 — 조회 대비 좋아요가 낮습니다",
-      whyNeeded: `조회·반응 구간이 ${Math.round(sections.audienceResponse)}점으로 낮고, 좋아요 비율은 약 ${(metrics.avgLikeRatio * 100).toFixed(2)}%입니다. 반응이 낮을수록 알고리즘의 추천 범위가 좁아집니다. 제목·썸네일·첫 30초를 점검하세요.`,
-      expectedEffect: CONSERVATIVE_EFFECT,
+      whyNeeded: `조회·반응 구간 ${Math.round(sections.audienceResponse)}점(기준 55점). 표본 평균 좋아요 비율 약 ${(metrics.avgLikeRatio * 100).toFixed(2)}%. 반응률이 낮으면 알고리즘이 영상을 관련 시청자에게 추천하는 범위를 줄입니다.`,
+      expectedEffect: "좋아요 비율이 올라가면 알고리즘이 해당 영상을 더 넓은 범위에 추천하여 신규 시청자 유입이 증가합니다.",
       difficulty: "medium",
       executionHint:
-        "최근 영상 3개의 제목·썸네일·첫 30초를 비교하고, 반응이 가장 높은 영상과 낮은 영상의 차이점을 한 줄로 정리하세요.",
+        "최근 영상 3개의 제목·썸네일·첫 30초를 비교하세요.\n반응이 가장 높은 영상과 낮은 영상의 차이를 한 줄로 적어두세요.\n다음 영상에서 차이점 중 하나만 바꿔 반응 변화를 측정하세요.",
     });
   }
 
@@ -234,11 +236,11 @@ function buildMetricBackedActions(
     out.push({
       id: "metric-structure-title",
       title: "제목 구조 개선 — 핵심 키워드가 앞으로 와야 합니다",
-      whyNeeded: `콘텐츠·구조 구간이 ${Math.round(sections.contentStructure)}점이며, 표본 평균 제목 길이가 약 ${Math.round(metrics.avgTitleLength)}자입니다. 제목이 길거나 핵심어가 뒷부분에 몰리면 클릭률이 떨어집니다. 지금 바로 제목을 다시 써 보세요.`,
-      expectedEffect: CONSERVATIVE_EFFECT,
+      whyNeeded: `콘텐츠·구조 구간 ${Math.round(sections.contentStructure)}점(기준 55점). 표본 평균 제목 길이 약 ${Math.round(metrics.avgTitleLength)}자. 핵심 키워드가 제목 뒤에 있거나 제목이 지나치게 길면 클릭률(CTR)이 낮아지고 노출 대비 유입이 줄어듭니다.`,
+      expectedEffect: "핵심 키워드가 앞 15자 안에 오면 썸네일 클릭률이 개선되고, CTR 상승은 알고리즘 추천 빈도를 직접 높입니다.",
       difficulty: "low",
       executionHint:
-        "핵심 키워드가 앞 15자 안에 들어오는지 확인하고, 최근 3개 제목을 직접 편집해 비교해 보세요.",
+        "최근 영상 3개의 제목에서 핵심 키워드 위치를 확인하세요.\n핵심어가 앞 15자 안에 오도록 제목을 수정해 비교안을 만드세요.\n수정 전후 CTR 변화를 다음 업로드에서 직접 측정하세요.",
     });
   }
 
@@ -250,11 +252,11 @@ function buildMetricBackedActions(
     out.push({
       id: "metric-tags",
       title: "태그 정비 — 무관 태그를 줄이고 주제 적합도를 높이세요",
-      whyNeeded: `표본 평균 태그 수가 약 ${metrics.avgTagCount.toFixed(1)}개입니다. 태그가 많아도 주제와 맞지 않으면 발견성에 도움이 되지 않습니다. 지금 태그 목록을 주제 기준으로 정리하세요.`,
-      expectedEffect: CONSERVATIVE_EFFECT,
+      whyNeeded: `표본 평균 태그 수 약 ${metrics.avgTagCount.toFixed(1)}개. 태그가 많아도 주제와 맞지 않으면 잘못된 시청자에게 노출되어 발견성이 오히려 떨어집니다. 주제 적합 태그 5~10개가 무관 태그 30개보다 효과적입니다.`,
+      expectedEffect: "주제에 맞는 태그를 정리하면 검색 발견성이 높아지고, 관심사가 맞는 시청자에게 노출되어 반응률이 올라갑니다.",
       difficulty: "low",
       executionHint:
-        "태그를 늘리기보다 실제 주제와 맞는 5~10개만 남기고 중복·무관 태그를 제거하세요.",
+        "최근 영상 하나의 태그 목록을 열어 주제와 무관한 태그를 골라내세요.\n주제 핵심어·관련 검색어 기준 5~10개만 남기고 나머지를 제거하세요.\n다음 업로드부터 이 기준을 그대로 적용하세요.",
     });
   }
 
@@ -268,11 +270,11 @@ function buildMetricBackedActions(
     out.push({
       id: "metric-duration",
       title: "영상 길이 최적화 — 주제에 맞는 길이를 찾으세요",
-      whyNeeded: `콘텐츠·구조 구간이 ${Math.round(sections.contentStructure)}점이고, 표본 평균 영상 길이가 약 ${minutes}분 ${seconds.toString().padStart(2, "0")}초입니다. 주제에 맞지 않는 길이는 시청 이탈률을 높입니다. 어느 구간이 늘어지는지 직접 확인하세요.`,
-      expectedEffect: CONSERVATIVE_EFFECT,
+      whyNeeded: `콘텐츠·구조 구간 ${Math.round(sections.contentStructure)}점(기준 55점). 표본 평균 영상 길이 약 ${minutes}분 ${seconds.toString().padStart(2, "0")}초. 주제에 비해 지나치게 길거나 짧으면 시청 유지율이 낮아지고, 이탈 신호가 알고리즘 추천을 줄이는 방향으로 작용합니다.`,
+      expectedEffect: "불필요한 구간을 제거해 시청 유지율을 높이면 알고리즘이 해당 영상을 더 긴 시간 노출하고 추천합니다.",
       difficulty: "medium",
       executionHint:
-        "최근 2~3개 영상을 직접 시청하며 어느 구간에서 내용이 늘어지거나 끊기는지 시간대를 기록하세요.",
+        "최근 영상 2개를 직접 시청하며 내용이 늘어지는 구간의 시간대를 기록하세요.\n늘어지는 구간이 30초 이상이면 다음 편집에서 해당 부분을 줄이세요.\n수정 후 시청 유지율 그래프의 변화를 YouTube 스튜디오에서 확인하세요.",
     });
   }
 
@@ -284,11 +286,11 @@ function buildMetricBackedActions(
     out.push({
       id: "metric-growth-median",
       title: "조회 분포 정상화 — 특정 영상 의존을 줄여야 합니다",
-      whyNeeded: `성장 신호 구간이 ${Math.round(sections.growthMomentum)}점이며, 표본 중앙 조회수는 약 ${Math.round(metrics.medianViewCount)}회입니다. 중앙값이 낮으면 일부 히트 영상에 의존하는 구조일 수 있습니다. 반복 가능한 포맷을 찾아야 합니다.`,
-      expectedEffect: CONSERVATIVE_EFFECT,
+      whyNeeded: `성장 신호 구간 ${Math.round(sections.growthMomentum)}점(기준 55점). 표본 중앙 조회수 약 ${Math.round(metrics.medianViewCount)}회. 중앙값이 낮으면 채널 성과가 일부 히트 영상에 집중되는 구조로, 히트 영상이 없으면 전체 조회가 급감하는 리스크가 있습니다.`,
+      expectedEffect: "반복 가능한 포맷이 정착되면 중앙 조회수가 상승하고, 히트 의존 없이도 안정적인 조회 흐름이 만들어집니다.",
       difficulty: "high",
       executionHint:
-        "상위·하위 표본을 나란히 놓고 반복 가능한 주제인지 판단한 뒤, 다음 1편에서 중간 성과 영상의 포맷을 따라 실험하세요.",
+        "상위 3개 영상과 하위 3개 영상을 나란히 비교해 주제·포맷·제목 패턴 차이를 정리하세요.\n중간 성과(중앙값 근처) 영상 중 반복 가능한 포맷 하나를 선택하세요.\n다음 1편에서 그 포맷을 따라 업로드하고 결과를 이전 중앙값과 비교하세요.",
     });
   }
 
@@ -407,7 +409,7 @@ function buildChecklist(
     items.push({
       id: "chk-upload-interval",
       title: "업로드 간격",
-      description: `표본 기준 평균 업로드 간격 약 ${metrics.avgUploadIntervalDays.toFixed(1)}일입니다. 목표 주기와 맞는지 확인하세요.`,
+      description: `표본 평균 간격 약 ${metrics.avgUploadIntervalDays.toFixed(1)}일 — 목표 주기와 7일 이상 차이가 나지 않나요?`,
       difficulty: "easy",
     });
   }
@@ -416,7 +418,7 @@ function buildChecklist(
     items.push({
       id: "chk-recent-uploads",
       title: "최근 30일 업로드 수",
-      description: `최근 30일 업로드 ${Math.round(metrics.recent30dUploadCount)}건이 스냅샷에 기록되어 있습니다.`,
+      description: `최근 30일 ${Math.round(metrics.recent30dUploadCount)}건 — 이번 달 목표 횟수를 달력에 적어뒀나요?`,
       difficulty: "easy",
     });
   }
@@ -425,7 +427,7 @@ function buildChecklist(
     items.push({
       id: "chk-title-len",
       title: "제목 구조·길이",
-      description: `평균 제목 길이 약 ${Math.round(metrics.avgTitleLength)}자입니다. 핵심 정보가 앞쪽에 있는지 몇 개만 직접 검토하세요.`,
+      description: `평균 제목 길이 약 ${Math.round(metrics.avgTitleLength)}자 — 최근 3개 제목에서 핵심 키워드가 앞 15자 안에 있나요?`,
       difficulty: "easy",
     });
   }
@@ -436,7 +438,7 @@ function buildChecklist(
     items.push({
       id: "chk-duration",
       title: "영상 길이",
-      description: `표본 평균 길이 약 ${m}분 ${s.toString().padStart(2, "0")}초입니다. 주제 대비 과도하게 길거나 짧지 않은지 확인하세요.`,
+      description: `평균 ${m}분 ${s.toString().padStart(2, "0")}초 — 최근 영상 중 내용이 반복되거나 늘어지는 구간이 있나요?`,
       difficulty: "medium",
     });
   }
@@ -446,7 +448,7 @@ function buildChecklist(
       id: "chk-format-repeat",
       title: "반복 포맷·주제 패턴",
       description:
-        "스냅샷 패턴에 ‘반복 주제’ 플래그가 있습니다. 시리즈화 의도인지, 피로 요인인지 구분해 보세요.",
+        "반복 주제 패턴이 감지됐습니다 — 의도한 시리즈인가요, 아니면 주제 다양성이 줄어든 건가요?",
       difficulty: "medium",
     });
   }
@@ -459,7 +461,7 @@ function buildChecklist(
       id: "chk-length-mix",
       title: "영상 길이 편중",
       description:
-        "짧은/긴 영상 비중 플래그가 있습니다. 채널 포지션과 맞는지 최근 업로드 몇 개만 다시 살펴보세요.",
+        "특정 길이 영상이 편중됐습니다 — 현재 포맷 비중이 채널 성장 방향과 맞나요?",
       difficulty: "medium",
     });
   }
@@ -468,7 +470,7 @@ function buildChecklist(
     items.push({
       id: "chk-tags",
       title: "태그·키워드 사용",
-      description: `평균 태그 수 약 ${metrics.avgTagCount.toFixed(1)}개입니다. 주제와 무관한 태그가 섞였는지 확인하세요.`,
+      description: `평균 태그 수 약 ${metrics.avgTagCount.toFixed(1)}개 — 주제와 무관한 태그가 절반 이상 섞여 있지 않나요?`,
       difficulty: "easy",
     });
   }

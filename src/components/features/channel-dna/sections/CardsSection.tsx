@@ -3,8 +3,7 @@
 import { CircleCheck, CircleAlert, Fingerprint, AlertTriangle } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ScoreBar } from "@/components/ui/ScoreBar"
-import { getDnaScoreInterpretation } from "../utils/dnaHelper"
+import { DirectionalGauge } from "@/components/ui/DirectionalGauge"
 import type { ChannelDnaData } from "../mock-data"
 
 interface DnaCardsSectionProps {
@@ -40,10 +39,12 @@ export function DnaCardsSection({ data }: DnaCardsSectionProps) {
           <CardContent className="space-y-3">
             {data.strengths.map((item) => (
               <div key={item.title} className="rounded-lg border bg-emerald-500/5 p-3 space-y-2">
-                <ScoreBar
-                  label={item.title}
+                <p className="font-medium text-sm">{item.title}</p>
+                <DirectionalGauge
                   score={item.score}
-                  hint={getDnaScoreInterpretation(item.score)}
+                  strengthLabel="강점"
+                  weaknessLabel="약점"
+                  hint="상위 20% 구조에서 반복되는 강점 패턴입니다"
                 />
                 <p className="text-xs text-muted-foreground">{item.description}</p>
                 {item.tags.length > 0 && (
@@ -71,10 +72,12 @@ export function DnaCardsSection({ data }: DnaCardsSectionProps) {
           <CardContent className="space-y-3">
             {data.weaknesses.map((item) => (
               <div key={item.title} className="rounded-lg border bg-red-500/5 p-3 space-y-2">
-                <ScoreBar
-                  label={item.title}
+                <p className="font-medium text-sm">{item.title}</p>
+                <DirectionalGauge
                   score={item.score}
-                  hint={getDnaScoreInterpretation(item.score)}
+                  strengthLabel="강점"
+                  weaknessLabel="약점"
+                  hint="재현성이 낮은 구조로 개선이 필요한 패턴입니다"
                 />
                 <p className="text-xs text-muted-foreground">{item.description}</p>
                 {item.tags.length > 0 && (
