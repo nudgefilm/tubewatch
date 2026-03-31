@@ -59,7 +59,7 @@ export function ActionPlanPrioritySection({ data }: ActionPlanPriorityProps) {
               <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-0.5">
                 DNA 근거
               </p>
-              <p className="text-sm text-foreground/80 leading-7">{action.reason}</p>
+              <p className="text-sm text-foreground/80 leading-relaxed">{action.reason}</p>
             </div>
 
             {/* 3. 기대 효과 */}
@@ -67,7 +67,7 @@ export function ActionPlanPrioritySection({ data }: ActionPlanPriorityProps) {
               <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-0.5">
                 기대 효과
               </p>
-              <p className="text-sm text-foreground/80 leading-7">{action.expectedEffect}</p>
+              <p className="text-sm text-foreground/80 leading-relaxed">{action.expectedEffect}</p>
             </div>
 
             {/* 4. 실행 방법 */}
@@ -78,7 +78,7 @@ export function ActionPlanPrioritySection({ data }: ActionPlanPriorityProps) {
                 </p>
                 <ol className="space-y-2">
                   {action.executionSteps.slice(0, 2).map((step, i) => (
-                    <li key={i} className="flex gap-2 text-base text-foreground/80 leading-7">
+                    <li key={i} className="flex gap-2 text-sm text-foreground/80 leading-relaxed">
                       <span className="shrink-0 font-semibold text-primary">{i + 1}.</span>
                       <span>{step}</span>
                     </li>

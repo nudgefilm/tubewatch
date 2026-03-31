@@ -64,8 +64,8 @@ export function ActionPlanVisualization({ data }: ActionPlanVisualizationProps) 
             <CardTitle className="text-base">영향도 vs 난이도 매트릭스</CardTitle>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="h-[250px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
+            <ChartContainer config={chartConfig} className="h-[250px] w-full overflow-hidden">
+              <ResponsiveContainer width="99%" height="100%">
                 <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis 

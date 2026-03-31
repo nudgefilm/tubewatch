@@ -87,7 +87,7 @@ export function ActionPlanAssistSection({ data }: ActionPlanAssistProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="space-y-2">
+            <div className="space-y-3">
               <p className="text-xs text-muted-foreground">템플릿</p>
               {data.titleTemplate.templates.map((template, index) => (
                 <div key={index} className="p-2 bg-background rounded text-sm font-mono">
@@ -95,7 +95,7 @@ export function ActionPlanAssistSection({ data }: ActionPlanAssistProps) {
                 </div>
               ))}
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <p className="text-xs text-muted-foreground">예시</p>
               {data.titleTemplate.examples.map((example, index) => (
                 <div key={index} className="p-2 bg-primary/5 rounded text-sm">

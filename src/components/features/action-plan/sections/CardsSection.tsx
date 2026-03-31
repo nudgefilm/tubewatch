@@ -170,7 +170,7 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                     /* ── Full Insight: 진단 근거 + 실행 + 성과 예측 + 단계별 시나리오 + 보조 정보 ── */
                     <>
                       {action.evidenceData && (
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                           <div className="flex items-center gap-2 text-sm font-medium">
                             <Database className="h-4 w-4 text-primary" />
                             진단 근거
@@ -192,7 +192,7 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                         </div>
                       )}
 
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         <div className="flex items-center gap-2 text-sm font-medium">
                           <ListChecks className="h-4 w-4 text-emerald-500" />
                           실행 항목
@@ -226,7 +226,7 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                         </ul>
                       </div>
 
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         <div className="flex items-center gap-2 text-sm font-medium">
                           <Target className="h-4 w-4 text-primary" />
                           성과 예측
@@ -244,7 +244,7 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                           )}
                           <div>
                             <p className="text-xs font-semibold text-muted-foreground mb-1">기대 변화</p>
-                            <ul className="space-y-0.5">
+                            <ul className="space-y-1">
                               {validExpectedChanges.map((change, i) => (
                                 <li key={i} className="text-sm text-muted-foreground flex items-center gap-1.5">
                                   <TrendingUp className="h-3 w-3 text-emerald-500 shrink-0" />
@@ -257,7 +257,7 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                       </div>
 
                       <div className="grid gap-4 md:grid-cols-2">
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                           <div className="flex items-center gap-2 text-sm font-medium">
                             <TrendingUp className="h-4 w-4 text-emerald-500" />
                             단계별 시나리오
@@ -272,7 +272,7 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                           </div>
                         </div>
                         {action.applicationScope && (
-                          <div className="space-y-2">
+                          <div className="space-y-3">
                             <div className="flex items-center gap-2 text-sm font-medium">
                               <Target className="h-4 w-4 text-primary" />
                               적용 범위
@@ -287,7 +287,7 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                       {(action.experimentPeriod || action.caution) && (
                         <div className="grid gap-4 md:grid-cols-2">
                           {action.experimentPeriod && (
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                               <div className="flex items-center gap-2 text-sm font-medium">
                                 <Clock className="h-4 w-4 text-muted-foreground" />
                                 확인 기간
@@ -298,7 +298,7 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                             </div>
                           )}
                           {action.caution && (
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                               <div className="flex items-center gap-2 text-sm font-medium">
                                 <AlertTriangle className="h-4 w-4 text-amber-500" />
                                 주의사항
@@ -332,7 +332,7 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                   ) : (
                     /* ── Quick Action: 실행 항목 + 적용 범위만 ── */
                     <>
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         <div className="flex items-center gap-2 text-sm font-medium">
                           <ListChecks className="h-4 w-4 text-emerald-500" />
                           실행 항목
@@ -367,7 +367,7 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                       </div>
 
                       {action.applicationScope && (
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                           <div className="flex items-center gap-2 text-sm font-medium">
                             <Target className="h-4 w-4 text-primary" />
                             적용 범위
