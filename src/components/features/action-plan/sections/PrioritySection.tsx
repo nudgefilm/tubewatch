@@ -1,18 +1,15 @@
 "use client"
 
-import { Shield } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
 
 interface PriorityAction {
   id: string
   level: string
   title: string
-  impact?: string[]
   reason: string
+  expectedEffect: string
+  executionSteps: string[]
   order: number
-  confidence?: number | null
   difficulty: string
 }
 
@@ -52,47 +49,50 @@ export function ActionPlanPrioritySection({ data }: ActionPlanPriorityProps) {
             <p className="text-xs font-semibold text-muted-foreground mb-1">
               {priorityActionLabel[action.level] ?? `STEP ${action.order}`}
             </p>
-            <CardTitle className="text-lg pr-10">{action.title}</CardTitle>
+            {/* 1. 헤드라인 */}
+            <CardTitle className="text-base pr-10 leading-snug">{action.title}</CardTitle>
           </CardHeader>
 
-          <CardContent className="space-y-4">
-            {/* 영향 영역 */}
-            {action.impact && action.impact.length > 0 && (
-              <div className="flex flex-wrap gap-1">
-                {action.impact.map((item) => (
-                  <Badge key={item} variant="secondary" className="text-xs">
-                    {item}
-                  </Badge>
-                ))}
+          <CardContent className="space-y-3">
+            {/* 2. DNA 근거 */}
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-0.5">
+                DNA 근거
+              </p>
+              <p className="text-xs text-foreground/80 leading-relaxed">{action.reason}</p>
+            </div>
+
+            {/* 3. 기대 효과 */}
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-0.5">
+                기대 효과
+              </p>
+              <p className="text-xs text-foreground/80 leading-relaxed">{action.expectedEffect}</p>
+            </div>
+
+            {/* 4. 실행 방법 */}
+            {action.executionSteps.length > 0 && (
+              <div className="pt-2 border-t">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+                  실행 방법
+                </p>
+                <ol className="space-y-1">
+                  {action.executionSteps.slice(0, 2).map((step, i) => (
+                    <li key={i} className="flex gap-2 text-xs text-foreground/80 leading-relaxed">
+                      <span className="shrink-0 font-semibold text-primary">{i + 1}.</span>
+                      <span>{step}</span>
+                    </li>
+                  ))}
+                </ol>
               </div>
             )}
 
-            {/* 실행이 필요한 이유 */}
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {action.reason}
-            </p>
-
-            {/* 신뢰도 & 난이도 */}
-            <div className="space-y-2 pt-2 border-t">
-              {action.confidence != null && (
-                <>
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-1">
-                      <Shield className="h-3 w-3" />
-                      <span>데이터 신뢰도</span>
-                    </div>
-                    <span className="font-medium">{action.confidence}%</span>
-                  </div>
-                  <Progress value={action.confidence} className="h-1.5" />
-                </>
-              )}
-
-              <div className="flex items-center justify-between text-sm pt-1">
-                <span>실행 난이도</span>
-                <span className={`font-medium ${difficultyColors[action.difficulty]}`}>
-                  {action.difficulty}
-                </span>
-              </div>
+            {/* 실행 난이도 */}
+            <div className="flex items-center justify-between text-xs pt-1 border-t">
+              <span className="text-muted-foreground">실행 난이도</span>
+              <span className={`font-medium ${difficultyColors[action.difficulty]}`}>
+                {action.difficulty}
+              </span>
             </div>
           </CardContent>
         </Card>

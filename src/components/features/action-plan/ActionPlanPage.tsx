@@ -34,6 +34,8 @@ function toPrioritySection(actions: ActionPlanCardVm[]) {
     level: a.priority,
     title: a.title,
     reason: a.whyNeeded,
+    expectedEffect: a.expectedEffect,
+    executionSteps: a.executionHint.split("\n").filter(Boolean),
     order: i + 1,
     difficulty: difficultyLabel[a.difficulty],
   }))
