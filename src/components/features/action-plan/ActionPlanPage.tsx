@@ -54,6 +54,8 @@ function toCardsSection(actions: ActionPlanCardVm[]) {
     dnaConnection:
       a.evidenceSource === "channel_dna" ? "채널 DNA 기반" : null,
     analysisConnection: "분석 스냅샷",
+    performancePrediction: a.performancePrediction ?? null,
+    executionSpec: a.executionSpec ?? null,
   }))
 }
 

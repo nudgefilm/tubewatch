@@ -46,6 +46,18 @@ export type ActionPlanCardVm = {
   executionHint: string;
   /** `/channel-dna`와 동일 스냅샷에서 계산된 룰 기반 근거 */
   evidenceSource?: "channel_dna";
+  /** 성과 예측 블록 — 현재 수치 → 목표 범위 → 기대 변화 */
+  performancePrediction?: {
+    current: string;
+    targetRange: string;
+    expectedChanges: string[];
+  };
+  /** 실행 조건 — 적용 영상 수 · 변경 요소 1개 · 비교 기준 */
+  executionSpec?: {
+    videoCount: string;
+    targetElement: string;
+    comparisonBasis: string;
+  };
 };
 
 export type ActionPlanChecklistVm = {
@@ -167,16 +179,14 @@ function buildTextBackedActions(
       expectedEffect: item.kind === "bottleneck"
         ? "병목이 해소되면 콘텐츠 제작 흐름이 안정되고, 그 결과가 업로드 주기·품질로 이어집니다."
         : "약점 요인을 하나씩 줄이면 전체 구간 점수가 회복되고 알고리즘 추천 신호가 강화됩니다.",
-      scenarioText: item.kind === "bottleneck"
-        ? `현재 병목으로 진단된 구간으로 제작 흐름 또는 성과 회복에 제동이 걸린 상태입니다.\n` +
-          `병목이 해소되면 콘텐츠 제작 주기가 먼저 안정되고, 이후 업로드 일관성이 회복됩니다.\n` +
-          `제작 주기 안정화 → 업로드 일관성 회복 → 활동 신호 개선 순으로 변화가 나타날 수 있습니다.`
-        : `현재 약점 신호로 진단된 구간으로 성과 불안정 요인이 남아 있는 상태입니다.\n` +
-          `해당 요인을 개선하면 구간 점수 신호가 먼저 반응하고, 전체 추천 신호 안정성이 높아집니다.\n` +
-          `구간 신호 개선 → 성과 구조 안정화 → 알고리즘 추천 신호 강화 순으로 변화가 나타날 수 있습니다.`,
       difficulty: item.kind === "bottleneck" ? "high" : "medium",
       executionHint:
         "이 신호를 유발하는 원인을 하나로 좁히세요.\n다음 1~2회 업로드에서 그 요소만 바꿔 결과를 기록하세요.",
+      executionSpec: {
+        videoCount: "1~2개",
+        targetElement: "원인 신호 1개",
+        comparisonBasis: "실행 전후 직접 측정",
+      },
     });
   }
   return out;
@@ -209,6 +219,16 @@ function buildMetricBackedActions(
       difficulty: "low",
       executionHint:
         "이번 달 업로드 목표 횟수를 달력에 고정하세요.\n촬영·편집 일정을 역산해 공백이 2주를 넘지 않도록 조정하세요.\n다음 영상 주제를 지금 바로 1개 정해두세요.",
+      performancePrediction: {
+        current: `업로드·활동 구간 ${Math.round(sections.channelActivity)}점`,
+        targetRange: "목표 55~65점",
+        expectedChanges: ["활동 신호 회복", "알고리즘 노출 빈도 개선"],
+      },
+      executionSpec: {
+        videoCount: `다음 2~3회 업로드`,
+        targetElement: "업로드 빈도",
+        comparisonBasis: `현재 30일 ${metrics.recent30dUploadCount}건 기준`,
+      },
     });
   }
 
@@ -229,6 +249,16 @@ function buildMetricBackedActions(
       difficulty: "low",
       executionHint:
         "기획·촬영·편집 중 어느 단계에서 병목이 생기는지 한 주 단위로 기록하세요.\n병목 단계 하나만 골라 시간을 줄일 방법을 실험하세요.\n목표 간격을 정하고 달력에 다음 2회 업로드 날짜를 고정하세요.",
+      performancePrediction: {
+        current: `평균 업로드 간격 ${metrics.avgUploadIntervalDays.toFixed(1)}일`,
+        targetRange: "목표 7~14일 내 고정 주기",
+        expectedChanges: ["구독자 복귀 패턴 형성", "추천 노출 안정화"],
+      },
+      executionSpec: {
+        videoCount: "다음 3회 업로드",
+        targetElement: "업로드 요일·간격",
+        comparisonBasis: `현재 평균 간격 ${metrics.avgUploadIntervalDays.toFixed(1)}일 기준`,
+      },
     });
   }
 
@@ -249,6 +279,16 @@ function buildMetricBackedActions(
       difficulty: "medium",
       executionHint:
         "최근 영상 3개의 제목·썸네일·첫 30초를 비교하세요.\n반응이 가장 높은 영상과 낮은 영상의 차이를 한 줄로 적어두세요.\n다음 영상에서 차이점 중 하나만 바꿔 반응 변화를 측정하세요.",
+      performancePrediction: {
+        current: `평균 좋아요 비율 ${(metrics.avgLikeRatio * 100).toFixed(2)}%`,
+        targetRange: "목표 반응 신호 회복 (CTR·좋아요 동반 개선)",
+        expectedChanges: ["반응 신호 누적", "알고리즘 추천 범위 확장"],
+      },
+      executionSpec: {
+        videoCount: "2~3개",
+        targetElement: "제목·썸네일·첫 30초 중 1개",
+        comparisonBasis: `현재 좋아요 비율 ${(metrics.avgLikeRatio * 100).toFixed(2)}% 기준`,
+      },
     });
   }
 
@@ -269,6 +309,16 @@ function buildMetricBackedActions(
       difficulty: "low",
       executionHint:
         "최근 영상 3개의 제목에서 핵심 키워드 위치를 확인하세요.\n핵심어가 앞 15자 안에 오도록 제목을 수정해 비교안을 만드세요.\n수정 전후 CTR 변화를 다음 업로드에서 직접 측정하세요.",
+      performancePrediction: {
+        current: `평균 제목 길이 ${Math.round(metrics.avgTitleLength)}자`,
+        targetRange: "목표 핵심 키워드 앞 15자 내 배치",
+        expectedChanges: ["CTR 신호 개선", "알고리즘 노출 확대"],
+      },
+      executionSpec: {
+        videoCount: "2~3개",
+        targetElement: "제목 키워드 위치",
+        comparisonBasis: "수정 전후 CTR 직접 비교",
+      },
     });
   }
 
@@ -289,6 +339,16 @@ function buildMetricBackedActions(
       difficulty: "low",
       executionHint:
         "최근 영상 하나의 태그 목록을 열어 주제와 무관한 태그를 골라내세요.\n주제 핵심어·관련 검색어 기준 5~10개만 남기고 나머지를 제거하세요.\n다음 업로드부터 이 기준을 그대로 적용하세요.",
+      performancePrediction: {
+        current: `평균 태그 수 ${metrics.avgTagCount.toFixed(1)}개`,
+        targetRange: "목표 주제 적합 5~10개",
+        expectedChanges: ["검색 발견성 개선", "관심사 매칭 시청자 유입"],
+      },
+      executionSpec: {
+        videoCount: "다음 업로드 1개",
+        targetElement: "태그 목록",
+        comparisonBasis: "현재 태그 주제 적합도 기준",
+      },
     });
   }
 
@@ -311,6 +371,16 @@ function buildMetricBackedActions(
       difficulty: "medium",
       executionHint:
         "최근 영상 2개를 직접 시청하며 내용이 늘어지는 구간의 시간대를 기록하세요.\n늘어지는 구간이 30초 이상이면 다음 편집에서 해당 부분을 줄이세요.\n수정 후 시청 유지율 그래프의 변화를 YouTube 스튜디오에서 확인하세요.",
+      performancePrediction: {
+        current: `평균 영상 길이 ${minutes}분 ${seconds.toString().padStart(2, "0")}초`,
+        targetRange: "목표 핵심 구간 단축 (늘어지는 구간 제거)",
+        expectedChanges: ["시청 유지율 개선", "이탈 신호 감소"],
+      },
+      executionSpec: {
+        videoCount: "2개",
+        targetElement: "영상 전체 길이",
+        comparisonBasis: `현재 평균 ${minutes}분 기준`,
+      },
     });
   }
 
@@ -331,6 +401,16 @@ function buildMetricBackedActions(
       difficulty: "high",
       executionHint:
         "상위 3개 영상과 하위 3개 영상을 나란히 비교해 주제·포맷·제목 패턴 차이를 정리하세요.\n중간 성과(중앙값 근처) 영상 중 반복 가능한 포맷 하나를 선택하세요.\n다음 1편에서 그 포맷을 따라 업로드하고 결과를 이전 중앙값과 비교하세요.",
+      performancePrediction: {
+        current: `중앙 조회수 약 ${Math.round(metrics.medianViewCount)}회`,
+        targetRange: "목표 중앙값 점진적 회복",
+        expectedChanges: ["중간 성과 영상 증가", "히트 의존도 감소"],
+      },
+      executionSpec: {
+        videoCount: "1~2개",
+        targetElement: "반복 가능 포맷",
+        comparisonBasis: `현재 중앙 조회수 ${Math.round(metrics.medianViewCount)}회 기준`,
+      },
     });
   }
 
@@ -397,7 +477,10 @@ function channelDnaRowsToSortable(
     expectedEffect: b.expectedEffect,
     difficulty: b.difficulty,
     executionHint: b.executionHint,
-    evidenceSource: "channel_dna",
+    evidenceSource: "channel_dna" as const,
+    scenarioText: b.scenarioText,
+    performancePrediction: b.performancePrediction,
+    executionSpec: b.executionSpec,
     sortTier: b.sortTier,
     sortOrder: b.sortOrder,
   }));

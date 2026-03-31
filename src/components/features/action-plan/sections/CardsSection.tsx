@@ -13,7 +13,8 @@ import {
   AlertTriangle,
   Shield,
   Dna,
-  BarChart3
+  BarChart3,
+  ArrowRight,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -40,6 +41,16 @@ interface ActionCard {
   dnaConnection?: string | null
   analysisConnection?: string | null
   priority: string
+  performancePrediction?: {
+    current: string
+    targetRange: string
+    expectedChanges: string[]
+  } | null
+  executionSpec?: {
+    videoCount: string
+    targetElement: string
+    comparisonBasis: string
+  } | null
 }
 
 interface ActionPlanCardsProps {
@@ -52,6 +63,12 @@ const priorityColors: Record<string, string> = {
   P3: "bg-blue-500 text-white",
 }
 
+const SCENARIO_STEP_LABELS = [
+  "1단계: 테스트 (1~2개 영상)",
+  "2단계: 반응 확인",
+  "3단계: 전체 확장",
+] as const
+
 export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({})
 
@@ -62,12 +79,21 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        총 {data.length}개 실행 항목 · 카드를 펼쳐 실행 방법을 확인하세요
+        총 {data.length}개 실행 항목 · 지금 바꾸지 않으면 결과가 달라집니다
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {data.map((action) => {
           const isExpanded = expandedCards[action.id]
+          const validScenarioBlocks = (action.scenarioBlocks ?? []).filter(b => b.trim().length > 0)
+          const hasFullScenario = validScenarioBlocks.length === 3
+          const validExpectedChanges = action.performancePrediction?.expectedChanges.filter(c => c.trim().length > 0) ?? []
+          const showPerfPrediction = !!(
+            action.performancePrediction &&
+            action.performancePrediction.current.trim() &&
+            action.performancePrediction.targetRange.trim() &&
+            validExpectedChanges.length > 0
+          )
 
           return (
             <Card key={action.id} className="overflow-hidden">
@@ -111,7 +137,7 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                 <div className="flex items-start gap-2 mt-3 p-3 bg-muted/50 rounded-lg">
                   <AlertCircle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-xs font-semibold text-destructive mb-0.5">현재 상태</p>
+                    <p className="text-xs font-semibold text-destructive mb-0.5">이 상태가 지속되면</p>
                     <p className="text-sm">{action.problemSummary}</p>
                   </div>
                 </div>
@@ -128,7 +154,7 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                       </div>
                       <div className="grid grid-cols-3 gap-3">
                         <div className="p-3 bg-muted/50 rounded-lg">
-                          <p className="text-xs text-muted-foreground">현재 상태</p>
+                          <p className="text-xs text-muted-foreground">현재 수치</p>
                           <p className="font-medium">{action.evidenceData.current}</p>
                         </div>
                         <div className="p-3 bg-muted/50 rounded-lg">
@@ -136,19 +162,38 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                           <p className="font-medium">{action.evidenceData.benchmark}</p>
                         </div>
                         <div className="p-3 bg-muted/50 rounded-lg">
-                          <p className="text-xs text-muted-foreground">분석 표본</p>
+                          <p className="text-xs text-muted-foreground">표본</p>
                           <p className="font-medium">{action.evidenceData.sampleSize}개</p>
                         </div>
                       </div>
                     </div>
                   )}
 
-                  {/* 지금 실행하세요 */}
+                  {/* 실행 항목 */}
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm font-medium">
                       <ListChecks className="h-4 w-4 text-emerald-500" />
-                      지금 실행하세요
+                      실행 항목
                     </div>
+                    {action.executionSpec && (
+                      <div className="flex flex-wrap gap-2 pl-6 mb-1">
+                        {action.executionSpec.videoCount.trim() && (
+                          <Badge variant="secondary" className="text-xs">
+                            영상 {action.executionSpec.videoCount}
+                          </Badge>
+                        )}
+                        {action.executionSpec.targetElement.trim() && (
+                          <Badge variant="secondary" className="text-xs">
+                            변경: {action.executionSpec.targetElement}
+                          </Badge>
+                        )}
+                        {action.executionSpec.comparisonBasis.trim() && (
+                          <Badge variant="secondary" className="text-xs">
+                            기준: {action.executionSpec.comparisonBasis}
+                          </Badge>
+                        )}
+                      </div>
+                    )}
                     <ul className="space-y-1 pl-6">
                       {action.howToExecute.map((step, index) => (
                         <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
@@ -159,40 +204,66 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                     </ul>
                   </div>
 
-                  {/* 실행 후 변화 시나리오 & 적용 범위 */}
-                  <div className="grid gap-4 md:grid-cols-2">
+                  {/* 성과 예측 */}
+                  {showPerfPrediction && (
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm font-medium">
-                        <TrendingUp className="h-4 w-4 text-emerald-500" />
-                        실행 후 변화 시나리오
+                        <Target className="h-4 w-4 text-primary" />
+                        성과 예측
                       </div>
-                      {action.scenarioBlocks && action.scenarioBlocks.length === 3 ? (
-                        <div className="pl-6 space-y-2">
-                          {(["실행 전 상태", "변화 메커니즘", "기대 시나리오"] as const).map((label, i) => (
-                            <div key={label}>
-                              <p className="text-xs font-semibold text-muted-foreground mb-0.5">{label}</p>
-                              <p className="text-sm text-muted-foreground leading-relaxed">{action.scenarioBlocks![i]}</p>
-                            </div>
-                          ))}
+                      <div className="pl-6 space-y-2">
+                        <div className="flex items-center gap-2 text-sm flex-wrap">
+                          <span className="text-muted-foreground">{action.performancePrediction!.current}</span>
+                          <ArrowRight className="h-3 w-3 text-muted-foreground shrink-0" />
+                          <span className="font-medium">{action.performancePrediction!.targetRange}</span>
                         </div>
-                      ) : (
-                        <p className="text-sm text-muted-foreground pl-6">
-                          {action.expectedEffect}
-                        </p>
+                        <div>
+                          <p className="text-xs font-semibold text-muted-foreground mb-1">기대 변화</p>
+                          <ul className="space-y-0.5">
+                            {validExpectedChanges.map((change, i) => (
+                              <li key={i} className="text-sm text-muted-foreground flex items-center gap-1.5">
+                                <TrendingUp className="h-3 w-3 text-emerald-500 shrink-0" />
+                                {change}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 단계별 시나리오 & 적용 범위 */}
+                  {(hasFullScenario || action.applicationScope) && (
+                    <div className="grid gap-4 md:grid-cols-2">
+                      {hasFullScenario && (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-sm font-medium">
+                            <TrendingUp className="h-4 w-4 text-emerald-500" />
+                            단계별 시나리오
+                          </div>
+                          <div className="pl-6 space-y-2">
+                            {SCENARIO_STEP_LABELS.map((label, i) => (
+                              <div key={label}>
+                                <p className="text-xs font-semibold text-muted-foreground mb-0.5">{label}</p>
+                                <p className="text-sm text-muted-foreground leading-relaxed">{validScenarioBlocks[i]}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {action.applicationScope && (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-sm font-medium">
+                            <Target className="h-4 w-4 text-primary" />
+                            적용 범위
+                          </div>
+                          <p className="text-sm text-muted-foreground pl-6">
+                            {action.applicationScope}
+                          </p>
+                        </div>
                       )}
                     </div>
-                    {action.applicationScope && (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-sm font-medium">
-                          <Target className="h-4 w-4 text-primary" />
-                          적용 범위
-                        </div>
-                        <p className="text-sm text-muted-foreground pl-6">
-                          {action.applicationScope}
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                  )}
 
                   {/* 확인 기간 & 주의사항 */}
                   {(action.experimentPeriod || action.caution) && (
@@ -235,7 +306,7 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                       <Progress value={action.confidence} className="h-2" />
                       {action.evidenceData && (
                         <p className="text-xs text-muted-foreground mt-1">
-                          표본 {action.evidenceData.sampleSize}개 기준 · 패턴 일관성 분석
+                          표본 {action.evidenceData.sampleSize}개 · 패턴 일관성 분석
                         </p>
                       )}
                     </div>

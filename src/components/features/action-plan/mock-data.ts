@@ -59,6 +59,11 @@ export const actionCards = [
       "배경과 대비되는 색상 사용",
     ],
     expectedEffect: "CTR 0.8~1.2%p 상승 예상",
+    scenarioBlocks: [
+      "썸네일 텍스트 3줄 이상 유지 중, CTR 4.2% 정체",
+      "텍스트 압축 후 시각적 여백 확보 → 클릭 유도 강화",
+      "노출 대비 클릭률 상승, 알고리즘 추천 빈도 증가",
+    ],
     applicationScope: "신규 업로드 + 최근 저성과 영상 5개",
     experimentPeriod: "2주",
     caution: "기존 브랜딩 톤 유지 필요",
@@ -66,6 +71,19 @@ export const actionCards = [
     dnaConnection: "고성과 패턴 분석",
     analysisConnection: "CTR 진단",
     priority: "P1",
+    performancePrediction: {
+      current: "현재 CTR: 4.2%",
+      targetRange: "목표: 5.0~5.8%",
+      expectedChanges: [
+        "노출 클릭 +20~40%",
+        "평균 조회수 회복",
+      ],
+    },
+    executionSpec: {
+      videoCount: "2~3개",
+      targetElement: "썸네일 텍스트 줄 수",
+      comparisonBasis: "기존 CTR 4.2% 기준",
+    },
   },
   {
     id: "action-2",
@@ -83,6 +101,11 @@ export const actionCards = [
       "최소 4주간 유지",
     ],
     expectedEffect: "구독자 재방문율 15~20% 상승",
+    scenarioBlocks: [
+      "불규칙 업로드로 구독자 알림 피로 누적, 재방문율 18% 정체",
+      "고정 요일 패턴 형성 → 구독자 방문 습관화 → 알고리즘 신호 강화",
+      "재방문율 상승 + 초기 조회 속도 증가로 노출 확대",
+    ],
     applicationScope: "전체 업로드 일정",
     experimentPeriod: "4주",
     caution: "초기 2주는 조회수 일시 하락 가능",
@@ -90,6 +113,19 @@ export const actionCards = [
     dnaConnection: "업로드 패턴 분석",
     analysisConnection: "업로드 빈도 진단",
     priority: "P2",
+    performancePrediction: {
+      current: "현재 재방문율: 18%",
+      targetRange: "목표: 21~23%",
+      expectedChanges: [
+        "구독자 재방문 +15~20%",
+        "알고리즘 노출 안정화",
+      ],
+    },
+    executionSpec: {
+      videoCount: "전체 업로드",
+      targetElement: "업로드 요일",
+      comparisonBasis: "현재 불규칙 패턴 기준",
+    },
   },
   {
     id: "action-3",
@@ -107,6 +143,11 @@ export const actionCards = [
       "인트로 30초 이내 유지",
     ],
     expectedEffect: "시청 지속율 8~12%p 상승",
+    scenarioBlocks: [
+      "평균 18분 영상 유지 중, 완주율 42% — 중반 이후 이탈 집중",
+      "10분 내 핵심 전달로 이탈 구간 제거 → 완주율 신호 강화",
+      "시청 지속율 상승 → 알고리즘 체류 점수 개선",
+    ],
     applicationScope: "신규 업로드",
     experimentPeriod: "3주",
     caution: "콘텐츠 밀도 저하 주의",
@@ -114,6 +155,19 @@ export const actionCards = [
     dnaConnection: "콘텐츠 구조 분석",
     analysisConnection: "시청 지속율 진단",
     priority: "P3",
+    performancePrediction: {
+      current: "현재 완주율: 42%",
+      targetRange: "목표: 50~55%",
+      expectedChanges: [
+        "시청 지속율 +8~12%p",
+        "중반 이탈 구간 제거",
+      ],
+    },
+    executionSpec: {
+      videoCount: "신규 영상 2개",
+      targetElement: "영상 전체 길이",
+      comparisonBasis: "기존 18분 평균 기준",
+    },
   },
 ]
 
