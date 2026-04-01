@@ -42,6 +42,7 @@ function toCandidates(vms: NextTrendCandidateVm[]): TrendCandidate[] {
     status: "executable" as const,
     signalStrength: vm.signalStrength,
     evidence: vm.evidence ?? [],
+    expectedEffect: vm.expectedEffect,
   }))
 }
 

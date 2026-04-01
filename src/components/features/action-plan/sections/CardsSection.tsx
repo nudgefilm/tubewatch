@@ -154,11 +154,11 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                   </Button>
                 </div>
 
-                {/* 현재 상태 — 항상 표시 */}
+                {/* 문제 상황 — 항상 표시 */}
                 <div className="flex items-start gap-2 mt-3 p-3 bg-muted/50 rounded-lg">
                   <AlertCircle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-xs font-semibold text-destructive mb-0.5">이 상태가 지속되면</p>
+                    <p className="text-xs font-semibold text-destructive mb-0.5">문제 상황</p>
                     <p className="text-sm">{action.problemSummary}</p>
                   </div>
                 </div>
@@ -173,7 +173,7 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                         <div className="space-y-3">
                           <div className="flex items-center gap-2 text-sm font-medium">
                             <Database className="h-4 w-4 text-primary" />
-                            진단 근거
+                            원인 (데이터 기반)
                           </div>
                           <div className="grid grid-cols-3 gap-3">
                             <div className="p-3 bg-muted/50 rounded-lg">
@@ -195,7 +195,7 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                       <div className="space-y-3">
                         <div className="flex items-center gap-2 text-sm font-medium">
                           <ListChecks className="h-4 w-4 text-emerald-500" />
-                          실행 항목
+                          실행 액션
                         </div>
                         {action.executionSpec && (
                           <div className="flex flex-wrap gap-2 pl-6 mb-1">
@@ -229,7 +229,7 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                       <div className="space-y-3">
                         <div className="flex items-center gap-2 text-sm font-medium">
                           <Target className="h-4 w-4 text-primary" />
-                          성과 예측
+                          예상 변화
                         </div>
                         <div className="pl-6 space-y-2">
                           <div className="flex items-center gap-2 text-sm flex-wrap">
@@ -242,17 +242,14 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                               근거 — {action.performancePrediction!.predictionBasis}
                             </p>
                           )}
-                          <div>
-                            <p className="text-xs font-semibold text-muted-foreground mb-1">기대 변화</p>
-                            <ul className="space-y-1">
-                              {validExpectedChanges.map((change, i) => (
-                                <li key={i} className="text-sm text-muted-foreground flex items-center gap-1.5">
-                                  <TrendingUp className="h-3 w-3 text-emerald-500 shrink-0" />
-                                  {change}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
+                          <ul className="space-y-1">
+                            {validExpectedChanges.map((change, i) => (
+                              <li key={i} className="text-sm text-muted-foreground flex items-center gap-1.5">
+                                <TrendingUp className="h-3 w-3 text-emerald-500 shrink-0" />
+                                {change}
+                              </li>
+                            ))}
+                          </ul>
                         </div>
                       </div>
 
@@ -335,7 +332,7 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                       <div className="space-y-3">
                         <div className="flex items-center gap-2 text-sm font-medium">
                           <ListChecks className="h-4 w-4 text-emerald-500" />
-                          실행 항목
+                          실행 액션
                         </div>
                         {action.executionSpec && (
                           <div className="flex flex-wrap gap-2 pl-6 mb-1">
@@ -365,6 +362,18 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                           ))}
                         </ul>
                       </div>
+
+                      {action.expectedEffect && (
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2 text-sm font-medium">
+                            <TrendingUp className="h-4 w-4 text-emerald-500" />
+                            예상 변화
+                          </div>
+                          <p className="text-sm text-muted-foreground pl-6">
+                            {action.expectedEffect}
+                          </p>
+                        </div>
+                      )}
 
                       {action.applicationScope && (
                         <div className="space-y-3">

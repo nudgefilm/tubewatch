@@ -101,21 +101,54 @@ function mapToKpiData(vm: AnalysisPageViewModel): KpiData {
   }
 
   const structureStatus = structureCard?.status === "good" ? "안정" : "불안정"
-  const structureInterp = structureItems.length > 0
-    ? structureItems.slice(0, 2).map((i) => `${i.label}: ${i.value}`).join(" / ")
-    : "구조 지표 데이터 없음"
   // stabilityScore: 구조 지표가 있으면 상태 기반 점수 추정, 없으면 null(미산출)
   const stabilityScore: number | null = structureItems.length > 0
     ? structureCard?.status === "good" ? 75 : 40
     : null
 
+  const structureInterp: string = structureItems.length === 0
+    ? "구조 지표 표본이 없어 포맷 일관성 판단이 제한됩니다"
+    : structureCard?.status === "good"
+      ? "포맷 일관성이 유지되어 시청 지속시간 방어에 유리한 신호입니다"
+      : "콘텐츠 구조 편차가 감지되어 초반 이탈이 높아질 수 있는 경향이 읽힙니다"
+
   const uploadStatus: "양호" | "보통" | "부족" =
     uploadsPerWeek != null && uploadsPerWeek >= 3 ? "양호"
     : uploadsPerWeek != null && uploadsPerWeek >= 1 ? "보통"
     : "부족"
-  const uploadInterp = activityItems.length > 0
-    ? activityItems.map((i) => `${i.label}: ${i.value}`).join(", ")
-    : "활동 지표 데이터 없음"
+
+  const uploadInterp: string =
+    uploadsPerWeek == null
+      ? "발행 간격 데이터가 없어 리듬 판단이 제한됩니다"
+      : uploadsPerWeek >= 3
+        ? "꾸준한 발행 빈도로 구독자 복귀 기대가 형성되기에 유리한 구조입니다"
+        : uploadsPerWeek >= 1
+          ? "발행 주기가 다소 불규칙해 구독자 복귀 패턴이 아직 고르게 형성되지 않을 수 있습니다"
+          : "업로드 공백이 감지되어 반복 시청 가능성이 낮아질 수 있는 경향이 읽힙니다"
+
+  const viewInterpretation: string =
+    videosWithViews.length < 2
+      ? "영상 수가 부족해 흐름 방향을 판단하기 어렵습니다"
+      : trendDir === "상승"
+        ? "최근 조회 흐름이 상승 경향이어서 현재 포맷 방향이 작동하고 있는 신호로 볼 수 있습니다"
+        : trendDir === "하락"
+          ? "최근 조회 흐름이 내려오고 있어 제목·썸네일·포맷 중 하나를 점검할 필요가 있는 경향이 읽힙니다"
+          : "조회 흐름이 일정 수준을 유지하고 있어 안정적인 구조일 수 있습니다"
+
+  const baselineInterp: string =
+    avgViews == null
+      ? "조회 데이터가 없어 현재 채널의 기대 성과 기준을 설정하기 어렵습니다"
+      : vm.channel?.avgViews.lowSampleWarning
+        ? "표본이 적어 이 수치가 흔들릴 수 있습니다. 영상이 쌓이면 기준선이 더 안정화됩니다"
+        : "이 수치가 현재 채널의 기대 성과 기준선입니다. 이하 영상은 포맷 점검 대상으로 볼 수 있습니다"
+
+  const medRatio = avgViews != null && avgViews > 0 ? medianViews / avgViews : null
+  const auxInterp: string =
+    medRatio != null && medRatio < 0.7
+      ? "평균보다 중앙값이 낮아 일부 고조회 영상에 성과가 집중되어 있는 구조일 수 있습니다"
+      : medRatio != null && medRatio >= 0.9
+        ? "평균과 중앙값이 가까워 성과가 고르게 분포되어 있는 신호로 볼 수 있습니다"
+        : "표본 기반 추정치입니다. 평균과 중앙값 차이가 클수록 성과 집중도가 높은 경향입니다"
 
   return {
     uploadFrequency: {
@@ -126,10 +159,7 @@ function mapToKpiData(vm: AnalysisPageViewModel): KpiData {
     viewTrend: {
       value: trendValue,
       trend: trendDir,
-      interpretation:
-        videosWithViews.length < 2
-          ? "표본 부족"
-          : `최근 ${videosWithViews.length}개 영상 조회수 흐름 기반`,
+      interpretation: viewInterpretation,
     },
     contentStability: {
       titleLengthVariance: 0.2,
@@ -141,16 +171,12 @@ function mapToKpiData(vm: AnalysisPageViewModel): KpiData {
     },
     baselinePerformance: {
       averageViews: avgViews,
-      interpretation: avgViews == null
-        ? "조회 지표 데이터 없음"
-        : vm.channel?.avgViews.lowSampleWarning
-          ? "표본이 적어 추정 편차가 있을 수 있습니다"
-          : "최근 표본 영상 기준 평균 조회수",
+      interpretation: baselineInterp,
     },
     auxiliaryBaseline: {
       medianViews,
       top20Threshold: Math.round((avgViews ?? 0) * 2),
-      interpretation: "표본 기반 추정치 — 채널 전체 성과를 보장하지 않습니다",
+      interpretation: auxInterp,
     },
   }
 }
@@ -231,8 +257,8 @@ function mapToSummaryData(vm: AnalysisPageViewModel): SummaryData {
     keyBottleneck:
       vm.patternSummaryLine ?? vm.urgentImprovements[0] ?? "분석 데이터가 부족합니다",
     nextStepLinks: [
-      { label: "Channel DNA", description: "반복 성과 패턴을 구조화하여 확인" },
-      { label: "Action Plan", description: "실행 우선순위를 정리하여 확인" },
+      { label: "Channel DNA", description: "강점 패턴이 어떤 포맷과 주제에서 반복되는지 확인" },
+      { label: "Action Plan", description: "약한 구간을 개선할 구체적 실행 방향 확인" },
     ],
   }
 }

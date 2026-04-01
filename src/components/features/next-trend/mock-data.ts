@@ -12,6 +12,8 @@ export interface TrendCandidate {
   signalStrength: "clear" | "medium" | "low"
   /** ViewModel에서 생성된 근거 항목 — 없으면 빈 배열 */
   evidence?: { label: string; value: string }[]
+  /** 이 시도가 어떤 지표 방향에 도움이 되는지 — 1문장 */
+  expectedEffect?: string
 }
 
 export interface FormatRecommendation {
@@ -78,7 +80,7 @@ export const trendCandidates: TrendCandidate[] = [
   {
     id: "1",
     topic: "AI 도구 활용 실무 팁",
-    reason: "최근 3개월 AI 관련 콘텐츠 평균 대비 2.3배 조회수",
+    reason: "표본 내 AI 관련 편이 평균 대비 2.3배 조회를 기록했습니다. 이 포맷과 주제 축을 유지하며 다음 1편을 이어 제작하세요.",
     signal: "DNA: 반복 성공 패턴 / SEO: 상위 키워드 클러스터",
     priority: "high",
     feasibility: 85,
@@ -86,14 +88,15 @@ export const trendCandidates: TrendCandidate[] = [
     status: "executable",
     signalStrength: "clear",
     evidence: [
-      { label: "발생 신호", value: "DNA: 반복 성공 패턴 / SEO: 상위 키워드 클러스터" },
+      { label: "발생 신호", value: "DNA: 반복 성공 패턴" },
       { label: "신호 강도", value: "반복 신호 확인됨" },
     ],
+    expectedEffect: "확인된 패턴 반복은 평균 조회수 유지력과 주제 재현성을 높이는 방향으로 작용합니다.",
   },
   {
     id: "2",
     topic: "초보자 가이드 시리즈",
-    reason: "입문 콘텐츠 참여율 상위 20% 지속",
+    reason: "입문 콘텐츠가 표본 내 참여율 상위 20%에 지속적으로 위치합니다. 이 시리즈를 회차 명시화해 연속 제작하세요.",
     signal: "DNA: 안정 성과 패턴 / Action: 실행 우선순위 P1",
     priority: "high",
     feasibility: 90,
@@ -101,44 +104,47 @@ export const trendCandidates: TrendCandidate[] = [
     status: "executable",
     signalStrength: "clear",
     evidence: [
-      { label: "발생 신호", value: "DNA: 안정 성과 패턴 / Action: 실행 우선순위 P1" },
+      { label: "발생 신호", value: "DNA: 안정 성과 패턴" },
       { label: "신호 강도", value: "반복 신호 확인됨" },
     ],
+    expectedEffect: "시리즈 연속성은 반복 시청 가능성과 주제 재현성을 동시에 높이는 방향으로 작용합니다.",
   },
   {
     id: "3",
     topic: "실시간 작업 과정 공개",
-    reason: "라이브 스타일 포맷 관심도 증가 신호",
-    signal: "SEO: 관련 검색어 증가 / DNA: 미활용 패턴",
+    reason: "표본 내 과정 공개 포맷이 미활용 상태로 남아 있습니다. 숏폼 1편으로 반응을 먼저 측정하세요.",
+    signal: "DNA: 미활용 패턴",
     priority: "medium",
     feasibility: 70,
     source: "seo",
     status: "observe",
     signalStrength: "medium",
     evidence: [
-      { label: "발생 신호", value: "SEO: 관련 검색어 증가 / DNA: 미활용 패턴" },
+      { label: "발생 신호", value: "DNA: 미활용 포맷" },
       { label: "신호 강도", value: "신호 감지 중" },
     ],
+    expectedEffect: "짧은 포맷 실험은 초반 클릭 유도력과 반복 시청 가능성 확인에 유리한 구조입니다.",
   },
   {
     id: "4",
     topic: "업계 뉴스 요약 콘텐츠",
-    reason: "짧은 포맷 + 정보성 조합 성과 안정",
-    signal: "DNA: 반복 시도 가능 / SEO: 뉴스 키워드 공백",
+    reason: "표본 내 짧은 정보성 포맷의 조회 성과가 안정적으로 유지되고 있습니다. 이 조합을 다음 편에서 이어가세요.",
+    signal: "DNA: 반복 시도 가능",
     priority: "medium",
     feasibility: 75,
     source: "dna",
     status: "observe",
     signalStrength: "medium",
     evidence: [
-      { label: "발생 신호", value: "DNA: 반복 시도 가능 / SEO: 뉴스 키워드 공백" },
+      { label: "발생 신호", value: "DNA: 짧은 정보성 포맷 반복" },
       { label: "신호 강도", value: "신호 감지 중" },
     ],
+    expectedEffect: "반복 패턴 유지는 평균 조회수 유지력과 초반 클릭 유도력 보강에 유리한 구조입니다.",
   },
   {
     id: "5",
     topic: "협업 콘텐츠 (게스트 출연)",
-    reason: "채널 외부 유입 실험 여지",
+    reason: "채널 표본 내 검증되지 않은 포맷 영역입니다. 1편 소규모 실험 후 반응 수치를 직접 비교하세요.",
     signal: "Action: 성장 전략 연계 / DNA: 미검증 영역",
     priority: "low",
     feasibility: 55,
@@ -146,6 +152,7 @@ export const trendCandidates: TrendCandidate[] = [
     status: "hold",
     signalStrength: "low",
     evidence: [],
+    expectedEffect: "소규모 실험으로 CTR과 반복 시청 가능성을 직접 확인하면 재현 패턴을 좁혀나갈 수 있습니다.",
   },
 ]
 

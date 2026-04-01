@@ -23,6 +23,8 @@ export type NextTrendCandidateVm = {
   signalStrength: "clear" | "medium" | "low";
   /** 발생 신호·강도에서 파생한 근거 항목 — 새 계산 없음, 빈 배열 허용 */
   evidence?: EvidenceItem[];
+  /** 이 시도가 어떤 지표 방향에 도움이 되는지 — 1문장 */
+  expectedEffect?: string;
 };
 
 export type NextTrendFormatVm = {
@@ -298,12 +300,49 @@ function toActionReason(originalTopic: string, originalReason: string): string {
     return "주제·포맷 반복 패턴이 감지되었습니다. 시리즈 제목에 회차·파트 표기를 추가하면 시청자 기대감을 높일 수 있습니다.";
   }
   if (h.includes("업로드 리듬")) {
-    return "공개 간격이 짧아지는 흐름입니다. 이 리듬을 유지하면 알고리즘이 채널을 활성 상태로 인식합니다.";
+    return "공개 간격이 짧아지는 흐름입니다. 이 리듬을 유지하면 구독 전환 가능성과 반복 시청 가능성을 유지하는 데 유리합니다.";
   }
   if (h.includes("업로드 간격 회복")) {
     return "공개 간격이 길어지고 있습니다. 다음 달 업로드 예정일을 달력에 먼저 배치하고 병목 구간을 점검하세요.";
   }
   return originalReason;
+}
+
+/**
+ * 각 후보 주제에 대한 "예상 변화" 1문장 — 내부 데이터 기반, 예언형 없음
+ */
+function toActionEffect(actionTopic: string): string {
+  if (actionTopic.includes("주제로 이어지는")) {
+    return "시리즈 연속성은 반복 시청 가능성과 주제 재현성을 동시에 높이는 방향으로 작용합니다.";
+  }
+  if (actionTopic.includes("상승 흐름 유지")) {
+    return "상승 흐름 유지는 평균 조회수 유지력과 초반 클릭 유도력 보강에 유리한 구조입니다.";
+  }
+  if (actionTopic.includes("조회 하락 대응")) {
+    return "포맷 조정 실험은 초반 이탈 감소와 CTR 회복에 도움이 될 수 있습니다.";
+  }
+  if (actionTopic.includes("반복 가능 패턴 확인")) {
+    return "확인된 패턴 반복은 평균 조회수 유지력과 주제 재현성을 높이는 방향으로 작용합니다.";
+  }
+  if (actionTopic.includes("숏폼 전환")) {
+    return "짧은 포맷 실험은 초반 클릭 유도력과 반복 시청 가능성 확인에 유리한 구조입니다.";
+  }
+  if (actionTopic.includes("롱폼 전환")) {
+    return "깊이 있는 포맷은 시청 지속시간 방어와 반복 시청 가능성 보강에 도움이 될 수 있습니다.";
+  }
+  if (actionTopic.includes("성과 편차 분석")) {
+    return "고성과 패턴 식별은 주제 재현성과 평균 조회수 유지력을 높이는 방향으로 작용합니다.";
+  }
+  if (actionTopic.includes("반복 패턴 강화")) {
+    return "시리즈 명시화는 반복 시청 가능성과 초반 클릭 유도력 보강에 유리한 구조입니다.";
+  }
+  if (actionTopic.includes("업로드 리듬 유지")) {
+    return "발행 리듬 유지는 반복 시청 가능성과 구독 전환 가능성을 보강하는 방향으로 작용합니다.";
+  }
+  if (actionTopic.includes("업로드 간격 회복")) {
+    return "공개 간격 회복은 반복 시청 가능성과 주제 재현성 유지에 유리한 구조입니다.";
+  }
+  return "시청 지속시간과 CTR 변화를 직접 확인하면 재현 가능한 패턴을 좁혀나갈 수 있습니다.";
 }
 
 /** 우선순위: 반복 주제 > 패턴, 같은 출처면 신호 강도(clear>medium>low) */
@@ -400,6 +439,7 @@ function mergeCandidates(
       signal,
       signalStrength,
       evidence: buildCandidateEvidence(actionTopic, signalStrength, originalReason, recentVideosUsed),
+      expectedEffect: toActionEffect(actionTopic),
     };
   });
 }
@@ -559,6 +599,7 @@ export function buildNextTrendInternalSpec(
               signal: "표본 부족",
               signalStrength: "low" as const,
               evidence: [],
+              expectedEffect: "소규모 실험으로 CTR과 반복 시청 가능성을 직접 확인하면 재현 패턴을 좁혀나갈 수 있습니다.",
             },
           ],
     format: {
@@ -589,6 +630,7 @@ export function buildNextTrendInternalBlocksSkipped(
         signal: "표본 부족",
         signalStrength: "low" as const,
         evidence: [],
+        expectedEffect: "소규모 실험으로 CTR과 반복 시청 가능성을 직접 확인하면 재현 패턴을 좁혀나갈 수 있습니다.",
       },
     ],
     format: {

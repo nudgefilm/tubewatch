@@ -116,7 +116,7 @@ const SECTION_LABELS: Record<keyof ChannelSectionScores, string> = {
 };
 
 const CONSERVATIVE_EFFECT =
-  "2~3회 업로드 후 조회·반응 변화를 직접 측정하면, 어느 요소가 실제로 작동하는지 확인할 수 있습니다.";
+  "소규모 실험으로 시청 지속시간과 CTR 변화를 직접 확인하면 재현 가능한 패턴을 좁혀나갈 수 있습니다.";
 
 function safeStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) {
@@ -255,8 +255,8 @@ function buildTextBackedActions(
       title: titleFromText(item.text),
       whyNeeded: buildTextWhyNeeded(item.kind, category, item.text),
       expectedEffect: item.kind === "bottleneck"
-        ? "병목이 해소되면 콘텐츠 제작 흐름이 안정되고, 그 결과가 업로드 주기·품질로 이어집니다."
-        : "약점 요인을 하나씩 줄이면 전체 구간 점수가 회복되고 알고리즘 추천 신호가 강화됩니다.",
+        ? "병목 구간 해소는 업로드 주기 안정과 초반 클릭 유도력 보강에 유리한 구조로 이어질 수 있습니다."
+        : "약점 신호 감소는 평균 조회수 유지력과 시청 지속시간 방어에 도움이 되는 방향으로 작용할 수 있습니다.",
       difficulty: item.kind === "bottleneck" ? "high" : "medium",
       executionHint: buildTextExecutionHint(category),
       executionSpec: buildTextExecutionSpec(category),
@@ -284,7 +284,7 @@ function buildMetricBackedActions(
       id: "metric-activity-uploads",
       title: "업로드 빈도 부족",
       whyNeeded: `업로드·활동 구간 ${Math.round(sections.channelActivity)}점(기준 55점). 최근 30일 ${metrics.recent30dUploadCount}건은 알고리즘이 채널을 활성으로 분류하기에 부족해 노출 빈도가 줄어들고 있습니다.`,
-      expectedEffect: "업로드 주기가 안정되면 알고리즘이 채널을 활성으로 인식해 노출 빈도가 회복됩니다. 구독자 복귀율과 신규 추천 트리거에 직접 영향을 줍니다.",
+      expectedEffect: "업로드 빈도 회복은 구독 전환 가능성과 반복 시청 가능성을 유지하는 데 유리한 구조입니다.",
       scenarioText:
         `최근 30일 ${metrics.recent30dUploadCount}건 업로드로 활동 신호가 알고리즘 임계점에 미치지 못하는 상태입니다.\n` +
         `업로드가 재개되면 활동 신호가 먼저 반응하고, 알고리즘이 채널을 활성 상태로 재분류합니다.\n` +
@@ -315,7 +315,7 @@ function buildMetricBackedActions(
       id: "metric-activity-interval",
       title: "업로드 리듬 불안정",
       whyNeeded: `업로드·활동 구간 ${Math.round(sections.channelActivity)}점(기준 55점). 평균 업로드 간격 ${metrics.avgUploadIntervalDays.toFixed(1)}일로 구독자 기대 주기가 형성되지 않아 자연 이탈이 누적되고, 알고리즘도 추천 신호를 줄이고 있습니다.`,
-      expectedEffect: "일정한 간격이 구독자의 복귀 패턴을 만들고, 알고리즘 추천 빈도를 안정적으로 유지하는 기반이 됩니다.",
+      expectedEffect: "고정 주기가 자리 잡히면 반복 시청 가능성과 구독 전환 가능성을 함께 보강하는 방향으로 작용합니다.",
       scenarioText:
         `평균 업로드 간격 약 ${metrics.avgUploadIntervalDays.toFixed(1)}일로 구독자의 기대 주기가 형성되지 않는 구조입니다.\n` +
         `간격이 일정해지면 구독자 복귀 패턴이 먼저 안정되고, 이후 알고리즘 추천 주기도 규칙화됩니다.\n` +
@@ -346,7 +346,7 @@ function buildMetricBackedActions(
       id: "metric-audience-like",
       title: "참여 반응 저하",
       whyNeeded: `조회·반응 구간 ${Math.round(sections.audienceResponse)}점(기준 55점). 평균 좋아요 비율 ${(metrics.avgLikeRatio * 100).toFixed(2)}%로 반응 신호가 낮아, 알고리즘이 영상을 관련 시청자에게 추천하는 범위를 줄이고 있습니다.`,
-      expectedEffect: "좋아요 비율이 올라가면 알고리즘이 해당 영상을 더 넓은 범위에 추천하여 신규 시청자 유입이 증가합니다.",
+      expectedEffect: "반응 신호 회복은 CTR 유지력과 평균 조회수 보강에 도움이 될 수 있습니다.",
       scenarioText:
         `표본 평균 좋아요 비율 약 ${(metrics.avgLikeRatio * 100).toFixed(2)}%로 반응 신호가 낮아 알고리즘 추천 범위가 좁은 상태입니다.\n` +
         `제목·썸네일·첫 30초 개선 시 CTR이 먼저 반응하고, 반응 신호 누적으로 추천 범위가 확장됩니다.\n` +
@@ -377,7 +377,7 @@ function buildMetricBackedActions(
       id: "metric-structure-title",
       title: "제목 키워드 배치 미흡",
       whyNeeded: `콘텐츠·구조 구간 ${Math.round(sections.contentStructure)}점(기준 55점). 평균 제목 길이 ${Math.round(metrics.avgTitleLength)}자로 핵심 키워드가 제목 뒤에 묻히는 구조일 경우 CTR이 낮아지고 노출 대비 유입이 줄어듭니다.`,
-      expectedEffect: "핵심 키워드가 앞 15자 안에 오면 썸네일 클릭률이 개선되고, CTR 상승은 알고리즘 추천 빈도를 직접 높입니다.",
+      expectedEffect: "핵심 키워드 위치 조정은 초반 클릭 유도력 보강에 직접 연결되어 CTR 개선에 도움이 될 수 있습니다.",
       scenarioText:
         `평균 제목 길이 약 ${Math.round(metrics.avgTitleLength)}자로 핵심 키워드 위치에 따라 클릭률에 영향을 줄 수 있는 구조입니다.\n` +
         `핵심 키워드를 앞 15자 안에 배치하면 CTR이 먼저 반응하고, CTR 개선이 노출 확대로 이어집니다.\n` +
@@ -408,7 +408,7 @@ function buildMetricBackedActions(
       id: "metric-tags",
       title: "키워드·태그 최적화 부족",
       whyNeeded: `평균 태그 수 ${metrics.avgTagCount.toFixed(1)}개. 태그가 많아도 주제와 맞지 않으면 잘못된 시청자에게 노출되어 발견성이 떨어집니다. 주제 적합 태그 5~10개가 무관 태그 다수보다 효과적입니다.`,
-      expectedEffect: "주제에 맞는 태그를 정리하면 검색 발견성이 높아지고, 관심사가 맞는 시청자에게 노출되어 반응률이 올라갑니다.",
+      expectedEffect: "주제 적합 태그 정리는 관심사 매칭 시청자 유입과 CTR 유지에 유리한 구조를 만드는 데 도움이 될 수 있습니다.",
       scenarioText:
         `평균 태그 수 약 ${metrics.avgTagCount.toFixed(1)}개로 주제 적합도가 낮은 태그가 섞인 경우 잘못된 시청자에게 노출되는 구조입니다.\n` +
         `주제 적합 태그 정리 시 검색 노출 대상이 먼저 좁혀지고, 이후 클릭 반응률이 개선됩니다.\n` +
@@ -441,7 +441,7 @@ function buildMetricBackedActions(
       id: "metric-duration",
       title: "영상 길이 이탈 구간",
       whyNeeded: `콘텐츠·구조 구간 ${Math.round(sections.contentStructure)}점(기준 55점). 평균 영상 길이 ${minutes}분 ${seconds.toString().padStart(2, "0")}초로 주제 대비 구간이 늘어지면 시청 유지율이 낮아지고, 이탈 신호가 알고리즘 추천을 줄이는 방향으로 작용합니다.`,
-      expectedEffect: "불필요한 구간을 제거해 시청 유지율을 높이면 알고리즘이 해당 영상을 더 긴 시간 노출하고 추천합니다.",
+      expectedEffect: "늘어지는 구간 제거는 시청 지속시간 방어와 초반 이탈 감소에 유리한 구조로 이어질 수 있습니다.",
       scenarioText:
         `평균 영상 길이 약 ${minutes}분 ${seconds.toString().padStart(2, "0")}초로 주제 대비 구간이 늘어지면 시청 유지율이 낮아지는 구조입니다.\n` +
         `불필요한 구간 제거 시 시청 유지율이 먼저 반응하고, 이탈 신호 감소가 추천 빈도로 이어집니다.\n` +
@@ -472,7 +472,7 @@ function buildMetricBackedActions(
       id: "metric-growth-median",
       title: "조회 분포 편중",
       whyNeeded: `성장 신호 구간 ${Math.round(sections.growthMomentum)}점(기준 55점). 중앙 조회수 ${Math.round(metrics.medianViewCount)}회로 채널 성과가 일부 히트 영상에 집중되어, 히트가 없으면 전체 조회가 급감하는 구조입니다.`,
-      expectedEffect: "반복 가능한 포맷이 정착되면 중앙 조회수가 상승하고, 히트 의존 없이도 안정적인 조회 흐름이 만들어집니다.",
+      expectedEffect: "반복 가능한 포맷 정착은 평균 조회수 유지력과 주제 재현성을 함께 높이는 방향으로 작용합니다.",
       scenarioText:
         `표본 중앙 조회수 약 ${Math.round(metrics.medianViewCount)}회로 일부 히트 영상에 조회가 집중되는 구조로 볼 수 있습니다.\n` +
         `반복 가능한 포맷 실험 시 중간 성과 영상 수가 먼저 늘어나고, 전체 조회 분포가 고르게 됩니다.\n` +

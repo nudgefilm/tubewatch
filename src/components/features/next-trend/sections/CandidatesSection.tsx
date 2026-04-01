@@ -102,6 +102,14 @@ export function NextTrendCandidatesSection({ data }: NextTrendCandidatesSectionP
                     {/* 추천 이유 */}
                     <p className="text-sm text-muted-foreground">{candidate.reason}</p>
 
+                    {/* 예상 변화 */}
+                    {candidate.expectedEffect && (
+                      <p className="text-xs text-emerald-600 dark:text-emerald-400 flex items-start gap-1">
+                        <TrendingUp className="h-3 w-3 mt-0.5 shrink-0" />
+                        {candidate.expectedEffect}
+                      </p>
+                    )}
+
                     {/* Evidence — ViewModel에서 생성한 근거 항목 */}
                     {(candidate.evidence ?? []).length > 0 && (
                       <EvidenceBlock items={candidate.evidence!} />

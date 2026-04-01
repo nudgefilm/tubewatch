@@ -100,12 +100,12 @@ export const mockKpiData: KpiData = {
   uploadFrequency: {
     value: 3.0,
     status: "양호",
-    interpretation: "주 3회 업로드로 일관된 빈도 유지 중",
+    interpretation: "꾸준한 발행 빈도로 구독자 복귀 기대가 형성되기에 유리한 구조입니다",
   },
   viewTrend: {
     value: 12.5,
     trend: "상승",
-    interpretation: "최근 10개 영상 평균 조회수 12.5% 상승",
+    interpretation: "최근 조회 흐름이 상승 경향이어서 현재 포맷 방향이 작동하고 있는 신호로 볼 수 있습니다",
   },
   contentStability: {
     titleLengthVariance: 0.15,
@@ -113,16 +113,16 @@ export const mockKpiData: KpiData = {
     keywordClusterVariance: 0.18,
     stabilityScore: 85,
     status: "안정",
-    interpretation: "제목/길이/주제 구성이 일관된 패턴 유지",
+    interpretation: "포맷 일관성이 유지되어 시청 지속시간 방어에 유리한 신호입니다",
   },
   baselinePerformance: {
     averageViews: 45200,
-    interpretation: "채널 내부 기준선: 최근 20개 영상 평균",
+    interpretation: "이 수치가 현재 채널의 기대 성과 기준선입니다. 이하 영상은 포맷 점검 대상으로 볼 수 있습니다",
   },
   auxiliaryBaseline: {
     medianViews: 38500,
     top20Threshold: 72000,
-    interpretation: "평균 왜곡 보정 시 실제 기대치 38.5K",
+    interpretation: "평균보다 중앙값이 낮아 일부 고조회 영상에 성과가 집중되어 있는 구조일 수 있습니다",
   },
 }
 

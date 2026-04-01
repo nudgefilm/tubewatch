@@ -28,7 +28,7 @@ export function AnalysisSummarySection({ data }: AnalysisSummarySectionProps) {
               <h4 className="text-sm font-semibold">강점</h4>
             </div>
             <p className="mb-3 text-sm leading-relaxed text-muted-foreground">
-              반복적으로 성과를 만들어내고 있는 핵심 패턴입니다
+              이 패턴이 반복될수록 주제 재현성과 반복 시청 가능성이 높아집니다
             </p>
             <ul className="space-y-2">
               {data.strengths.map((item, i) => (
@@ -49,7 +49,7 @@ export function AnalysisSummarySection({ data }: AnalysisSummarySectionProps) {
               <h4 className="text-sm font-semibold">개선 포인트</h4>
             </div>
             <p className="mb-3 text-sm leading-relaxed text-muted-foreground">
-              현재 성과에 영향을 주고 있는 구조적 취약점입니다
+              이 구간이 해소되지 않으면 평균 조회수 유지력이 약해질 수 있습니다
             </p>
             <ul className="space-y-2">
               {data.improvements.map((item, i) => (
@@ -103,7 +103,7 @@ export function AnalysisSummarySection({ data }: AnalysisSummarySectionProps) {
             <h4 className="text-sm font-semibold">다음 단계</h4>
           </div>
           <p className="mb-3 text-sm leading-relaxed text-muted-foreground">
-            현재 채널 구조를 더 깊이 파악할 수 있는 분석 페이지입니다
+            분석에서 확인된 신호가 각 기능에서 어떻게 해석되는지 확인하세요
           </p>
           <div className="grid gap-2 sm:grid-cols-2">
             {data.nextStepLinks.map((link, i) => (

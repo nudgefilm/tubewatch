@@ -78,14 +78,14 @@ function TinyBars({ values, maxValue }: { values: number[]; maxValue: number }) 
   )
 }
 
-function NullState() {
+function NullState({ reason }: { reason?: string }) {
   return (
     <>
       <div className="flex items-baseline gap-1">
-        <span className="text-2xl font-bold tabular-nums text-muted-foreground/30">표본 부족</span>
+        <span className="text-2xl font-bold tabular-nums text-muted-foreground/30">미산출</span>
       </div>
       <p className="text-sm leading-relaxed text-muted-foreground">
-        현재 데이터 기준으로 계산 제한
+        {reason ?? "표본 데이터가 없어 이 지표의 현재 상태를 판단하기 어렵습니다"}
       </p>
       <div className="h-1.5 w-full rounded-full bg-muted/50" />
     </>
@@ -139,7 +139,7 @@ export function AnalysisKpiCards({ data }: AnalysisKpiCardsProps) {
                 <MiniProgressBar value={data.uploadFrequency.value} max={5} color="bg-emerald-500" />
               </>
             ) : (
-              <NullState />
+              <NullState reason="발행 간격 데이터가 없어 업로드 리듬 판단이 제한됩니다" />
             )}
           </CardContent>
         </Card>
@@ -211,7 +211,7 @@ export function AnalysisKpiCards({ data }: AnalysisKpiCardsProps) {
                 <TinyBars values={[85, 78, 82, 88, 80]} maxValue={100} />
               </>
             ) : (
-              <NullState />
+              <NullState reason="구조 지표 표본이 없어 포맷 일관성 판단이 제한됩니다" />
             )}
           </CardContent>
         </Card>
