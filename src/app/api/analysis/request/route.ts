@@ -168,7 +168,7 @@ export async function POST(request: Request) {
   // YouTube API: 최근 영상 수집
   let youtubeVideos: VideoInfo[];
   try {
-    youtubeVideos = await getRecentVideos(youtubeChannelId, 20);
+    youtubeVideos = await getRecentVideos(youtubeChannelId, 50);
   } catch (e) {
     const msg = e instanceof Error ? e.message : "unknown";
     console.error("[Analysis Start API] error: getRecentVideos failed:", msg);
