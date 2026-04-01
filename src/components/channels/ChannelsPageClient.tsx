@@ -21,7 +21,13 @@ function broadcastChannelsUpdated(): void {
   window.dispatchEvent(new Event("tubewatch-channels-updated"));
 }
 
-export default function ChannelsPageClient(): JSX.Element {
+export default function ChannelsPageClient({
+  isAdmin = false,
+  maxCount = 3,
+}: {
+  isAdmin?: boolean;
+  maxCount?: number;
+}): JSX.Element {
   const router = useRouter();
   const [channels, setChannels] = useState<ChannelRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -132,6 +138,8 @@ export default function ChannelsPageClient(): JSX.Element {
 
       <RegisterChannelForm
         currentCount={channels.length}
+        maxCount={maxCount}
+        isAdmin={isAdmin}
         onRegistered={async (newChannelId) => {
           // 목록을 먼저 갱신한 뒤 선택 상태를 설정해야 cleanup effect가 신규 채널을 찾을 수 있다.
           // loadChannels 전에 setSelectedChannelId를 하면 채널 목록에 없다고 판단해 null로 초기화되는 race condition 발생.
