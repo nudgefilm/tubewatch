@@ -3,13 +3,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export type ModuleKey =
   | "action_plan"
   | "channel_dna"
-  | "seo_lab"
   | "next_trend";
 
 const ALLOWED_MODULE_KEYS: readonly ModuleKey[] = [
   "action_plan",
   "channel_dna",
-  "seo_lab",
   "next_trend",
 ];
 
@@ -24,7 +22,6 @@ function isModuleKey(v: unknown): v is ModuleKey {
  * 모듈별 추출 기준:
  *   action_plan  — 액션 플랜 텍스트 + 섹션 점수 + 신뢰도 (feature_snapshot 불필요)
  *   channel_dna  — 패턴/강약 텍스트 + 섹션 점수 + feature_snapshot (영상 분포 분석)
- *   seo_lab      — feature_snapshot.videos(타이틀/태그 토큰화) + 섹션 점수 + 키워드 소재
  *   next_trend   — feature_snapshot.videos(트렌드 감지) + 분석 신뢰도
  */
 function extractModulePayload(
@@ -56,16 +53,6 @@ function extractModulePayload(
         weaknesses: result.weaknesses ?? [],
         feature_section_scores: result.feature_section_scores ?? null,
         feature_snapshot: result.feature_snapshot ?? null,
-      };
-
-    case "seo_lab":
-      return {
-        ...base,
-        feature_snapshot: result.feature_snapshot ?? null,
-        feature_section_scores: result.feature_section_scores ?? null,
-        weaknesses: result.weaknesses ?? [],
-        recommended_topics: result.recommended_topics ?? [],
-        content_pattern_summary: result.content_pattern_summary ?? null,
       };
 
     case "next_trend":

@@ -431,6 +431,57 @@ describe("normalizeFeatureSnapshot — metrics", () => {
     const result = normalizeFeatureSnapshot(snap)
     expect(result.metrics).toEqual({ valid: 100 })
   })
+
+  it("snake_case 키 → camelCase로 정규화 (회귀 복구)", () => {
+    const snap = {
+      metrics: {
+        avg_view_count: 1500,
+        avg_like_ratio: 0.05,
+        avg_upload_interval_days: 7,
+        recent_30d_upload_count: 4,
+        avg_video_duration: 313,
+        avg_title_length: 28,
+        avg_tag_count: 10,
+        median_view_count: 1200,
+        avg_comment_ratio: 0.01,
+      },
+    }
+    const result = normalizeFeatureSnapshot(snap)
+    expect(result.metrics).not.toBeNull()
+    expect(result.metrics!.avgViewCount).toBe(1500)
+    expect(result.metrics!.avgLikeRatio).toBe(0.05)
+    expect(result.metrics!.avgUploadIntervalDays).toBe(7)
+    expect(result.metrics!.recent30dUploadCount).toBe(4)
+    expect(result.metrics!.avgVideoDuration).toBe(313)
+    expect(result.metrics!.avgTitleLength).toBe(28)
+    expect(result.metrics!.avgTagCount).toBe(10)
+    expect(result.metrics!.medianViewCount).toBe(1200)
+    expect(result.metrics!.avgCommentRatio).toBe(0.01)
+  })
+
+  it("camelCase 키는 그대로 유지 (이중 변환 없음)", () => {
+    const snap = {
+      metrics: {
+        avgViewCount: 2000,
+        avgUploadIntervalDays: 5,
+      },
+    }
+    const result = normalizeFeatureSnapshot(snap)
+    expect(result.metrics!.avgViewCount).toBe(2000)
+    expect(result.metrics!.avgUploadIntervalDays).toBe(5)
+  })
+
+  it("snake_case 와 camelCase 혼재 → 모두 camelCase로 저장", () => {
+    const snap = {
+      metrics: {
+        avg_view_count: 1000,
+        avgUploadIntervalDays: 7,
+      },
+    }
+    const result = normalizeFeatureSnapshot(snap)
+    expect(result.metrics!.avgViewCount).toBe(1000)
+    expect(result.metrics!.avgUploadIntervalDays).toBe(7)
+  })
 })
 
 // ─── patterns 정규화 ──────────────────────────────────────────────────────────

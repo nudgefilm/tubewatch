@@ -77,7 +77,7 @@ export function NextTrendCandidatesSection({ data }: NextTrendCandidatesSectionP
                   <span className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold shrink-0 mt-0.5 ${tierRankClass[tier]}`}>
                     {index + 1}
                   </span>
-                  <div className="flex-1 space-y-2 min-w-0">
+                  <div className="flex-1 space-y-3 min-w-0">
                     {/* [3] 역할 라벨 — 제목 위 */}
                     <span className={`inline-block text-xs font-medium px-1.5 py-0.5 rounded ${
                       tier === "primary"
@@ -95,7 +95,7 @@ export function NextTrendCandidatesSection({ data }: NextTrendCandidatesSectionP
                     </h4>
 
                     {/* [4] 행동 문장 — 주제 바로 아래, 항상 1줄 */}
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm font-medium text-foreground/80">
                       {signalAction(candidate.signalStrength)}
                     </p>
 

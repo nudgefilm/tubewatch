@@ -1,8 +1,0 @@
-export { SeoLabPage } from "./SeoLabPage"
-export { SeoLabActionSection } from "./sections/ActionSection"
-export { SeoLabDiagnosticSection } from "./sections/DiagnosticSection"
-export { SeoLabEmptyState } from "./sections/EmptyState"
-export { SeoLabKeywordAnalysisSection } from "./sections/KeywordAnalysisSection"
-export { SeoLabTitleOptimizationSection } from "./sections/TitleOptimizationSection"
-export { SeoLabTopicClusterSection } from "./sections/TopicClusterSection"
-export { SeoLabVisualizationSection } from "./sections/VisualizationSection"

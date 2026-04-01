@@ -13,7 +13,7 @@ import type { AnalysisStatus } from "@/lib/analysis/types";
  * - `analysis_results`
  *   - **베이스 스냅샷** 성격. 워커/파이프라인이 채널을 분석해 한 번에 적재하는
  *     feature_snapshot·구간 점수 등 **공통 베이스**가 들어감.
- *   - 메뉴별(action_plan / seo_lab 등) **전용 파생 컬럼을 여기에 모두 넣지 않는다**
+ *   - 메뉴별(action_plan 등) **전용 파생 컬럼을 여기에 모두 넣지 않는다**
  *     (최초 분석 한 번에 모든 메뉴 결과를 만들지 않는다는 원칙).
  *
  * - `analysis_runs` (본 파일의 `AnalysisRunRecord`와 1:1 매핑 예정)
@@ -41,7 +41,6 @@ import type { AnalysisStatus } from "@/lib/analysis/types";
 export type AnalysisRunAnalysisType =
   | "base"
   | "action_plan"
-  | "seo_lab"
   | "channel_dna"
   | "next_trend";
 
@@ -118,7 +117,6 @@ export type CreateAnalysisRunForDbInput = Omit<
 /** 메뉴 확장 실행 API에서 허용하는 타입(base 제외) */
 export const MENU_EXTENSION_ANALYSIS_TYPES = [
   "action_plan",
-  "seo_lab",
   "channel_dna",
   "next_trend",
 ] as const;
@@ -289,7 +287,6 @@ function parseAnalysisRunAnalysisType(
   switch (v) {
     case "base":
     case "action_plan":
-    case "seo_lab":
     case "channel_dna":
     case "next_trend":
       return v;
@@ -1046,7 +1043,7 @@ export function deriveExtensionMenuFields(
 }
 
 /**
- * action-plan / seo-lab / channel_dna 상단 실행 버튼 활성 조건 (단일 정책).
+ * action-plan / channel_dna 상단 실행 버튼 활성 조건 (단일 정책).
  * - 채널 없음 / queued / running / 베이스 없음(not_started) → 비활성
  * - ready_from_base, needs_refresh, completed, failed → 활성
  */

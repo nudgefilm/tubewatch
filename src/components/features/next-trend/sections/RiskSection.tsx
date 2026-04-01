@@ -57,14 +57,14 @@ export function NextTrendRiskSection({ data }: NextTrendRiskSectionProps) {
               >
                 <div className="flex items-start gap-3">
                   <Icon className={`mt-0.5 h-5 w-5 ${config.iconColor}`} />
-                  <div className="flex-1 space-y-2">
+                  <div className="flex-1 space-y-3">
                     <div className="flex items-center justify-between">
-                      <h4 className="font-semibold">{risk.topic}</h4>
+                      <h4 className="font-semibold break-words min-w-0">{risk.topic}</h4>
                       <Badge variant="outline" className={config.badgeClass}>
                         {config.label}
                       </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">{risk.reason}</p>
+                    <p className="text-sm text-muted-foreground break-words">{risk.reason}</p>
                     <div className="flex items-center gap-2 text-xs">
                       <span className="text-muted-foreground">확신도:</span>
                       <span className="font-medium">{risk.confidence}%</span>

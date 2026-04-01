@@ -38,7 +38,7 @@ export function DnaCardsSection({ data }: DnaCardsSectionProps) {
           </CardHeader>
           <CardContent className="space-y-3">
             {data.strengths.map((item) => (
-              <div key={item.title} className="rounded-lg border bg-emerald-500/5 p-3 space-y-2">
+              <div key={item.title} className="rounded-lg border bg-emerald-500/5 p-3 space-y-3">
                 <p className="font-medium text-sm">{item.title}</p>
                 <DirectionalGauge
                   score={item.score}
@@ -71,7 +71,7 @@ export function DnaCardsSection({ data }: DnaCardsSectionProps) {
           </CardHeader>
           <CardContent className="space-y-3">
             {data.weaknesses.map((item) => (
-              <div key={item.title} className="rounded-lg border bg-red-500/5 p-3 space-y-2">
+              <div key={item.title} className="rounded-lg border bg-red-500/5 p-3 space-y-3">
                 <p className="font-medium text-sm">{item.title}</p>
                 <DirectionalGauge
                   score={item.score}

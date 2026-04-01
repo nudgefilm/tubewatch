@@ -179,9 +179,19 @@ function parseSnapshotVideos(obj: Record<string, unknown>): NormalizedSnapshotVi
 }
 
 /**
+ * snake_case 키를 camelCase로 변환.
+ * avg_view_count → avgViewCount, recent_30d_upload_count → recent30dUploadCount.
+ * 이미 camelCase이면 그대로 반환.
+ */
+function toCamelCase(str: string): string {
+  return str.replace(/_([a-z0-9])/g, (_, c: string) => c.toUpperCase())
+}
+
+/**
  * feature_snapshot의 metrics 객체 파싱.
  * 숫자값만 포함하는 Record<string, number> 반환.
  * 스냅샷에 없거나 비어있으면 null.
+ * snake_case 키는 camelCase로 정규화 (avg_view_count → avgViewCount).
  */
 function parseSnapshotMetrics(obj: Record<string, unknown>): Record<string, number> | null {
   const m = obj.metrics
@@ -189,7 +199,7 @@ function parseSnapshotMetrics(obj: Record<string, unknown>): Record<string, numb
   const result: Record<string, number> = {}
   for (const [k, v] of Object.entries(m as Record<string, unknown>)) {
     if (typeof v === "number" && Number.isFinite(v)) {
-      result[k] = v
+      result[toCamelCase(k)] = v
     }
   }
   return Object.keys(result).length > 0 ? result : null

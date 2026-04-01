@@ -53,7 +53,6 @@ function youtubeVerificationBadgeClassName(
 export type MenuAnalysisStatusBarVariant =
   | "analysis"
   | "action_plan"
-  | "seo_lab"
   | "channel_dna"
   | "next_trend";
 
@@ -99,8 +98,6 @@ function variantTitle(variant: MenuAnalysisStatusBarVariant): string {
       return "베이스 분석 상태";
     case "action_plan":
       return "액션 플랜 분석 실행";
-    case "seo_lab":
-      return "SEO Lab 분석 실행";
     case "channel_dna":
       return "Channel DNA 분석 실행";
     case "next_trend":

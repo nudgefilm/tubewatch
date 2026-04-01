@@ -7,14 +7,12 @@
 export type AppRouteLoadingVariant =
   | "analysis"
   | "action-plan"
-  | "seo-lab"
   | "channel-dna"
   | "next-trend";
 
 const COPY: Record<AppRouteLoadingVariant, string> = {
   analysis: "채널 데이터를 준비하는 중입니다",
   "action-plan": "데이터를 불러오는 중입니다",
-  "seo-lab": "데이터를 불러오는 중입니다",
   "channel-dna": "데이터를 불러오는 중입니다",
   "next-trend": "데이터를 불러오는 중입니다",
 };

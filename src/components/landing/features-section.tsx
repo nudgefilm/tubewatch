@@ -18,12 +18,6 @@ const features = [
   },
   {
     number: "03",
-    title: "SEO Lab",
-    description: "검색 노출을 높이는\n제목·설명·태그 전략을 분석합니다.",
-    visual: "collab",
-  },
-  {
-    number: "04",
     title: "Channel DNA",
     description: "이 채널의 성과 구조와\n반복되는 성장 패턴을 봅니다.",
     visual: "security",
@@ -232,7 +226,7 @@ function FeatureCard({ feature, index }: { feature: (typeof features)[0]; index:
     return () => observer.disconnect();
   }, []);
 
-  const featureHrefs = ["/analysis", "/action-plan", "/seo-lab", "/channel-dna"];
+  const featureHrefs = ["/analysis", "/action-plan", "/channel-dna"];
 
   return (
     <a

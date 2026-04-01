@@ -7,7 +7,6 @@ import { ActionPlanChecklistSection } from "./sections/ChecklistSection"
 import { ActionPlanEmptyState } from "./sections/EmptyState"
 import { ChannelContextHeader, type ChannelContext } from "@/components/features/shared/ChannelContextHeader"
 import { StrategicCommentCard } from "@/components/features/shared/StrategicCommentCard"
-import { PageFlowConnector } from "@/components/features/shared/PageFlowConnector"
 import { FeaturePaywallBlock } from "@/components/features/shared/FeaturePaywallBlock"
 import type {
   ActionPlanPageViewModel,
@@ -173,14 +172,6 @@ export function ActionPlanPage({ channelId = "", channelContext, viewModel, isSt
             <StrategicCommentCard data={viewModel.strategicComment} />
           )}
 
-          {/* 다음 단계 연결 — SEO Lab */}
-          {viewModel.hasAnalysis && (
-            <PageFlowConnector
-              message="이 액션을 제목과 키워드에 적용하세요."
-              ctaLabel="SEO Lab에서 적용하기"
-              href="/seo-lab"
-            />
-          )}
         </div>
       </div>
     )

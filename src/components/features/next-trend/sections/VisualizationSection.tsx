@@ -61,16 +61,16 @@ export function NextTrendVisualizationSection({ data }: NextTrendVisualizationSe
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-[280px]">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-[280px] overflow-hidden">
+            <ResponsiveContainer width="99%" height="100%">
               <BarChart
                 data={chartData}
                 layout="vertical"
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                margin={{ top: 5, right: 15, left: 10, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
                 <XAxis type="number" domain={[0, 100]} />
-                <YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 12 }} />
+                <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 11 }} />
                 <Tooltip
                   formatter={(value) => [`${Number(value)}점`, "점수"]}
                   labelFormatter={(label) => {

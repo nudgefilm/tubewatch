@@ -17,7 +17,6 @@ function toAnalysisType(raw: string): AnalysisRunAnalysisType {
   const valid: AnalysisRunAnalysisType[] = [
     "base",
     "action_plan",
-    "seo_lab",
     "channel_dna",
     "next_trend",
   ]

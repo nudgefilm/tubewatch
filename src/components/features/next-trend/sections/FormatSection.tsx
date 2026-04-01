@@ -23,16 +23,16 @@ export function NextTrendFormatSection({ data }: NextTrendFormatSectionProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className={`grid gap-4 ${data.length === 1 ? "grid-cols-1 justify-items-center" : "sm:grid-cols-2 lg:grid-cols-3"}`}>
           {data.map((format) => (
             <div
               key={format.id}
-              className="rounded-lg border bg-card p-4 space-y-3"
+              className={`rounded-lg border bg-card p-4 space-y-3 min-w-0 ${data.length === 1 ? "w-full max-w-sm" : ""}`}
             >
-              <div className="flex items-center justify-between">
-                <h4 className="font-semibold">{format.format}</h4>
+              <div className="flex flex-col gap-2">
+                <h4 className="font-semibold break-words min-w-0">{format.format}</h4>
                 {format.seriesPotential && (
-                  <Badge variant="secondary" className="flex items-center gap-1">
+                  <Badge variant="secondary" className="flex items-center gap-1 self-start">
                     <Repeat className="h-3 w-3" />
                     시리즈 가능
                   </Badge>
@@ -44,9 +44,9 @@ export function NextTrendFormatSection({ data }: NextTrendFormatSectionProps) {
                 <span>권장 길이: {format.recommendedLength}</span>
               </div>
 
-              <div className="space-y-1">
+              <div className="space-y-1 min-w-0">
                 <p className="text-xs text-muted-foreground">전개 방식</p>
-                <div className="flex items-center gap-1 text-sm">
+                <div className="flex flex-wrap items-center gap-1 text-sm">
                   {format.approach.split(" → ").map((step, idx, arr) => (
                     <span key={idx} className="flex items-center gap-1">
                       <span className="rounded bg-muted px-2 py-0.5 text-xs">{step}</span>

@@ -12,10 +12,8 @@ import {
   type ChannelVideoSample,
 } from "@/lib/ai/analyzeChannelWithGemini";
 import { buildActionItemsFromResult } from "@/lib/server/action-plan/buildActionItemsFromResult";
-import { buildSeoLabItemsFromResult } from "@/lib/server/seo-lab/buildSeoLabItemsFromResult";
 import { buildChannelDnaCompareItems } from "@/lib/server/channel-dna/buildChannelDnaCompareItems";
 import type { ActionPlanResultRow } from "@/components/action-plan/types";
-import type { SeoLabResultRow } from "@/components/seo-lab/types";
 import type { ChannelDnaResultRow } from "@/components/channel-dna/channelDnaPageTypes";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import type { GuestFullReportData } from "./guestReportTypes";
@@ -130,7 +128,7 @@ export async function generateGuestFullReport(
     patterns: channelPatterns.flags,
   };
 
-  const syntheticRow: ActionPlanResultRow & SeoLabResultRow & ChannelDnaResultRow = {
+  const syntheticRow: ActionPlanResultRow & ChannelDnaResultRow = {
     id: "",
     user_channel_id: "",
     status: "analyzed",
@@ -144,7 +142,6 @@ export async function generateGuestFullReport(
   };
 
   const actionPlanItems = buildActionItemsFromResult(syntheticRow);
-  const seoItems = buildSeoLabItemsFromResult(syntheticRow);
   const channelDnaCompareItems = buildChannelDnaCompareItems(syntheticRow);
 
   const reportData: GuestFullReportData = {
@@ -177,12 +174,7 @@ export async function generateGuestFullReport(
       expected_impact: a.expected_impact,
       source: a.source,
     })),
-    seo_items: seoItems.map((s) => ({
-      title: s.title,
-      current_status: s.current_status,
-      recommendation: s.recommendation,
-      source: s.source,
-    })),
+    seo_items: [],
     benchmark_items: channelDnaCompareItems.map((b) => ({
       title: b.title,
       current_score: b.current_score,

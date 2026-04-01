@@ -30,14 +30,14 @@ export function NextTrendExecutionHints({ data }: NextTrendExecutionHintsProps) 
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-3 sm:grid-cols-2">
           {data.map((hint) => {
             const config = typeConfig[hint.type]
             const Icon = config.icon
             return (
               <div
                 key={hint.id}
-                className="rounded-lg border bg-card p-4 space-y-2"
+                className="rounded-lg border bg-card p-4 space-y-3"
               >
                 <div className="flex items-center gap-2">
                   <div className={`rounded-md p-1.5 ${config.color}`}>
@@ -45,7 +45,7 @@ export function NextTrendExecutionHints({ data }: NextTrendExecutionHintsProps) 
                   </div>
                   <span className="text-sm font-medium">{hint.label}</span>
                 </div>
-                <p className="text-sm">{hint.content}</p>
+                <p className="text-sm break-words">{hint.content}</p>
                 <Badge variant="outline" className="text-xs">
                   {hint.linkedTo}
                 </Badge>

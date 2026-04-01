@@ -28,8 +28,8 @@ export function NextTrendActionSection({ data }: NextTrendActionSectionProps) {
               key={action.id}
               className="rounded-lg border bg-card p-4"
             >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 space-y-3">
+              <div className="flex items-start gap-4">
+                <div className="flex-1 space-y-3 min-w-0">
                   <div className="flex items-center gap-2">
                     <Badge
                       variant="outline"
@@ -45,12 +45,12 @@ export function NextTrendActionSection({ data }: NextTrendActionSectionProps) {
                     </Badge>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <div className="flex items-start gap-2">
                       <Video className="mt-0.5 h-4 w-4 text-muted-foreground" />
                       <div>
                         <p className="text-xs text-muted-foreground">제목</p>
-                        <p className="font-medium">{action.videoTitle}</p>
+                        <p className="font-medium break-words">{action.videoTitle}</p>
                       </div>
                     </div>
 
@@ -58,7 +58,7 @@ export function NextTrendActionSection({ data }: NextTrendActionSectionProps) {
                       <Image className="mt-0.5 h-4 w-4 text-muted-foreground" />
                       <div>
                         <p className="text-xs text-muted-foreground">썸네일 방향</p>
-                        <p className="text-sm">{action.thumbnailDirection}</p>
+                        <p className="text-sm break-words">{action.thumbnailDirection}</p>
                       </div>
                     </div>
 
@@ -66,7 +66,7 @@ export function NextTrendActionSection({ data }: NextTrendActionSectionProps) {
                       <FileText className="mt-0.5 h-4 w-4 text-muted-foreground" />
                       <div>
                         <p className="text-xs text-muted-foreground">콘텐츠 플랜</p>
-                        <p className="text-sm">{action.contentPlan}</p>
+                        <p className="text-sm break-words">{action.contentPlan}</p>
                       </div>
                     </div>
                   </div>

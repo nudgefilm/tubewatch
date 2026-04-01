@@ -27,7 +27,7 @@ export function DnaPatternAnalysisSection({ data }: DnaPatternAnalysisSectionPro
             {data.highPerformancePatterns.map((pattern) => (
               <div
                 key={pattern.pattern}
-                className="rounded-lg border bg-emerald-500/5 p-3 space-y-2"
+                className="rounded-lg border bg-emerald-500/5 p-3 space-y-3"
               >
                 <p className="font-medium text-sm">{pattern.pattern}</p>
                 {pattern.score != null ? (
@@ -75,7 +75,7 @@ export function DnaPatternAnalysisSection({ data }: DnaPatternAnalysisSectionPro
             {data.lowPerformancePatterns.map((pattern) => (
               <div
                 key={pattern.pattern}
-                className="rounded-lg border bg-red-500/5 p-3 space-y-2"
+                className="rounded-lg border bg-red-500/5 p-3 space-y-3"
               >
                 <p className="font-medium text-sm">{pattern.pattern}</p>
                 {pattern.score != null ? (

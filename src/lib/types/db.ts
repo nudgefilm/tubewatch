@@ -28,7 +28,7 @@ export type AnalysisRunRow = {
   user_id: string | null
   /** user_channels.id (YouTube channel id 아님) */
   channel_id: string
-  analysis_type: "base" | "action_plan" | "seo_lab" | "channel_dna" | "next_trend"
+  analysis_type: "base" | "action_plan" | "channel_dna" | "next_trend"
   status: "queued" | "running" | "completed" | "failed"
   /**
    * 실행 유형. NULL은 'full'로 해석 (기존 행 하위 호환).
@@ -37,7 +37,7 @@ export type AnalysisRunRow = {
   run_type: "full" | "partial" | null
   /**
    * 요청된 module key 배열. NULL은 전체 모듈로 해석 (기존 행 하위 호환).
-   * 허용값: action_plan | channel_dna | seo_lab | next_trend
+   * 허용값: action_plan | channel_dna | next_trend
    */
   requested_modules: string[] | null
   started_at: string
@@ -115,7 +115,7 @@ export type AnalysisModuleResultRow = {
   channel_id: string
   /** analysis_results.id 또는 외부 스냅샷 키. FK 미적용. */
   snapshot_id: string | null
-  module_key: "action_plan" | "channel_dna" | "seo_lab" | "next_trend"
+  module_key: "action_plan" | "channel_dna" | "next_trend"
   /** 해당 module 분석 결과 payload (JSONB). */
   result: Record<string, unknown>
   status: "pending" | "completed" | "failed"

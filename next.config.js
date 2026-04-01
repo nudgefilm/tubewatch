@@ -13,6 +13,8 @@ const nextConfig = {
     return [
       { source: "/benchmark", destination: "/channel-dna", permanent: true },
       { source: "/benchmark/:path*", destination: "/channel-dna/:path*", permanent: true },
+      { source: "/seo-lab", destination: "/analysis", permanent: true },
+      { source: "/seo-lab/:path*", destination: "/analysis", permanent: true },
     ];
   },
 };

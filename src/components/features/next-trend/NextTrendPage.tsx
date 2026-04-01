@@ -8,7 +8,6 @@ import { NextTrendActionSection } from "./sections/ActionSection"
 import { NextTrendEmptyState } from "./sections/EmptyState"
 import { ChannelContextHeader, type ChannelContext } from "@/components/features/shared/ChannelContextHeader"
 import { StrategicCommentCard } from "@/components/features/shared/StrategicCommentCard"
-import { PageFlowConnector } from "@/components/features/shared/PageFlowConnector"
 import { FeaturePaywallBlock } from "@/components/features/shared/FeaturePaywallBlock"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
@@ -187,7 +186,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
 
           {viewModel.hasAnalysisEffective && (
             <>
-              <div className="rounded-lg border border-muted bg-muted/30 px-4 py-3 text-xs text-muted-foreground">
+              <div className="rounded-lg border border-muted bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
                 {viewModel.dataPipelineNotice}
               </div>
 
@@ -203,7 +202,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                         <ArrowRight className="h-4 w-4 shrink-0" />
                         <span className="text-xs font-bold uppercase tracking-wider">지금 1순위</span>
                       </div>
-                      <p className="text-lg font-bold leading-snug">{top1.topic}</p>
+                      <p className="text-lg font-bold leading-snug break-words">{top1.topic}</p>
                       {/* [1] 왜 1순위인지 한 줄 */}
                       <p className="text-sm font-semibold text-foreground/80 leading-snug">
                         {getTopReason(top1.signalStrength)}
@@ -236,7 +235,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                           : null
                       })()}
                       {/* [2] 선택 강제 CTA */}
-                      <p className="text-sm font-semibold text-primary pt-1 border-t border-primary/20">
+                      <p className="text-sm font-semibold text-primary pt-3 border-t border-primary/20">
                         이번 업로드는 이 주제로 먼저 시도하세요
                       </p>
                     </div>
@@ -249,7 +248,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary shrink-0">
                               {i + 2}
                             </span>
-                            <span className="flex-1 text-sm font-medium leading-snug">{c.topic}</span>
+                            <span className="flex-1 text-sm font-medium leading-snug break-words min-w-0">{c.topic}</span>
                             <span className="text-xs text-muted-foreground whitespace-nowrap shrink-0">
                               {signalAction(c.signalStrength)}
                             </span>
@@ -289,13 +288,6 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                     ctaLabel="지금 다음 영상 설계하기"
                     planLabel="Growth"
                     previewHint="지금 흐름에서 가장 유력한 다음 주제가 포함됩니다"
-                  />
-                )}
-                {candidates.length > 0 && !hasLockedCandidates && (
-                  <PageFlowConnector
-                    message="이 주제를 SEO 전략으로 구체화하세요."
-                    ctaLabel="SEO 전략 적용하기"
-                    href="/seo-lab"
                   />
                 )}
               </section>

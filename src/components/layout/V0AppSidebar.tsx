@@ -11,7 +11,6 @@ import {
   HelpCircle,
   LogOut,
   Plus,
-  Search,
   Settings,
   Target,
   TrendingUp,
@@ -62,11 +61,6 @@ const mainNavItems = [
     title: "Action Plan",
     url: "/action-plan",
     icon: FileText,
-  },
-  {
-    title: "SEO Lab",
-    url: "/seo-lab",
-    icon: Search,
   },
   {
     title: "Next Trend",

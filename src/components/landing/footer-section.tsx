@@ -11,7 +11,6 @@ const footerLinks = {
     { name: "Channel Analysis", href: "/analysis" },
     { name: "Channel DNA", href: "/channel-dna" },
     { name: "Action Plan", href: "/action-plan" },
-    { name: "SEO Lab", href: "/seo-lab" },
     { name: "Next Trend", href: "/next-trend" },
   ],
   support: [

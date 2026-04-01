@@ -43,24 +43,6 @@ export const MENU_EXTENSION_STRATEGIES: Record<
     runSemantics:
       "action_plan 타입 run = 이 채널에서 액션 플랜 ‘확장 파이프라인’을 돌렸다는 이력. 결과 본문은 아직 베이스 파생만 표시.",
   },
-  seo_lab: {
-    menuKey: "seo_lab",
-    summary:
-      "동일 베이스 스냅샷에서 SEO·구조 구간 점수와 제목 표본·패턴 플래그만 읽어 점검 카드를 만든다.",
-    baseReuseFields: [
-      "feature_snapshot (제목 표본, 태그·길이 등 메트릭이 있으면)",
-      "feature_section_scores.seoOptimization, contentStructure",
-      "patterns / 플래그 기반 인사이트 카드",
-    ],
-    futureCollectionFields: [
-      // TODO: 확장 수집 — YouTube 외부 SERP/검색볼륨/키워드 도구 API
-      "외부 검색 볼륨·연관 키워드",
-      "실시간 상위 노출 키워드(크롤/서드파티)",
-      "썸네일·제목 A/B 실험 로그",
-    ],
-    runSemantics:
-      "seo_lab 타입 run = SEO Lab 확장 실행 이력. 화면 데이터는 여전히 베이스만으로 재구성 가능한 범위.",
-  },
   channel_dna: {
     menuKey: "channel_dna",
     summary:

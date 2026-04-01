@@ -57,10 +57,7 @@ export const DEFAULT_MARKET_DATA_AVAILABILITY: MarketDataAvailabilityVm = {
  */
 export type ComparativeMetricsVm = null;
 
-/**
- * 패턴 집계 레이어(크로스 채널) — 스냅샷 patterns[]와 별도
- * /seo-lab 의 patternInsights(카드 배열)와 이름이 겹치지 않도록 Dataset 접미사
- */
+/** 패턴 집계 레이어(크로스 채널) — 스냅샷 patterns[]와 별도 */
 export type PatternInsightsDatasetVm = null;
 
 /** 트렌드 신호 — 데이터 없으면 null */

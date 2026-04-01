@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, ArrowRight, ArrowUpRight, TrendingUp, Users, Video } from "lucide-react";
+import { AlertCircle, ArrowRight, TrendingUp, Users, Video } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -1006,12 +1006,6 @@ export default function AnalysisReportView({
                         — 실행·KPI
                       </li>
                       <li>
-                        <Link href="/seo-lab" className="font-medium text-foreground underline-offset-4 hover:underline">
-                          SEO Lab
-                        </Link>{" "}
-                        — 검색·메타 실험
-                      </li>
-                      <li>
                         <Link href="/next-trend" className="font-medium text-foreground underline-offset-4 hover:underline">
                           Next Trend
                         </Link>{" "}
@@ -1027,12 +1021,6 @@ export default function AnalysisReportView({
                   <Link href="/action-plan">
                     액션 플랜으로 이동
                     <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" size="lg" className="gap-2">
-                  <Link href="/seo-lab">
-                    SEO Lab으로 이동
-                    <ArrowUpRight className="h-4 w-4" />
                   </Link>
                 </Button>
               </div>
