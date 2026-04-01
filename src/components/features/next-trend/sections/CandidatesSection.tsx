@@ -1,6 +1,7 @@
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { TrendingUp } from "lucide-react"
 import { EvidenceBlock } from "@/components/common/EvidenceBlock"
@@ -10,25 +11,16 @@ interface NextTrendCandidatesSectionProps {
   data: TrendCandidate[]
 }
 
-// [3] signalStrength → 행동 연결
-function signalAction(strength: "clear" | "medium" | "low"): string {
-  if (strength === "clear") return "지금 바로 실행 가능"
-  if (strength === "medium") return "2~3편 테스트 후 확장"
-  return "탐색 단계, 1편 테스트 권장"
+const signalStrengthBadgeConfig = {
+  clear: { label: "반복 신호 확인됨", className: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
+  medium: { label: "신호 감지 중", className: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400" },
+  low: { label: "표본 부족", className: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400" },
 }
 
-// [2] 실행 가능성 해석
 function feasibilityHint(feasibility: number): string {
   if (feasibility >= 76) return "기존 포맷 유지 시 바로 적용 가능"
   if (feasibility >= 60) return "약간의 준비로 시작 가능"
   return "추가 리소스 필요"
-}
-
-// [3] 후보 역할 라벨
-function getTierLabel(index: number): string {
-  if (index === 0) return "우선 실행 후보"
-  if (index <= 2) return "보조 후보"
-  return "탐색 후보"
 }
 
 type RankTier = "primary" | "secondary" | "experimental"
@@ -50,7 +42,6 @@ const tierRankClass: Record<RankTier, string> = {
   experimental: "bg-muted text-muted-foreground",
 }
 
-
 export function NextTrendCandidatesSection({ data }: NextTrendCandidatesSectionProps) {
   return (
     <Card>
@@ -67,6 +58,7 @@ export function NextTrendCandidatesSection({ data }: NextTrendCandidatesSectionP
         <div className="space-y-3">
           {data.map((candidate, index) => {
             const tier = rankTier(index)
+            const badge = signalStrengthBadgeConfig[candidate.signalStrength]
             return (
               <div
                 key={candidate.id}
@@ -78,26 +70,15 @@ export function NextTrendCandidatesSection({ data }: NextTrendCandidatesSectionP
                     {index + 1}
                   </span>
                   <div className="flex-1 space-y-3 min-w-0">
-                    {/* [3] 역할 라벨 — 제목 위 */}
-                    <span className={`inline-block text-xs font-medium px-1.5 py-0.5 rounded ${
-                      tier === "primary"
-                        ? "bg-primary/10 text-primary"
-                        : tier === "experimental"
-                          ? "bg-muted text-muted-foreground"
-                          : "bg-muted/60 text-foreground/60"
-                    }`}>
-                      {getTierLabel(index)}
-                    </span>
-
                     {/* 주제 후보 */}
                     <h4 className={`font-semibold leading-snug ${tier === "primary" ? "text-base" : "text-sm"}`}>
                       {candidate.topic}
                     </h4>
 
-                    {/* [4] 행동 문장 — 주제 바로 아래, 항상 1줄 */}
-                    <p className="text-sm font-medium text-foreground/80">
-                      {signalAction(candidate.signalStrength)}
-                    </p>
+                    {/* 신호 강도 뱃지 */}
+                    <Badge variant="outline" className={`text-xs ${badge.className}`}>
+                      {badge.label}
+                    </Badge>
 
                     {/* 추천 이유 */}
                     <p className="text-sm text-muted-foreground">{candidate.reason}</p>
@@ -115,7 +96,7 @@ export function NextTrendCandidatesSection({ data }: NextTrendCandidatesSectionP
                       <EvidenceBlock items={candidate.evidence!} />
                     )}
 
-                    {/* [5] 실행 가능성 — 해석 문장 우선, % 보조 */}
+                    {/* 실행 가능성 — 해석 문장 우선, % 보조 */}
                     <div className="space-y-1">
                       <p className="text-xs font-medium text-foreground/80">
                         {feasibilityHint(candidate.feasibility)}{" "}

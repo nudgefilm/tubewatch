@@ -236,7 +236,7 @@ function strengthForVm(
 function toActionTopic(headline: string): string {
   const h = headline;
   const tokenMatch = h.match(/제목에서 '([^']+)' 표현이/);
-  if (tokenMatch) {
+  if (tokenMatch && tokenMatch[1].length >= 3) {
     const tok = tokenMatch[1];
     return `'${tok}' 주제로 이어지는 다음 편 — 이 축으로 시리즈를 이어가세요`;
   }

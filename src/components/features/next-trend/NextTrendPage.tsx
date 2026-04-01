@@ -134,7 +134,7 @@ function toExecutionActions(vm: NextTrendActionsVm): ExecutionAction[] {
 const signalStrengthBadgeConfig = {
   clear: { label: "반복 신호 확인됨", className: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
   medium: { label: "신호 감지 중", className: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400" },
-  low: { label: "신호 약함", className: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400" },
+  low: { label: "표본 부족", className: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400" },
 }
 
 function signalAction(strength: "clear" | "medium" | "low"): string {
@@ -217,6 +217,17 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                           {signalAction(top1.signalStrength)}
                         </span>
                       </div>
+                      {/* 추천 이유 */}
+                      {top1.reason && (
+                        <p className="text-sm text-muted-foreground leading-relaxed">{top1.reason}</p>
+                      )}
+                      {/* 예상 변화 */}
+                      {top1.expectedEffect && (
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400 flex items-start gap-1">
+                          <TrendingUp className="h-3 w-3 mt-0.5 shrink-0" />
+                          {top1.expectedEffect}
+                        </p>
+                      )}
                       <div className="space-y-0.5">
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <span className="shrink-0">실행 가능성</span>
