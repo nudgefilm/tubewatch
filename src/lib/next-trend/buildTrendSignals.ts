@@ -31,29 +31,24 @@ const SHORT_SEC = 180;
 const LONG_SEC = 480;
 
 const STOP_TOKENS = new Set([
-  "및",
-  "등",
-  "외",
-  "왜",
-  "뭐",
-  "그",
-  "이",
-  "저",
-  "것",
-  "수",
-  "더",
-  "안",
-  "잘",
-  "the",
-  "a",
-  "an",
-  "and",
-  "or",
-  "to",
-  "of",
-  "in",
-  "ep",
-  "pt",
+  // 한국어 — 조사·일반 허사
+  "및", "등", "외", "왜", "뭐", "그", "이", "저", "것", "수", "더", "안", "잘",
+  "제", "가", "를", "은", "는", "도", "나", "에", "로", "와", "과", "의", "한",
+  "에서", "으로", "이다", "있다", "없다", "하다", "되다",
+  // 영어 — 관사·전치사·접속사·대명사·조동사 등 허사
+  "the", "a", "an", "and", "or", "to", "of", "in", "on", "at", "by", "as",
+  "if", "so", "but", "not", "no", "up", "out", "do", "be", "is", "it", "its",
+  "my", "me", "we", "he", "she", "you", "i", "us", "our", "his", "her",
+  "they", "them", "this", "that", "for", "from", "with", "was", "are",
+  "been", "have", "has", "had", "does", "did", "will", "can", "get", "got",
+  "now", "new", "how", "why", "what", "who", "when", "where", "into",
+  "than", "then", "just", "like", "also", "even", "more", "some", "over",
+  "after", "back", "down", "good", "want", "all", "one", "two", "let",
+  "see", "use", "off", "try", "way", "day", "go", "vs",
+  // 플랫폼·메타어 — 제목에 자주 나오지만 주제 신호가 아닌 단어
+  "ep", "pt", "youtube", "youtuber", "video", "videos", "channel",
+  "vlog", "subscribe", "watch", "part", "season", "episode", "series",
+  "internet", "online", "official",
 ]);
 
 function parseTime(iso: string | null): number | null {
@@ -66,7 +61,7 @@ function tokenizeTitle(title: string): string[] {
   const parts = title.split(/[\s|·•,:;()[\]"'/\\]+/);
   const out: string[] = [];
   for (const p of parts) {
-    const t = p.trim().toLowerCase();
+    const t = p.trim().toLowerCase().replace(/[?!.,~…]+$/, "");
     if (t.length < 2) continue;
     if (STOP_TOKENS.has(t)) continue;
     if (/^\d+$/.test(t)) continue;
