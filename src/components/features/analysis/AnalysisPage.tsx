@@ -10,8 +10,8 @@ import { AnalysisRecentVideosSection } from "./sections/RecentVideosSection"
 import { AnalysisTopBottomCompare } from "./sections/TopBottomCompareSection"
 import { AnalysisSummarySection } from "./sections/SummarySection"
 import { AnalysisEmptyState } from "./sections/EmptyState"
-import { StrategicCommentCard } from "@/components/features/shared/StrategicCommentCard"
 import { PageFlowConnector } from "@/components/features/shared/PageFlowConnector"
+import { FeaturePaywallBlock } from "@/components/features/shared/FeaturePaywallBlock"
 import type {
   ChannelData,
   KpiData,
@@ -286,9 +286,10 @@ function mapToSectionScores(vm: AnalysisPageViewModel): SectionScores | undefine
 interface ChannelAnalysisPageProps {
   channelId?: string
   viewModel?: AnalysisPageViewModel
+  isStarterPlan?: boolean
 }
 
-export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel }: ChannelAnalysisPageProps) {
+export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isStarterPlan = false }: ChannelAnalysisPageProps) {
   const router = useRouter()
   const [isRequesting, setIsRequesting] = useState(false)
   const [requestError, setRequestError] = useState<string | null>(null)
@@ -491,46 +492,61 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel }: C
           </div>
         </section>
 
+        {/* Paywall — Starter 전용 */}
+        {isStarterPlan && viewModel.hasAnalysisResult && (
+          <FeaturePaywallBlock
+            title="조회 흐름, 영상 성과 히스토리, 진단 요약을 확인하세요."
+            description="채널 데이터 전체를 읽어야 다음 영상 방향이 보입니다."
+            ctaLabel="전체 분석 리포트 열기"
+            planLabel="Growth"
+            previewHint="조회 흐름 추세와 상위·하위 영상 비교가 이어집니다"
+          />
+        )}
+
         {/* 조회수 흐름 시그널 */}
-        <section className="space-y-4">
-          <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-            <h2 className="text-xl font-bold tracking-tight">조회수 흐름 시그널</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">최근 표본 영상의 조회수 변화 흐름을 시각화합니다</p>
-          </div>
-          {trendData.length >= 1 ? (
-            <AnalysisViewTrendChart
-              data={trendData}
-              interpretation={trendInterpretation}
-            />
-          ) : (
-            <AnalysisEmptyState
-              type="insufficient-samples"
-              title="조회 흐름 데이터 부족"
-              description="영상 데이터가 있으면 조회 추세 차트가 표시됩니다."
-            />
-          )}
-        </section>
+        {!isStarterPlan && (
+          <section className="space-y-4">
+            <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
+              <h2 className="text-xl font-bold tracking-tight">조회수 흐름 시그널</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">최근 표본 영상의 조회수 변화 흐름을 시각화합니다</p>
+            </div>
+            {trendData.length >= 1 ? (
+              <AnalysisViewTrendChart
+                data={trendData}
+                interpretation={trendInterpretation}
+              />
+            ) : (
+              <AnalysisEmptyState
+                type="insufficient-samples"
+                title="조회 흐름 데이터 부족"
+                description="영상 데이터가 있으면 조회 추세 차트가 표시됩니다."
+              />
+            )}
+          </section>
+        )}
 
         {/* 최근 성과 히스토리 */}
-        <section className="space-y-4">
-          <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-            <h2 className="text-xl font-bold tracking-tight">최근 성과 히스토리</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">스냅샷에 포함된 최근 영상과 상위·하위 성과 비교를 확인합니다</p>
-          </div>
-          {videosData.length > 0 ? (
-            <AnalysisRecentVideosSection videos={videosData} />
-          ) : (
-            <AnalysisEmptyState
-              type="no-data"
-              title="최근 영상 없음"
-              description="분석 대상 영상이 없습니다."
-            />
-          )}
-          <AnalysisTopBottomCompare data={comparisonData} sampleCount={videosData.length} videos={videosData} />
-        </section>
+        {!isStarterPlan && (
+          <section className="space-y-4">
+            <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
+              <h2 className="text-xl font-bold tracking-tight">최근 성과 히스토리</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">스냅샷에 포함된 최근 영상과 상위·하위 성과 비교를 확인합니다</p>
+            </div>
+            {videosData.length > 0 ? (
+              <AnalysisRecentVideosSection videos={videosData} />
+            ) : (
+              <AnalysisEmptyState
+                type="no-data"
+                title="최근 영상 없음"
+                description="분석 대상 영상이 없습니다."
+              />
+            )}
+            <AnalysisTopBottomCompare data={comparisonData} sampleCount={videosData.length} videos={videosData} />
+          </section>
+        )}
 
         {/* 튜브워치 진단 요약 */}
-        <AnalysisSummarySection data={summaryData} />
+        {!isStarterPlan && <AnalysisSummarySection data={summaryData} />}
 
         {/* STEP 4 — 슬라이딩 윈도우 안내 */}
         {viewModel.hasAnalysisResult && (
@@ -542,11 +558,6 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel }: C
             </p>
             <p className="text-xs text-muted-foreground">새 영상이 들어오면 가장 오래된 일부 영상은 이번 분석 기준에서 빠질 수 있습니다.</p>
           </div>
-        )}
-
-        {/* TubeWatch 전략 코멘트 */}
-        {viewModel.strategicComment && (
-          <StrategicCommentCard data={viewModel.strategicComment} />
         )}
 
         {/* 분석 완료 → Action Plan 유도 */}

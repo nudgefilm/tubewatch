@@ -5,6 +5,9 @@ import {
 import { getAnalysisPageData } from "@/lib/analysis/getAnalysisPageData"
 import { adaptAnalysisPageDataToViewModel } from "@/lib/analysis/mappers/domainToViewModel"
 import { ChannelAnalysisPage } from "@/components/features/analysis"
+import { createClient } from "@/lib/supabase/server"
+import { getEffectiveLimits } from "@/lib/server/subscription/getEffectiveLimits"
+import { isCurrentUserAdmin } from "@/lib/auth/is-admin"
 
 type PageProps = {
   searchParams?: { channel?: string }
@@ -18,14 +21,20 @@ export default async function Page({ searchParams }: PageProps) {
     buildProtectedReturnPath("/analysis", channelId)
   )
 
-  // snapshot은 URL에 포함하지 않음 — 항상 latestResult 기준으로 렌더
-  const data = await getAnalysisPageData({ channelId, userId })
+  const [data, supabase, adminUser] = await Promise.all([
+    getAnalysisPageData({ channelId, userId }),
+    createClient(),
+    isCurrentUserAdmin(),
+  ])
   const viewModel = adaptAnalysisPageDataToViewModel(data)
+  const limits = await getEffectiveLimits(supabase, userId)
+  const isStarterPlan = !adminUser && limits.planId === "free"
 
   return (
     <ChannelAnalysisPage
       channelId={channelId ?? data?.selectedChannel?.id}
       viewModel={viewModel}
+      isStarterPlan={isStarterPlan}
     />
   )
 }

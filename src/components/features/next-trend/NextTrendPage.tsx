@@ -5,7 +5,6 @@ import { NextTrendExecutionHints } from "./sections/ExecutionHintsSection"
 import { NextTrendActionSection } from "./sections/ActionSection"
 import { NextTrendEmptyState } from "./sections/EmptyState"
 import { ChannelContextHeader, type ChannelContext } from "@/components/features/shared/ChannelContextHeader"
-import { StrategicCommentCard } from "@/components/features/shared/StrategicCommentCard"
 import { FeaturePaywallBlock } from "@/components/features/shared/FeaturePaywallBlock"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
@@ -306,38 +305,46 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                 )}
               </section>
 
-              {/* [3] 실행 힌트 */}
-              <section className="space-y-4">
-                <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-                  <h2 className="text-xl font-bold tracking-tight">실행 힌트</h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">제목·훅·썸네일에 바로 적용할 방향</p>
-                </div>
-                {hints.length > 0 ? (
-                  <NextTrendExecutionHints data={hints} />
-                ) : (
-                  <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-                    실행 힌트 데이터가 아직 없습니다. 분석 후 자동으로 채워집니다.
-                  </div>
-                )}
-              </section>
+              {/* [3] 실행 힌트 — Starter 차단 */}
+              {isStarterPlan ? (
+                <FeaturePaywallBlock
+                  title="제목·훅·썸네일에 바로 적용할 실행 힌트가 준비되어 있습니다."
+                  description="1순위 주제를 실제 영상으로 만들기 위한 구체적인 방향을 확인하세요."
+                  ctaLabel="실행 힌트 + 영상 기획안 열기"
+                  planLabel="Growth"
+                  previewHint="제목 방향, 훅 전략, 썸네일 방향, 영상 기획안이 이어집니다"
+                />
+              ) : (
+                <>
+                  <section className="space-y-4">
+                    <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
+                      <h2 className="text-xl font-bold tracking-tight">실행 힌트</h2>
+                      <p className="text-xs text-muted-foreground mt-0.5">제목·훅·썸네일에 바로 적용할 방향</p>
+                    </div>
+                    {hints.length > 0 ? (
+                      <NextTrendExecutionHints data={hints} />
+                    ) : (
+                      <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                        실행 힌트 데이터가 아직 없습니다. 분석 후 자동으로 채워집니다.
+                      </div>
+                    )}
+                  </section>
 
-              {/* [4] 영상 기획안 */}
-              {actions.length > 0 && (
-                <section className="space-y-4">
-                  <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-                    <h2 className="text-xl font-bold tracking-tight">영상 기획안</h2>
-                    <p className="text-xs text-muted-foreground mt-0.5">1순위 주제를 기반으로 한 초안</p>
-                  </div>
-                  <NextTrendActionSection data={actions} />
-                </section>
+                  {/* [4] 영상 기획안 */}
+                  {actions.length > 0 && (
+                    <section className="space-y-4">
+                      <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
+                        <h2 className="text-xl font-bold tracking-tight">영상 기획안</h2>
+                        <p className="text-xs text-muted-foreground mt-0.5">1순위 주제를 기반으로 한 초안</p>
+                      </div>
+                      <NextTrendActionSection data={actions} />
+                    </section>
+                  )}
+                </>
               )}
             </>
           )}
 
-          {/* TubeWatch 전략 코멘트 */}
-          {viewModel.strategicComment && (
-            <StrategicCommentCard data={viewModel.strategicComment} />
-          )}
         </div>
       </div>
     )

@@ -5,7 +5,6 @@ import { ActionPlanCardsSection } from "./sections/CardsSection"
 import { ActionPlanChecklistSection } from "./sections/ChecklistSection"
 import { ActionPlanEmptyState } from "./sections/EmptyState"
 import { ChannelContextHeader, type ChannelContext } from "@/components/features/shared/ChannelContextHeader"
-import { StrategicCommentCard } from "@/components/features/shared/StrategicCommentCard"
 import { FeaturePaywallBlock } from "@/components/features/shared/FeaturePaywallBlock"
 import type {
   ActionPlanPageViewModel,
@@ -74,7 +73,7 @@ export function ActionPlanPage({ channelId = "", channelContext, viewModel, isSt
 
   // Real data path
   if (viewModel) {
-    const cardsData = toCardsSection(viewModel.actions)
+    const cardsData = toCardsSection(isStarterPlan ? viewModel.actions.slice(0, 2) : viewModel.actions)
     const checklistData = toChecklistItems(viewModel.checklistItems)
 
     return (
@@ -139,8 +138,8 @@ export function ActionPlanPage({ channelId = "", channelContext, viewModel, isSt
             />
           )}
 
-          {/* [2] 업로드 전 체크리스트 */}
-          {checklistData.length > 0 && (
+          {/* [2] 업로드 전 체크리스트 — Starter 차단 */}
+          {!isStarterPlan && checklistData.length > 0 && (
             <section className="space-y-4">
               <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
                 <h2 className="text-xl font-bold tracking-tight">업로드 전 체크리스트</h2>
@@ -150,10 +149,6 @@ export function ActionPlanPage({ channelId = "", channelContext, viewModel, isSt
             </section>
           )}
 
-          {/* TubeWatch 전략 코멘트 */}
-          {viewModel.strategicComment && (
-            <StrategicCommentCard data={viewModel.strategicComment} />
-          )}
 
         </div>
       </div>

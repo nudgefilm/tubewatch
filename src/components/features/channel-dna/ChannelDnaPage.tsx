@@ -5,7 +5,6 @@ import { DnaStructureSummarySection } from "./sections/StructureSummarySection"
 import { DnaCardsSection } from "./sections/CardsSection"
 import { DnaEmptyState } from "./sections/EmptyState"
 import { ChannelContextHeader, type ChannelContext } from "@/components/features/shared/ChannelContextHeader"
-import { StrategicCommentCard } from "@/components/features/shared/StrategicCommentCard"
 import { PageFlowConnector } from "@/components/features/shared/PageFlowConnector"
 import { FeaturePaywallBlock } from "@/components/features/shared/FeaturePaywallBlock"
 import { humanizeSignal } from "./utils/dnaHelper"
@@ -286,18 +285,15 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
             />
           )}
 
-          {/* [3] 채널 구조 안정성 */}
-          <section className="space-y-4">
-            <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-              <h2 className="text-xl font-bold tracking-tight">채널 구조 안정성</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">성과 재현성과 지속 가능성을 결정하는 구조 변수</p>
-            </div>
-            <DnaStructureSummarySection data={structureSummary} />
-          </section>
-
-          {/* TubeWatch 전략 코멘트 */}
-          {viewModel.strategicComment && (
-            <StrategicCommentCard data={viewModel.strategicComment} />
+          {/* [3] 채널 구조 안정성 — Starter 차단 */}
+          {!isStarterPlan && (
+            <section className="space-y-4">
+              <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
+                <h2 className="text-xl font-bold tracking-tight">채널 구조 안정성</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">성과 재현성과 지속 가능성을 결정하는 구조 변수</p>
+              </div>
+              <DnaStructureSummarySection data={structureSummary} />
+            </section>
           )}
 
           {/* 다음 단계 연결 — Action Plan */}
