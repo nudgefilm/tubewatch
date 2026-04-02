@@ -171,6 +171,7 @@ export const channelDnaData = {
 // hitDependency는 null 가능 — topPerformerShare 데이터 없을 때 미산출 표시용
 export type ChannelDnaStructureSummary = Omit<typeof channelDnaData.structureSummary, "hitDependency"> & {
   hitDependency: number | null
+  topicConsistency?: { score: number | null; label: string } | null
 }
 
 /** 패턴 카드 항목 — score는 선택적 (0–100, 없으면 placeholder 렌더) */

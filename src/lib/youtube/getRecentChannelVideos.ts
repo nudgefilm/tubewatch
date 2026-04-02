@@ -17,9 +17,9 @@ export type RecentVideo = {
  */
 export async function getRecentChannelVideos(
   channelId: string,
-  maxResults = 20
+  maxResults = 50
 ): Promise<RecentVideo[]> {
-  const safeMax = Math.min(Math.max(maxResults, 1), 20);
+  const safeMax = Math.min(Math.max(maxResults, 1), 50);
   const rows = await getRecentVideos(channelId, safeMax);
   return rows.map((v) => ({
     videoId: v.video_id,

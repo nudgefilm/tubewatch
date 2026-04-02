@@ -147,11 +147,11 @@ export function HeroSection() {
           {[...Array(2)].map((_, i) => (
             <div key={i} className="flex gap-16">
               {[
-                { value: "20", label: "분석 영상" },
-                { value: "31", label: "데이터 시그널" },
-                { value: "5", label: "성장 지표" },
-                { value: "AI", label: "전략 인사이트" },
-                { value: "3", label: "무료 채널 슬롯" },
+                { value: "50", label: "분석 영상" },
+                { value: "80", label: "데이터 시그널" },
+                { value: "8", label: "성장 지표" },
+                { value: "4", label: "분석 모듈" },
+                { value: "100", label: "성장 점수 만점" },
                 { value: "1", label: "채널별 무료 진단" },
               ].map((stat, idx) => (
                 <div key={`${stat.label}-${i}-${idx}`} className="flex items-baseline gap-4">

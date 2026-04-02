@@ -51,14 +51,16 @@ export function CtaSection() {
             <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
               {/* Left content */}
               <div className="flex-1">
-                <h2 className="text-4xl lg:text-6xl font-heading font-medium tracking-[-0.03em] mb-8 leading-[1.1]">
+                <h2 className="text-4xl lg:text-6xl font-heading font-medium tracking-[-0.03em] leading-[1.1] mb-8">
                   최고의 성과를 낼
                   <br />
                   준비가 되셨나요?
                 </h2>
 
                 <p className="text-xl text-muted-foreground mb-12 leading-relaxed max-w-xl">
-                  TubeWatch™와 함께 더 빠르게 앞서 나가세요. 지금 시작하고 한계 없이 성장하세요.
+                  TubeWatch™와 함께 더 빠르게 앞서 나가세요.
+                  <br />
+                  지금 시작하고 한계 없이 성장하세요.
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-start gap-4">

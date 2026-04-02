@@ -64,7 +64,7 @@ export async function generateGuestFullReport(
 
   let youtubeVideos: VideoInfo[];
   try {
-    youtubeVideos = await getRecentVideos(channel.channel_id, 20);
+    youtubeVideos = await getRecentVideos(channel.channel_id, 50);
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Videos fetch failed";
     return { ok: false, error: msg };

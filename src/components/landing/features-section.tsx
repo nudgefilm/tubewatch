@@ -7,28 +7,28 @@ const features = [
   {
     number: "01",
     title: "Channel Analysis",
-    description: "채널 데이터를 기반으로\n현재 성장 상태를 정밀 진단합니다.",
+    description: "최근 영상 50개와 채널 지표를\n80개 신호로 분석해 성장 점수를 산출합니다.",
     visual: "deploy",
     href: "/analysis",
   },
   {
     number: "02",
     title: "Channel DNA",
-    description: "이 채널의 성과 구조와\n반복되는 성장 패턴을 봅니다.",
+    description: "잘 되는 영상의 공통 패턴과\n채널 고유의 성과 구조를 파악합니다.",
     visual: "security",
     href: "/channel-dna",
   },
   {
     number: "03",
     title: "Action Plan",
-    description: "지금 실행해야 할\n콘텐츠 전략을 제안합니다.",
+    description: "오늘 바로 실행할 수 있는\n구체적인 콘텐츠 전략을 받습니다.",
     visual: "ai",
     href: "/action-plan",
   },
   {
     number: "04",
     title: "Next Trend",
-    description: "내부 흐름 기반으로\n다음 영상 주제 방향을 제안합니다.",
+    description: "채널 내부 데이터 흐름을 기반으로\n다음 영상 주제를 추천합니다.",
     visual: "collab",
     href: "/next-trend",
   },
@@ -294,11 +294,13 @@ export function FeaturesSection() {
             Feature Overview
           </span>
           <h2
-            className={`text-4xl lg:text-6xl font-heading font-medium tracking-[-0.03em] transition-all duration-700 ${
+            className={`text-4xl lg:text-6xl font-heading font-medium tracking-[-0.03em] leading-[1.1] transition-all duration-700 ${
               isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
             }`}
           >
-            4개 핵심 기능 프리뷰
+            채널 성장을 이끄는
+            <br />
+            4가지 분석 도구
           </h2>
         </div>
 

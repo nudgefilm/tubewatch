@@ -56,7 +56,7 @@ type VideoItem = {
     videos,
   }: BuildAnalysisInputArgs): BuiltAnalysisInput {
     const sanitizedVideos = videos
-      .slice(0, 20)
+      .slice(0, 50)
       .map((video) => ({
         videoId: video.videoId,
         title: video.title,

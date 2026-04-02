@@ -81,6 +81,10 @@ export type NormalizedVideo = {
     topVideoDependence: number;
     viewDistributionBalance: number;
     breakoutVideoRatio: number;
+
+    // Subscription Conversion
+    highEngagementVideoRatio: number;
+    commentToLikeRatio: number;
   };
   
   export type FeatureScoreItem = {
@@ -98,6 +102,7 @@ export type NormalizedVideo = {
       contentStructure: number;
       seoOptimization: number;
       growthMomentum: number;
+      subscriptionConversion: number;
     };
     items: FeatureScoreItem[];
   };

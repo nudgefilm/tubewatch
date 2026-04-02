@@ -8,7 +8,7 @@ import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
-const VALID_PLAN_IDS = ["creator", "pro", "agency"] as const;
+const VALID_PLAN_IDS = ["creator", "pro"] as const;
 type PlanId = (typeof VALID_PLAN_IDS)[number];
 
 function isPlanId(value: unknown): value is PlanId {

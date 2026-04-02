@@ -40,6 +40,7 @@ interface ActionCard {
   confidence?: number | null
   dnaConnection?: string | null
   analysisConnection?: string | null
+  signalTag?: string | null
   priority: string
   performancePrediction?: {
     current: string
@@ -135,6 +136,11 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                         <Badge variant="outline" className="gap-1">
                           <Dna className="h-3 w-3" />
                           {action.dnaConnection}
+                        </Badge>
+                      )}
+                      {action.signalTag && (
+                        <Badge variant="secondary" className="text-xs">
+                          {action.signalTag}
                         </Badge>
                       )}
                     </div>

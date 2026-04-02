@@ -73,7 +73,7 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
 
             {vm.contentPatterns.length > 0 && (
               <div className="space-y-2">
-                <p className="text-sm font-medium">콘텐츠 패턴</p>
+                <p className="text-sm font-medium">콘텐츠 주제 일관성</p>
                 <div className="space-y-2">
                   {vm.contentPatterns.map((pattern, i) => (
                     <div key={i} className="flex items-start gap-3 rounded-lg border px-4 py-3 text-sm">
@@ -128,6 +128,51 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
                 <p className="text-xs text-muted-foreground mt-0.5">성과 재현성과 지속 가능성을 결정하는 구조 변수</p>
               </div>
               <DnaStructureSummarySection data={structureSummary} />
+
+              {/* 채널 활동 패턴 — 업로드 일관성·빈도·간격 */}
+              {(vm.uploadConsistencyLevel != null || vm.recent30dUploadCount != null || vm.avgUploadIntervalDays != null) && (
+                <div className="rounded-lg border border-muted px-5 py-4 space-y-3">
+                  <p className="text-sm font-medium">채널 활동 패턴</p>
+                  <div className="grid grid-cols-3 gap-3">
+                    {/* 업로드 일관성 */}
+                    <div className="space-y-0.5">
+                      <p className="text-[11px] text-muted-foreground">업로드 일관성</p>
+                      {vm.uploadConsistencyLevel != null ? (
+                        <p className={`text-sm font-semibold ${
+                          vm.uploadConsistencyLevel === "high" ? "text-emerald-600"
+                          : vm.uploadConsistencyLevel === "medium" ? "text-amber-600"
+                          : "text-rose-600"
+                        }`}>
+                          {vm.uploadConsistencyLevel === "high" ? "안정적" : vm.uploadConsistencyLevel === "medium" ? "불규칙" : "불안정"}
+                        </p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground/50">—</p>
+                      )}
+                    </div>
+                    {/* 최근 30일 업로드 */}
+                    <div className="space-y-0.5">
+                      <p className="text-[11px] text-muted-foreground">최근 30일 업로드</p>
+                      {vm.recent30dUploadCount != null ? (
+                        <p className="text-sm font-semibold tabular-nums">{vm.recent30dUploadCount}개</p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground/50">—</p>
+                      )}
+                    </div>
+                    {/* 평균 업로드 간격 */}
+                    <div className="space-y-0.5">
+                      <p className="text-[11px] text-muted-foreground">평균 업로드 간격</p>
+                      {vm.avgUploadIntervalDays != null ? (
+                        <p className="text-sm font-semibold tabular-nums">{vm.avgUploadIntervalDays}일</p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground/50">—</p>
+                      )}
+                    </div>
+                  </div>
+                  {vm.uploadConsistencyFallback && (
+                    <p className="text-xs text-muted-foreground">{vm.uploadConsistencyFallback}</p>
+                  )}
+                </div>
+              )}
             </section>
           )}
 

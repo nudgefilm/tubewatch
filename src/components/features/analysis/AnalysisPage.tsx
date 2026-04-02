@@ -311,6 +311,83 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
             <AnalysisScoreOverview score={score} sectionScores={sectionScores} />
             <AnalysisKpiCards data={kpiData} />
           </div>
+
+          {/* 구간 인사이트 — 시청자 반응 구조·SEO·구독 전환 (신규 분석 결과에서만 표시) */}
+          {(sectionScores?.audienceResponse != null || sectionScores?.seoOptimization != null || sectionScores?.subscriptionConversion != null) && (() => {
+            function insightBarColor(s: number) {
+              return s >= 65 ? "bg-emerald-500" : s >= 45 ? "bg-amber-400" : "bg-rose-400"
+            }
+            function insightTextColor(s: number) {
+              return s >= 65 ? "text-emerald-600" : s >= 45 ? "text-amber-600" : "text-rose-600"
+            }
+            const audienceCard = viewModel.diagnosisCards.find(c => c.title === "시청자 반응 구조")
+            const seoCard = viewModel.diagnosisCards.find(c => c.title === "SEO 최적화 상태")
+            const insights: { title: string; score: number; metaItems: string[]; interp: string }[] = []
+            if (sectionScores.audienceResponse != null) {
+              const s = sectionScores.audienceResponse
+              const like = audienceCard?.items.find(i => i.label === "평균 좋아요 비율")
+              const cmt = audienceCard?.items.find(i => i.label === "평균 댓글 비율")
+              insights.push({
+                title: "시청자 반응 구조",
+                score: s,
+                metaItems: [like, cmt].filter(Boolean).map(i => `${i!.label} ${i!.value}`),
+                interp: s >= 65
+                  ? "시청자 반응 신호가 콘텐츠 방향과 맞아 CTR 유지에 유리한 신호입니다"
+                  : s >= 45 ? "반응 신호는 있으나 CTR 및 시청 지속시간 안정화 여지가 있습니다"
+                  : "조회 반응이 낮아 초반 이탈이 높을 가능성이 있는 구조입니다",
+              })
+            }
+            if (sectionScores.seoOptimization != null) {
+              const s = sectionScores.seoOptimization
+              const title = seoCard?.items.find(i => i.label === "평균 제목 길이")
+              const tags = seoCard?.items.find(i => i.label === "평균 태그 수")
+              insights.push({
+                title: "SEO 최적화 상태",
+                score: s,
+                metaItems: [title, tags].filter(Boolean).map(i => `${i!.label} ${i!.value}`),
+                interp: s >= 65
+                  ? "키워드·제목 구조가 초반 클릭 유도력과 검색 유입에 기여하고 있는 신호입니다"
+                  : s >= 45 ? "검색 유입 가능성은 있으나 키워드 배치가 더 정리될 여지가 있습니다"
+                  : "제목·키워드 구조가 검색 노출을 이끌어내기 어려운 경향이 읽힙니다",
+              })
+            }
+            if (sectionScores.subscriptionConversion != null) {
+              const s = sectionScores.subscriptionConversion
+              insights.push({
+                title: "구독 전환 구조",
+                score: s,
+                metaItems: [],
+                interp: s >= 65
+                  ? "참여 구조와 콘텐츠 일관성이 구독 전환에 유리한 신호를 형성하고 있습니다"
+                  : s >= 45 ? "구독 전환 신호가 부분적으로 감지되나 참여 일관성이 더 굳어져야 할 경향입니다"
+                  : "구독 전환 구조가 약해 시청자가 이탈 없이 구독할 동기가 낮을 수 있습니다",
+              })
+            }
+            return (
+              <div className={`grid gap-3 ${insights.length >= 3 ? "sm:grid-cols-3" : insights.length === 2 ? "sm:grid-cols-2" : ""}`}>
+                {insights.map(({ title, score, metaItems, interp }) => (
+                  <div key={title} className="rounded-lg border px-4 py-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">{title}</span>
+                      <span className={`text-sm font-semibold tabular-nums ${insightTextColor(score)}`}>
+                        {Math.round(score)}
+                        <span className="text-xs text-muted-foreground font-normal ml-0.5">/ 100</span>
+                      </span>
+                    </div>
+                    <div className="h-1.5 w-full rounded-full bg-muted">
+                      <div className={`h-full rounded-full transition-all ${insightBarColor(score)}`} style={{ width: `${score}%` }} />
+                    </div>
+                    {metaItems.length > 0 && (
+                      <div className="flex flex-wrap gap-x-3 gap-y-0.5">
+                        {metaItems.map(m => <span key={m} className="text-[11px] text-muted-foreground">{m}</span>)}
+                      </div>
+                    )}
+                    <p className="text-xs text-muted-foreground">{interp}</p>
+                  </div>
+                ))}
+              </div>
+            )
+          })()}
         </section>
 
         {/* Paywall — Starter 전용 */}

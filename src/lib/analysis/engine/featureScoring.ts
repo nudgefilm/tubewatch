@@ -67,6 +67,9 @@ import type {
       makeItem("topVideoDependence", features.topVideoDependence, toPercent(1 - features.topVideoDependence)),
       makeItem("viewDistributionBalance", features.viewDistributionBalance, toPercent(features.viewDistributionBalance)),
       makeItem("breakoutVideoRatio", features.breakoutVideoRatio, toPercent(features.breakoutVideoRatio)),
+
+      makeItem("highEngagementVideoRatio", features.highEngagementVideoRatio, toPercent(features.highEngagementVideoRatio)),
+      makeItem("commentToLikeRatio", features.commentToLikeRatio, clamp(features.commentToLikeRatio * 150, 0, 100)),
     ];
   
     const averageByKeys = (keys: string[]) => {
@@ -114,9 +117,18 @@ import type {
         "viewDistributionBalance",
         "breakoutVideoRatio",
       ]),
+      subscriptionConversion: averageByKeys([
+        "highEngagementVideoRatio",
+        "commentToLikeRatio",
+        "engagementConsistency",
+        "seriesContentRatio",
+        "consistencyScore",
+      ]),
     };
-  
-    const totalScore = average(Object.values(sectionScores));
+
+    // totalScore는 기존 5개 섹션 평균만 사용 (하위호환: 기존 저장 점수에 영향 없음)
+    const { subscriptionConversion: _sc, ...coreSections } = sectionScores;
+    const totalScore = average(Object.values(coreSections));
   
     return {
       totalScore,

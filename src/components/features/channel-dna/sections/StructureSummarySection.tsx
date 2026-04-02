@@ -1,6 +1,6 @@
 "use client"
 
-import { TrendingUp, Target, Shield, BarChart3 } from "lucide-react"
+import { TrendingUp, Target, Shield, BarChart3, BookOpen } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { StatusBar } from "@/components/ui/StatusBar"
@@ -96,7 +96,7 @@ export function DnaStructureSummarySection({ data }: DnaStructureSummarySectionP
   return (
     <div className="space-y-4">
       {/* KPI Cards Row */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         {/* 히트 영상 의존도 */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -200,6 +200,39 @@ export function DnaStructureSummarySection({ data }: DnaStructureSummarySectionP
                   <span>0</span>
                   <span>50K+</span>
                 </div>
+              </>
+            ) : (
+              <div className="flex h-12 items-center">
+                <p className="text-sm font-medium text-muted-foreground">미산출</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        {/* 주제 일관성 */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              주제 일관성
+            </CardTitle>
+            <BookOpen className="size-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {data.topicConsistency ? (
+              <>
+                <div className="text-lg font-bold leading-tight">{data.topicConsistency.label}</div>
+                {data.topicConsistency.score != null && (
+                  <StatusBar
+                    label="일관성 점수"
+                    score={data.topicConsistency.score}
+                    hint={
+                      data.topicConsistency.score >= 65
+                        ? "반복 주제 패턴이 안정적으로 유지되고 있는 구조입니다"
+                        : data.topicConsistency.score >= 45
+                          ? "주제 범위가 혼재되어 집중도가 더 굳어질 여지가 있습니다"
+                          : "콘텐츠 주제 편차가 커서 채널 정체성이 분산된 구조입니다"
+                    }
+                  />
+                )}
               </>
             ) : (
               <div className="flex h-12 items-center">

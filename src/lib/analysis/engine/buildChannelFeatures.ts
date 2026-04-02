@@ -122,6 +122,7 @@ export function buildChannelFeatures(
   const totalViews = views.reduce((sum, value) => sum + value, 0);
   const maxViews = Math.max(0, ...views);
   const avgViews = average(views);
+  const avgEngRate = average(engagementRates);
 
   return {
     uploadFrequency30d: recent30.length,
@@ -197,6 +198,19 @@ export function buildChannelFeatures(
       videos.filter((video) => avgViews > 0 && video.viewCount >= avgViews * 1.8)
         .length,
       total
+    ),
+
+    highEngagementVideoRatio: ratio(
+      videos.filter(
+        (video) => avgEngRate > 0 && video.engagementRate >= avgEngRate * 1.5
+      ).length,
+      total
+    ),
+    commentToLikeRatio: Math.min(
+      1,
+      average(likes) > 0
+        ? average(comments) / (average(likes) + 0.001)
+        : 0
     ),
   };
 }

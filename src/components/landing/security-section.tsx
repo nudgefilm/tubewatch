@@ -9,17 +9,17 @@ const whyFeatures = [
     number: "01",
     title: "Data-driven channel analysis",
     subtitle: "단순 통계가 아닌 채널 구조 분석",
-    description: "튜브 워치는 단순 조회수나 구독자 변화만 보여주는 도구가 아닙니다. 최근 업로드 영상과 채널 활동 데이터를 기반으로 31개의 분석 신호를 종합해 채널의 성장 구조를 분석합니다.",
-    stats: ["최근 영상 20개 데이터 분석", "31개 성장 신호 평가", "5개 성장 지표 점수화"],
+    description: "조회수·구독자 변화 그래프가 아닙니다. 최근 영상 50개와 채널 활동 데이터를 80개 신호로 종합해 채널이 왜 지금 이 상태인지를 진단합니다.",
+    stats: ["최근 영상 50개 데이터 분석", "80개 성장 신호 평가", "8개 성장 지표 점수화"],
     highlight: "채널의 현재 상태를 데이터 기반으로 진단합니다.",
   },
   {
     icon: Brain,
     number: "02",
-    title: "AI-powered strategy insights",
-    subtitle: "채널 전략을 해석합니다",
-    description: "튜브 워치는 데이터 분석 결과를 기반으로 채널의 전략을 해석하고 인사이트를 제공합니다.",
-    stats: ["어떤 콘텐츠 주제가 가장 반응이 좋은가", "검색 유입을 늘리려면 무엇을 바꿔야 하는가", "어떤 콘텐츠 전략이 구독자 성장에 유리한가"],
+    title: "Engine-powered strategy insights",
+    subtitle: "데이터를 전략으로 번역합니다",
+    description: "숫자를 나열하는 리포트가 아닙니다. 어떤 주제가 반응이 좋은지, 검색 유입을 늘리려면 무엇을 바꿔야 하는지 — 튜브워치 엔진이 분석 결과를 실행 가능한 언어로 풀어냅니다.",
+    stats: ["어떤 콘텐츠 주제가 가장 반응이 좋은가", "검색 유입을 늘리려면 무엇을 바꿔야 하는가", "어떤 전략이 구독자 성장에 유리한가"],
     highlight: "데이터를 실제 전략으로 번역합니다.",
   },
   {
@@ -27,7 +27,7 @@ const whyFeatures = [
     number: "03",
     title: "Creator-focused metrics",
     subtitle: "크리에이터 관점의 성장 지표",
-    description: "튜브 워치는 기존의 광고나 마케팅 지표 중심의 분석 도구가 아닙니다. 유튜브 크리에이터 성장 지표를 정조준합니다.",
+    description: "광고 최적화 도구가 아닙니다. 콘텐츠 일관성, 시청자 반응 구조, SEO 상태, 성장 모멘텀 — 채널이 성장하거나 정체되는 실제 이유를 지표로 보여줍니다.",
     stats: ["콘텐츠 주제 일관성", "시청자 반응 구조", "채널 활동 패턴", "SEO 최적화 상태", "성장 모멘텀"],
     highlight: "채널이 왜 성장하거나 정체되는지를 보여줍니다.",
   },
@@ -36,9 +36,9 @@ const whyFeatures = [
     number: "04",
     title: "Actionable growth recommendations",
     subtitle: "바로 실행할 수 있는 개선 전략",
-    description: "튜브 워치의 분석 결과는 단순한 평가 리포트가 아닙니다.",
-    stats: ["제목 구조 개선", "콘텐츠 주제 전략", "업로드 패턴", "검색 키워드 활용"],
-    highlight: "분석 → 인사이트 → 실행 전략을 포함하는 구조입니다.",
+    description: "분석으로 끝나지 않습니다. 제목 구조 개선, 콘텐츠 주제 전략, 업로드 패턴, 검색 키워드 — 오늘 당장 실행할 수 있는 구체적인 액션을 제안합니다.",
+    stats: ["제목 구조 개선", "콘텐츠 주제 전략", "업로드 패턴 조정", "검색 키워드 활용"],
+    highlight: "분석 → 인사이트 → 실행 전략을 하나의 흐름으로 제공합니다.",
   },
 ];
 
@@ -79,7 +79,7 @@ export function SecuritySection() {
             <span className="w-8 h-px bg-foreground/30" />
             차별점
           </span>
-          <h2 className="text-4xl lg:text-6xl font-heading font-medium tracking-[-0.03em]">
+          <h2 className="text-4xl lg:text-6xl font-heading font-medium tracking-[-0.03em] leading-[1.1]">
             Why TubeWatch ?
           </h2>
         </div>

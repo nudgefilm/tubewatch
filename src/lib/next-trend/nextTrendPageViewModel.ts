@@ -13,6 +13,8 @@ import type { AnalysisStatus } from "@/lib/analysis/types";
 import { buildTrendSignals } from "@/lib/next-trend/buildTrendSignals";
 import { buildTrendInsights } from "@/lib/next-trend/buildTrendInsights";
 import type { TrendItemVm as TrendItemVmBase } from "@/lib/next-trend/buildTrendInsights";
+import { parseSectionScores } from "@/lib/analysis/engine/parseSectionScores";
+import { normalizeFeatureSnapshot } from "@/lib/analysis/normalizeSnapshot";
 import type { StrategicCommentVm } from "@/lib/shared/strategicCommentTypes";
 import {
   buildNextTrendExtensionBlock,
@@ -51,6 +53,12 @@ export type NextTrendPageViewModel = {
   hasEnoughTrendSignal: boolean;
   /** 페이지 하단 전략 코멘트 카드 */
   strategicComment: StrategicCommentVm | null;
+  /** 성장 모멘텀 섹션 점수 (0–100), 없으면 null */
+  growthMomentum: number | null;
+  /** 평균 업로드 간격(일), 없으면 null */
+  avgUploadIntervalDays: number | null;
+  /** SEO 최적화 상태 섹션 점수 (0–100), 없으면 null */
+  seoOptimization: number | null;
 };
 
 const EMPTY_ITEMS: TrendItemVm[] = [];
@@ -89,6 +97,9 @@ export function buildNextTrendPageViewModel(
       evidenceNotes: [],
       hasEnoughTrendSignal: false,
       strategicComment: null,
+      growthMomentum: null,
+      avgUploadIntervalDays: null,
+      seoOptimization: null,
     };
   }
 
@@ -112,6 +123,9 @@ export function buildNextTrendPageViewModel(
       evidenceNotes: [],
       hasEnoughTrendSignal: false,
       strategicComment: null,
+      growthMomentum: null,
+      avgUploadIntervalDays: null,
+      seoOptimization: null,
     };
   }
 
@@ -130,6 +144,10 @@ export function buildNextTrendPageViewModel(
     internal
   );
 
+  const sectionScores = parseSectionScores(data.latestResult.feature_section_scores ?? data.latestResult.section_scores);
+  const normalizedSnap = normalizeFeatureSnapshot(snapshot);
+  const metrics = normalizedSnap.metrics as Record<string, unknown> | null;
+
   return {
     ...base,
     hasChannel: true,
@@ -144,6 +162,10 @@ export function buildNextTrendPageViewModel(
     evidenceNotes: insights.evidenceNotes,
     hasEnoughTrendSignal: insights.hasEnoughTrendSignal,
     strategicComment,
+    growthMomentum: sectionScores?.growthMomentum ?? null,
+    avgUploadIntervalDays:
+      typeof metrics?.avgUploadIntervalDays === "number" ? metrics.avgUploadIntervalDays : null,
+    seoOptimization: sectionScores?.seoOptimization ?? null,
   };
 }
 

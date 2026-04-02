@@ -19,6 +19,7 @@ import {
   type ChannelVideoSample,
 } from "@/lib/ai/analyzeChannelWithGemini";
 import { saveAnalysisResult } from "@/lib/server/analysis/saveAnalysisResult";
+import { detectDeltaRun } from "@/lib/server/analysis/detectDeltaRun";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { isAdminUser } from "@/lib/server/isAdminUser";
 import type { VideoInfo } from "@/lib/youtube";
@@ -141,10 +142,12 @@ export async function POST(request: Request) {
     console.log("[Analysis Start API] admin: cooldown bypassed");
   }
 
-  // 기존 스냅샷 확인 (로그용)
+  // 기존 스냅샷 확인 — delta 재분석에서 Gemini 재사용 판단에 사용
   const { data: existingSnapshot } = await supabase
     .from("analysis_results")
-    .select("id, created_at")
+    .select(
+      "id, created_at, feature_snapshot, gemini_raw_json, gemini_model, channel_summary, content_pattern_summary, content_patterns, target_audience, strengths, weaknesses, bottlenecks, recommended_topics, growth_action_plan, sample_size_note, analysis_confidence"
+    )
     .eq("user_channel_id", userChannelId)
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
@@ -183,6 +186,13 @@ export async function POST(request: Request) {
   if (youtubeVideos.length === 0) {
     console.warn("[Analysis/pipe-1/collect] WARNING: YouTube API returned 0 videos — featureSnapshot.videos will be empty");
   }
+
+  // Delta 감지: 신규 영상이 없으면 Gemini 스킵 (detectDeltaRun.ts 참고)
+  const { isDeltaRun, prevKnownCount, newVideoCount } = detectDeltaRun(
+    existingSnapshot?.feature_snapshot,
+    youtubeVideos.map((v) => v.video_id)
+  );
+  console.log(`[Analysis/delta] prev_known=${prevKnownCount} new=${newVideoCount} skip_gemini=${isDeltaRun}`);
 
   // 분석 파이프라인 — try/catch 없으면 unhandled throw → Next.js 500 (HTML) 반환
   let normalizedDataset: ReturnType<typeof normalizeVideoMetrics>;
@@ -241,36 +251,69 @@ export async function POST(request: Request) {
     );
   }
 
-  // Gemini AI 분석 — analyzeChannelWithGemini 내부의 throw(GEMINI_API_KEY 누락, JSON.parse 실패 등)도 잡음
+  // Gemini AI 분석 — delta run(신규 영상 0개)이면 이전 스냅샷 재사용, 아니면 신규 호출
   let gemini: Awaited<ReturnType<typeof analyzeChannelWithGemini>>;
-  try {
-    gemini = await analyzeChannelWithGemini({
-      channelTitle:
-        (channelRow.channel_title as string | null) ?? "Untitled Channel",
-      subscriberCount: (channelRow.subscriber_count as number | null) ?? null,
-      videos: toChannelVideoSamples(youtubeVideos),
-      analysisContext,
-    });
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
-    console.error("[Analysis Start API] GEMINI THROW (unhandled 500 방지):", msg);
-    return NextResponse.json(
-      { ok: false, error: `AI 분석 호출 중 예외 발생: ${msg}` },
-      { status: 502 }
-    );
-  }
 
-  if (!gemini.ok) {
-    console.error("[Analysis Start API] error: Gemini failed:", gemini.error);
-    return NextResponse.json(
-      { ok: false, error: `AI 분석에 실패했습니다: ${gemini.error}` },
-      { status: 502 }
-    );
+  if (isDeltaRun && existingSnapshot) {
+    console.log("[Analysis/delta] Gemini skipped — reusing previous snapshot Gemini data");
+    const prev = existingSnapshot;
+    const rawConfidence = prev.analysis_confidence;
+    const prevConfidence: "low" | "medium" | "high" =
+      rawConfidence === "low" || rawConfidence === "medium" || rawConfidence === "high"
+        ? rawConfidence
+        : "medium";
+    gemini = {
+      ok: true,
+      model: typeof prev.gemini_model === "string" ? prev.gemini_model : "",
+      rawJson: typeof prev.gemini_raw_json === "string" ? prev.gemini_raw_json : "{}",
+      result: {
+        version: "",
+        channel_summary: typeof prev.channel_summary === "string" ? prev.channel_summary : "",
+        content_pattern_summary: typeof prev.content_pattern_summary === "string" ? prev.content_pattern_summary : "",
+        content_patterns: Array.isArray(prev.content_patterns) ? (prev.content_patterns as string[]) : [],
+        target_audience: Array.isArray(prev.target_audience) ? (prev.target_audience as string[]) : [],
+        strengths: Array.isArray(prev.strengths) ? (prev.strengths as string[]) : [],
+        weaknesses: Array.isArray(prev.weaknesses) ? (prev.weaknesses as string[]) : [],
+        bottlenecks: Array.isArray(prev.bottlenecks) ? (prev.bottlenecks as string[]) : [],
+        recommended_topics: Array.isArray(prev.recommended_topics) ? (prev.recommended_topics as string[]) : [],
+        growth_action_plan: Array.isArray(prev.growth_action_plan) ? (prev.growth_action_plan as string[]) : [],
+        analysis_confidence: prevConfidence,
+        interpretation_mode: "delta",
+        sample_size_note: typeof prev.sample_size_note === "string" ? prev.sample_size_note : "",
+      },
+    };
+  } else {
+    // 신규 영상 있음 or 첫 분석 — Gemini 정식 호출
+    try {
+      gemini = await analyzeChannelWithGemini({
+        channelTitle:
+          (channelRow.channel_title as string | null) ?? "Untitled Channel",
+        subscriberCount: (channelRow.subscriber_count as number | null) ?? null,
+        videos: toChannelVideoSamples(youtubeVideos),
+        analysisContext,
+      });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.error("[Analysis Start API] GEMINI THROW (unhandled 500 방지):", msg);
+      return NextResponse.json(
+        { ok: false, error: `AI 분석 호출 중 예외 발생: ${msg}` },
+        { status: 502 }
+      );
+    }
+
+    if (!gemini.ok) {
+      console.error("[Analysis Start API] error: Gemini failed:", gemini.error);
+      return NextResponse.json(
+        { ok: false, error: `AI 분석에 실패했습니다: ${gemini.error}` },
+        { status: 502 }
+      );
+    }
   }
 
   const now = new Date().toISOString();
 
   const featureSnapshotVideos = youtubeVideos.map((v) => ({
+    videoId: v.video_id,
     title: v.title,
     publishedAt: v.published_at ?? null,
     viewCount: v.view_count ?? null,

@@ -6,38 +6,36 @@ const steps = [
   {
     number: "1",
     title: "채널 등록",
-    description: "유튜브 채널을 등록하면\n최근 영상 데이터를 수집합니다.",
-    code: `import { tubewatch } from '@tubewatch/core'
+    description: "유튜브 채널 URL을 등록하면\n최근 영상 데이터를 자동 수집합니다.",
+    code: `// 채널 등록
+channel  "@your-channel"
+videos   최근 50개 수집 중...
+signals  80개 항목 체크 중...
 
-tubewatch.register({
-  channel: 'your-channel-id',
-  collect: true
-})`,
+✓  데이터 수집 완료`,
   },
   {
     number: "2",
     title: "데이터 분석",
-    description: "영상 20개와 채널 데이터를\n31개 신호로 분석합니다.",
-    code: `tubewatch.analyze({
-  videos: 20,
-  signals: 31,
-  metrics: [
-    'engagement',
-    'growth', 
-    'seo'
-  ]
-})`,
+    description: "영상 50개와 채널 데이터를\n80개 신호로 정밀 분석합니다.",
+    code: `// 튜브워치 엔진 분석 중...
+주제 일관성    ████████░░  82%
+SEO 최적화    █████░░░░░  51%
+시청자 반응    ███████░░░  74%
+성장 모멘텀    ██████░░░░  63%
+
+✓  분석 완료  score: 74 / 100`,
   },
   {
     number: "3",
     title: "전략 실행",
-    description: "성장 점수와 함께\n실행 가능한 액션을 제안합니다.",
-    code: `tubewatch.strategy({
-  score: 'growth',
-  actions: 'auto'
-})
+    description: "채널 성장 점수와 함께\n오늘 실행 가능한 액션을 제안합니다.",
+    code: `// 전략 생성 완료
+액션 플랜   5개 항목 생성됨
+제목 개선   키워드 3개 추천
+다음 주제   2개 아이디어
 
-// 5 action items generated`,
+→  예상 성장 점수 +12`,
   },
 ];
 
@@ -89,10 +87,10 @@ export function HowItWorksSection() {
         <div className="mb-10 lg:mb-16">
           <span className="inline-flex items-center gap-3 text-sm font-mono text-background/50 mb-6">
             <span className="w-8 h-px bg-background/30" />
-            너무도 간단한 성장 전략 제안
+            채널 URL만 입력하면 시작됩니다
           </span>
           <h2
-            className={`text-4xl lg:text-6xl font-heading font-medium tracking-[-0.03em] transition-all duration-700 ${
+            className={`text-4xl lg:text-6xl font-heading font-medium tracking-[-0.03em] leading-[1.1] transition-all duration-700 ${
               isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
             }`}
           >
@@ -150,7 +148,7 @@ export function HowItWorksSection() {
                   <div className="w-3 h-3 rounded-full bg-background/20" />
                   <div className="w-3 h-3 rounded-full bg-background/20" />
                 </div>
-                <span className="text-xs font-mono text-background/40">workflow.ts</span>
+                <span className="text-xs font-mono text-background/40">tubewatch — analysis</span>
               </div>
 
               {/* Code content */}

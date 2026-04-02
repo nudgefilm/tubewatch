@@ -14,7 +14,7 @@ const VALID_SUBSCRIPTION_STATUSES = ["active", "trialing"] as const;
 const FREE_CHANNEL_LIMIT = 3;
 const FREE_MONTHLY_ANALYSIS_LIMIT = 5;
 
-const BILLING_PLAN_IDS: BillingPlanId[] = ["creator", "pro", "agency"];
+const BILLING_PLAN_IDS: BillingPlanId[] = ["creator", "pro"];
 
 function isValidPlanId(value: string): value is BillingPlanId {
   return BILLING_PLAN_IDS.includes(value as BillingPlanId);

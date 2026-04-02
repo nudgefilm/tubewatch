@@ -18,15 +18,18 @@ export type NormalizedSectionScores = {
   contentStructure: number;
   seoOptimization: number;
   growthMomentum: number;
+  /** 기존 저장 결과에 없을 수 있어 optional (하위호환) */
+  subscriptionConversion?: number;
 };
 
 /** camelCase 키와 그에 대응하는 snake_case 키 쌍 */
 const KEY_MAP: Array<{ camel: keyof NormalizedSectionScores; snake: string }> = [
-  { camel: "channelActivity",  snake: "channel_activity"  },
-  { camel: "audienceResponse", snake: "audience_response" },
-  { camel: "contentStructure", snake: "content_structure" },
-  { camel: "seoOptimization",  snake: "seo_optimization"  },
-  { camel: "growthMomentum",   snake: "growth_momentum"   },
+  { camel: "channelActivity",       snake: "channel_activity"       },
+  { camel: "audienceResponse",      snake: "audience_response"      },
+  { camel: "contentStructure",      snake: "content_structure"      },
+  { camel: "seoOptimization",       snake: "seo_optimization"       },
+  { camel: "growthMomentum",        snake: "growth_momentum"        },
+  { camel: "subscriptionConversion", snake: "subscription_conversion" },
 ];
 
 function isRecord(v: unknown): v is Record<string, unknown> {
@@ -65,5 +68,9 @@ export function parseSectionScores(raw: unknown): NormalizedSectionScores | null
     contentStructure: out.contentStructure ?? 0,
     seoOptimization:  out.seoOptimization  ?? 0,
     growthMomentum:   out.growthMomentum   ?? 0,
+    // 기존 저장 결과에 없으면 undefined (하위호환 — UI에서 조건부 렌더)
+    ...(out.subscriptionConversion != null
+      ? { subscriptionConversion: out.subscriptionConversion }
+      : {}),
   };
 }

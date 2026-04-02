@@ -103,16 +103,18 @@ export type ChannelSectionScores = {
   contentStructure: number;
   seoOptimization: number;
   growthMomentum: number;
+  subscriptionConversion?: number;
 };
 
 type MetricsPartial = Partial<Record<keyof ChannelMetrics, number>>;
 
-const SECTION_LABELS: Record<keyof ChannelSectionScores, string> = {
-  channelActivity: "업로드·활동",
-  audienceResponse: "조회·반응",
+const SECTION_LABELS: Record<string, string> = {
+  channelActivity: "채널 활동 패턴",
+  audienceResponse: "시청자 반응 구조",
   contentStructure: "콘텐츠·구조",
-  seoOptimization: "메타·발견성",
-  growthMomentum: "성장 신호",
+  seoOptimization: "SEO 최적화 상태",
+  growthMomentum: "성장 모멘텀",
+  subscriptionConversion: "구독 전환 구조",
 };
 
 const CONSERVATIVE_EFFECT =
@@ -164,20 +166,20 @@ function buildTextWhyNeeded(kind: TextSourceKind, category: TextCategory, rawTex
         : `업로드 패턴에서 약점 신호가 감지되었습니다. ${rawText} — 불규칙한 발행이 지속되면 구독자 기대 주기가 형성되지 않습니다.`;
     case "response":
       return kind === "bottleneck"
-        ? `시청자 반응 지표에서 병목이 감지되었습니다. ${rawText} — 반응 신호가 낮으면 알고리즘 추천 범위가 좁아집니다.`
-        : `조회·반응 구간에서 약점 신호가 감지되었습니다. ${rawText} — 반응률이 낮은 상태가 이어지면 신규 노출이 줄어듭니다.`;
+        ? `시청자 반응 구조 구간에서 병목이 감지되었습니다. ${rawText} — 반응 신호가 낮으면 알고리즘 추천 범위가 좁아집니다.`
+        : `시청자 반응 구조 구간에서 약점 신호가 감지되었습니다. ${rawText} — 반응률이 낮은 상태가 이어지면 신규 노출이 줄어듭니다.`;
     case "keyword":
       return kind === "bottleneck"
-        ? `태그·키워드 구성에서 병목이 감지되었습니다. ${rawText} — 검색 발견성이 낮으면 외부 유입 경로가 막힙니다.`
-        : `메타·발견성 구간에서 약점 신호가 감지되었습니다. ${rawText} — 키워드 미최적화가 지속되면 신규 시청자 유입이 제한됩니다.`;
+        ? `SEO 최적화 상태 구간에서 병목이 감지되었습니다. ${rawText} — 검색 발견성이 낮으면 외부 유입 경로가 막힙니다.`
+        : `SEO 최적화 상태 구간에서 약점 신호가 감지되었습니다. ${rawText} — 키워드 미최적화가 지속되면 신규 시청자 유입이 제한됩니다.`;
     case "content":
       return kind === "bottleneck"
-        ? `콘텐츠 구조 또는 길이에서 병목이 감지되었습니다. ${rawText} — 이탈 구간이 고착되면 시청 유지율 회복이 어렵습니다.`
+        ? `콘텐츠·구조 구간에서 병목이 감지되었습니다. ${rawText} — 이탈 구간이 고착되면 시청 유지율 회복이 어렵습니다.`
         : `콘텐츠·구조 구간에서 약점 신호가 감지되었습니다. ${rawText} — 포맷 비일관성이 누적되면 채널 정체성이 흐려집니다.`;
     case "growth":
       return kind === "bottleneck"
-        ? `성장 신호 구간에서 병목이 감지되었습니다. ${rawText} — 성장 정체가 길어지면 알고리즘이 채널을 축소 노출합니다.`
-        : `성장 신호 구간에서 약점 신호가 감지되었습니다. ${rawText} — 히트 의존 구조가 유지되면 안정적 성장이 어렵습니다.`;
+        ? `성장 모멘텀 구간에서 병목이 감지되었습니다. ${rawText} — 성장 정체가 길어지면 알고리즘이 채널을 축소 노출합니다.`
+        : `성장 모멘텀 구간에서 약점 신호가 감지되었습니다. ${rawText} — 히트 의존 구조가 유지되면 안정적 성장이 어렵습니다.`;
     default:
       return kind === "bottleneck"
         ? `분석 병목으로 진단된 구간입니다. ${rawText} — 이 구간이 해소되지 않으면 다른 지표 개선에도 제동이 걸립니다.`
@@ -306,7 +308,7 @@ function buildMetricBackedActions(
     out.push({
       id: "metric-activity-uploads",
       title: "업로드 빈도 부족",
-      whyNeeded: `업로드·활동 구간 ${Math.round(sections.channelActivity)}점(기준 55점). 최근 30일 ${metrics.recent30dUploadCount}건은 알고리즘이 채널을 활성으로 분류하기에 부족해 노출 빈도가 줄어들고 있습니다.`,
+      whyNeeded: `채널 활동 패턴 구간 ${Math.round(sections.channelActivity)}점(기준 55점). 최근 30일 ${metrics.recent30dUploadCount}건은 알고리즘이 채널을 활성으로 분류하기에 부족해 노출 빈도가 줄어들고 있습니다.`,
       expectedEffect: "업로드 빈도 회복은 구독 전환 가능성과 반복 시청 가능성을 유지하는 데 유리한 구조입니다.",
       scenarioText:
         `최근 30일 ${metrics.recent30dUploadCount}건 업로드로 활동 신호가 알고리즘 임계점에 미치지 못하는 상태입니다.\n` +
@@ -316,7 +318,7 @@ function buildMetricBackedActions(
       executionHint:
         "이번 달 업로드 목표 횟수를 달력에 고정하세요.\n다음 영상 주제를 지금 바로 1개 정해두세요.",
       performancePrediction: {
-        current: `업로드·활동 구간 ${Math.round(sections.channelActivity)}점`,
+        current: `채널 활동 패턴 구간 ${Math.round(sections.channelActivity)}점`,
         targetRange: "목표 55~65점",
         expectedChanges: ["활동 신호 회복", "알고리즘 노출 빈도 개선"],
         predictionBasis: `최근 30일 ${metrics.recent30dUploadCount}건 표본 기준`,
@@ -337,7 +339,7 @@ function buildMetricBackedActions(
     out.push({
       id: "metric-activity-interval",
       title: "업로드 리듬 불안정",
-      whyNeeded: `업로드·활동 구간 ${Math.round(sections.channelActivity)}점(기준 55점). 평균 업로드 간격 ${metrics.avgUploadIntervalDays.toFixed(1)}일로 구독자 기대 주기가 형성되지 않아 자연 이탈이 누적되고, 알고리즘도 추천 신호를 줄이고 있습니다.`,
+      whyNeeded: `채널 활동 패턴 구간 ${Math.round(sections.channelActivity)}점(기준 55점). 평균 업로드 간격 ${metrics.avgUploadIntervalDays.toFixed(1)}일로 구독자 기대 주기가 형성되지 않아 자연 이탈이 누적되고, 알고리즘도 추천 신호를 줄이고 있습니다.`,
       expectedEffect: "고정 주기가 자리 잡히면 반복 시청 가능성과 구독 전환 가능성을 함께 보강하는 방향으로 작용합니다.",
       scenarioText:
         `평균 업로드 간격 약 ${metrics.avgUploadIntervalDays.toFixed(1)}일로 구독자의 기대 주기가 형성되지 않는 구조입니다.\n` +
@@ -368,7 +370,7 @@ function buildMetricBackedActions(
     out.push({
       id: "metric-audience-like",
       title: "참여 반응 저하",
-      whyNeeded: `조회·반응 구간 ${Math.round(sections.audienceResponse)}점(기준 55점). 평균 좋아요 비율 ${(metrics.avgLikeRatio * 100).toFixed(2)}%로 반응 신호가 낮아, 알고리즘이 영상을 관련 시청자에게 추천하는 범위를 줄이고 있습니다.`,
+      whyNeeded: `시청자 반응 구조 구간 ${Math.round(sections.audienceResponse)}점(기준 55점). 평균 좋아요 비율 ${(metrics.avgLikeRatio * 100).toFixed(2)}%로 반응 신호가 낮아, 알고리즘이 영상을 관련 시청자에게 추천하는 범위를 줄이고 있습니다.`,
       expectedEffect: "반응 신호 회복은 CTR 유지력과 평균 조회수 보강에 도움이 될 수 있습니다.",
       scenarioText:
         `표본 평균 좋아요 비율 약 ${(metrics.avgLikeRatio * 100).toFixed(2)}%로 반응 신호가 낮아 알고리즘 추천 범위가 좁은 상태입니다.\n` +
@@ -494,7 +496,7 @@ function buildMetricBackedActions(
     out.push({
       id: "metric-growth-median",
       title: "조회 분포 편중",
-      whyNeeded: `성장 신호 구간 ${Math.round(sections.growthMomentum)}점(기준 55점). 중앙 조회수 ${Math.round(metrics.medianViewCount)}회로 채널 성과가 일부 히트 영상에 집중되어, 히트가 없으면 전체 조회가 급감하는 구조입니다.`,
+      whyNeeded: `성장 모멘텀 구간 ${Math.round(sections.growthMomentum)}점(기준 55점). 중앙 조회수 ${Math.round(metrics.medianViewCount)}회로 채널 성과가 일부 히트 영상에 집중되어, 히트가 없으면 전체 조회가 급감하는 구조입니다.`,
       expectedEffect: "반복 가능한 포맷 정착은 평균 조회수 유지력과 주제 재현성을 함께 높이는 방향으로 작용합니다.",
       scenarioText:
         `표본 중앙 조회수 약 ${Math.round(metrics.medianViewCount)}회로 일부 히트 영상에 조회가 집중되는 구조로 볼 수 있습니다.\n` +
@@ -513,6 +515,38 @@ function buildMetricBackedActions(
         videoCount: "1~2개",
         targetElement: "반복 가능 포맷",
         comparisonBasis: `현재 중앙 조회수 ${Math.round(metrics.medianViewCount)}회 기준`,
+      },
+    });
+  }
+
+  if (
+    sections.subscriptionConversion != null &&
+    sections.subscriptionConversion < threshold &&
+    metrics.avgLikeRatio != null &&
+    Number.isFinite(metrics.avgLikeRatio)
+  ) {
+    out.push({
+      id: "metric-subscription-conversion",
+      title: "구독 전환 구조 약화",
+      whyNeeded: `구독 전환 구조 구간 ${Math.round(sections.subscriptionConversion)}점(기준 55점). 평균 좋아요 비율 ${(metrics.avgLikeRatio * 100).toFixed(2)}%로 참여 신호가 낮아, 시청자가 영상을 보고도 구독으로 이어지는 흐름이 형성되지 않고 있습니다.`,
+      expectedEffect: "참여를 유도하는 콘텐츠 구조와 일관된 업로드는 시청자 신뢰를 높여 구독 전환율을 점진적으로 개선합니다.",
+      scenarioText:
+        `평균 좋아요 비율 ${(metrics.avgLikeRatio * 100).toFixed(2)}%로 참여 신호가 구독 전환에 충분하지 않은 수준입니다.\n` +
+        `영상 말미 구독 유도 + 일관된 주제·업로드 주기 정착 시 참여 신호가 먼저 회복됩니다.\n` +
+        `참여율 개선 → 시청자 신뢰 형성 → 구독 전환 흐름 강화 → 구독자 기반 안정화 순으로 변화가 나타날 수 있습니다.`,
+      difficulty: "medium",
+      executionHint:
+        "영상 마지막 30초에 구독 유도 멘트(구체적 이유 포함)를 추가하세요.\n동일 주제·포맷을 3회 이상 반복해 '다음 편 기대'를 형성하세요.",
+      performancePrediction: {
+        current: `구독 전환 구조 ${Math.round(sections.subscriptionConversion)}점`,
+        targetRange: "목표 55~65점",
+        expectedChanges: ["참여율 신호 개선", "구독 전환 흐름 강화"],
+        predictionBasis: `평균 좋아요 비율 ${(metrics.avgLikeRatio * 100).toFixed(2)}% 기준`,
+      },
+      executionSpec: {
+        videoCount: "다음 2~3개",
+        targetElement: "구독 유도 구조 + 주제 반복",
+        comparisonBasis: "적용 전후 좋아요 비율 비교",
       },
     });
   }
@@ -728,12 +762,12 @@ function sectionLinesFrom(
   sections: ChannelSectionScores | null
 ): ActionPlanSectionLineVm[] {
   if (!sections) return [];
-  return (Object.keys(SECTION_LABELS) as (keyof ChannelSectionScores)[]).map(
-    (k) => ({
-      label: SECTION_LABELS[k],
-      score: Math.round(sections[k]),
-    })
-  );
+  return (Object.keys(SECTION_LABELS) as (keyof ChannelSectionScores)[])
+    .filter((k) => sections[k] != null)
+    .map((k) => ({
+      label: SECTION_LABELS[k] ?? k,
+      score: Math.round(sections[k] as number),
+    }));
 }
 
 export function buildActionPlanPageViewModel(
@@ -830,7 +864,7 @@ export function buildActionPlanPageViewModel(
   if (merged.length === 0 && sections != null) {
     const keys = (
       Object.keys(SECTION_LABELS) as (keyof ChannelSectionScores)[]
-    ).filter((k) => sections[k] < 50);
+    ).filter((k) => (sections[k] ?? 100) < 50);
     if (keys.length > 0) {
       const labels = keys.map((k) => SECTION_LABELS[k]).join(", ");
       merged = [

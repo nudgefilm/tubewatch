@@ -3,7 +3,7 @@
  * Structured for future Stripe subscription integration.
  */
 
-export type BillingPlanId = "creator" | "pro" | "agency";
+export type BillingPlanId = "creator" | "pro";
 
 export interface BillingPlan {
   id: BillingPlanId;
@@ -23,7 +23,6 @@ export interface BillingPlan {
 export const SUBSCRIPTION_PRICE_ID_ENV_KEYS: Record<BillingPlanId, string> = {
   creator: "STRIPE_SUBSCRIPTION_CREATOR_PRICE_ID",
   pro: "STRIPE_SUBSCRIPTION_PRO_PRICE_ID",
-  agency: "STRIPE_SUBSCRIPTION_AGENCY_PRICE_ID",
 };
 
 export const BILLING_PLANS: BillingPlan[] = [
@@ -43,15 +42,6 @@ export const BILLING_PLANS: BillingPlan[] = [
     channels: 5,
     monthlyAnalyses: 50,
     targetAudience: "성장 중인 채널 운영자",
-    stripePriceId: null,
-  },
-  {
-    id: "agency",
-    name: "Agency",
-    priceUsd: 99,
-    channels: 20,
-    monthlyAnalyses: 200,
-    targetAudience: "멀티 채널 / 에이전시",
     stripePriceId: null,
   },
 ];

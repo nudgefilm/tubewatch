@@ -7,7 +7,6 @@ import type { BillingPlanId } from "./types";
 const PLAN_LABELS: Record<BillingPlanId, string> = {
   creator: "Creator 플랜 보기",
   pro: "Pro 플랜 보기",
-  agency: "Agency 플랜 보기",
 };
 
 export function GuestUpsellCard(): JSX.Element {
@@ -37,12 +36,6 @@ export function GuestUpsellCard(): JSX.Element {
           className="rounded-lg border border-primary bg-white px-4 py-2 text-sm font-medium text-primary hover:opacity-90"
         >
           {PLAN_LABELS.pro}
-        </Link>
-        <Link
-          href="/billing#agency"
-          className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-        >
-          {PLAN_LABELS.agency}
         </Link>
       </div>
     </SectionCard>

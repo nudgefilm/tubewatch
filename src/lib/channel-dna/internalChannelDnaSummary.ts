@@ -36,6 +36,10 @@ export type InternalChannelDnaSummaryVm = {
   readonly top3Share: number | null;
   readonly uploadConsistencyLevel: ChannelDnaTriLevel | null;
   readonly uploadConsistencyFallback: string | null;
+  readonly avgUploadIntervalDays: number | null;
+  readonly recent30dUploadCount: number | null;
+  /** contentStructure 구간 점수 (0–100), 없으면 null */
+  readonly contentStructureScore: number | null;
   readonly performanceSpreadLevel: ChannelDnaTriLevel | null;
   readonly performanceSpreadFallback: string | null;
   readonly breakoutDependencyLevel: ChannelDnaTriLevel | null;
@@ -238,6 +242,9 @@ export function buildInternalChannelDnaSummary(
       uploadConsistencyLevel: null,
       uploadConsistencyFallback:
         "업로드 패턴을 확인하려면 분석을 실행하세요.",
+      avgUploadIntervalDays: null,
+      recent30dUploadCount: null,
+      contentStructureScore: null,
       performanceSpreadLevel: null,
       performanceSpreadFallback:
         "성과 편차를 파악하려면 분석을 실행하세요.",
@@ -473,6 +480,15 @@ export function buildInternalChannelDnaSummary(
     top3Share,
     uploadConsistencyLevel,
     uploadConsistencyFallback,
+    avgUploadIntervalDays:
+      metrics?.avgUploadIntervalDays != null && Number.isFinite(metrics.avgUploadIntervalDays)
+        ? Math.round(metrics.avgUploadIntervalDays * 10) / 10
+        : null,
+    recent30dUploadCount:
+      metrics?.recent30dUploadCount != null && Number.isFinite(metrics.recent30dUploadCount)
+        ? Math.round(metrics.recent30dUploadCount)
+        : null,
+    contentStructureScore: sections?.contentStructure ?? null,
     performanceSpreadLevel,
     performanceSpreadFallback,
     breakoutDependencyLevel,

@@ -16,11 +16,12 @@ type AnalysisCompareCardProps = {
 
 const COMPARE_KEYS: { key: string; label: string }[] = [
   { key: "_total", label: "종합 점수" },
-  { key: "channelActivity", label: "채널 활동" },
-  { key: "audienceResponse", label: "시청자 반응" },
+  { key: "channelActivity", label: "채널 활동 패턴" },
+  { key: "audienceResponse", label: "시청자 반응 구조" },
   { key: "contentStructure", label: "콘텐츠 구조" },
-  { key: "seoOptimization", label: "SEO 최적화" },
+  { key: "seoOptimization", label: "SEO 최적화 상태" },
   { key: "growthMomentum", label: "성장 모멘텀" },
+  { key: "subscriptionConversion", label: "구독 전환 구조" },
 ];
 
 function getScore(

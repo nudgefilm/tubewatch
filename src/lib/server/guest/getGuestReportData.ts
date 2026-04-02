@@ -110,7 +110,7 @@ export async function getGuestReportData(
 
   let youtubeVideos: VideoInfo[];
   try {
-    youtubeVideos = await getRecentVideos(channel.channel_id, 20);
+    youtubeVideos = await getRecentVideos(channel.channel_id, 50);
   } catch (e) {
     const message = e instanceof Error ? e.message : "최근 영상 목록을 가져올 수 없습니다.";
     return { ok: false, error: message };

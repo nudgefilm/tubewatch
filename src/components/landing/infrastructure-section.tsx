@@ -3,31 +3,31 @@
 import { useEffect, useState, useRef } from "react";
 
 const insightData = {
-  score: 82,
+  score: 74,
   strength: {
     title: "콘텐츠 주제 일관성 우수",
-    detail: "최근 20개 영상 중 17개 동일 카테고리 유지",
+    detail: "최근 50개 영상 중 42개가 동일 카테고리 유지",
     stats: [
-      { label: "평균 조회수", value: "28,400" },
-      { label: "평균 시청 지속 시간", value: "4분 12초" },
-      { label: "구독 전환률", value: "2.8%" },
+      { label: "평균 조회수", value: "12,800" },
+      { label: "평균 시청 지속률", value: "47%" },
+      { label: "구독 전환률", value: "1.9%" },
     ],
   },
   opportunity: {
-    title: "SEO 최적화 부족",
-    detail: "검색 유입 비율이 경쟁 채널 대비 낮음",
+    title: "제목 SEO 최적화 필요",
+    detail: "검색 키워드 포함률이 경쟁 채널 대비 낮음",
     stats: [
-      { label: "키워드 포함률", value: "35%" },
-      { label: "검색 유입 비율", value: "14%" },
-      { label: "경쟁 채널 평균", value: "31%" },
+      { label: "키워드 포함률", value: "28%" },
+      { label: "검색 유입 비율", value: "11%" },
+      { label: "경쟁 채널 평균", value: "34%" },
     ],
-    keywords: ["유튜브 성장 전략", "채널 분석", "구독자 늘리는 방법"],
+    keywords: ["채널 성장 전략", "유튜브 알고리즘", "구독자 늘리기"],
   },
   action: {
     title: "제목 구조 개선 권장",
-    current: "유튜브 채널 성장 이야기",
-    recommended: "유튜브 채널 성장 전략\n구독자 늘리는 5가지 방법",
-    expectedGrowth: "+18% ~ +32%",
+    current: "내 채널 운영 이야기",
+    recommended: "구독자 0→1000 만든\n유튜브 채널 운영 전략",
+    expectedGrowth: "+22% ~ +38%",
   },
 };
 
@@ -97,14 +97,15 @@ export function InfrastructureSection() {
               <span className="w-8 h-px bg-foreground/30" />
               Example Insight
             </span>
-            <h2 className="text-4xl lg:text-6xl font-heading font-medium tracking-[-0.03em] mb-8">
-              분석 결과
+            <h2 className="text-4xl lg:text-6xl font-heading font-medium tracking-[-0.03em] leading-[1.1] mb-8">
+              데이터가 말하는
               <br />
-              미리보기
+              내 채널 점수
             </h2>
             <p className="text-xl text-muted-foreground leading-relaxed mb-12">
-              최근 영상 성과와 채널 활동 데이터를 기반으로
-              성장 잠재력을 분석한 종합 점수입니다.
+              최근 영상 50개와 80개 성장 신호를 기반으로
+              <br />
+              채널의 현재 상태를 종합 평가합니다.
             </p>
 
             {/* Score Display */}
@@ -116,7 +117,7 @@ export function InfrastructureSection() {
             </div>
             <div className="text-lg font-medium mb-2">Channel Growth Score</div>
             <div className="text-muted-foreground">
-              종합 성장 잠재력 점수
+              채널 성장 잠재력 종합 평가 점수
             </div>
           </div>
 

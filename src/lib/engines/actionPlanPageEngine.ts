@@ -14,6 +14,22 @@ const DIFFICULTY_LABEL: Record<ActionPlanCardVm["difficulty"], string> = {
   high: "상",
 }
 
+const CARD_SIGNAL_MAP: Record<string, string> = {
+  "metric-activity-uploads":         "채널 활동 패턴",
+  "metric-activity-interval":        "채널 활동 패턴",
+  "metric-audience-like":            "시청자 반응 구조",
+  "metric-structure-title":          "SEO 최적화 상태",
+  "metric-tags":                     "SEO 최적화 상태",
+  "metric-duration":                 "콘텐츠·구조",
+  "metric-growth-median":            "성장 모멘텀",
+  "metric-subscription-conversion":  "구독 전환 구조",
+}
+
+/** 카드 ID → 세부 신호 태그 (키워드 밀도 등 명칭이 analysisConnection과 다를 때만) */
+const CARD_SIGNAL_TAG_MAP: Record<string, string> = {
+  "metric-tags": "키워드 밀도",
+}
+
 function toCardsSection(actions: ActionPlanCardVm[]) {
   return actions.map((a) => ({
     id: a.id,
@@ -25,7 +41,8 @@ function toCardsSection(actions: ActionPlanCardVm[]) {
     scenarioBlocks: a.scenarioText?.split("\n").filter(Boolean) ?? [],
     priority: a.priority,
     dnaConnection: a.evidenceSource === "channel_dna" ? "채널 DNA 기반" : null,
-    analysisConnection: "분석 스냅샷",
+    analysisConnection: CARD_SIGNAL_MAP[a.id] ?? "분석 스냅샷",
+    signalTag: CARD_SIGNAL_TAG_MAP[a.id] ?? null,
     performancePrediction: a.performancePrediction ?? null,
     executionSpec: a.executionSpec ?? null,
     difficultyLabel: DIFFICULTY_LABEL[a.difficulty],

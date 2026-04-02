@@ -28,6 +28,7 @@ export type AnalysisSectionScores = Partial<{
   contentStructure: number
   seoOptimization: number
   growthMomentum: number
+  subscriptionConversion: number
 }>
 
 // ── 내부 계산 함수 ─────────────────────────────────────────────────────────────
@@ -254,6 +255,11 @@ const TITLE_TO_SECTION_KEY: Record<string, keyof AnalysisSectionScores> = {
   "콘텐츠·구조": "contentStructure",
   "메타·발견성": "seoOptimization",
   "성장 신호": "growthMomentum",
+  "채널 활동 패턴": "channelActivity",
+  "시청자 반응 구조": "audienceResponse",
+  "SEO 최적화 상태": "seoOptimization",
+  "성장 모멘텀": "growthMomentum",
+  "구독 전환 구조": "subscriptionConversion",
 }
 
 function mapToSectionScores(vm: AnalysisPageViewModel): AnalysisSectionScores | undefined {

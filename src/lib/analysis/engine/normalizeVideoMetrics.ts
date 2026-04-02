@@ -95,7 +95,7 @@ import {
       params.videos,
       []
     )
-      .slice(0, 20)
+      .slice(0, 50)
       .map((video) => {
         const title = safeString(video.title);
         const description = safeString(video.description);

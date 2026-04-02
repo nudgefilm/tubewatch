@@ -8,6 +8,7 @@ export type SectionScores = {
   contentStructure?: number
   seoOptimization?: number
   growthMomentum?: number
+  subscriptionConversion?: number
 }
 
 interface AnalysisScoreOverviewProps {
@@ -62,14 +63,20 @@ const SECTION_INTERPRETATIONS: Record<SectionKey, [string, string, string]> = {
     "성장 신호가 감지되나 히트 의존이 남아 재현 가능한 구조가 아직 굳어지지 않은 경향입니다",
     "성장 신호가 뚜렷하지 않아 평균 조회수 유지력이 약할 수 있는 구조입니다",
   ],
+  subscriptionConversion: [
+    "참여 구조와 콘텐츠 일관성이 구독 전환에 유리한 신호를 형성하고 있습니다",
+    "구독 전환 신호가 부분적으로 감지되나 참여 일관성이 더 굳어져야 할 경향입니다",
+    "구독 전환 구조가 약해 시청자가 채널을 이탈 없이 구독할 동기가 낮을 수 있습니다",
+  ],
 }
 
 const SECTION_DISPLAY: { key: SectionKey; label: string }[] = [
-  { key: "channelActivity",  label: "활동" },
-  { key: "audienceResponse", label: "반응" },
-  { key: "contentStructure", label: "구조" },
-  { key: "seoOptimization",  label: "발견" },
-  { key: "growthMomentum",   label: "성장" },
+  { key: "channelActivity",       label: "활동" },
+  { key: "audienceResponse",      label: "반응" },
+  { key: "contentStructure",      label: "구조" },
+  { key: "seoOptimization",       label: "SEO" },
+  { key: "growthMomentum",        label: "성장" },
+  { key: "subscriptionConversion", label: "구독" },
 ]
 
 function tierOf(score: number): 0 | 1 | 2 {

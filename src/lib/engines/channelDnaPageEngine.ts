@@ -18,11 +18,23 @@ function uploadLevelToLabel(level: InternalChannelDnaSummaryVm["uploadConsistenc
   return "-"
 }
 
+function contentScoreToLabel(score: number | null): string {
+  if (score == null) return "판정 없음"
+  if (score >= 65) return "일관됨"
+  if (score >= 45) return "혼합됨"
+  return "다양함"
+}
+
 function buildStructureSummary(vm: InternalChannelDnaSummaryVm) {
   const hitDependency: number | null =
     vm.topPerformerShare != null ? Math.round(vm.topPerformerShare * 100) : null
   const stability = spreadLevelToStability(vm.performanceSpreadLevel)
   const growthAxis = vm.topPatternSignals.slice(0, 2).map((s) => humanizeSignal(s).label)
+
+  const topicConsistency: { score: number | null; label: string } | null =
+    vm.contentStructureScore != null
+      ? { score: vm.contentStructureScore, label: contentScoreToLabel(vm.contentStructureScore) }
+      : null
 
   return {
     hitDependency,
@@ -33,6 +45,7 @@ function buildStructureSummary(vm: InternalChannelDnaSummaryVm) {
       vm.performanceSpreadLevel === "low" ? 75 : vm.performanceSpreadLevel === "high" ? 30 : 50,
     performanceDistribution: [] as { range: string; count: number; percentage: number }[],
     summaryText: vm.channelDnaNarrative,
+    topicConsistency,
   }
 }
 

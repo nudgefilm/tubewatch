@@ -122,11 +122,12 @@ const SECTION_ORDER: {
   key: keyof ChannelSectionScores;
   title: string;
 }[] = [
-  { key: "channelActivity", title: "업로드·활동" },
-  { key: "audienceResponse", title: "조회·반응" },
-  { key: "contentStructure", title: "콘텐츠·구조" },
-  { key: "seoOptimization", title: "메타·발견성" },
-  { key: "growthMomentum", title: "성장 신호" },
+  { key: "channelActivity",       title: "채널 활동 패턴" },
+  { key: "audienceResponse",      title: "시청자 반응 구조" },
+  { key: "contentStructure",      title: "콘텐츠·구조" },
+  { key: "seoOptimization",       title: "SEO 최적화 상태" },
+  { key: "growthMomentum",        title: "성장 모멘텀" },
+  { key: "subscriptionConversion", title: "구독 전환 구조" },
 ];
 
 type ChannelSectionScores = {
@@ -135,6 +136,7 @@ type ChannelSectionScores = {
   contentStructure: number;
   seoOptimization: number;
   growthMomentum: number;
+  subscriptionConversion?: number;
 };
 
 /** DB snapshot.metrics の型ガード — normalizeFeatureSnapshot().metrics との橋渡し */
@@ -264,13 +266,13 @@ function buildCardItemsForSection(
   if (sectionKey === "seoOptimization") {
     if (metrics.avgTitleLength != null) {
       items.push({
-        label: "제목 길이(발견성 참고)",
+        label: "평균 제목 길이",
         value: `${formatInt(metrics.avgTitleLength)}자`,
       });
     }
     if (metrics.avgTagCount != null) {
       items.push({
-        label: "태그 수(발견성 참고)",
+        label: "평균 태그 수",
         value: `${formatInt(metrics.avgTagCount)}개`,
       });
     }
@@ -282,6 +284,21 @@ function buildCardItemsForSection(
       value:
         "최근 대비 조회 모멘텀 등은 엔진 점수로 요약됩니다. 확정적 성장 예측은 하지 않습니다.",
     });
+  }
+
+  if (sectionKey === "subscriptionConversion") {
+    if (metrics.avgLikeRatio != null) {
+      items.push({
+        label: "평균 좋아요 비율",
+        value: formatPercentRatio(metrics.avgLikeRatio),
+      });
+    }
+    if (metrics.avgCommentRatio != null) {
+      items.push({
+        label: "평균 댓글 비율",
+        value: formatPercentRatio(metrics.avgCommentRatio),
+      });
+    }
   }
 
   return items;
@@ -656,8 +673,9 @@ export function buildAnalysisPageViewModel(
   if (sections) {
     for (const { key, title } of SECTION_ORDER) {
       const score = sections[key];
+      if (score == null) continue; // optional 필드 누락 시 skip (하위호환)
       const items = buildCardItemsForSection(key, metrics);
-      if (items.length === 0 && key !== "growthMomentum") {
+      if (items.length === 0 && key !== "growthMomentum" && key !== "subscriptionConversion") {
         items.push({
           label: "표시 가능한 세부 지표",
           value: "이 구간에 매핑된 수치가 스냅샷에 없습니다.",

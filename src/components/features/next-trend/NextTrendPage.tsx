@@ -51,6 +51,42 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                 {viewModel.dataPipelineNotice}
               </div>
 
+              {/* 채널 활동 맥락 — 성장 모멘텀 + 업로드 주기 */}
+              {(viewModel.growthMomentum != null || viewModel.avgUploadIntervalDays != null) && (
+                <div className="flex flex-wrap gap-4 rounded-lg border border-muted px-5 py-4">
+                  {viewModel.growthMomentum != null && (
+                    <div className="flex items-center gap-3 min-w-[180px]">
+                      <div className="flex-1">
+                        <p className="text-xs text-muted-foreground mb-1.5">성장 모멘텀</p>
+                        <Progress value={viewModel.growthMomentum} className="h-1.5" />
+                      </div>
+                      <span className="text-sm font-semibold tabular-nums shrink-0">
+                        {Math.round(viewModel.growthMomentum)}
+                      </span>
+                    </div>
+                  )}
+                  {viewModel.avgUploadIntervalDays != null && (
+                    <div className="space-y-1 min-w-[180px]">
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs text-muted-foreground">업로드 주기</p>
+                        <span className="text-sm font-semibold tabular-nums">
+                          {viewModel.avgUploadIntervalDays.toFixed(1)}일
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">
+                        {viewModel.avgUploadIntervalDays <= 3
+                          ? "현재 주기를 유지하면 구독자 복귀 기대가 유지됩니다"
+                          : viewModel.avgUploadIntervalDays <= 7
+                            ? "이번 주 내 업로드를 유지하면 현재 주기가 지켜집니다"
+                            : viewModel.avgUploadIntervalDays <= 14
+                              ? "2주 이내 업로드로 주기를 회복하는 것을 권장합니다"
+                              : "업로드 간격이 길어지고 있습니다. 빠른 게시로 리듬을 되찾으세요"}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* 신호 부족 알림 */}
               {!viewModel.hasEnoughTrendSignal && (
                 <div className="flex items-start gap-3 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 dark:border-yellow-900/40 dark:bg-yellow-900/10">
@@ -58,6 +94,19 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                   <p className="text-sm text-yellow-700 dark:text-yellow-400">
                     반복 신호가 충분하지 않습니다. 아래 후보는 현재 표본에서 도출한 초기 방향입니다. 영상이 쌓일수록 신호가 정교해집니다.
                   </p>
+                </div>
+              )}
+
+              {/* SEO 상태 컨텍스트 배너 */}
+              {viewModel.seoOptimization != null && (
+                <div className="flex items-center gap-2 rounded-md border border-muted bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+                  <span className="font-medium text-foreground">SEO 최적화 상태</span>
+                  <span className={`tabular-nums font-semibold ${
+                    viewModel.seoOptimization >= 65 ? "text-emerald-600"
+                    : viewModel.seoOptimization >= 45 ? "text-amber-600"
+                    : "text-rose-600"
+                  }`}>{Math.round(viewModel.seoOptimization)}</span>
+                  <span>/ 100 기반 키워드 추천</span>
                 </div>
               )}
 
@@ -78,6 +127,11 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                         <div className="flex items-center gap-2 text-primary">
                           <ArrowRight className="h-4 w-4 shrink-0" />
                           <span className="text-xs font-bold uppercase tracking-wider">지금 1순위</span>
+                          {viewModel.growthMomentum != null && (
+                            <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium tabular-nums text-primary">
+                              성장 모멘텀 {Math.round(viewModel.growthMomentum)}
+                            </span>
+                          )}
                         </div>
                         <p className="text-lg font-bold leading-snug break-words">{top1.topic}</p>
                         <p className="text-sm font-semibold text-foreground/80 leading-snug">
