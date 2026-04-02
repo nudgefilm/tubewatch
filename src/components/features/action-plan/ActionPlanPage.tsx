@@ -6,11 +6,9 @@ import { ActionPlanChecklistSection } from "./sections/ChecklistSection"
 import { ActionPlanEmptyState } from "./sections/EmptyState"
 import { ChannelContextHeader, type ChannelContext } from "@/components/features/shared/ChannelContextHeader"
 import { FeaturePaywallBlock } from "@/components/features/shared/FeaturePaywallBlock"
-import type {
-  ActionPlanPageViewModel,
-  ActionPlanCardVm,
-  ActionPlanChecklistVm,
-} from "@/lib/action-plan/actionPlanPageViewModel"
+import { PageFlowConnector } from "@/components/features/shared/PageFlowConnector"
+import type { ActionPlanPageViewModel } from "@/lib/action-plan/actionPlanPageViewModel"
+import { buildActionPlanPageSections } from "@/lib/engines/actionPlanPageEngine"
 
 interface ActionPlanPageProps {
   channelId?: string
@@ -19,46 +17,6 @@ interface ActionPlanPageProps {
   isStarterPlan?: boolean
 }
 
-const difficultyLabel: Record<ActionPlanCardVm["difficulty"], string> = {
-  low: "하",
-  medium: "중",
-  high: "상",
-}
-
-function toPrioritySection(actions: ActionPlanCardVm[]) {
-  return actions.slice(0, 3).map((a, i) => ({
-    id: a.id,
-    level: a.priority,
-    title: a.title,
-    reason: a.whyNeeded,
-    expectedEffect: a.expectedEffect,
-    executionSteps: a.executionHint.split("\n").filter(Boolean),
-    order: i + 1,
-    difficulty: difficultyLabel[a.difficulty],
-  }))
-}
-
-function toCardsSection(actions: ActionPlanCardVm[]) {
-  return actions.map((a) => ({
-    id: a.id,
-    title: a.title,
-    problemSummary: a.whyNeeded,
-    whyNeeded: a.whyNeeded,
-    howToExecute: a.executionHint.split("\n").filter(Boolean),
-    expectedEffect: a.expectedEffect,
-    scenarioBlocks: a.scenarioText?.split("\n").filter(Boolean) ?? [],
-    priority: a.priority,
-    dnaConnection:
-      a.evidenceSource === "channel_dna" ? "채널 DNA 기반" : null,
-    analysisConnection: "분석 스냅샷",
-    performancePrediction: a.performancePrediction ?? null,
-    executionSpec: a.executionSpec ?? null,
-  }))
-}
-
-function toChecklistItems(items: ActionPlanChecklistVm[]) {
-  return items
-}
 
 export function ActionPlanPage({ channelId = "", channelContext, viewModel, isStarterPlan = false }: ActionPlanPageProps) {
   const [showFirstVisitBanner, setShowFirstVisitBanner] = useState(false)
@@ -73,8 +31,7 @@ export function ActionPlanPage({ channelId = "", channelContext, viewModel, isSt
 
   // Real data path
   if (viewModel) {
-    const cardsData = toCardsSection(isStarterPlan ? viewModel.actions.slice(0, 2) : viewModel.actions)
-    const checklistData = toChecklistItems(viewModel.checklistItems)
+    const { cardsData, checklistData } = buildActionPlanPageSections(viewModel, isStarterPlan)
 
     return (
       <div className="min-h-screen bg-background">
@@ -149,6 +106,14 @@ export function ActionPlanPage({ channelId = "", channelContext, viewModel, isSt
             </section>
           )}
 
+          {/* 다음 단계 연결 */}
+          {viewModel.hasAnalysis && (
+            <PageFlowConnector
+              message="다음 트렌드 방향을 확인하고 주제를 결정하세요."
+              ctaLabel="Next Trend 보기"
+              href="/next-trend"
+            />
+          )}
 
         </div>
       </div>

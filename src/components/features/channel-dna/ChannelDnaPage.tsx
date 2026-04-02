@@ -7,9 +7,8 @@ import { DnaEmptyState } from "./sections/EmptyState"
 import { ChannelContextHeader, type ChannelContext } from "@/components/features/shared/ChannelContextHeader"
 import { PageFlowConnector } from "@/components/features/shared/PageFlowConnector"
 import { FeaturePaywallBlock } from "@/components/features/shared/FeaturePaywallBlock"
-import { humanizeSignal } from "./utils/dnaHelper"
+import { buildChannelDnaPageSections } from "@/lib/engines/channelDnaPageEngine"
 import type { ChannelDnaPageViewModel } from "@/lib/channel-dna/channelDnaPageViewModel"
-import type { InternalChannelDnaSummaryVm } from "@/lib/channel-dna/internalChannelDnaSummary"
 
 interface ChannelDnaPageProps {
   channelId?: string
@@ -18,175 +17,11 @@ interface ChannelDnaPageProps {
   isStarterPlan?: boolean
 }
 
-function spreadLevelToStability(level: InternalChannelDnaSummaryVm["performanceSpreadLevel"]): string {
-  if (level === "low") return "안정"
-  if (level === "high") return "취약"
-  return "불안정"
-}
-
-function buildStructureSummaryFromVm(vm: InternalChannelDnaSummaryVm) {
-  // topPerformerShare 없으면 null — 0과 "데이터 없음"을 구분
-  const hitDependency: number | null =
-    vm.topPerformerShare != null ? Math.round(vm.topPerformerShare * 100) : null
-  const stability = spreadLevelToStability(vm.performanceSpreadLevel)
-  const growthAxis = vm.topPatternSignals.slice(0, 2).map((s) => humanizeSignal(s).label)
-
-  const result = {
-    hitDependency,
-    growthType: vm.dominantFormat ?? "분석 중",
-    growthAxis: growthAxis.length > 0 ? growthAxis : ["패턴 분석 중"],
-    structureStability: stability,
-    structureStabilityScore:
-      vm.performanceSpreadLevel === "low" ? 75 : vm.performanceSpreadLevel === "high" ? 30 : 50,
-    performanceDistribution: [] as { range: string; count: number; percentage: number }[],
-    summaryText: vm.channelDnaNarrative,
-  }
-
-  console.log("DNA metric debug", {
-    key: "structureSummary",
-    snapshot: {
-      topPerformerShare: vm.topPerformerShare,
-      top3Share: vm.top3Share,
-      performanceSpreadLevel: vm.performanceSpreadLevel,
-      dominantFormat: vm.dominantFormat,
-      medianViews: vm.medianViews,
-      averageViews: vm.averageViews,
-    },
-    computed: { stability, growthAxis },
-    finalValue: { hitDependency: result.hitDependency, structureStabilityScore: result.structureStabilityScore },
-  })
-
-  return result
-}
-
-function uploadLevelToLabel(level: InternalChannelDnaSummaryVm["uploadConsistencyLevel"]): string {
-  if (level === "high") return "안정적"
-  if (level === "medium") return "불규칙"
-  if (level === "low") return "불안정"
-  return "-"
-}
-
-function buildPatternAnalysisFromVm(vm: InternalChannelDnaSummaryVm) {
-  const highPerformancePatterns = vm.topPatternSignals.map((signal, i) => {
-    const { label, description } = humanizeSignal(signal)
-    return {
-      pattern: label,
-      frequency: "반복 확인됨",
-      description,
-      examples: [] as string[],
-      score: Math.max(60, 85 - i * 5),
-    }
-  })
-  const lowPerformancePatterns = vm.weakPatternSignals.map((signal, i) => {
-    const { label, description } = humanizeSignal(signal)
-    return {
-      pattern: label,
-      frequency: "개선 필요",
-      description,
-      examples: [] as never[],
-      score: Math.min(45, 40 + i * 3),
-    }
-  })
-
-  // 반복 제목 구조: topPatternSignals에 title_keyword_repetition이 있으면 표시
-  const hasTitleRepeat = vm.topPatternSignals.includes("title_keyword_repetition")
-  const titleDominant = hasTitleRepeat ? "제목 키워드 반복 패턴" : "-"
-
-  // 업로드 주기: uploadConsistencyLevel → 표시용 레이블 (null만 차단, 값이 있으면 표시)
-  const currentCycle = vm.uploadConsistencyLevel != null
-    ? uploadLevelToLabel(vm.uploadConsistencyLevel)
-    : "-"
-
-  const result = {
-    highPerformancePatterns,
-    lowPerformancePatterns,
-    titleStructure: { dominant: titleDominant, consistency: 0 },
-    formatRepetition: {
-      dominant: vm.dominantFormat ?? "-",
-      consistency: 0,
-    },
-    topicClusters: [] as { topic: string; weight: number }[],
-    uploadCycleImpact: {
-      optimalCycle: "-",
-      currentCycle,
-      performanceCorrelation: vm.uploadConsistencyLevel ?? "-",
-      note: vm.uploadConsistencyFallback ?? "업로드 주기 데이터가 충분하지 않습니다.",
-    },
-  }
-
-  console.log("DNA metric debug", {
-    key: "patternAnalysis",
-    snapshot: {
-      topPatternSignals: vm.topPatternSignals,
-      weakPatternSignals: vm.weakPatternSignals,
-      uploadConsistencyLevel: vm.uploadConsistencyLevel,
-      uploadConsistencyFallback: vm.uploadConsistencyFallback,
-      dominantFormat: vm.dominantFormat,
-    },
-    computed: { hasTitleRepeat, currentCycle },
-    finalValue: {
-      titleDominant: result.titleStructure.dominant,
-      currentCycle: result.uploadCycleImpact.currentCycle,
-      highCount: highPerformancePatterns.length,
-      lowCount: lowPerformancePatterns.length,
-    },
-  })
-
-  return result
-}
-
-function buildDnaCardsFromVm(vm: InternalChannelDnaSummaryVm) {
-  const strengths = vm.topPatternSignals.map((signal, i) => {
-    const { label, description } = humanizeSignal(signal)
-    return { title: label, description, score: Math.max(60, 85 - i * 5), tags: [] as string[] }
-  })
-  const weaknesses = vm.weakPatternSignals.map((signal, i) => {
-    const { label, description } = humanizeSignal(signal)
-    return { title: label, description, score: Math.min(45, 40 + i * 3), tags: [] as string[] }
-  })
-  const corePatterns = vm.dominantFormat
-    ? [{ pattern: vm.dominantFormat, importance: "핵심", note: "최근 분석 기준 주요 포맷" }]
-    : []
-  const risks = [] as { type: string; level: string; description: string }[]
-  if (vm.breakoutDependencyLevel === "high") {
-    risks.push({
-      type: "히트 의존 리스크",
-      level: "높음",
-      description: vm.breakoutDependencyFallback ?? "히트 영상 의존도가 높은 구조입니다.",
-    })
-  } else if (vm.breakoutDependencyLevel === "medium") {
-    risks.push({
-      type: "히트 의존 리스크",
-      level: "중간",
-      description: vm.breakoutDependencyFallback ?? "히트 영상 의존도가 중간 수준입니다.",
-    })
-  }
-
-  const result = { strengths, weaknesses, corePatterns, risks }
-
-  console.log("DNA metric debug", {
-    key: "dnaCards",
-    snapshot: {
-      breakoutDependencyLevel: vm.breakoutDependencyLevel,
-      breakoutDependencyFallback: vm.breakoutDependencyFallback,
-      dominantFormat: vm.dominantFormat,
-    },
-    computed: { strengthsCount: strengths.length, weaknessesCount: weaknesses.length },
-    finalValue: {
-      corePatterns: result.corePatterns.length,
-      risks: result.risks.map((r) => r.type),
-    },
-  })
-
-  return result
-}
-
 export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isStarterPlan = false }: ChannelDnaPageProps) {
   // Real data path
   if (viewModel) {
     const vm = viewModel.internalChannelDnaSummary
-    const structureSummary = buildStructureSummaryFromVm(vm)
-    const dnaCards = buildDnaCardsFromVm(vm)
+    const { structureSummary, dnaCards } = buildChannelDnaPageSections(vm)
 
     return (
       <div className="min-h-screen bg-background">

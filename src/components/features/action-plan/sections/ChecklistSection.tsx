@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Check, Minus, X, Clock } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -42,23 +43,74 @@ const difficultyColor: Record<FlatChecklistItem["difficulty"], string> = {
 }
 
 export function ActionPlanChecklistSection({ data, items }: ActionPlanChecklistProps) {
+  const [checked, setChecked] = useState<Set<string>>(new Set())
+
+  function toggle(id: string) {
+    setChecked((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
   if (items && items.length > 0) {
+    const doneCount = items.filter((i) => checked.has(i.id)).length
     return (
-      <div className="grid gap-3 md:grid-cols-2">
-        {items.map((item) => (
-          <Card key={item.id} className="flex gap-3 p-4">
-            <div className="mt-1 h-2 w-2 rounded-full bg-primary shrink-0" />
-            <div className="space-y-1 flex-1">
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-sm font-medium">{item.title}</p>
-                <span className={`text-xs font-medium ${difficultyColor[item.difficulty]}`}>
-                  {difficultyLabel[item.difficulty]}
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground">{item.description}</p>
-            </div>
-          </Card>
-        ))}
+      <div className="space-y-3">
+        {/* 진행 카운터 */}
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <span>업로드 전 체크리스트</span>
+          <span className={doneCount === items.length ? "font-semibold text-emerald-600" : ""}>
+            {doneCount} / {items.length} 완료
+          </span>
+        </div>
+        {/* 진행 바 */}
+        <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+          <div
+            className="h-full rounded-full bg-emerald-500 transition-all duration-300"
+            style={{ width: `${items.length > 0 ? (doneCount / items.length) * 100 : 0}%` }}
+          />
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-2">
+          {items.map((item) => {
+            const isDone = checked.has(item.id)
+            return (
+              <button
+                key={item.id}
+                onClick={() => toggle(item.id)}
+                className={`flex gap-3 rounded-lg border p-4 text-left transition-colors ${
+                  isDone
+                    ? "border-emerald-200 bg-emerald-50/50 dark:border-emerald-800 dark:bg-emerald-950/20"
+                    : "bg-card hover:bg-muted/40"
+                }`}
+              >
+                {/* 체크 아이콘 */}
+                <div
+                  className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
+                    isDone
+                      ? "border-emerald-500 bg-emerald-500 text-white"
+                      : "border-muted-foreground/30"
+                  }`}
+                >
+                  {isDone && <Check className="size-3 stroke-[3]" />}
+                </div>
+                <div className="space-y-1 flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className={`text-sm font-medium ${isDone ? "line-through text-muted-foreground" : ""}`}>
+                      {item.title}
+                    </p>
+                    <span className={`shrink-0 text-xs font-medium ${isDone ? "text-muted-foreground" : difficultyColor[item.difficulty]}`}>
+                      {difficultyLabel[item.difficulty]}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{item.description}</p>
+                </div>
+              </button>
+            )
+          })}
+        </div>
       </div>
     )
   }

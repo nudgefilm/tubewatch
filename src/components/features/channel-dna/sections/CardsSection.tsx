@@ -1,16 +1,25 @@
 "use client"
 
-import { CircleCheck, CircleAlert, Fingerprint, AlertTriangle } from "lucide-react"
+import { useState } from "react"
+import { CircleCheck, CircleAlert, Fingerprint, AlertTriangle, ChevronDown } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { DirectionalGauge } from "@/components/ui/DirectionalGauge"
 import type { ChannelDnaData } from "../mock-data"
+
+const INITIAL_SHOW = 3
 
 interface DnaCardsSectionProps {
   data: ChannelDnaData["dnaCards"]
 }
 
 export function DnaCardsSection({ data }: DnaCardsSectionProps) {
+  const [showAllStrengths, setShowAllStrengths] = useState(false)
+  const [showAllWeaknesses, setShowAllWeaknesses] = useState(false)
+
+  const visibleStrengths = showAllStrengths ? data.strengths : data.strengths.slice(0, INITIAL_SHOW)
+  const visibleWeaknesses = showAllWeaknesses ? data.weaknesses : data.weaknesses.slice(0, INITIAL_SHOW)
+
   const getRiskLevelColor = (level: string) => {
     switch (level) {
       case "낮음":
@@ -34,10 +43,15 @@ export function DnaCardsSection({ data }: DnaCardsSectionProps) {
             <CardTitle className="flex items-center gap-2 text-base">
               <CircleCheck className="size-5 text-emerald-500" />
               강점 패턴
+              {data.strengths.length > 0 && (
+                <span className="ml-auto text-xs font-normal text-muted-foreground">
+                  {data.strengths.length}개
+                </span>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {data.strengths.map((item) => (
+            {visibleStrengths.map((item) => (
               <div key={item.title} className="rounded-lg border bg-emerald-500/5 p-3 space-y-3">
                 <p className="font-medium text-sm">{item.title}</p>
                 <DirectionalGauge
@@ -58,6 +72,19 @@ export function DnaCardsSection({ data }: DnaCardsSectionProps) {
                 )}
               </div>
             ))}
+            {data.strengths.length > INITIAL_SHOW && (
+              <button
+                onClick={() => setShowAllStrengths((v) => !v)}
+                className="flex w-full items-center justify-center gap-1 rounded-md border border-dashed py-2 text-xs text-muted-foreground hover:bg-muted/40 transition-colors"
+              >
+                <ChevronDown
+                  className={`size-3.5 transition-transform ${showAllStrengths ? "rotate-180" : ""}`}
+                />
+                {showAllStrengths
+                  ? "접기"
+                  : `${data.strengths.length - INITIAL_SHOW}개 더 보기`}
+              </button>
+            )}
           </CardContent>
         </Card>
 
@@ -67,10 +94,15 @@ export function DnaCardsSection({ data }: DnaCardsSectionProps) {
             <CardTitle className="flex items-center gap-2 text-base">
               <CircleAlert className="size-5 text-red-500" />
               약점 패턴
+              {data.weaknesses.length > 0 && (
+                <span className="ml-auto text-xs font-normal text-muted-foreground">
+                  {data.weaknesses.length}개
+                </span>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {data.weaknesses.map((item) => (
+            {visibleWeaknesses.map((item) => (
               <div key={item.title} className="rounded-lg border bg-red-500/5 p-3 space-y-3">
                 <p className="font-medium text-sm">{item.title}</p>
                 <DirectionalGauge
@@ -91,6 +123,19 @@ export function DnaCardsSection({ data }: DnaCardsSectionProps) {
                 )}
               </div>
             ))}
+            {data.weaknesses.length > INITIAL_SHOW && (
+              <button
+                onClick={() => setShowAllWeaknesses((v) => !v)}
+                className="flex w-full items-center justify-center gap-1 rounded-md border border-dashed py-2 text-xs text-muted-foreground hover:bg-muted/40 transition-colors"
+              >
+                <ChevronDown
+                  className={`size-3.5 transition-transform ${showAllWeaknesses ? "rotate-180" : ""}`}
+                />
+                {showAllWeaknesses
+                  ? "접기"
+                  : `${data.weaknesses.length - INITIAL_SHOW}개 더 보기`}
+              </button>
+            )}
           </CardContent>
         </Card>
       </div>

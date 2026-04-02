@@ -11,14 +11,7 @@ import { Progress } from "@/components/ui/progress"
 import { AlertCircle, ArrowRight, TrendingUp } from "lucide-react"
 import { EvidenceBlock } from "@/components/common/EvidenceBlock"
 import type { NextTrendPageViewModel } from "@/lib/next-trend/nextTrendPageViewModel"
-import type {
-  NextTrendCandidateVm,
-  NextTrendFormatVm,
-  NextTrendRiskVm,
-  NextTrendHintsVm,
-  NextTrendActionsVm,
-} from "@/lib/next-trend/buildNextTrendInternalSpec"
-import type { TrendCandidate, FormatRecommendation, RiskMemo, ExecutionHint, ExecutionAction } from "./mock-data"
+import { buildNextTrendPageSections, SIGNAL_STRENGTH_BADGE } from "@/lib/engines/nextTrendPageEngine"
 
 interface NextTrendPageProps {
   channelId?: string
@@ -27,144 +20,14 @@ interface NextTrendPageProps {
   isStarterPlan?: boolean
 }
 
-function toCandidates(vms: NextTrendCandidateVm[]): TrendCandidate[] {
-  return vms.map((vm, i) => ({
-    id: `candidate-${i}`,
-    topic: vm.topic,
-    reason: vm.reason,
-    signal: vm.signal,
-    priority: i === 0 ? ("high" as const) : i < 3 ? ("medium" as const) : ("low" as const),
-    feasibility: Math.max(40, 80 - i * 8),
-    source: "dna" as const,
-    status: "executable" as const,
-    signalStrength: vm.signalStrength,
-    evidence: vm.evidence ?? [],
-    expectedEffect: vm.expectedEffect,
-  }))
-}
-
-function toFormatRecommendations(vm: NextTrendFormatVm): FormatRecommendation[] {
-  return [
-    {
-      id: "format-1",
-      format: vm.recommendedFormat,
-      seriesPotential: vm.seriesPotential.includes("시리즈") || vm.seriesPotential.includes("반복"),
-      recommendedLength: vm.suggestedLength,
-      approach: vm.seriesPotential,
-      internalFit: 70,
-      basedOn: "스냅샷 기반 포맷 분석",
-    },
-  ]
-}
-
-function toRiskMemos(vm: NextTrendRiskVm): RiskMemo[] {
-  if (!vm.riskyTopic || vm.riskyTopic === "-" || vm.riskyTopic === "") return []
-  const confidenceNum =
-    vm.confidence === "높음" ? 75 : vm.confidence === "중간" ? 50 : 30
-  const churnRisk =
-    vm.confidence === "높음" ? ("high" as const) : vm.confidence === "중간" ? ("medium" as const) : ("low" as const)
-  return [
-    {
-      id: "risk-1",
-      topic: vm.riskyTopic,
-      confidence: confidenceNum,
-      reason: vm.confidenceBasis,
-      churnRisk,
-      warningPoints: [],
-    },
-  ]
-}
-
-function toExecutionHints(vm: NextTrendHintsVm): ExecutionHint[] {
-  const hints: ExecutionHint[] = []
-  if (vm.titleDirection) {
-    hints.push({
-      id: "hint-title",
-      type: "title",
-      label: "제목 방향",
-      content: vm.titleDirection,
-      linkedTo: "스냅샷 기반",
-    })
-  }
-  if (vm.hook) {
-    hints.push({
-      id: "hint-hook",
-      type: "hook",
-      label: "훅 전략",
-      content: vm.hook,
-      linkedTo: "스냅샷 기반",
-    })
-  }
-  if (vm.thumbnail) {
-    hints.push({
-      id: "hint-thumbnail",
-      type: "thumbnail",
-      label: "썸네일 방향",
-      content: vm.thumbnail,
-      linkedTo: "스냅샷 기반",
-    })
-  }
-  if (vm.contentAngle) {
-    hints.push({
-      id: "hint-angle",
-      type: "angle",
-      label: "콘텐츠 각도",
-      content: vm.contentAngle,
-      linkedTo: "스냅샷 기반",
-    })
-  }
-  return hints
-}
-
-function toExecutionActions(vm: NextTrendActionsVm): ExecutionAction[] {
-  return [
-    {
-      id: "action-1",
-      videoTitle: vm.videoPlanDraft,
-      thumbnailDirection: vm.titleThumbnail,
-      contentPlan: vm.contentPlan,
-      experimentPriority: 1,
-    },
-  ]
-}
-
-const signalStrengthBadgeConfig = {
-  clear: { label: "반복 신호 확인됨", className: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
-  medium: { label: "신호 감지 중", className: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400" },
-  low: { label: "표본 부족", className: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400" },
-}
-
-function signalAction(strength: "clear" | "medium" | "low"): string {
-  if (strength === "clear") return "지금 바로 실행 가능"
-  if (strength === "medium") return "2~3편 테스트 후 확장"
-  return "탐색 단계, 1편 테스트 권장"
-}
-
-function feasibilityHint(feasibility: number): string {
-  if (feasibility >= 76) return "기존 포맷 유지 시 바로 적용 가능"
-  if (feasibility >= 60) return "약간의 준비로 시작 가능"
-  return "추가 리소스 필요"
-}
-
-// [1] Top Block — 왜 1순위인지 한 줄
-function getTopReason(strength: "clear" | "medium" | "low"): string {
-  if (strength === "clear") return "반복 신호가 가장 명확하고, 기존 흐름 유지로 바로 시도 가능한 주제입니다."
-  if (strength === "medium") return "신호가 확인되고 있으며, 소규모 테스트 후 확장 가치가 있는 주제입니다."
-  return "초기 신호가 감지된 단계로, 탐색 목적의 1편 테스트가 적합한 주제입니다."
-}
 
 export function NextTrendPage({ channelId = "", channelContext, viewModel, isStarterPlan = false }: NextTrendPageProps) {
   // Real data path
   if (viewModel) {
-    const internal = viewModel.internal
-    const allCandidates = toCandidates(internal.candidates)
-    const candidates = isStarterPlan ? allCandidates.slice(0, 2) : allCandidates
-    const hasLockedCandidates = isStarterPlan && allCandidates.length > 2
-    const topCandidates = allCandidates.slice(0, 3)
-    const formats = toFormatRecommendations(internal.format)
-    const risks = toRiskMemos(internal.risk)
-    const hints = toExecutionHints(internal.hints)
-    const actions = toExecutionActions(internal.actions)
+    const {
+      topCandidates, visibleCandidates: candidates, hasLockedCandidates,
+      formats, hints, actions, riskSignal,
+    } = buildNextTrendPageSections(viewModel, isStarterPlan)
 
     return (
       <div className="min-h-screen bg-background">
@@ -211,22 +74,22 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                   return (
                     <div className="space-y-3">
                       {/* 1순위 강조 카드 */}
-                      <div className="rounded-lg border-2 border-primary/50 bg-primary/5 dark:bg-primary/10 p-5 space-y-3">
+                      <div className="rounded-lg border-2 border-primary bg-primary/10 dark:bg-primary/15 p-5 space-y-3 shadow-sm">
                         <div className="flex items-center gap-2 text-primary">
                           <ArrowRight className="h-4 w-4 shrink-0" />
                           <span className="text-xs font-bold uppercase tracking-wider">지금 1순위</span>
                         </div>
                         <p className="text-lg font-bold leading-snug break-words">{top1.topic}</p>
                         <p className="text-sm font-semibold text-foreground/80 leading-snug">
-                          {getTopReason(top1.signalStrength)}
+                          {top1.topReason}
                         </p>
                         <div className="flex flex-wrap items-center gap-2">
-                          <Badge variant="outline" className={`text-xs ${signalStrengthBadgeConfig[top1.signalStrength].className}`}>
-                            {signalStrengthBadgeConfig[top1.signalStrength].label}
+                          <Badge variant="outline" className={`text-xs ${top1.badge.className}`}>
+                            {top1.badge.label}
                           </Badge>
                           <span className="text-xs text-muted-foreground">→</span>
                           <span className="text-xs font-semibold text-foreground">
-                            {signalAction(top1.signalStrength)}
+                            {top1.signalActionLabel}
                           </span>
                         </div>
                         {top1.reason && (
@@ -240,9 +103,13 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                         )}
                         {(() => {
                           const evidenceItems = (top1.evidence ?? []).slice(0, 3)
-                          return evidenceItems.length > 0
-                            ? <EvidenceBlock items={evidenceItems} />
-                            : null
+                          if (evidenceItems.length === 0) return null
+                          return (
+                            <div className="space-y-1.5">
+                              <p className="text-xs font-semibold text-foreground/70 uppercase tracking-wide">왜 이 주제를 추천했는가?</p>
+                              <EvidenceBlock items={evidenceItems} />
+                            </div>
+                          )
                         })()}
                         <p className="text-sm font-semibold text-primary pt-3 border-t border-primary/20">
                           이번 업로드는 이 주제로 먼저 시도하세요
@@ -258,9 +125,14 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                                 {i + 2}
                               </span>
                               <span className="flex-1 text-sm font-medium leading-snug break-words min-w-0">{c.topic}</span>
-                              <Badge variant="outline" className={`text-xs shrink-0 ${signalStrengthBadgeConfig[c.signalStrength].className}`}>
-                                {signalStrengthBadgeConfig[c.signalStrength].label}
-                              </Badge>
+                              <div className="flex shrink-0 items-center gap-1.5">
+                                <Badge variant="outline" className="text-xs border-primary/30 bg-primary/5 text-primary">
+                                  신규
+                                </Badge>
+                                <Badge variant="outline" className={`text-xs ${c.badge.className}`}>
+                                  {c.badge.label}
+                                </Badge>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -294,12 +166,12 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                   </div>
                 )}
                 {/* 리스크 메모 — 있을 때만 인라인 표시 */}
-                {internal.risk.riskyTopic && internal.risk.riskyTopic !== "-" && internal.risk.riskyTopic !== "" && (
+                {riskSignal.hasRisk && (
                   <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-900/40 dark:bg-amber-900/10">
                     <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                     <div className="space-y-0.5">
                       <p className="text-sm font-medium text-amber-800 dark:text-amber-300">주의할 신호</p>
-                      <p className="text-sm text-amber-700 dark:text-amber-400">{internal.risk.riskyTopic}</p>
+                      <p className="text-sm text-amber-700 dark:text-amber-400">{riskSignal.topic}</p>
                     </div>
                   </div>
                 )}

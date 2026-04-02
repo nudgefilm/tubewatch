@@ -66,6 +66,8 @@ function deriveSummaryLine(videos: VideoData[]): string {
 export function AnalysisRecentVideosSection({ videos }: AnalysisRecentVideosSectionProps) {
   const summaryLine = deriveSummaryLine(videos)
   const isSmallSample = videos.length < 5
+  const maxViews = Math.max(...videos.map((v) => v.views))
+  const bestVideoId = maxViews > 0 ? videos.find((v) => v.views === maxViews)?.id : null
 
   // 1~2개: 간단 카드 리스트
   if (videos.length <= 2) {
@@ -114,12 +116,19 @@ export function AnalysisRecentVideosSection({ videos }: AnalysisRecentVideosSect
                   <span>{video.duration}</span>
                 </div>
               </div>
-              <Badge
-                variant="outline"
-                className={`shrink-0 ${getPerformanceBadgeStyle(video.performanceBadge)}`}
-              >
-                {video.performanceBadge}
-              </Badge>
+              <div className="flex shrink-0 flex-col items-end gap-1">
+                {video.id === bestVideoId && (
+                  <Badge variant="outline" className="border-primary/30 bg-primary/10 text-xs text-primary">
+                    Best DNA
+                  </Badge>
+                )}
+                <Badge
+                  variant="outline"
+                  className={getPerformanceBadgeStyle(video.performanceBadge)}
+                >
+                  {video.performanceBadge}
+                </Badge>
+              </div>
             </div>
           ))}
         </CardContent>
@@ -198,12 +207,19 @@ export function AnalysisRecentVideosSection({ videos }: AnalysisRecentVideosSect
                     {video.duration}
                   </TableCell>
                   <TableCell className="pr-6 text-center">
-                    <Badge
-                      variant="outline"
-                      className={getPerformanceBadgeStyle(video.performanceBadge)}
-                    >
-                      {video.performanceBadge}
-                    </Badge>
+                    <div className="flex flex-col items-center gap-1">
+                      {video.id === bestVideoId && (
+                        <Badge variant="outline" className="border-primary/30 bg-primary/10 text-xs text-primary">
+                          Best DNA
+                        </Badge>
+                      )}
+                      <Badge
+                        variant="outline"
+                        className={getPerformanceBadgeStyle(video.performanceBadge)}
+                      >
+                        {video.performanceBadge}
+                      </Badge>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

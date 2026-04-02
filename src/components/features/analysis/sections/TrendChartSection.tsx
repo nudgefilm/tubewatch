@@ -172,9 +172,20 @@ export function AnalysisViewTrendChart({ data, interpretation }: AnalysisViewTre
             {interpretation}
           </p>
         )}
-        <p className="mt-2 text-xs leading-relaxed text-muted-foreground/60">
-          최신 snapshot 기준 최근 영상 흐름입니다.
-        </p>
+        {/* 피크 영상 → Channel DNA 유도 */}
+        {(() => {
+          const peak = data.reduce((a, b) => (b.views > a.views ? b : a), data[0]!)
+          if (peak.views === 0) return null
+          return (
+            <a
+              href="/channel-dna"
+              className="mt-3 flex items-center gap-1.5 rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-primary hover:bg-primary/10 transition-colors"
+            >
+              <span className="font-medium">{peak.date} 영상이 조회수 정점을 기록했습니다.</span>
+              <span className="text-muted-foreground">→ Channel DNA에서 패턴 확인</span>
+            </a>
+          )
+        })()}
       </CardContent>
     </Card>
   )

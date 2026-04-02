@@ -11,6 +11,7 @@ import { AnalysisTopBottomCompare } from "./sections/TopBottomCompareSection"
 import { AnalysisSummarySection } from "./sections/SummarySection"
 import { AnalysisEmptyState } from "./sections/EmptyState"
 import { PageFlowConnector } from "@/components/features/shared/PageFlowConnector"
+import { FeaturePaywallBlock } from "@/components/features/shared/FeaturePaywallBlock"
 import { buildAnalysisPageSections } from "@/lib/engines/analysisPageEngine"
 import type { AnalysisPageViewModel } from "@/lib/analysis/analysisPageViewModel"
 
