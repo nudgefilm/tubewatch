@@ -52,7 +52,8 @@ function SubscriptionPlanCard({
     `월 ${plan.monthlyAnalyses}회 분석`,
     "재분석 12시간 쿨다운",
     "영상 50개 분석",
-    "Action Plan · SEO Lab · Channel DNA",
+    "Channel Analysis · Channel DNA",
+    "Action Plan · Next Trend",
   ];
 
   return (
