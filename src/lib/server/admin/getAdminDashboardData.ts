@@ -6,8 +6,8 @@ import type {
   AdminFailureRow,
 } from "@/components/admin/types";
 
-type QueueDbRow = {
-  job_id: string;
+type JobDbRow = {
+  id: string;
   user_channel_id: string;
   status: string;
   created_at: string | null;
@@ -26,49 +26,51 @@ function truncateError(raw: string | null, maxLen: number): string | null {
   return s.slice(0, maxLen) + "…";
 }
 
-/**
- * Admin Dashboard용 데이터 조회.
- * - users count, user_channels count, analysis_results count
- * - analysis_queue 최근 10건 (job_id, channel, status, created_at)
- * - analysis_results gemini_status=failed 최근 5건 (channel, error, created_at)
- */
 export async function getAdminDashboardData(): Promise<AdminDashboardData> {
-  const [usersCountRes, channelsCountRes, resultsCountRes, failedJobsRes, queueRes, failuresRes] =
-    await Promise.all([
-      supabaseAdmin.from("users").select("*", { count: "exact", head: true }),
-      supabaseAdmin
-        .from("user_channels")
-        .select("*", { count: "exact", head: true }),
-      supabaseAdmin
-        .from("analysis_results")
-        .select("*", { count: "exact", head: true }),
-      supabaseAdmin
-        .from("analysis_queue")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "failed"),
-      supabaseAdmin
-        .from("analysis_queue")
-        .select("job_id, user_channel_id, status, created_at")
-        .order("created_at", { ascending: false })
-        .limit(10),
-      supabaseAdmin
-        .from("analysis_results")
-        .select("channel_title, created_at, gemini_raw_json")
-        .eq("gemini_status", "failed")
-        .order("created_at", { ascending: false })
-        .limit(5),
-    ]);
+  const [
+    usersCountRes,
+    channelsCountRes,
+    resultsCountRes,
+    failedJobsRes,
+    activeSubsRes,
+    jobsRes,
+    failuresRes,
+  ] = await Promise.all([
+    supabaseAdmin.from("users").select("*", { count: "exact", head: true }),
+    supabaseAdmin.from("user_channels").select("*", { count: "exact", head: true }),
+    supabaseAdmin.from("analysis_results").select("*", { count: "exact", head: true }),
+    supabaseAdmin
+      .from("analysis_jobs")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "failed"),
+    supabaseAdmin
+      .from("user_subscriptions")
+      .select("*", { count: "exact", head: true })
+      .in("subscription_status", ["active", "trialing"]),
+    supabaseAdmin
+      .from("analysis_jobs")
+      .select("id, user_channel_id, status, created_at")
+      .order("created_at", { ascending: false })
+      .limit(10),
+    supabaseAdmin
+      .from("analysis_results")
+      .select("channel_title, created_at, gemini_raw_json")
+      .eq("gemini_status", "failed")
+      .order("created_at", { ascending: false })
+      .limit(5),
+  ]);
 
   const kpi: AdminDashboardKpi = {
     usersCount: usersCountRes.count ?? 0,
     channelsCount: channelsCountRes.count ?? 0,
     analysisRunsCount: resultsCountRes.count ?? 0,
     failedJobsCount: failedJobsRes.count ?? 0,
+    activeSubscribersCount: activeSubsRes.count ?? 0,
   };
 
-  const queueData = (queueRes.data ?? []) as unknown as QueueDbRow[];
+  const jobData = (jobsRes.data ?? []) as unknown as JobDbRow[];
   const channelIds = Array.from(
-    new Set(queueData.map((r) => r.user_channel_id).filter(Boolean))
+    new Set(jobData.map((r) => r.user_channel_id).filter(Boolean))
   );
 
   const channelTitleMap = new Map<string, string>();
@@ -83,8 +85,8 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     }
   }
 
-  const queueRows: AdminQueueRow[] = queueData.map((r) => ({
-    job_id: r.job_id,
+  const queueRows: AdminQueueRow[] = jobData.map((r) => ({
+    job_id: r.id,
     channel: r.user_channel_id ? channelTitleMap.get(r.user_channel_id) ?? null : null,
     status: r.status,
     created_at: r.created_at,

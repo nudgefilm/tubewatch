@@ -22,8 +22,9 @@ export default function AdminDashboardView({
       </div>
 
       {/* KPI */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
         <AdminStatCard label="Users" value={kpi.usersCount} />
+        <AdminStatCard label="Subscribers" value={kpi.activeSubscribersCount} variant="highlight" />
         <AdminStatCard label="Channels" value={kpi.channelsCount} />
         <AdminStatCard label="Analysis Runs" value={kpi.analysisRunsCount} />
         <AdminStatCard label="Failed Jobs" value={kpi.failedJobsCount} variant="danger" />

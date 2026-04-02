@@ -60,6 +60,7 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
                 <th className="px-4 pb-2 pt-3 font-medium">이메일</th>
                 <th className="px-4 pb-2 pt-3 font-medium">이름</th>
                 <th className="px-4 pb-2 pt-3 font-medium">역할</th>
+                <th className="px-4 pb-2 pt-3 font-medium">플랜</th>
                 <th className="px-4 pb-2 pt-3 font-medium">채널</th>
                 <th className="px-4 pb-2 pt-3 font-medium">Free 사용</th>
                 <th className="px-4 pb-2 pt-3 font-medium">가입일</th>
@@ -69,7 +70,7 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
             <tbody className="divide-y divide-foreground/5">
               {rows.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-6 text-center text-muted-foreground/60">
+                  <td colSpan={8} className="px-4 py-6 text-center text-muted-foreground/60">
                     데이터가 없습니다.
                   </td>
                 </tr>
@@ -96,6 +97,25 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
                         ) : (
                           <span className="text-muted-foreground">user</span>
                         )}
+                      </td>
+                      <td className="px-4 py-2.5">
+                        {(() => {
+                          const plan = row.plan_id;
+                          const status = row.subscription_status;
+                          const isActive = status === "active" || status === "trialing";
+                          if (plan && isActive) {
+                            return (
+                              <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase ${
+                                plan === "pro"
+                                  ? "bg-violet-100 text-violet-700"
+                                  : "bg-blue-100 text-blue-700"
+                              }`}>
+                                {plan}
+                              </span>
+                            );
+                          }
+                          return <span className="text-muted-foreground/50 text-[10px]">free</span>;
+                        })()}
                       </td>
                       <td className="px-4 py-2.5 tabular-nums text-foreground/70">
                         {row.channel_count}

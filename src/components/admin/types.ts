@@ -8,6 +8,7 @@ export type AdminDashboardKpi = {
   channelsCount: number;
   analysisRunsCount: number;
   failedJobsCount: number;
+  activeSubscribersCount: number;
 };
 
 export type AdminQueueRow = {
@@ -40,6 +41,8 @@ export type AdminUserRow = {
   role: string | null;
   lifetime_analyses_used: number | null;
   purchased_credits: number | null;
+  plan_id: string | null;
+  subscription_status: string | null;
 };
 
 export type AdminUsersData = {

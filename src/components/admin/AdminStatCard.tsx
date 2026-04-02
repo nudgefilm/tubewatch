@@ -4,7 +4,7 @@ type AdminStatCardProps = {
   label: string;
   value: number | string;
   subtitle?: string;
-  variant?: "default" | "danger";
+  variant?: "default" | "danger" | "highlight";
 };
 
 export default function AdminStatCard({
@@ -19,7 +19,9 @@ export default function AdminStatCard({
   const valueColor =
     variant === "danger" && typeof value === "number" && value > 0
       ? "text-red-600"
-      : "text-foreground";
+      : variant === "highlight"
+        ? "text-primary"
+        : "text-foreground";
 
   return (
     <div className="rounded-xl border border-foreground/10 bg-foreground/[0.02] p-5">
