@@ -58,43 +58,39 @@ function ReanalyzeCooldownBox({ lastRunAt, sampleCount, isRequesting, requestErr
     return () => clearInterval(id)
   }, [lastRunAt])
 
-  // 마운트 전에는 스켈레톤 없이 기본 안내 텍스트만 표시
-  if (remainingMs === null) {
-    return (
-      <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 px-4 py-3 dark:border-emerald-800 dark:bg-emerald-950/20">
-        <p className="text-xs text-emerald-800 dark:text-emerald-300 font-medium">새로 추가된 영상이 분석에 반영되었습니다.</p>
-        <p className="text-xs text-emerald-700 dark:text-emerald-400">
-          {sampleCount != null ? `최신 기준으로 최근 ${sampleCount}개 영상 구성이 업데이트되었습니다.` : "최신 기준으로 영상 구성이 업데이트되었습니다."}
-        </p>
-      </div>
-    )
-  }
-
-  const isCooldown = remainingMs > 0
+  const isCooldown = remainingMs === null || remainingMs > 0
 
   return (
-    <div className={`rounded-lg border px-4 py-3 space-y-2 ${
+    <div className={`rounded-lg border px-4 py-3 space-y-2.5 ${
       isCooldown
         ? "border-emerald-200 bg-emerald-50/50 dark:border-emerald-800 dark:bg-emerald-950/20"
         : "border-primary/30 bg-primary/5 dark:border-primary/40"
     }`}>
-      <div className="space-y-0.5">
-        <p className="text-xs text-emerald-800 dark:text-emerald-300 font-medium">새로 추가된 영상이 분석에 반영되었습니다.</p>
-        <p className="text-xs text-emerald-700 dark:text-emerald-400">
-          {sampleCount != null
-            ? `최신 기준으로 최근 ${sampleCount}개 영상 구성이 업데이트되었습니다.`
-            : "최신 기준으로 영상 구성이 업데이트되었습니다."}
-        </p>
+
+      {/* 타이머 줄 */}
+      <div className="flex items-center gap-1.5 text-sm font-medium text-emerald-800 dark:text-emerald-300">
+        <Clock className="size-4 shrink-0" />
+        {remainingMs === null ? (
+          <span>다음 재분석까지 계산 중…</span>
+        ) : isCooldown ? (
+          <span>다음 재분석까지 <span className="tabular-nums">{formatCountdown(remainingMs)}</span> 남았습니다.</span>
+        ) : (
+          <span>재분석 가능 시간이 되었습니다.</span>
+        )}
       </div>
 
-      {isCooldown ? (
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Clock className="size-3.5 shrink-0" />
-          <span>다음 재분석 가능까지 <span className="font-semibold tabular-nums text-foreground">{formatCountdown(remainingMs)}</span> 남았습니다</span>
-        </div>
-      ) : (
-        <div className="space-y-1.5 pt-0.5">
-          <p className="text-xs text-primary font-medium">재분석 가능 시간이 되었습니다.</p>
+      {/* 안내 문구 */}
+      <div className="flex items-start gap-1.5 rounded-md bg-emerald-100/60 dark:bg-emerald-900/20 px-3 py-2 text-xs text-emerald-800 dark:text-emerald-300">
+        <span className="shrink-0 mt-0.5">💡</span>
+        <span>
+          <span className="font-semibold">알림:</span>{" "}
+          최근 {sampleCount != null ? `${sampleCount}개` : ""} 영상이 분석에 반영되었습니다. 새로운 영상을 1개 이상 업로드한 후 재분석을 진행해야 가장 정확하고 의미 있는 최신 분석 데이터를 확인하실 수 있습니다.
+        </span>
+      </div>
+
+      {/* 재분석 버튼 — 쿨다운 종료 후만 표시 */}
+      {!isCooldown && (
+        <div className="space-y-1.5">
           {requestError && (
             <p className="text-xs text-destructive">{requestError}</p>
           )}

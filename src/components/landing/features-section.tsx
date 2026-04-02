@@ -9,18 +9,28 @@ const features = [
     title: "Channel Analysis",
     description: "채널 데이터를 기반으로\n현재 성장 상태를 정밀 진단합니다.",
     visual: "deploy",
+    href: "/analysis",
   },
   {
     number: "02",
-    title: "Action Plan",
-    description: "지금 실행해야 할\n콘텐츠 전략을 제안합니다.",
-    visual: "ai",
-  },
-  {
-    number: "03",
     title: "Channel DNA",
     description: "이 채널의 성과 구조와\n반복되는 성장 패턴을 봅니다.",
     visual: "security",
+    href: "/channel-dna",
+  },
+  {
+    number: "03",
+    title: "Action Plan",
+    description: "지금 실행해야 할\n콘텐츠 전략을 제안합니다.",
+    visual: "ai",
+    href: "/action-plan",
+  },
+  {
+    number: "04",
+    title: "Next Trend",
+    description: "내부 흐름 기반으로\n다음 영상 주제 방향을 제안합니다.",
+    visual: "collab",
+    href: "/next-trend",
   },
 ];
 
@@ -226,11 +236,9 @@ function FeatureCard({ feature, index }: { feature: (typeof features)[0]; index:
     return () => observer.disconnect();
   }, []);
 
-  const featureHrefs = ["/analysis", "/action-plan", "/channel-dna"];
-
   return (
     <a
-      href={featureHrefs[index]}
+      href={feature.href}
       ref={cardRef}
       className={`group relative transition-all duration-700 block border border-foreground/10 rounded-2xl p-6 lg:p-8 hover:border-foreground/30 hover:bg-foreground/[0.02] cursor-pointer ${
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
