@@ -25,9 +25,11 @@ function broadcastChannelsUpdated(): void {
 export default function ChannelsPageClient({
   isAdmin = false,
   maxCount = 3,
+  staleChannelIds = [],
 }: {
   isAdmin?: boolean;
   maxCount?: number;
+  staleChannelIds?: string[];
 }): JSX.Element {
   const router = useRouter();
   const [channels, setChannels] = useState<ChannelRow[]>([]);
@@ -222,11 +224,18 @@ export default function ChannelsPageClient({
               만듭니다.
             </p>
             {selectedChannel ? (
-              <p className="mt-2 inline-flex items-center rounded-md bg-primary/10 px-2.5 py-1 text-sm font-medium text-primary">
-                {selectedChannel.channel_title ??
-                  selectedChannel.channel_id ??
-                  "채널"}
-              </p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <p className="inline-flex items-center rounded-md bg-primary/10 px-2.5 py-1 text-sm font-medium text-primary">
+                  {selectedChannel.channel_title ??
+                    selectedChannel.channel_id ??
+                    "채널"}
+                </p>
+                {staleChannelIds.includes(selectedChannel.id) && (
+                  <p className="text-xs text-amber-600 font-medium">
+                    새로운 분석 엔진이 적용되었습니다 — 재분석을 권장합니다.
+                  </p>
+                )}
+              </div>
             ) : (
               <p className="mt-2 text-sm text-muted-foreground">
                 아래 목록에서 채널을 선택하거나 채널을 등록하세요.
@@ -389,6 +398,11 @@ export default function ChannelsPageClient({
                     {selectedChannelId === ch.id && (
                       <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
                         선택됨
+                      </span>
+                    )}
+                    {staleChannelIds.includes(ch.id) && (
+                      <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700">
+                        업데이트 권장
                       </span>
                     )}
                   </p>

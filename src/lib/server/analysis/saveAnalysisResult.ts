@@ -37,6 +37,7 @@ export async function saveAnalysisResult(
     feature_snapshot: payload.featureSnapshot,
     feature_total_score: payload.featureTotalScore,
     feature_section_scores: payload.featureSectionScores,
+    engine_version: payload.engineVersion,
   };
 
   // ── 진단 로그 ──
@@ -85,6 +86,7 @@ export async function saveAnalysisResult(
         "feature_snapshot",
         "feature_total_score",
         "feature_section_scores",
+        "engine_version",
         "created_at",
       ].join(", ")
     )

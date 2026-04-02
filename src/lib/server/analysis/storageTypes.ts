@@ -42,6 +42,7 @@ export interface SaveAnalysisResultPayload {
   featureSnapshot: JsonValue;
   featureTotalScore: number;
   featureSectionScores: JsonValue;
+  engineVersion: string;
 }
 
 export interface AnalysisResultRecord {
@@ -74,5 +75,6 @@ export interface AnalysisResultRecord {
   feature_snapshot: JsonValue | null;
   feature_total_score: number | null;
   feature_section_scores: JsonValue | null;
+  engine_version: string | null;
   created_at: string | null;
 }

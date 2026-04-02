@@ -20,6 +20,7 @@ import {
 } from "@/lib/ai/analyzeChannelWithGemini";
 import { saveAnalysisResult } from "@/lib/server/analysis/saveAnalysisResult";
 import { detectDeltaRun } from "@/lib/server/analysis/detectDeltaRun";
+import { CURRENT_ENGINE_VERSION } from "@/lib/analysis/engineVersion";
 import {
   reserveCredit,
   confirmCredit,
@@ -128,21 +129,48 @@ export async function POST(request: Request) {
     );
   }
 
-  // 쿨다운 체크 — admin은 bypass
+  // 기존 스냅샷 확인 — delta 재분석 판단 + 엔진 버전 비교에 사용
+  const { data: existingSnapshot } = await supabase
+    .from("analysis_results")
+    .select(
+      "id, created_at, feature_snapshot, gemini_raw_json, gemini_model, channel_summary, content_pattern_summary, content_patterns, target_audience, strengths, weaknesses, bottlenecks, recommended_topics, growth_action_plan, sample_size_note, analysis_confidence, engine_version"
+    )
+    .eq("user_channel_id", userChannelId)
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const storedEngineVersion =
+    (existingSnapshot as { engine_version?: string | null } | null)?.engine_version ?? null;
+  const isEngineVersionStale =
+    existingSnapshot != null && storedEngineVersion !== CURRENT_ENGINE_VERSION;
+
+  console.log(
+    "[Analysis Start API] existing snapshot:", existingSnapshot?.id ?? null,
+    "engine_version:", storedEngineVersion ?? "none",
+    "stale:", isEngineVersionStale
+  );
+
+  // 쿨다운 체크 — admin bypass, 엔진 버전 불일치 시 bypass
   if (!isAdmin && channelRow.last_analyzed_at) {
     const lastAt = new Date(channelRow.last_analyzed_at as string).getTime();
     const hoursElapsed = (Date.now() - lastAt) / (1000 * 60 * 60);
     if (hoursElapsed < COOLDOWN_HOURS) {
-      const remaining = Math.ceil(COOLDOWN_HOURS - hoursElapsed);
-      console.log(`[Analysis Start API] cooldown active: ${remaining}h remaining`);
-      return NextResponse.json(
-        {
-          ok: false,
-          code: "COOLDOWN_ACTIVE",
-          error: `분석은 ${remaining}시간 후에 다시 요청할 수 있습니다.`,
-        },
-        { status: 429 }
-      );
+      if (isEngineVersionStale) {
+        console.log("[Analysis Start API] cooldown bypassed — engine version stale:", storedEngineVersion, "→", CURRENT_ENGINE_VERSION);
+      } else {
+        const remaining = Math.ceil(COOLDOWN_HOURS - hoursElapsed);
+        console.log(`[Analysis Start API] cooldown active: ${remaining}h remaining`);
+        return NextResponse.json(
+          {
+            ok: false,
+            code: "COOLDOWN_ACTIVE",
+            error: `분석은 ${remaining}시간 후에 다시 요청할 수 있습니다.`,
+          },
+          { status: 429 }
+        );
+      }
     }
   } else if (isAdmin && channelRow.last_analyzed_at) {
     console.log("[Analysis Start API] admin: cooldown bypassed");
@@ -167,23 +195,6 @@ export async function POST(request: Request) {
       throw e;
     }
   }
-
-  // 기존 스냅샷 확인 — delta 재분석에서 Gemini 재사용 판단에 사용
-  const { data: existingSnapshot } = await supabase
-    .from("analysis_results")
-    .select(
-      "id, created_at, feature_snapshot, gemini_raw_json, gemini_model, channel_summary, content_pattern_summary, content_patterns, target_audience, strengths, weaknesses, bottlenecks, recommended_topics, growth_action_plan, sample_size_note, analysis_confidence"
-    )
-    .eq("user_channel_id", userChannelId)
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  console.log(
-    "[Analysis Start API] existing snapshot:",
-    existingSnapshot?.id ?? null
-  );
 
   const youtubeChannelId = channelRow.channel_id as string | null;
   if (!youtubeChannelId) {
@@ -433,6 +444,7 @@ export async function POST(request: Request) {
       featureSnapshot: featureSnapshot as unknown as import("@/lib/server/analysis/storageTypes").JsonValue,
       featureTotalScore: scoreResult.totalScore,
       featureSectionScores: scoreResult.sectionScores as unknown as import("@/lib/server/analysis/storageTypes").JsonValue,
+      engineVersion: CURRENT_ENGINE_VERSION,
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "unknown";
