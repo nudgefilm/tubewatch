@@ -69,7 +69,7 @@ export function CtaSection() {
                     className="bg-black hover:bg-neutral-800 text-white px-6 h-12 text-base rounded-lg shadow-lg group cursor-pointer"
                     asChild
                   >
-                    <a href="/analysis">
+                    <a href="/channels">
                       무료로 시작하기
                       <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
                     </a>

@@ -110,7 +110,7 @@ export function HeroSection() {
               className="bg-black hover:bg-neutral-800 text-white px-6 h-12 text-base rounded-lg shadow-lg group cursor-pointer"
               asChild
             >
-              <a href="/analysis">
+              <a href="/channels">
                 내 채널 분석
                 <span
                   className="ml-2 inline-block transition-transform group-hover:translate-x-1"

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CreditCard, Check, Zap, Crown, ArrowRight } from "lucide-react";
+import { Check, Zap, Crown, ArrowRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import {
   CREDIT_PRODUCTS,
   FREE_LIFETIME_ANALYSIS_LIMIT,
 } from "./types";
+import type { UserBillingStatus } from "@/lib/server/billing/getUserBillingStatus";
 
 // ─── Subscription plan card ───────────────────────────────────────────────────
 
@@ -157,9 +158,117 @@ function CreditProductCard({ product }: { product: (typeof CREDIT_PRODUCTS)[numb
   );
 }
 
+// ─── Current plan status card ─────────────────────────────────────────────────
+
+function CurrentPlanCard({ status }: { status: UserBillingStatus }) {
+  const [portalLoading, setPortalLoading] = useState(false);
+  const [portalError, setPortalError] = useState<string | null>(null);
+
+  async function handleManage() {
+    if (portalLoading) return;
+    setPortalError(null);
+    setPortalLoading(true);
+    try {
+      const res = await fetch("/api/stripe/portal", { method: "POST" });
+      const json = (await res.json()) as { url?: string; error?: string };
+      if (!res.ok) {
+        setPortalError(json.error ?? "구독 관리 페이지를 열 수 없습니다.");
+        return;
+      }
+      if (typeof json.url === "string") window.location.href = json.url;
+      else setPortalError("포털 URL을 받지 못했습니다.");
+    } catch {
+      setPortalError("요청 중 오류가 발생했습니다.");
+    } finally {
+      setPortalLoading(false);
+    }
+  }
+
+  function formatDate(iso: string | null) {
+    if (!iso) return null;
+    try {
+      return new Date(iso).toLocaleDateString("ko-KR", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    } catch {
+      return null;
+    }
+  }
+
+  if (status.planId === "free") {
+    const total = FREE_LIFETIME_ANALYSIS_LIMIT + status.purchasedCredits;
+    const used = status.lifetimeAnalysesUsed;
+    const remaining = Math.max(0, total - used);
+    return (
+      <Card className="border-muted bg-muted/20">
+        <CardContent className="pt-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-semibold">현재 플랜</h2>
+                <Badge variant="outline">Free</Badge>
+              </div>
+              <p className="mt-1 text-sm text-muted-foreground">
+                채널 1개 · 생애 분석 {used}/{total}회 사용
+                {remaining > 0
+                  ? ` · 잔여 ${remaining}회`
+                  : " · 소진됨"}
+              </p>
+              {status.purchasedCredits > 0 && (
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  (기본 {FREE_LIFETIME_ANALYSIS_LIMIT}회 + 구매 {status.purchasedCredits}회)
+                </p>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const planLabel = status.planId === "pro" ? "Pro" : "Creator";
+  const statusLabel =
+    status.subscriptionStatus === "trialing" ? "체험 중" :
+    status.subscriptionStatus === "active" ? "활성" :
+    status.subscriptionStatus ?? "—";
+  const nextBillingDate = formatDate(status.currentPeriodEnd);
+
+  return (
+    <Card className="border-primary/30 bg-primary/[0.03]">
+      <CardContent className="pt-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-semibold">현재 플랜</h2>
+              <Badge className="bg-primary text-primary-foreground">{planLabel}</Badge>
+              <Badge variant="outline" className="text-xs">{statusLabel}</Badge>
+            </div>
+            <div className="mt-1 space-y-0.5 text-sm text-muted-foreground">
+              {nextBillingDate && (
+                <p>다음 결제일: {nextBillingDate}</p>
+              )}
+              <p>이번 달 분석: {status.monthlyCreditsUsed}회 사용</p>
+            </div>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Button variant="outline" size="sm" onClick={handleManage} disabled={portalLoading}>
+              {portalLoading ? "이동 중..." : "구독 관리"}
+            </Button>
+            {portalError && (
+              <p className="text-xs text-red-600">{portalError}</p>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
-export default function BillingView() {
+export default function BillingView({ initialData }: { initialData: UserBillingStatus }) {
   return (
     <div className="min-h-screen bg-background">
       <section className="border-b bg-gradient-to-b from-muted/30 to-background px-6 py-12 lg:px-12">
@@ -173,23 +282,9 @@ export default function BillingView() {
       </section>
 
       <div className="mx-auto max-w-5xl space-y-16 px-6 py-12 lg:px-12">
-        {/* Free plan summary */}
+        {/* Current plan status */}
         <section>
-          <Card className="border-muted bg-muted/20">
-            <CardContent className="pt-6">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold">Free 플랜</h2>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    채널 1개 · 생애 {FREE_LIFETIME_ANALYSIS_LIMIT}회 분석 · 구독 없이 시작
-                  </p>
-                </div>
-                <Badge variant="outline" className="w-fit">
-                  무료
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
+          <CurrentPlanCard status={initialData} />
         </section>
 
         {/* Subscription plans */}

@@ -4,6 +4,7 @@ import { FeaturesSection } from "./features-section";
 import { HowItWorksSection } from "./how-it-works-section";
 import { InfrastructureSection } from "./infrastructure-section";
 import { SecuritySection } from "./security-section";
+import { PricingSection } from "./pricing-section";
 import { CtaSection } from "./cta-section";
 import { FooterSection } from "./footer-section";
 import { FloatingTubeTalk } from "./floating-tube-talk";
@@ -17,6 +18,7 @@ export default function HomeLanding() {
       <HowItWorksSection />
       <InfrastructureSection />
       <SecuritySection />
+      <PricingSection />
       <CtaSection />
       <FooterSection />
       <FloatingTubeTalk />

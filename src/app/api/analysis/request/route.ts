@@ -20,6 +20,12 @@ import {
 } from "@/lib/ai/analyzeChannelWithGemini";
 import { saveAnalysisResult } from "@/lib/server/analysis/saveAnalysisResult";
 import { detectDeltaRun } from "@/lib/server/analysis/detectDeltaRun";
+import {
+  reserveCredit,
+  confirmCredit,
+  rollbackCredit,
+  CreditReservationError,
+} from "@/lib/server/analysis/atomicCredit";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { isAdminUser } from "@/lib/server/isAdminUser";
 import type { VideoInfo } from "@/lib/youtube";
@@ -142,6 +148,26 @@ export async function POST(request: Request) {
     console.log("[Analysis Start API] admin: cooldown bypassed");
   }
 
+  // 크레딧 예약 (Atomic) — admin bypass
+  let reservationId: string | null = null;
+  let isFreePlan = true;
+
+  if (!isAdmin) {
+    try {
+      const reservation = await reserveCredit(user.id, userChannelId);
+      reservationId = reservation.reservationId;
+      isFreePlan = reservation.isFreePlan;
+    } catch (e) {
+      if (e instanceof CreditReservationError && e.code === "CREDITS_EXHAUSTED") {
+        return NextResponse.json(
+          { ok: false, code: "CREDITS_EXHAUSTED", error: e.message },
+          { status: 402 }
+        );
+      }
+      throw e;
+    }
+  }
+
   // 기존 스냅샷 확인 — delta 재분석에서 Gemini 재사용 판단에 사용
   const { data: existingSnapshot } = await supabase
     .from("analysis_results")
@@ -168,6 +194,31 @@ export async function POST(request: Request) {
     );
   }
 
+  // analysis_job 선생성 — 진행 단계 추적용 (progress_step: Master Plan v1.2 § 4-1)
+  const jobId = crypto.randomUUID();
+  const jobStartedAt = new Date().toISOString();
+  const { error: jobCreateError } = await supabaseAdmin
+    .from("analysis_jobs")
+    .insert({
+      id: jobId,
+      user_id: user.id,
+      user_channel_id: userChannelId,
+      status: "running",
+      progress_step: "fetching_yt",
+      started_at: jobStartedAt,
+    });
+  if (jobCreateError) {
+    console.error("[Analysis Start API] job create failed:", jobCreateError.message);
+    // non-blocking — 진행은 계속
+  }
+
+  async function updateJobStep(step: string, finalStatus?: string) {
+    const patch: Record<string, string> = { progress_step: step };
+    if (finalStatus) patch.status = finalStatus;
+    if (step === "completed" || step === "failed") patch.finished_at = new Date().toISOString();
+    await supabaseAdmin.from("analysis_jobs").update(patch).eq("id", jobId);
+  }
+
   // YouTube API: 최근 영상 수집
   let youtubeVideos: VideoInfo[];
   try {
@@ -175,6 +226,8 @@ export async function POST(request: Request) {
   } catch (e) {
     const msg = e instanceof Error ? e.message : "unknown";
     console.error("[Analysis Start API] error: getRecentVideos failed:", msg);
+    void updateJobStep("failed", "failed");
+    if (reservationId) void rollbackCredit(reservationId, isFreePlan);
     return NextResponse.json(
       { ok: false, error: "YouTube 영상 데이터를 가져오지 못했습니다." },
       { status: 502 }
@@ -193,6 +246,8 @@ export async function POST(request: Request) {
     youtubeVideos.map((v) => v.video_id)
   );
   console.log(`[Analysis/delta] prev_known=${prevKnownCount} new=${newVideoCount} skip_gemini=${isDeltaRun}`);
+
+  void updateJobStep("processing_data");
 
   // 분석 파이프라인 — try/catch 없으면 unhandled throw → Next.js 500 (HTML) 반환
   let normalizedDataset: ReturnType<typeof normalizeVideoMetrics>;
@@ -245,11 +300,15 @@ export async function POST(request: Request) {
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     console.error("[Analysis Start API] PIPELINE ERROR (unhandled 500 방지):", msg);
+    void updateJobStep("failed", "failed");
+    if (reservationId) void rollbackCredit(reservationId, isFreePlan);
     return NextResponse.json(
       { ok: false, error: "분석 파이프라인 오류가 발생했습니다. 잠시 후 다시 시도하세요." },
       { status: 500 }
     );
   }
+
+  void updateJobStep("generating_ai");
 
   // Gemini AI 분석 — delta run(신규 영상 0개)이면 이전 스냅샷 재사용, 아니면 신규 호출
   let gemini: Awaited<ReturnType<typeof analyzeChannelWithGemini>>;
@@ -295,6 +354,8 @@ export async function POST(request: Request) {
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       console.error("[Analysis Start API] GEMINI THROW (unhandled 500 방지):", msg);
+      void updateJobStep("failed", "failed");
+      if (reservationId) void rollbackCredit(reservationId, isFreePlan);
       return NextResponse.json(
         { ok: false, error: `AI 분석 호출 중 예외 발생: ${msg}` },
         { status: 502 }
@@ -303,6 +364,8 @@ export async function POST(request: Request) {
 
     if (!gemini.ok) {
       console.error("[Analysis Start API] error: Gemini failed:", gemini.error);
+      void updateJobStep("failed", "failed");
+      if (reservationId) void rollbackCredit(reservationId, isFreePlan);
       return NextResponse.json(
         { ok: false, error: `AI 분석에 실패했습니다: ${gemini.error}` },
         { status: 502 }
@@ -336,30 +399,7 @@ export async function POST(request: Request) {
     videos: featureSnapshotVideos,
   };
 
-  // analysis_jobs 선삽입 (FK 제약 충족)
-  const jobId = crypto.randomUUID();
-  const jobPayload = {
-    id: jobId,
-    user_id: user.id,
-    user_channel_id: userChannelId,
-    status: "success",
-    started_at: now,
-    finished_at: now,
-  };
-  console.log("[Analysis Start API] create analysis_job payload:", JSON.stringify(jobPayload));
-  const { data: jobRow, error: jobError } = await supabaseAdmin
-    .from("analysis_jobs")
-    .insert(jobPayload)
-    .select("id")
-    .single();
-  console.log("[Analysis Start API] create analysis_job result:", jobRow?.id ?? null);
-  if (jobError || !jobRow) {
-    console.error("[Analysis Start API] create analysis_job error:", JSON.stringify(jobError));
-    return NextResponse.json(
-      { ok: false, error: "분석 작업 생성에 실패했습니다." },
-      { status: 500 }
-    );
-  }
+  void updateJobStep("saving_results");
 
   let savedRow: { id: string };
   try {
@@ -397,6 +437,8 @@ export async function POST(request: Request) {
   } catch (e) {
     const msg = e instanceof Error ? e.message : "unknown";
     console.error("[Analysis Start API] error: insert failed:", msg);
+    void updateJobStep("failed", "failed");
+    if (reservationId) void rollbackCredit(reservationId, isFreePlan);
     return NextResponse.json(
       { ok: false, error: "분석 결과 저장에 실패했습니다." },
       { status: 500 }
@@ -404,6 +446,10 @@ export async function POST(request: Request) {
   }
 
   console.log("[Analysis Start API] created run:", savedRow.id);
+  void updateJobStep("completed", "success");
+
+  // 크레딧 예약 확정 — non-fatal
+  if (reservationId) void confirmCredit(reservationId, savedRow.id);
 
   // last_analyzed_at 업데이트
   await supabase

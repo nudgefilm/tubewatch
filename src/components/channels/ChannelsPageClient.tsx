@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import RegisterChannelForm from "@/components/channels/RegisterChannelForm";
 import {
   readSelectedChannelIdFromStorage,
   writeSelectedChannelIdToStorage,
 } from "@/lib/channels/selectedChannelStorage";
+import { FREE_LIFETIME_ANALYSIS_LIMIT } from "@/components/billing/types";
 
 type ChannelRow = {
   id: string;
@@ -36,10 +37,20 @@ export default function ChannelsPageClient({
   const [selectedChannelId, setSelectedChannelId] = useState<string | null>(null);
   const [isNavigating, setIsNavigating] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [creditsExhausted, setCreditsExhausted] = useState(false);
+  const [progressStep, setProgressStep] = useState<string | null>(null);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // localStorage에서 선택 채널 초기화
   useEffect(() => {
     setSelectedChannelId(readSelectedChannelIdFromStorage());
+  }, []);
+
+  // 언마운트 시 폴링 정리
+  useEffect(() => {
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
   }, []);
 
   const selectChannel = useCallback((id: string) => {
@@ -136,6 +147,34 @@ export default function ChannelsPageClient({
         </p>
       </div>
 
+      {/* 온보딩 — 채널 없는 신규 유저 안내 */}
+      {!loading && channels.length === 0 && !creditsExhausted && (
+        <div className="rounded-xl border border-primary/20 bg-primary/[0.03] p-5">
+          <p className="text-sm font-semibold text-foreground">TubeWatch에 오신 것을 환영합니다!</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            유튜브 채널을 등록하면 AI가 최근 영상 50개를 분석해 채널 현황, 성장 전략, 콘텐츠 DNA를 제공합니다.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
+            <span className="rounded-full border border-foreground/10 bg-background px-2.5 py-1">
+              채널 1개 (Free)
+            </span>
+            <span className="rounded-full border border-foreground/10 bg-background px-2.5 py-1">
+              생애 {FREE_LIFETIME_ANALYSIS_LIMIT}회 분석
+            </span>
+            <span className="rounded-full border border-foreground/10 bg-background px-2.5 py-1">
+              재분석 12시간 쿨다운
+            </span>
+          </div>
+          <p className="mt-2.5 text-xs text-muted-foreground">
+            더 많은 채널과 분석이 필요하다면{" "}
+            <a href="/billing" className="font-semibold text-primary underline hover:opacity-80">
+              유료 플랜
+            </a>
+            을 이용하세요.
+          </p>
+        </div>
+      )}
+
       <RegisterChannelForm
         currentCount={channels.length}
         maxCount={maxCount}
@@ -198,7 +237,7 @@ export default function ChannelsPageClient({
         <div className="mt-4 space-y-2">
           <button
             type="button"
-            disabled={!selectedChannel || isNavigating}
+            disabled={!selectedChannel || isNavigating || creditsExhausted}
             onClick={() => {
               // 반드시 selectedChannel 객체 기준으로만 판단
               if (!selectedChannel || !selectedChannel.id || isNavigating) {
@@ -207,8 +246,21 @@ export default function ChannelsPageClient({
               }
               setIsNavigating(true);
               setAnalysisError(null);
+              setProgressStep("fetching_yt");
 
               const channelId = selectedChannel.id;
+
+              // 진행 단계 폴링 시작 (2.5초 간격)
+              if (pollRef.current) clearInterval(pollRef.current);
+              pollRef.current = setInterval(() => {
+                void fetch(`/api/analysis/job-status?channelId=${channelId}`, { credentials: "include" })
+                  .then((r) => r.json())
+                  .then((d: { job?: { progress_step?: string | null } | null }) => {
+                    const step = d.job?.progress_step;
+                    if (step) setProgressStep(step);
+                  })
+                  .catch(() => undefined);
+              }, 2500);
               console.log("[Analysis Start UI] selectedChannel:", { id: channelId, title: selectedChannel.channel_title });
 
               const payload = { channelId };
@@ -229,15 +281,23 @@ export default function ChannelsPageClient({
                   };
                   console.log("[Analysis Start UI] response:", result);
 
+                  if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
+
                   if (!res.ok) {
                     if (result.code === "COOLDOWN_ACTIVE") {
                       // 쿨다운 중 → 기존 분석 결과 표시
                       const dest = `/analysis?channel=${channelId}`;
                       console.log("[Analysis Start UI] navigate to:", dest, "(cooldown)");
                       router.push(dest);
+                    } else if (result.code === "CREDITS_EXHAUSTED") {
+                      setCreditsExhausted(true);
+                      setAnalysisError(result.error ?? "분석 크레딧이 소진되었습니다.");
+                      setIsNavigating(false);
+                      setProgressStep(null);
                     } else {
                       setAnalysisError(result.error ?? "분석 요청에 실패했습니다.");
                       setIsNavigating(false);
+                      setProgressStep(null);
                     }
                     return;
                   }
@@ -248,9 +308,11 @@ export default function ChannelsPageClient({
                   router.push(dest);
                 })
                 .catch((err: unknown) => {
+                  if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
                   console.error("[Analysis Start UI] fetch error:", err);
                   setAnalysisError("네트워크 오류가 발생했습니다. 다시 시도하세요.");
                   setIsNavigating(false);
+                  setProgressStep(null);
                 });
             }}
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
@@ -260,14 +322,29 @@ export default function ChannelsPageClient({
                 <svg className="size-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                   <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
                 </svg>
-                데이터 분석 중… (30–60초 소요)
+                {progressStep === "fetching_yt" && "유튜브 데이터 수집 중…"}
+                {progressStep === "processing_data" && "데이터 처리 중…"}
+                {progressStep === "generating_ai" && "AI 분석 중… (30–60초 소요)"}
+                {progressStep === "saving_results" && "결과 저장 중…"}
+                {(!progressStep || (progressStep !== "fetching_yt" && progressStep !== "processing_data" && progressStep !== "generating_ai" && progressStep !== "saving_results")) && "분석 중…"}
               </>
             ) : (
               "채널분석 시작"
             )}
           </button>
-          {analysisError && (
+          {analysisError && !creditsExhausted && (
             <p className="text-sm text-red-600">{analysisError}</p>
+          )}
+          {creditsExhausted && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5">
+              <p className="text-sm font-medium text-amber-800">{analysisError}</p>
+              <a
+                href="/billing"
+                className="mt-1 inline-block text-xs font-semibold text-amber-700 underline hover:text-amber-900"
+              >
+                플랜 업그레이드 →
+              </a>
+            </div>
           )}
         </div>
       </div>

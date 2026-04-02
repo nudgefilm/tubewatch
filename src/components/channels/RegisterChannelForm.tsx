@@ -133,7 +133,11 @@ export default function RegisterChannelForm({
               채널 등록 슬롯을 모두 사용했습니다
             </p>
             <p className="mt-0.5 text-xs text-gray-500">
-              최대 {maxCount}개 채널까지 등록할 수 있습니다. 등록된 채널에서 분석을 진행하세요.
+              최대 {maxCount}개 채널까지 등록할 수 있습니다.{" "}
+              <a href="/billing" className="font-semibold text-amber-600 underline hover:text-amber-800">
+                플랜 업그레이드
+              </a>
+              {" "}로 더 많은 채널을 등록하세요.
             </p>
           </div>
         </div>

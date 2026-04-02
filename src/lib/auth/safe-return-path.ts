@@ -1,5 +1,5 @@
 /** OAuth 이후 브라우저 리다이렉트에 사용할 안전한 내부 경로만 허용 (오픈 리다이렉트 방지). */
-export const DEFAULT_POST_LOGIN_PATH = "/analysis";
+export const DEFAULT_POST_LOGIN_PATH = "/channels";
 
 export function getSafeOAuthReturnPath(
   raw: string | null | undefined,
