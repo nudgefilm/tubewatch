@@ -5,6 +5,21 @@
  */
 import type { AnalysisPageViewModel, AnalysisVideoRow } from "@/lib/analysis/analysisPageViewModel"
 
+// ── 날짜 포맷 유틸 ────────────────────────────────────────────────────────────
+
+/**
+ * ISO 날짜 문자열을 'YYYY-MM-DD HH:mm' 형식으로 변환한다.
+ * 이 함수는 클라이언트 환경(마운트 이후)에서만 호출해야 한다.
+ * 서버 렌더 시 호출하면 타임존 차이로 하이드레이션 에러가 발생할 수 있다.
+ */
+export function formatAnalysisDate(iso: string | null | undefined): string {
+  if (!iso || iso === "—") return "—"
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return "—"
+  const pad = (n: number) => String(n).padStart(2, "0")
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
 // ── 출력 타입 ──────────────────────────────────────────────────────────────────
 
 export type AnalysisSectionScores = Partial<{
@@ -90,7 +105,7 @@ function mapToKpiData(vm: AnalysisPageViewModel) {
     }
   }
 
-  const structureStatus = structureCard?.status === "good" ? "안정" : "불안정"
+  const structureStatus: "안정" | "불안정" = structureCard?.status === "good" ? "안정" : "불안정"
   const stabilityScore: number | null = structureItems.length > 0
     ? structureCard?.status === "good" ? 75 : 40
     : null
@@ -251,18 +266,34 @@ function mapToSectionScores(vm: AnalysisPageViewModel): AnalysisSectionScores | 
   return Object.keys(out).length > 0 ? out : undefined
 }
 
+function buildTrendInterpretation(vm: AnalysisPageViewModel, trendValue: number, trendDir: "상승" | "유지" | "하락"): string | undefined {
+  const base = vm.growthScenarioLine
+  if (!base) return undefined
+
+  // 조회 흐름 % 기반 긍정 접두 문구를 생성해 앞에 붙인다
+  let prefix: string | null = null
+  if (trendDir === "상승" && trendValue > 0) {
+    prefix = `최근 영상 기준 조회 흐름이 ${trendValue}% 상승 중입니다.`
+  } else if (trendDir === "유지") {
+    prefix = "조회 흐름이 현재 수준을 유지하고 있습니다."
+  }
+
+  return prefix ? `${prefix} ${base}` : base
+}
+
 // ── 엔진 진입점 ────────────────────────────────────────────────────────────────
 
 export function buildAnalysisPageSections(vm: AnalysisPageViewModel) {
+  const kpiData = mapToKpiData(vm)
   return {
     channelData: mapToChannelData(vm),
     score: vm.scoreGauge?.score ?? 0,
     sectionScores: mapToSectionScores(vm),
-    kpiData: mapToKpiData(vm),
+    kpiData,
     trendData: mapToViewTrendData(vm.recentVideos),
     videosData: mapToVideoData(vm.recentVideos),
     comparisonData: mapToComparisonData(vm),
     summaryData: mapToSummaryData(vm),
-    trendInterpretation: vm.growthScenarioLine ?? undefined,
+    trendInterpretation: buildTrendInterpretation(vm, kpiData.viewTrend.value, kpiData.viewTrend.trend),
   }
 }

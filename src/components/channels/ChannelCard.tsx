@@ -44,7 +44,7 @@ type AnalysisResponse = {
   }
 }
 
-const COOLDOWN_HOURS = 72
+const COOLDOWN_HOURS = 12
 
 function formatSubscribers(value: number | null | undefined): string {
   if (value == null) return '-'
@@ -97,7 +97,7 @@ export default function ChannelCard({
         if (result.code === 'COOLDOWN_ACTIVE') {
           setErrorMessage(
             result.error ||
-              `분석 요청은 72시간마다 가능합니다. 약 ${result.remaining_hours ?? '-'}시간 후 다시 시도해 주세요.`
+              `분석 요청은 12시간마다 가능합니다. 약 ${result.remaining_hours ?? '-'}시간 후 다시 시도해 주세요.`
           )
           return
         }

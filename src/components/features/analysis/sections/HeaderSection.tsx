@@ -1,9 +1,11 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { Users, Video, Upload, Clock } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { formatAnalysisDate } from "@/lib/engines/analysisPageEngine"
 import type { ChannelData } from "../mock-data"
 
 interface AnalysisHeaderSectionProps {
@@ -38,6 +40,12 @@ function formatNumber(num: number): string {
 }
 
 export function AnalysisHeaderSection({ channel }: AnalysisHeaderSectionProps) {
+  // 하이드레이션 에러 방지: 날짜 포맷은 클라이언트 마운트 이후에만 적용
+  const [formattedDate, setFormattedDate] = useState<string | null>(null)
+  useEffect(() => {
+    setFormattedDate(formatAnalysisDate(channel.lastAnalyzedAt))
+  }, [channel.lastAnalyzedAt])
+
   return (
     <Card>
       <CardContent className="pt-6">
@@ -100,7 +108,7 @@ export function AnalysisHeaderSection({ channel }: AnalysisHeaderSectionProps) {
           <p className="text-sm text-foreground">{channel.statusSummary}</p>
           <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
             <Clock className="size-3" />
-            <span>최근 분석: {channel.lastAnalyzedAt}</span>
+            <span>최근 분석: {formattedDate ?? "—"}</span>
           </div>
         </div>
       </CardContent>

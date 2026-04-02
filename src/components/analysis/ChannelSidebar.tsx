@@ -12,7 +12,7 @@ type ChannelSidebarProps = {
   gauge: ReactNode;
 };
 
-const COOLDOWN_HOURS = 72;
+const COOLDOWN_HOURS = 12;
 const COOLDOWN_MS = COOLDOWN_HOURS * 60 * 60 * 1000;
 
 function formatSubscriberCount(value: number | null | undefined) {

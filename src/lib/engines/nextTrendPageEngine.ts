@@ -96,7 +96,7 @@ function toRiskMemos(vm: NextTrendRiskVm) {
 }
 
 function toExecutionHints(vm: NextTrendHintsVm) {
-  const hints: { id: string; type: string; label: string; content: string; linkedTo: string }[] = []
+  const hints: { id: string; type: "title" | "angle" | "hook" | "thumbnail" | "start"; label: string; content: string; linkedTo: string }[] = []
   if (vm.titleDirection) hints.push({ id: "hint-title", type: "title", label: "제목 방향", content: vm.titleDirection, linkedTo: "스냅샷 기반" })
   if (vm.hook) hints.push({ id: "hint-hook", type: "hook", label: "훅 전략", content: vm.hook, linkedTo: "스냅샷 기반" })
   if (vm.thumbnail) hints.push({ id: "hint-thumbnail", type: "thumbnail", label: "썸네일 방향", content: vm.thumbnail, linkedTo: "스냅샷 기반" })

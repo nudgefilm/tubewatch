@@ -195,7 +195,7 @@ function formatPublishedAt(iso: string | null): string {
 
 // ── Constants ──
 
-const COOLDOWN_HOURS = 72;
+const COOLDOWN_HOURS = 12;
 const COOLDOWN_MS = COOLDOWN_HOURS * 60 * 60 * 1000;
 
 // ── Formatters ──
@@ -526,7 +526,7 @@ export default function AnalysisReportView({
     if (isRefreshing) return "상태 반영 중...";
     if (localPending) return "분석 요청됨";
     if (isBackendRunning) return "분석 진행 중";
-    if (isCooldownBlocked) return "72시간 쿨다운 적용 중";
+    if (isCooldownBlocked) return "12시간 쿨다운 적용 중";
     if (
       reportPresentation?.status === "failed" ||
       reportPresentation?.geminiStatus === "failed"

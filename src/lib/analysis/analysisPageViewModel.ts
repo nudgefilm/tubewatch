@@ -431,6 +431,21 @@ function buildUrgentPoints(weaknesses: string[], bottlenecks: string[]): string[
   return out;
 }
 
+const PATTERN_FLAG_INSIGHTS: Record<string, string> = {
+  irregular_upload_interval: "업로드 주기를 일정하게 유지하면 구독자 복귀 패턴이 더 빠르게 형성됩니다",
+  short_video_dominant: "쇼츠 중심 구조는 노출 확장에 유리하지만 롱폼과 병행하면 체류 시간을 보완할 수 있습니다",
+  high_view_variance: "고성과 영상의 공통 요소를 파악하면 다음 영상에서 반복 가능한 패턴을 만들 수 있습니다",
+  repeated_topic_pattern: "반복 주제로 고정 팬층이 형성되어 있어 신규 주제 실험 시 리스크가 낮은 편입니다",
+  long_video_dominant: "롱폼 강점을 유지하면서 초반 훅 최적화에 집중하면 이탈률을 줄일 수 있습니다",
+  low_retention: "첫 30초 훅을 강화하면 시청 유지율 개선 효과가 빠르게 나타납니다",
+  low_upload_frequency: "업로드 빈도를 높이면 알고리즘 노출 기회가 늘어나 성장 속도를 끌어올릴 수 있습니다",
+  title_keyword_repetition: "제목 키워드 일관성이 검색 유입 채널을 넓히는 방향으로 작동하고 있습니다",
+  high_ctr: "클릭률이 높아 제목·썸네일 조합이 현재 잘 작동하고 있습니다",
+  thumbnail_inconsistency: "썸네일 스타일을 통일하면 채널 브랜드 인지도가 올라갑니다",
+  low_seo_score: "제목과 설명에 핵심 키워드를 추가하면 검색 유입을 빠르게 늘릴 수 있습니다",
+  consistent_upload: "꾸준한 업로드 리듬이 구독자 복귀 기대를 형성하는 중요한 강점입니다",
+};
+
 function growthScenarioLine(
   growthScore: number | null,
   flags: string[]
@@ -439,20 +454,16 @@ function growthScenarioLine(
     return null;
   }
   const parts: string[] = [];
-  parts.push(
-    `성장 신호 점수는 저장된 엔진 기준 약 ${Math.round(growthScore)}점입니다.`
-  );
-  if (growthScore < 50) {
-    parts.push(
-      "동일 데이터만으로는 반등 시나리오를 단정하지 않으며, 업로드·반응 지표를 함께 보는 것이 안전합니다."
-    );
+  if (growthScore >= 65) {
+    parts.push("현재 지표 조합 기준으로 성장 가속 구간에 진입하고 있는 신호가 감지됩니다.");
+  } else if (growthScore >= 50) {
+    parts.push("지표가 개선 여지 구간에 있습니다. 지금 방향을 유지하면 흐름이 더 명확해집니다.");
   } else {
-    parts.push(
-      "표본 채널에서 관측된 지표 조합 기준으로, 완만한 개선 여지가 있을 수 있는 구간으로 해석할 수 있습니다."
-    );
+    parts.push("업로드 리듬과 반응 지표를 함께 점검하면 반등 신호를 더 빠르게 잡을 수 있습니다.");
   }
-  if (flags.length > 0) {
-    parts.push(`탐지된 패턴 플래그: ${flags.slice(0, 4).join(", ")}`);
+  const primaryFlag = flags.find((f) => PATTERN_FLAG_INSIGHTS[f] != null);
+  if (primaryFlag) {
+    parts.push(PATTERN_FLAG_INSIGHTS[primaryFlag]);
   }
   return parts.join(" ");
 }

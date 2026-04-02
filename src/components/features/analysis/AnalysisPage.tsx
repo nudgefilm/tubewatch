@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { RefreshCw, Clock } from "lucide-react"
 import { AnalysisHeaderSection } from "./sections/HeaderSection"
 import { AnalysisScoreOverview, type SectionScores } from "./sections/ScoreOverviewSection"
 import { AnalysisKpiCards } from "./sections/KpiCardsSection"
@@ -14,6 +15,102 @@ import { PageFlowConnector } from "@/components/features/shared/PageFlowConnecto
 import { FeaturePaywallBlock } from "@/components/features/shared/FeaturePaywallBlock"
 import { buildAnalysisPageSections } from "@/lib/engines/analysisPageEngine"
 import type { AnalysisPageViewModel } from "@/lib/analysis/analysisPageViewModel"
+
+// ─── 재분석 쿨다운 타이머 박스 ───────────────────────────────────────────────
+
+const COOLDOWN_MS = 12 * 60 * 60 * 1000 // 12시간
+
+function formatCountdown(ms: number): string {
+  if (ms <= 0) return "0분"
+  const totalSec = Math.floor(ms / 1000)
+  const h = Math.floor(totalSec / 3600)
+  const m = Math.floor((totalSec % 3600) / 60)
+  const s = totalSec % 60
+  if (h > 0) return `${h}시간 ${m}분 ${s}초`
+  if (m > 0) return `${m}분 ${s}초`
+  return `${s}초`
+}
+
+interface ReanalyzeCooldownBoxProps {
+  lastRunAt: string | null
+  sampleCount: number | null
+  isRequesting: boolean
+  requestError: string | null
+  onReanalyze: () => void
+}
+
+function ReanalyzeCooldownBox({ lastRunAt, sampleCount, isRequesting, requestError, onReanalyze }: ReanalyzeCooldownBoxProps) {
+  // null = 마운트 전(서버 렌더) — 하이드레이션 불일치 방지
+  const [remainingMs, setRemainingMs] = useState<number | null>(null)
+
+  useEffect(() => {
+    function calc() {
+      if (!lastRunAt) return 0
+      const elapsed = Date.now() - new Date(lastRunAt).getTime()
+      return Math.max(0, COOLDOWN_MS - elapsed)
+    }
+    setRemainingMs(calc())
+    const id = setInterval(() => {
+      const next = calc()
+      setRemainingMs(next)
+      if (next <= 0) clearInterval(id)
+    }, 1000)
+    return () => clearInterval(id)
+  }, [lastRunAt])
+
+  // 마운트 전에는 스켈레톤 없이 기본 안내 텍스트만 표시
+  if (remainingMs === null) {
+    return (
+      <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 px-4 py-3 dark:border-emerald-800 dark:bg-emerald-950/20">
+        <p className="text-xs text-emerald-800 dark:text-emerald-300 font-medium">새로 추가된 영상이 분석에 반영되었습니다.</p>
+        <p className="text-xs text-emerald-700 dark:text-emerald-400">
+          {sampleCount != null ? `최신 기준으로 최근 ${sampleCount}개 영상 구성이 업데이트되었습니다.` : "최신 기준으로 영상 구성이 업데이트되었습니다."}
+        </p>
+      </div>
+    )
+  }
+
+  const isCooldown = remainingMs > 0
+
+  return (
+    <div className={`rounded-lg border px-4 py-3 space-y-2 ${
+      isCooldown
+        ? "border-emerald-200 bg-emerald-50/50 dark:border-emerald-800 dark:bg-emerald-950/20"
+        : "border-primary/30 bg-primary/5 dark:border-primary/40"
+    }`}>
+      <div className="space-y-0.5">
+        <p className="text-xs text-emerald-800 dark:text-emerald-300 font-medium">새로 추가된 영상이 분석에 반영되었습니다.</p>
+        <p className="text-xs text-emerald-700 dark:text-emerald-400">
+          {sampleCount != null
+            ? `최신 기준으로 최근 ${sampleCount}개 영상 구성이 업데이트되었습니다.`
+            : "최신 기준으로 영상 구성이 업데이트되었습니다."}
+        </p>
+      </div>
+
+      {isCooldown ? (
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Clock className="size-3.5 shrink-0" />
+          <span>다음 재분석 가능까지 <span className="font-semibold tabular-nums text-foreground">{formatCountdown(remainingMs)}</span> 남았습니다</span>
+        </div>
+      ) : (
+        <div className="space-y-1.5 pt-0.5">
+          <p className="text-xs text-primary font-medium">재분석 가능 시간이 되었습니다.</p>
+          {requestError && (
+            <p className="text-xs text-destructive">{requestError}</p>
+          )}
+          <button
+            onClick={onReanalyze}
+            disabled={isRequesting}
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60 transition-colors"
+          >
+            <RefreshCw className={`size-3.5 ${isRequesting ? "animate-spin" : ""}`} />
+            {isRequesting ? "분석 중…" : "지금 재분석하기"}
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
@@ -196,16 +293,15 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
             </div>
           )}
 
-          {/* STEP 3 — 재진단 완료 상태 안내 */}
+          {/* STEP 3 — 재진단 완료 + 쿨다운 타이머 */}
           {viewModel.hasAnalysisResult && isAnalysisCompleted && (
-            <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 px-4 py-2.5 dark:border-emerald-800 dark:bg-emerald-950/20">
-              <p className="text-xs text-emerald-800 dark:text-emerald-300">새로 추가된 영상이 분석에 반영되었습니다.</p>
-              <p className="text-xs text-emerald-700 dark:text-emerald-400">
-                {sampleCount != null
-                  ? `최신 기준으로 최근 ${sampleCount}개 영상 구성이 업데이트되었습니다.`
-                  : "최신 기준으로 영상 구성이 업데이트되었습니다."}
-              </p>
-            </div>
+            <ReanalyzeCooldownBox
+              lastRunAt={viewModel.lastRunAt}
+              sampleCount={sampleCount}
+              isRequesting={isRequesting}
+              requestError={requestError}
+              onReanalyze={handleReanalyze}
+            />
           )}
         </section>
 
