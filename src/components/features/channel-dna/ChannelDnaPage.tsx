@@ -2,15 +2,13 @@
 
 import { Dna } from "lucide-react"
 import { DnaStructureSummarySection } from "./sections/StructureSummarySection"
-import { DnaPatternAnalysisSection } from "./sections/PatternAnalysisSection"
 import { DnaCardsSection } from "./sections/CardsSection"
 import { DnaEmptyState } from "./sections/EmptyState"
 import { ChannelContextHeader, type ChannelContext } from "@/components/features/shared/ChannelContextHeader"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { StrategicCommentCard } from "@/components/features/shared/StrategicCommentCard"
 import { PageFlowConnector } from "@/components/features/shared/PageFlowConnector"
 import { FeaturePaywallBlock } from "@/components/features/shared/FeaturePaywallBlock"
-import { humanizeSignal, getSectionScoreHint } from "./utils/dnaHelper"
+import { humanizeSignal } from "./utils/dnaHelper"
 import type { ChannelDnaPageViewModel } from "@/lib/channel-dna/channelDnaPageViewModel"
 import type { InternalChannelDnaSummaryVm } from "@/lib/channel-dna/internalChannelDnaSummary"
 
@@ -189,18 +187,7 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
   if (viewModel) {
     const vm = viewModel.internalChannelDnaSummary
     const structureSummary = buildStructureSummaryFromVm(vm)
-    const patternAnalysis = buildPatternAnalysisFromVm(vm)
     const dnaCards = buildDnaCardsFromVm(vm)
-
-    const scoreBarItems = (() => {
-      if (!vm.radarProfile) return []
-      const [activity, response, structure] = vm.radarProfile.channel
-      return [
-        { label: "콘텐츠 구조", score: structure },
-        { label: "성과 반응", score: response },
-        { label: "채널 활동성", score: activity },
-      ].filter((x): x is { label: string; score: number } => x.score != null)
-    })()
 
     return (
       <div className="min-h-screen bg-background">
@@ -227,71 +214,63 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
             </div>
           )}
 
-          {/* 내 채널을 움직이는 구조 패턴 */}
-          <section className="space-y-4">
+          {/* [1] 채널 정체성 — 타겟 시청자 + 콘텐츠 패턴 */}
+          <section className="space-y-6">
             <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-              <h2 className="text-xl font-bold tracking-tight">내 채널을 움직이는 구조 패턴</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">성과를 만들어낸 패턴과 발목 잡는 패턴을 분류합니다</p>
+              <h2 className="text-xl font-bold tracking-tight">채널 정체성</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">AI가 분석한 시청자층과 반복되는 콘텐츠 흐름</p>
             </div>
 
-            {(patternAnalysis.highPerformancePatterns.length > 0 ||
-              patternAnalysis.lowPerformancePatterns.length > 0) ? (
-              <DnaPatternAnalysisSection data={patternAnalysis} />
-            ) : (
-              <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-                패턴 분석 데이터가 아직 없습니다. 분석 후 자동으로 채워집니다.
+            {vm.targetAudience.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium">타겟 시청자</p>
+                <div className="flex flex-wrap gap-2">
+                  {vm.targetAudience.map((audience, i) => (
+                    <span
+                      key={i}
+                      className="inline-flex items-center rounded-full border px-3 py-1.5 text-sm font-medium bg-primary/5 text-primary"
+                    >
+                      {audience}
+                    </span>
+                  ))}
+                </div>
               </div>
             )}
 
-            {scoreBarItems.length > 0 && (
-              <div className="space-y-3">
-                <p className="text-xs text-muted-foreground">구간 점수 · 스냅샷 기반 내부 산출값</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {scoreBarItems.map((item) => {
-                    const safe = Math.max(0, Math.min(100, Math.round(item.score)))
-                    const status =
-                      safe >= 71
-                        ? { label: "강점", emoji: "🟢", bg: "bg-emerald-500/10", text: "text-emerald-700 dark:text-emerald-400" }
-                        : safe >= 41
-                        ? { label: "보통", emoji: "🟡", bg: "bg-amber-500/10", text: "text-amber-700 dark:text-amber-400" }
-                        : { label: "위험", emoji: "🔴", bg: "bg-red-500/10", text: "text-red-700 dark:text-red-400" }
-                    return (
-                      <Card key={item.label} className="rounded-xl border shadow-sm">
-                        <CardContent className="pt-5 pb-4 px-5 flex flex-col gap-2.5">
-                          <p className="text-xs text-muted-foreground font-medium tracking-wide uppercase">
-                            {item.label}
-                          </p>
-                          <p className="text-5xl font-bold tabular-nums leading-none tracking-tight">
-                            {safe}
-                          </p>
-                          <span
-                            className={`inline-flex items-center gap-1 self-start rounded-full px-2.5 py-0.5 text-xs font-semibold ${status.bg} ${status.text}`}
-                          >
-                            {status.emoji} {status.label}
-                          </span>
-                          <p className="text-xs text-muted-foreground leading-snug">
-                            {getSectionScoreHint(item.label, item.score)}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    )
-                  })}
+            {vm.contentPatterns.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium">콘텐츠 패턴</p>
+                <div className="space-y-2">
+                  {vm.contentPatterns.map((pattern, i) => (
+                    <div key={i} className="flex items-start gap-3 rounded-lg border px-4 py-3 text-sm">
+                      <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-muted-foreground">
+                        {i + 1}
+                      </span>
+                      <span>{pattern}</span>
+                    </div>
+                  ))}
                 </div>
+              </div>
+            )}
+
+            {vm.targetAudience.length === 0 && vm.contentPatterns.length === 0 && (
+              <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                채널 정체성 데이터가 없습니다. 분석을 실행하면 자동으로 채워집니다.
               </div>
             )}
           </section>
 
-          {/* 압도적 강점 vs 치명적 약점 */}
+          {/* [2] 채널 성과 패턴 — 강점·약점 */}
           <section className="space-y-4">
             <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-              <h2 className="text-xl font-bold tracking-tight">압도적 강점 vs 치명적 약점</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">채널 성과에 가장 큰 영향을 주는 요소를 강점과 약점으로 정리합니다</p>
+              <h2 className="text-xl font-bold tracking-tight">채널 성과 패턴</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">데이터에서 반복 확인된 강점과 개선이 필요한 약점</p>
             </div>
             {(dnaCards.strengths.length > 0 || dnaCards.weaknesses.length > 0) ? (
               <DnaCardsSection data={dnaCards} />
             ) : (
               <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-                강점·약점 데이터가 아직 없습니다. 분석 후 자동으로 채워집니다.
+                성과 패턴 데이터가 아직 없습니다. 분석 후 자동으로 채워집니다.
               </div>
             )}
           </section>
@@ -307,16 +286,16 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
             />
           )}
 
-          {/* 떡상 영상의 반복 설계도 */}
+          {/* [3] 채널 구조 안정성 */}
           <section className="space-y-4">
             <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-              <h2 className="text-xl font-bold tracking-tight">떡상 영상의 반복 설계도</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">성과가 반복되는 구조의 안정성과 핵심 변수를 확인합니다</p>
+              <h2 className="text-xl font-bold tracking-tight">채널 구조 안정성</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">성과 재현성과 지속 가능성을 결정하는 구조 변수</p>
             </div>
             <DnaStructureSummarySection data={structureSummary} />
           </section>
 
-          {/* TubeWatch 전략 코멘트 — 한눈에 보는 채널 정체성 */}
+          {/* TubeWatch 전략 코멘트 */}
           {viewModel.strategicComment && (
             <StrategicCommentCard data={viewModel.strategicComment} />
           )}
