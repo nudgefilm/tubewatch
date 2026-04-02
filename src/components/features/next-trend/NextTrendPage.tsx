@@ -1,8 +1,6 @@
 "use client"
 
-import { NextTrendCandidatesSection } from "./sections/CandidatesSection"
 import { NextTrendFormatSection } from "./sections/FormatSection"
-import { NextTrendRiskSection } from "./sections/RiskSection"
 import { NextTrendExecutionHints } from "./sections/ExecutionHintsSection"
 import { NextTrendActionSection } from "./sections/ActionSection"
 import { NextTrendEmptyState } from "./sections/EmptyState"
@@ -191,87 +189,6 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                 {viewModel.dataPipelineNotice}
               </div>
 
-              {/* 지금 주목할 다음 시도 — top block */}
-              {topCandidates.length > 0 && (() => {
-                const top1 = topCandidates[0]!
-                const rest = topCandidates.slice(1)
-                return (
-                  <section className="space-y-3">
-                    {/* 1순위 강조 카드 */}
-                    <div className="rounded-lg border-2 border-primary/50 bg-primary/5 dark:bg-primary/10 p-5 space-y-3">
-                      <div className="flex items-center gap-2 text-primary">
-                        <ArrowRight className="h-4 w-4 shrink-0" />
-                        <span className="text-xs font-bold uppercase tracking-wider">지금 1순위</span>
-                      </div>
-                      <p className="text-lg font-bold leading-snug break-words">{top1.topic}</p>
-                      {/* [1] 왜 1순위인지 한 줄 */}
-                      <p className="text-sm font-semibold text-foreground/80 leading-snug">
-                        {getTopReason(top1.signalStrength)}
-                      </p>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant="outline" className={`text-xs ${signalStrengthBadgeConfig[top1.signalStrength].className}`}>
-                          {signalStrengthBadgeConfig[top1.signalStrength].label}
-                        </Badge>
-                        <span className="text-xs text-muted-foreground">→</span>
-                        <span className="text-xs font-semibold text-foreground">
-                          {signalAction(top1.signalStrength)}
-                        </span>
-                      </div>
-                      {/* 추천 이유 */}
-                      {top1.reason && (
-                        <p className="text-sm text-muted-foreground leading-relaxed">{top1.reason}</p>
-                      )}
-                      {/* 예상 변화 */}
-                      {top1.expectedEffect && (
-                        <p className="text-xs text-emerald-600 dark:text-emerald-400 flex items-start gap-1">
-                          <TrendingUp className="h-3 w-3 mt-0.5 shrink-0" />
-                          {top1.expectedEffect}
-                        </p>
-                      )}
-                      <div className="space-y-0.5">
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <span className="shrink-0">실행 가능성</span>
-                          <Progress value={top1.feasibility} className="h-1.5 w-24" />
-                          <span className="font-medium text-foreground">{top1.feasibility}%</span>
-                        </div>
-                        <p className="text-xs text-muted-foreground">{feasibilityHint(top1.feasibility)}</p>
-                      </div>
-                      {/* Evidence — ViewModel에서 생성한 근거 항목 + UI 계산 feasibility */}
-                      {(() => {
-                        const evidenceItems = [
-                          ...(top1.evidence ?? []),
-                          { label: "실행 가능성", value: `${top1.feasibility}%` },
-                        ].slice(0, 3)
-                        return evidenceItems.length > 0
-                          ? <EvidenceBlock items={evidenceItems} />
-                          : null
-                      })()}
-                      {/* [2] 선택 강제 CTA */}
-                      <p className="text-sm font-semibold text-primary pt-3 border-t border-primary/20">
-                        이번 업로드는 이 주제로 먼저 시도하세요
-                      </p>
-                    </div>
-
-                    {/* 2·3순위 — 소형 리스트 */}
-                    {rest.length > 0 && (
-                      <div className="space-y-2">
-                        {rest.map((c, i) => (
-                          <div key={c.id} className="flex items-center gap-3 rounded-md border bg-card px-3 py-2.5">
-                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary shrink-0">
-                              {i + 2}
-                            </span>
-                            <span className="flex-1 text-sm font-medium leading-snug break-words min-w-0">{c.topic}</span>
-                            <span className="text-xs text-muted-foreground whitespace-nowrap shrink-0">
-                              {signalAction(c.signalStrength)}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </section>
-                )
-              })()}
-
               {/* 신호 부족 알림 */}
               {!viewModel.hasEnoughTrendSignal && (
                 <div className="flex items-start gap-3 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 dark:border-yellow-900/40 dark:bg-yellow-900/10">
@@ -282,17 +199,77 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                 </div>
               )}
 
-              {/* 내부 신호 기반 다음 시도 후보 */}
+              {/* [1] 다음 영상 주제 후보 */}
               <section className="space-y-4">
                 <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-                  <h2 className="text-xl font-bold tracking-tight">내부 신호 기반 다음 시도 후보</h2>
+                  <h2 className="text-xl font-bold tracking-tight">다음 영상 주제 후보</h2>
                   <p className="text-xs text-muted-foreground mt-0.5">이 중 하나를 골라 다음 영상 주제로 결정하세요</p>
                 </div>
-                {candidates.length > 0 ? (
-                  <NextTrendCandidatesSection data={candidates} />
-                ) : (
-                  <NextTrendEmptyState />
-                )}
+
+                {topCandidates.length > 0 && (() => {
+                  const top1 = topCandidates[0]!
+                  const rest = (isStarterPlan ? topCandidates.slice(1, 2) : topCandidates.slice(1))
+                  return (
+                    <div className="space-y-3">
+                      {/* 1순위 강조 카드 */}
+                      <div className="rounded-lg border-2 border-primary/50 bg-primary/5 dark:bg-primary/10 p-5 space-y-3">
+                        <div className="flex items-center gap-2 text-primary">
+                          <ArrowRight className="h-4 w-4 shrink-0" />
+                          <span className="text-xs font-bold uppercase tracking-wider">지금 1순위</span>
+                        </div>
+                        <p className="text-lg font-bold leading-snug break-words">{top1.topic}</p>
+                        <p className="text-sm font-semibold text-foreground/80 leading-snug">
+                          {getTopReason(top1.signalStrength)}
+                        </p>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge variant="outline" className={`text-xs ${signalStrengthBadgeConfig[top1.signalStrength].className}`}>
+                            {signalStrengthBadgeConfig[top1.signalStrength].label}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">→</span>
+                          <span className="text-xs font-semibold text-foreground">
+                            {signalAction(top1.signalStrength)}
+                          </span>
+                        </div>
+                        {top1.reason && (
+                          <p className="text-sm text-muted-foreground leading-relaxed">{top1.reason}</p>
+                        )}
+                        {top1.expectedEffect && (
+                          <p className="text-xs text-emerald-600 dark:text-emerald-400 flex items-start gap-1">
+                            <TrendingUp className="h-3 w-3 mt-0.5 shrink-0" />
+                            {top1.expectedEffect}
+                          </p>
+                        )}
+                        {(() => {
+                          const evidenceItems = (top1.evidence ?? []).slice(0, 3)
+                          return evidenceItems.length > 0
+                            ? <EvidenceBlock items={evidenceItems} />
+                            : null
+                        })()}
+                        <p className="text-sm font-semibold text-primary pt-3 border-t border-primary/20">
+                          이번 업로드는 이 주제로 먼저 시도하세요
+                        </p>
+                      </div>
+
+                      {/* 2순위 이후 — 소형 리스트 */}
+                      {rest.length > 0 && (
+                        <div className="space-y-2">
+                          {rest.map((c, i) => (
+                            <div key={c.id} className="flex items-center gap-3 rounded-md border bg-card px-3 py-2.5">
+                              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary shrink-0">
+                                {i + 2}
+                              </span>
+                              <span className="flex-1 text-sm font-medium leading-snug break-words min-w-0">{c.topic}</span>
+                              <Badge variant="outline" className={`text-xs shrink-0 ${signalStrengthBadgeConfig[c.signalStrength].className}`}>
+                                {signalStrengthBadgeConfig[c.signalStrength].label}
+                              </Badge>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })()}
+
                 {hasLockedCandidates && (
                   <FeaturePaywallBlock
                     title="지금 흐름에서 시도할 다음 후보가 더 있습니다."
@@ -304,30 +281,36 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                 )}
               </section>
 
-              {/* 포맷·리스크 신호 점검 */}
+              {/* [2] 포맷 방향 */}
               <section className="space-y-4">
                 <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-                  <h2 className="text-xl font-bold tracking-tight">포맷·리스크 신호 점검</h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">포맷·리스크 신호를 확인하고 방향을 조정하세요</p>
+                  <h2 className="text-xl font-bold tracking-tight">포맷 방향</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">다음 영상에 적용할 길이·형식 권장</p>
                 </div>
-                {formats.length > 0 && (
+                {formats.length > 0 ? (
                   <NextTrendFormatSection data={formats} />
-                )}
-                {risks.length > 0 && (
-                  <NextTrendRiskSection data={risks} />
-                )}
-                {formats.length === 0 && risks.length === 0 && (
+                ) : (
                   <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-                    포맷·리스크 데이터가 아직 없습니다. 분석 후 자동으로 채워집니다.
+                    포맷 데이터가 아직 없습니다. 분석 후 자동으로 채워집니다.
+                  </div>
+                )}
+                {/* 리스크 메모 — 있을 때만 인라인 표시 */}
+                {internal.risk.riskyTopic && internal.risk.riskyTopic !== "-" && internal.risk.riskyTopic !== "" && (
+                  <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-900/40 dark:bg-amber-900/10">
+                    <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                    <div className="space-y-0.5">
+                      <p className="text-sm font-medium text-amber-800 dark:text-amber-300">주의할 신호</p>
+                      <p className="text-sm text-amber-700 dark:text-amber-400">{internal.risk.riskyTopic}</p>
+                    </div>
                   </div>
                 )}
               </section>
 
-              {/* 다음 영상의 힌트 */}
+              {/* [3] 실행 힌트 */}
               <section className="space-y-4">
                 <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-                  <h2 className="text-xl font-bold tracking-tight">다음 영상의 힌트</h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">다음 영상의 제목·훅·썸네일을 지금 결정하세요</p>
+                  <h2 className="text-xl font-bold tracking-tight">실행 힌트</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">제목·훅·썸네일에 바로 적용할 방향</p>
                 </div>
                 {hints.length > 0 ? (
                   <NextTrendExecutionHints data={hints} />
@@ -338,12 +321,12 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                 )}
               </section>
 
-              {/* 영상 기획안 */}
+              {/* [4] 영상 기획안 */}
               {actions.length > 0 && (
                 <section className="space-y-4">
                   <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
                     <h2 className="text-xl font-bold tracking-tight">영상 기획안</h2>
-                    <p className="text-xs text-muted-foreground mt-0.5">지금 바로 실행할 영상 기획안입니다</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">1순위 주제를 기반으로 한 초안</p>
                   </div>
                   <NextTrendActionSection data={actions} />
                 </section>
