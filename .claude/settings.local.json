@@ -4,7 +4,14 @@
       "Bash(npm run:*)",
       "Bash(ls:*)",
       "Bash(grep -v \"^$\")",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(grep -E \"\\\\.\\(sql|ts\\)$\")",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\({k:d[k] for k in ['scripts','devDependencies'] if k in d}, indent=2\\)\\)\")",
+      "Bash(node -e \"const d=require\\('./package.json'\\); console.log\\(JSON.stringify\\({scripts:d.scripts,devDependencies:d.devDependencies},null,2\\)\\)\")",
+      "Bash(node -e \"const d=require\\('./node_modules/vitest/package.json'\\); console.log\\('vitest version:', d.version\\)\")",
+      "Bash(npx vitest:*)",
+      "Bash(xargs grep:*)",
+      "Bash(rm:*)"
     ]
   }
 }

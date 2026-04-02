@@ -1,7 +1,8 @@
 /**
- * Billing plan types for Creator / Pro / Agency.
- * Structured for future Stripe subscription integration.
+ * Billing plan types — Creator / Pro subscription + Single / Triple one-time credits.
  */
+
+// ─── Subscription plans ───────────────────────────────────────────────────────
 
 export type BillingPlanId = "creator" | "pro";
 
@@ -29,19 +30,62 @@ export const BILLING_PLANS: BillingPlan[] = [
   {
     id: "creator",
     name: "Creator",
-    priceUsd: 19,
-    channels: 1,
-    monthlyAnalyses: 10,
+    priceUsd: 9,
+    channels: 3,
+    monthlyAnalyses: 90,
     targetAudience: "1인 크리에이터",
     stripePriceId: null,
   },
   {
     id: "pro",
     name: "Pro",
-    priceUsd: 49,
-    channels: 5,
-    monthlyAnalyses: 50,
+    priceUsd: 29,
+    channels: 10,
+    monthlyAnalyses: 300,
     targetAudience: "성장 중인 채널 운영자",
     stripePriceId: null,
   },
 ];
+
+// ─── One-time credit products ─────────────────────────────────────────────────
+
+export type CreditProductId = "single" | "triple";
+
+export interface CreditProduct {
+  id: CreditProductId;
+  name: string;
+  priceUsd: number;
+  /** 충전되는 분석 횟수 */
+  creditCount: number;
+  description: string;
+  /** Stripe one-time price ID (env-based, null until resolved on server) */
+  stripePriceId: string | null;
+}
+
+/** Env var names for one-time credit price IDs. */
+export const CREDIT_PRICE_ID_ENV_KEYS: Record<CreditProductId, string> = {
+  single: "STRIPE_CREDIT_SINGLE_PRICE_ID",
+  triple: "STRIPE_CREDIT_TRIPLE_PRICE_ID",
+};
+
+export const CREDIT_PRODUCTS: CreditProduct[] = [
+  {
+    id: "single",
+    name: "싱글 패스",
+    priceUsd: 2.9,
+    creditCount: 1,
+    description: "1회 분석",
+    stripePriceId: null,
+  },
+  {
+    id: "triple",
+    name: "트리플 팩",
+    priceUsd: 5.9,
+    creditCount: 3,
+    description: "3회 분석",
+    stripePriceId: null,
+  },
+];
+
+/** Free 플랜 생애 분석 한도 */
+export const FREE_LIFETIME_ANALYSIS_LIMIT = 3;

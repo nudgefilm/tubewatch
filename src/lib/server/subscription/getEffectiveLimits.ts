@@ -8,11 +8,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   type BillingPlanId,
   BILLING_PLANS,
+  FREE_LIFETIME_ANALYSIS_LIMIT,
 } from "@/components/billing/types";
 
 const VALID_SUBSCRIPTION_STATUSES = ["active", "trialing"] as const;
-const FREE_CHANNEL_LIMIT = 3;
-const FREE_MONTHLY_ANALYSIS_LIMIT = 5;
+const FREE_CHANNEL_LIMIT = 1;
 
 const BILLING_PLAN_IDS: BillingPlanId[] = ["creator", "pro"];
 
@@ -48,7 +48,7 @@ export async function getEffectiveLimits(
       planId: "free",
       subscriptionStatus: null,
       channelLimit: FREE_CHANNEL_LIMIT,
-      monthlyAnalysisLimit: FREE_MONTHLY_ANALYSIS_LIMIT,
+      monthlyAnalysisLimit: FREE_LIFETIME_ANALYSIS_LIMIT,
     };
   }
 
@@ -57,7 +57,7 @@ export async function getEffectiveLimits(
       planId: "free",
       subscriptionStatus: null,
       channelLimit: FREE_CHANNEL_LIMIT,
-      monthlyAnalysisLimit: FREE_MONTHLY_ANALYSIS_LIMIT,
+      monthlyAnalysisLimit: FREE_LIFETIME_ANALYSIS_LIMIT,
     };
   }
 
@@ -74,7 +74,7 @@ export async function getEffectiveLimits(
       planId: "free",
       subscriptionStatus: row.subscription_status,
       channelLimit: FREE_CHANNEL_LIMIT,
-      monthlyAnalysisLimit: FREE_MONTHLY_ANALYSIS_LIMIT,
+      monthlyAnalysisLimit: FREE_LIFETIME_ANALYSIS_LIMIT,
     };
   }
 
@@ -85,7 +85,7 @@ export async function getEffectiveLimits(
       planId: "free",
       subscriptionStatus: row.subscription_status,
       channelLimit: FREE_CHANNEL_LIMIT,
-      monthlyAnalysisLimit: FREE_MONTHLY_ANALYSIS_LIMIT,
+      monthlyAnalysisLimit: FREE_LIFETIME_ANALYSIS_LIMIT,
     };
   }
 
@@ -95,7 +95,7 @@ export async function getEffectiveLimits(
       planId: "free",
       subscriptionStatus: row.subscription_status,
       channelLimit: FREE_CHANNEL_LIMIT,
-      monthlyAnalysisLimit: FREE_MONTHLY_ANALYSIS_LIMIT,
+      monthlyAnalysisLimit: FREE_LIFETIME_ANALYSIS_LIMIT,
     };
   }
 

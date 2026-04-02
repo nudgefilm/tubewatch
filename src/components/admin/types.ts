@@ -38,6 +38,8 @@ export type AdminUserRow = {
   last_sign_in_at: string | null;
   channel_count: number;
   role: string | null;
+  lifetime_analyses_used: number | null;
+  purchased_credits: number | null;
 };
 
 export type AdminUsersData = {
