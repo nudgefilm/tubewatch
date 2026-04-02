@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ActionPlanPrioritySection } from "./sections/PrioritySection"
 import { ActionPlanCardsSection } from "./sections/CardsSection"
 import { ActionPlanChecklistSection } from "./sections/ChecklistSection"
 import { ActionPlanEmptyState } from "./sections/EmptyState"
@@ -75,7 +74,6 @@ export function ActionPlanPage({ channelId = "", channelContext, viewModel, isSt
 
   // Real data path
   if (viewModel) {
-    const priorityData = toPrioritySection(viewModel.actions)
     const cardsData = toCardsSection(viewModel.actions)
     const checklistData = toChecklistItems(viewModel.checklistItems)
 
@@ -115,17 +113,17 @@ export function ActionPlanPage({ channelId = "", channelContext, viewModel, isSt
             </div>
           )}
 
-          {/* 성장 가능성 높은 3단계 실행 전략 */}
+          {/* [1] 우선순위별 실행 계획 */}
           <section className="space-y-4">
             <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-              <h2 className="text-xl font-bold tracking-tight">성장 가능성 높은 3단계 실행 전략</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">지금 당장 실행할 수 있는 우선순위 높은 액션을 순서대로 제시합니다</p>
+              <h2 className="text-xl font-bold tracking-tight">우선순위별 실행 계획</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">P1부터 순서대로 실행하세요. 각 카드에 실행 근거와 기대 변화가 포함됩니다</p>
             </div>
-            {priorityData.length > 0 ? (
-              <ActionPlanPrioritySection data={priorityData} />
+            {cardsData.length > 0 ? (
+              <ActionPlanCardsSection data={cardsData} />
             ) : (
               <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-                분석이 완료되면 실행 전략이 자동으로 생성됩니다.
+                분석이 완료되면 실행 계획이 자동으로 생성됩니다.
               </div>
             )}
           </section>
@@ -141,27 +139,12 @@ export function ActionPlanPage({ channelId = "", channelContext, viewModel, isSt
             />
           )}
 
-          {/* 실행 시 기대 변화 시나리오 */}
-          <section className="space-y-4">
-            <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-              <h2 className="text-xl font-bold tracking-tight">실행 시 기대 변화 시나리오</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">각 액션을 실행했을 때 기대되는 채널 변화를 구체적으로 제시합니다</p>
-            </div>
-            {cardsData.length > 0 ? (
-              <ActionPlanCardsSection data={cardsData} />
-            ) : (
-              <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-                분석이 완료되면 실행 카드가 자동으로 생성됩니다.
-              </div>
-            )}
-          </section>
-
-          {/* 업로드 전 필수 검토 항목 */}
+          {/* [2] 업로드 전 체크리스트 */}
           {checklistData.length > 0 && (
             <section className="space-y-4">
               <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-                <h2 className="text-xl font-bold tracking-tight">업로드 전 필수 검토 항목</h2>
-                <p className="text-xs text-muted-foreground mt-0.5">영상 업로드 전 반드시 확인해야 할 체크포인트입니다</p>
+                <h2 className="text-xl font-bold tracking-tight">업로드 전 체크리스트</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">영상을 올리기 전 매번 확인할 항목</p>
               </div>
               <ActionPlanChecklistSection items={checklistData} />
             </section>

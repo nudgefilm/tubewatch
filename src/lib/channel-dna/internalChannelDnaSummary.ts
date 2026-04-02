@@ -48,6 +48,10 @@ export type InternalChannelDnaSummaryVm = {
   readonly channelDnaNarrative: string;
   readonly radarProfile: InternalChannelDnaRadarVm | null;
   readonly sectionScoresLine: string | null;
+  /** Gemini가 분석한 타겟 시청자층 — analysis_results.target_audience */
+  readonly targetAudience: readonly string[];
+  /** Gemini가 감지한 콘텐츠 패턴 — analysis_results.content_patterns */
+  readonly contentPatterns: readonly string[];
 };
 
 function safeStringArray(value: unknown): string[] {
@@ -249,6 +253,8 @@ export function buildInternalChannelDnaSummary(
         "저장된 분석 스냅샷이 없습니다. /analysis에서 베이스 분석을 완료하면 이 페이지에 표본 기반 내부 비교를 표시할 수 있습니다.",
       radarProfile: null,
       sectionScoresLine: null,
+      targetAudience: [],
+      contentPatterns: [],
     };
   }
 
@@ -263,6 +269,8 @@ export function buildInternalChannelDnaSummary(
   const strengths = safeStringArray(rawRow.strengths);
   const weaknesses = safeStringArray(rawRow.weaknesses);
   const bottlenecks = safeStringArray(rawRow.bottlenecks);
+  const targetAudience = safeStringArray(rawRow.target_audience);
+  const contentPatterns = safeStringArray(rawRow.content_patterns);
 
   const ch = data.selectedChannel;
   const totalVideosUsed =
@@ -476,6 +484,8 @@ export function buildInternalChannelDnaSummary(
     channelDnaNarrative,
     radarProfile,
     sectionScoresLine,
+    targetAudience,
+    contentPatterns,
   };
 }
 

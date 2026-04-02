@@ -29,7 +29,7 @@ const steps = [
   {
     number: "03",
     title: "전략 인사이트 생성",
-    description: "분석된 데이터를 기반으로 AI가 채널 성장 전략 인사이트를 도출합니다.",
+    description: "분석된 데이터를 기반으로 튜브워치가 채널 성장 전략 인사이트를 도출합니다.",
     icon: Lightbulb,
     items: ["콘텐츠 방향", "업로드 전략", "SEO 개선 포인트", "성장 가능성 시나리오"],
     label: "생성되는 전략",

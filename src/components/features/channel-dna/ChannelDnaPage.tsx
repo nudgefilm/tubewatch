@@ -218,7 +218,7 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
           <section className="space-y-6">
             <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
               <h2 className="text-xl font-bold tracking-tight">채널 정체성</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">AI가 분석한 시청자층과 반복되는 콘텐츠 흐름</p>
+              <p className="text-xs text-muted-foreground mt-0.5">튜브워치가 분석한 시청자층과 반복되는 콘텐츠 흐름</p>
             </div>
 
             {vm.targetAudience.length > 0 && (

@@ -222,6 +222,29 @@ function buildTextExecutionSpec(
 }
 
 /**
+ * Gemini가 직접 생성한 growth_action_plan[] 항목을 액션 카드로 변환.
+ * 템플릿 없이 Gemini 원문을 title로 사용하고, 카테고리 분류로 hint를 보완.
+ */
+function buildGeminiBackedActions(
+  growthActionPlan: string[]
+): Omit<ActionPlanCardVm, "priority">[] {
+  const items = uniqueTrimmedStrings(growthActionPlan);
+  return items.slice(0, 5).map((text, idx) => {
+    const category = classifyTextItem(text);
+    return {
+      id: `gemini-action-${idx}`,
+      title: makeDiagnosticLabel(text),
+      whyNeeded: `튜브워치 분석이 채널 성장을 위해 직접 제안한 액션입니다. ${text}`,
+      expectedEffect:
+        "채널 데이터 전체를 종합해 도출한 제안으로, 현재 채널 구조에서 가장 직접적인 개선 방향입니다.",
+      difficulty: "medium" as const,
+      executionHint: buildTextExecutionHint(category),
+      executionSpec: buildTextExecutionSpec(category),
+    };
+  });
+}
+
+/**
  * TODO(확장 수집): 경쟁 채널 DNA·사용자 진행도 등은
  * `getMenuExtensionStrategy("action_plan").futureCollectionFields` 범위에서만 보강한다.
  */
@@ -567,17 +590,19 @@ function channelDnaRowsToSortable(
 }
 
 /**
- * 우선순위: 1 채널 DNA 히트 → 2 편차 → 3 업로드 → 4 구간(채널 DNA 구간 카드 → 수치 기반 메트릭) → 5 강점 확장 → 6 텍스트 약점·병목
+ * 우선순위: 1 채널 DNA 히트 → 2 Gemini 직접 제안 → 3 편차·업로드 → 4 수치 기반 메트릭 → 5 강점 확장 → 6 텍스트 약점·병목
  */
 function mergePrioritizedActionStack(
   channelDnaRows: ChannelDnaActionCandidate[],
   metricActions: Omit<ActionPlanCardVm, "priority">[],
-  textActions: Omit<ActionPlanCardVm, "priority">[]
+  textActions: Omit<ActionPlanCardVm, "priority">[],
+  geminiActions: Omit<ActionPlanCardVm, "priority">[] = []
 ): Omit<ActionPlanCardVm, "priority">[] {
   const bench = channelDnaRowsToSortable(channelDnaRows);
+  const geminiS = toSortableMetricAndText(geminiActions, 2, 0);
   const metricS = toSortableMetricAndText(metricActions, 4, 100);
   const textS = toSortableMetricAndText(textActions, 6, 0);
-  const all: SortableActionCandidate[] = [...bench, ...metricS, ...textS];
+  const all: SortableActionCandidate[] = [...bench, ...geminiS, ...metricS, ...textS];
   all.sort((a, b) => a.sortTier - b.sortTier || a.sortOrder - b.sortOrder);
 
   const seenId = new Set<string>();
@@ -781,10 +806,12 @@ export function buildActionPlanPageViewModel(
 
   const weaknesses = safeStringArray(row.weaknesses);
   const bottlenecks = safeStringArray(row.bottlenecks);
+  const growthActionPlan = safeStringArray(row.growth_action_plan);
 
   const internalChannelDnaSummary = buildInternalChannelDnaSummary(data);
   const channelDnaSignals = pickChannelDnaSignalsForActionPlan(internalChannelDnaSummary);
 
+  const geminiActions = buildGeminiBackedActions(growthActionPlan);
   const textActions = buildTextBackedActions(weaknesses, bottlenecks);
   const metricActions = buildMetricBackedActions(sections, metrics);
   const channelDnaRows = buildChannelDnaActionCandidates(channelDnaSignals, sections);
@@ -792,10 +819,12 @@ export function buildActionPlanPageViewModel(
     metricActions,
     channelDnaRows
   );
+  // Gemini 직접 제안(tier 2)은 channelDna(tier 1) 다음, metric(tier 4)·text(tier 6) 이전
   let merged = mergePrioritizedActionStack(
     channelDnaRows,
     metricActionsFiltered,
-    textActions
+    textActions,
+    geminiActions
   );
 
   if (merged.length === 0 && sections != null) {

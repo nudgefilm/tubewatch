@@ -402,10 +402,10 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel }: C
           <p className="mt-1 text-sm text-muted-foreground">채널 건강검진 리포트</p>
         </div>
 
-        {/* 실시간 채널 컨디션 보드 */}
+        {/* 채널 현황 */}
         <section className="space-y-4">
           <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-            <h2 className="text-xl font-bold tracking-tight">실시간 채널 컨디션 보드</h2>
+            <h2 className="text-xl font-bold tracking-tight">채널 현황</h2>
             <p className="text-xs text-muted-foreground mt-0.5">현재 채널 상태와 진단 결과를 한눈에 확인합니다</p>
           </div>
 
@@ -479,10 +479,10 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel }: C
           )}
         </section>
 
-        {/* 성장 엔진 핵심 지표 */}
+        {/* 채널 진단 지표 */}
         <section className="space-y-4">
           <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-            <h2 className="text-xl font-bold tracking-tight">성장 엔진 핵심 지표</h2>
+            <h2 className="text-xl font-bold tracking-tight">채널 진단 지표</h2>
             <p className="text-xs text-muted-foreground mt-0.5">업로드 빈도·조회 반응·콘텐츠 구조 등 핵심 수치를 구간별로 확인합니다</p>
           </div>
           <div className="grid gap-4 lg:grid-cols-[1.2fr_2fr]">
@@ -529,7 +529,7 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel }: C
           <AnalysisTopBottomCompare data={comparisonData} sampleCount={videosData.length} videos={videosData} />
         </section>
 
-        {/* 종합 해석 */}
+        {/* 튜브워치 진단 요약 */}
         <AnalysisSummarySection data={summaryData} />
 
         {/* STEP 4 — 슬라이딩 윈도우 안내 */}

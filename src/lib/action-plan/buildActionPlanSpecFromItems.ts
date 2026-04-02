@@ -116,7 +116,7 @@ function confidenceFrom(
 ): { label: "낮음" | "중간" | "높음"; note: string } {
   const patternHint =
     item.sourceDetail === "growth_action_plan"
-      ? "AI 문장(해석 변동 가능)"
+      ? "튜브워치 분석 문장(해석 변동 가능)"
       : item.sourceDetail === "low_metric"
         ? "수치 정규화(상대적 안정)"
         : "텍스트·룰 혼합";

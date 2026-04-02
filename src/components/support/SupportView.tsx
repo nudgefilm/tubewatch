@@ -68,7 +68,7 @@ export default function SupportView() {
     {
       question: "액션 플랜은 어떻게 생성되나요?",
       answer:
-        "AI가 채널 데이터를 분석하여 현재 상황에 맞는 맞춤형 액션 플랜을 자동으로 생성합니다.",
+        "튜브워치가 채널 데이터를 분석하여 현재 상황에 맞는 맞춤형 액션 플랜을 자동으로 생성합니다.",
     },
     {
       question: "플랜을 변경하거나 취소하려면 어떻게 하나요?",
@@ -89,7 +89,7 @@ export default function SupportView() {
     },
     {
       title: "액션 플랜 활용하기",
-      description: "AI 추천 액션을 효과적으로 실행하는 방법",
+      description: "튜브워치 추천 액션을 효과적으로 실행하는 방법",
       icon: Zap,
     },
     {

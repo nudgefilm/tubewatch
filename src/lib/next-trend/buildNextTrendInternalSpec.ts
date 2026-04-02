@@ -184,6 +184,25 @@ function buildCandidateEvidence(
   return [];
 }
 
+function deduplicateCandidates(
+  list: NextTrendCandidateVm[],
+  max: number
+): NextTrendCandidateVm[] {
+  const seen: string[] = [];
+  const out: NextTrendCandidateVm[] = [];
+  for (const c of list) {
+    const key = normalizeTopicBucket(c.topic);
+    if (!key) continue;
+    const dup = seen.some((s) => s === key || isSameTopicCluster(s, key));
+    if (!dup) {
+      seen.push(key);
+      out.push(c);
+    }
+    if (out.length >= max) break;
+  }
+  return out;
+}
+
 /** 공백·대소문자·구두점 차이를 줄인 키로 묶어 중복 후보를 줄입니다. */
 function normalizeTopicBucket(title: string): string {
   return title
@@ -495,6 +514,21 @@ export function buildNextTrendExtensionBlock(): NextTrendExtensionVm {
   };
 }
 
+function buildGeminiTopicCandidates(
+  recommendedTopics: string[]
+): NextTrendCandidateVm[] {
+  return recommendedTopics.slice(0, 4).map((topic, i) => ({
+    topic,
+    reason:
+      "튜브워치가 채널 데이터를 분석해 다음 영상으로 추천한 주제입니다. 채널의 강점·패턴·시청자층을 종합해 도출했습니다.",
+    signal: "튜브워치 추천",
+    signalStrength: i === 0 ? ("clear" as const) : ("medium" as const),
+    evidence: [{ label: "출처", value: "튜브워치 채널 분석 추천" }],
+    expectedEffect:
+      "채널 특성에 맞는 주제로 시작해 초반 클릭율과 시청 지속시간을 함께 테스트할 수 있습니다.",
+  }));
+}
+
 export function buildNextTrendInternalSpec(
   insights: TrendInsightsBundle,
   bundle: TrendSignalsBundle,
@@ -504,13 +538,31 @@ export function buildNextTrendInternalSpec(
   const dur = getSnapshotVideoDurationStats(snapshot);
   const ac = readAnalysisConfidence(latestResult);
 
-  const candidates = mergeCandidates(
+  const recommendedTopics: string[] = Array.isArray(
+    (latestResult as Record<string, unknown> | null)?.recommended_topics
+  )
+    ? ((latestResult as Record<string, unknown>).recommended_topics as string[]).filter(
+        (x): x is string => typeof x === "string" && x.trim().length > 0
+      )
+    : [];
+
+  const geminiCandidates = buildGeminiTopicCandidates(recommendedTopics);
+
+  const snapshotCandidates = mergeCandidates(
     insights.repeatedTopics,
     insights.detectedPatterns,
     bundle.records,
     5,
     bundle.recentVideosUsed
   );
+
+  // Gemini 추천 주제가 있으면 앞에 배치, 스냅샷 신호는 보조 근거로
+  const candidatePool =
+    geminiCandidates.length > 0
+      ? deduplicateCandidates([...geminiCandidates, ...snapshotCandidates], 5)
+      : snapshotCandidates;
+
+  const candidates = candidatePool;
 
   const formatHeadline =
     insights.formatChanges[0]?.title ??
@@ -593,10 +645,10 @@ export function buildNextTrendInternalSpec(
         ? candidates
         : [
             {
-              topic: "반복성 미확인 — 기존 포맷으로 1편 먼저 시도하세요",
+              topic: "신호 부족 — 분석을 다시 실행하면 추천 주제가 생성됩니다",
               reason:
-                "반복·패턴 신호가 충분하지 않습니다. 최근 반응이 있었던 영상과 동일한 포맷으로 1편을 먼저 제작하고, 표본을 늘린 뒤 다시 확인하세요.",
-              signal: "표본 부족",
+                "추천 주제와 반복·패턴 신호 모두 확인되지 않았습니다. 분석을 재실행하거나 표본을 늘린 뒤 다시 확인하세요.",
+              signal: "데이터 부족",
               signalStrength: "low" as const,
               evidence: [],
               expectedEffect: "소규모 실험으로 CTR과 반복 시청 가능성을 직접 확인하면 재현 패턴을 좁혀나갈 수 있습니다.",

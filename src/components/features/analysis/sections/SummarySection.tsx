@@ -12,7 +12,7 @@ export function AnalysisSummarySection({ data }: AnalysisSummarySectionProps) {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-semibold">종합 해석</CardTitle>
+        <CardTitle className="text-sm font-semibold">튜브워치 진단 요약</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
 

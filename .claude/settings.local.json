@@ -3,7 +3,8 @@
     "allow": [
       "Bash(npm run:*)",
       "Bash(ls:*)",
-      "Bash(grep -v \"^$\")"
+      "Bash(grep -v \"^$\")",
+      "Bash(npx tsc:*)"
     ]
   }
 }
