@@ -33,7 +33,7 @@ function truncateError(raw: string | null, maxLen: number): string | null {
  * - analysis_results gemini_status=failed 최근 5건 (channel, error, created_at)
  */
 export async function getAdminDashboardData(): Promise<AdminDashboardData> {
-  const [usersCountRes, channelsCountRes, resultsCountRes, queueRes, failuresRes] =
+  const [usersCountRes, channelsCountRes, resultsCountRes, failedJobsRes, queueRes, failuresRes] =
     await Promise.all([
       supabaseAdmin.from("users").select("*", { count: "exact", head: true }),
       supabaseAdmin
@@ -42,6 +42,10 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       supabaseAdmin
         .from("analysis_results")
         .select("*", { count: "exact", head: true }),
+      supabaseAdmin
+        .from("analysis_queue")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "failed"),
       supabaseAdmin
         .from("analysis_queue")
         .select("job_id, user_channel_id, status, created_at")
@@ -59,6 +63,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     usersCount: usersCountRes.count ?? 0,
     channelsCount: channelsCountRes.count ?? 0,
     analysisRunsCount: resultsCountRes.count ?? 0,
+    failedJobsCount: failedJobsRes.count ?? 0,
   };
 
   const queueData = (queueRes.data ?? []) as unknown as QueueDbRow[];

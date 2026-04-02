@@ -13,29 +13,29 @@ export default function AdminDashboardView({
   const { kpi, queueRows, failureRows } = data;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-lg font-heading font-medium tracking-[-0.02em] text-gray-900">Admin Dashboard</h1>
-        <p className="mt-0.5 text-xs text-gray-500">운영 상태 요약</p>
+    <div className="space-y-8">
+      <div className="border-b border-foreground/8 pb-5">
+        <h1 className="font-heading text-2xl font-medium tracking-[-0.03em] text-foreground">
+          Overview
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">서비스 운영 현황 요약</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      {/* KPI */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <AdminStatCard label="Users" value={kpi.usersCount} />
         <AdminStatCard label="Channels" value={kpi.channelsCount} />
         <AdminStatCard label="Analysis Runs" value={kpi.analysisRunsCount} />
+        <AdminStatCard label="Failed Jobs" value={kpi.failedJobsCount} variant="danger" />
       </div>
 
+      {/* Recent Queue */}
       <section>
-        <h2 className="mb-3 text-sm font-heading font-medium tracking-[-0.01em] text-gray-700">
-          최근 분석 요청
-        </h2>
         <AdminQueueTable rows={queueRows} />
       </section>
 
+      {/* Failure Log */}
       <section>
-        <h2 className="mb-3 text-sm font-heading font-medium tracking-[-0.01em] text-gray-700">
-          분석 실패 로그
-        </h2>
         <AdminFailureTable rows={failureRows} />
       </section>
     </div>

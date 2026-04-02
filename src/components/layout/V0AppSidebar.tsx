@@ -99,6 +99,7 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
   const [selectedChannelId, setSelectedChannelId] = React.useState<string | null>(null)
   const [userEmail, setUserEmail] = React.useState<string | null>(null)
   const [userDisplayName, setUserDisplayName] = React.useState<string | null>(null)
+  const [userAvatarUrl, setUserAvatarUrl] = React.useState<string | null>(null)
   const channelsFetchingRef = React.useRef(false)
 
   const activeChannelLabel = React.useMemo(() => {
@@ -174,9 +175,11 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
         session?.user?.email ||
         null
       )
+      setUserAvatarUrl((meta.avatar_url as string | undefined) ?? null)
       if (!session?.user) {
         setChannels([])
         setSelectedChannelId(null)
+        setUserAvatarUrl(null)
         writeSelectedChannelIdToStorage(null)
         return
       }
@@ -335,8 +338,17 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
         <SidebarSeparator className="my-2" />
 
         <div className="flex items-center gap-3 px-2 py-3">
-          <div className="flex aspect-square size-8 items-center justify-center rounded-full bg-muted">
-            <User className="size-4 text-muted-foreground" />
+          <div className="flex aspect-square size-8 items-center justify-center rounded-full bg-muted overflow-hidden shrink-0">
+            {userAvatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={userAvatarUrl}
+                alt={userDisplayName ?? "profile"}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <User className="size-4 text-muted-foreground" />
+            )}
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">
             <span className="truncate font-medium text-foreground">{userDisplayName ?? "User"}</span>

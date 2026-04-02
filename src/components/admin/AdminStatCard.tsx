@@ -4,23 +4,30 @@ type AdminStatCardProps = {
   label: string;
   value: number | string;
   subtitle?: string;
+  variant?: "default" | "danger";
 };
 
 export default function AdminStatCard({
   label,
   value,
   subtitle,
+  variant = "default",
 }: AdminStatCardProps): JSX.Element {
   const displayValue: ReactNode =
     typeof value === "number" ? value.toLocaleString("ko-KR") : value;
 
+  const valueColor =
+    variant === "danger" && typeof value === "number" && value > 0
+      ? "text-red-600"
+      : "text-foreground";
+
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-      <p className="text-xs font-medium text-gray-500">{label}</p>
+    <div className="rounded-xl border border-foreground/10 bg-foreground/[0.02] p-5">
+      <p className="text-xs font-medium text-muted-foreground">{label}</p>
       {subtitle ? (
-        <p className="mt-0.5 text-[10px] text-gray-400">{subtitle}</p>
+        <p className="mt-0.5 text-[10px] text-muted-foreground/60">{subtitle}</p>
       ) : null}
-      <p className="mt-1 text-2xl font-semibold tabular-nums text-gray-900">
+      <p className={`mt-2 font-heading text-3xl font-medium tabular-nums tracking-[-0.03em] ${valueColor}`}>
         {displayValue}
       </p>
     </div>

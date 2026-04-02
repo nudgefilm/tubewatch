@@ -59,12 +59,15 @@ export function AuthModal({ isOpen, onClose, returnToPath = null }: AuthModalPro
           {/* Logo/Title */}
           <div className="text-center mb-8">
             <h2 className="text-3xl font-heading mb-3">TubeWatch</h2>
-            <p className="text-foreground text-base mb-4">
-              Google 계정으로 계속하면 로그인 또는 첫 방문 시 자동으로 가입됩니다.
+            <p className="text-foreground text-base font-medium mb-1">
+              채널이 정체되는 이유
             </p>
-            <div className="space-y-1 text-sm text-muted-foreground">
-              <p>TubeWatch는 채널 데이터를 기반으로 성장 전략을 분석합니다.</p>
-            </div>
+            <p className="text-foreground text-base mb-4">
+              데이터는 알고 있습니다.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Google 계정으로 계속하면 로그인 또는<br />첫 방문 시 자동으로 가입됩니다.
+            </p>
           </div>
 
           <GoogleLoginButton

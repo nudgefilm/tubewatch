@@ -5,12 +5,13 @@
  */
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogOut, User } from "lucide-react";
 
 import { getSafeOAuthReturnPath } from "@/lib/auth/safe-return-path";
 import { AuthModal } from "./auth-modal";
+import { createClient } from "@/lib/supabase/client";
 
 const navLinks = [
   { name: "Channel Analysis", href: "/analysis", description: "내 채널, 지금 몇점일까?" },
@@ -26,10 +27,48 @@ export function Navigation() {
   const [oauthReturnPath, setOauthReturnPath] = useState<string | null>(null);
   /** lucide SVG는 SSR/클라이언트 DOM 차이로 hydration 불일치가 날 수 있어 마운트 후에만 렌더 */
   const [iconsMounted, setIconsMounted] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userDisplayName, setUserDisplayName] = useState<string | null>(null);
+  const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const profileCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     setIconsMounted(true);
   }, []);
+
+  useEffect(() => {
+    const supabase = createClient();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setIsLoggedIn(true);
+        const meta = session.user.user_metadata ?? {};
+        setUserDisplayName(
+          (meta.name as string | undefined) ||
+          (meta.full_name as string | undefined) ||
+          (meta.preferred_username as string | undefined) ||
+          session.user.email ||
+          null
+        );
+        setUserAvatarUrl((meta.avatar_url as string | undefined) ?? null);
+      } else {
+        setIsLoggedIn(false);
+        setUserDisplayName(null);
+        setUserAvatarUrl(null);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    setIsLoggedIn(false);
+    setUserDisplayName(null);
+    setUserAvatarUrl(null);
+    setIsProfileDropdownOpen(false);
+    window.location.href = "/";
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -107,23 +146,85 @@ export function Navigation() {
                 </span>
               </a>
             ))}
-            
+
             <span className="w-px h-4 bg-foreground/20" />
-            
-            <button 
-              type="button"
-              onClick={() => setIsAuthModalOpen(true)}
-              className={`text-foreground/70 hover:text-foreground transition-all duration-500 cursor-pointer ${isScrolled ? "text-xs" : "text-sm"}`}
-            >
-              로그인
-            </button>
-            <Button
-              size="sm"
-              className={`bg-black hover:bg-neutral-800 text-white rounded-lg shadow-lg transition-all duration-500 cursor-pointer ${isScrolled ? "px-4 h-8 text-xs" : "px-5 h-9"}`}
-              onClick={() => setIsAuthModalOpen(true)}
-            >
-              시작하기
-            </Button>
+
+            {isLoggedIn ? (
+              /* 로그인 상태: 프로필 이미지 + 닉네임 + hover 드롭다운 */
+              <div
+                className="relative"
+                onMouseEnter={() => {
+                  if (profileCloseTimerRef.current) {
+                    clearTimeout(profileCloseTimerRef.current);
+                    profileCloseTimerRef.current = null;
+                  }
+                  setIsProfileDropdownOpen(true);
+                }}
+                onMouseLeave={() => {
+                  profileCloseTimerRef.current = setTimeout(() => {
+                    setIsProfileDropdownOpen(false);
+                  }, 1000);
+                }}
+              >
+                <button
+                  type="button"
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  {userAvatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={userAvatarUrl}
+                      alt={userDisplayName ?? "profile"}
+                      className="w-8 h-8 rounded-full object-cover ring-2 ring-foreground/10"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center ring-2 ring-foreground/10">
+                      <User className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                  )}
+                  <span className={`text-foreground/80 transition-all duration-500 ${isScrolled ? "text-xs" : "text-sm"}`}>
+                    {userDisplayName}
+                  </span>
+                </button>
+
+                {/* Hover Dropdown */}
+                <div
+                  className={`absolute right-0 top-full mt-2 w-44 bg-background/95 backdrop-blur-xl border border-foreground/10 rounded-xl shadow-lg overflow-hidden transition-all duration-200 ${
+                    isProfileDropdownOpen ? "opacity-100 pointer-events-auto translate-y-0" : "opacity-0 pointer-events-none -translate-y-1"
+                  }`}
+                >
+                  <div className="px-4 py-3 border-b border-foreground/10">
+                    <p className="text-xs text-muted-foreground truncate">{userDisplayName}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => void handleLogout()}
+                    className="flex w-full items-center gap-2 px-4 py-3 text-sm text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-colors duration-150 cursor-pointer"
+                  >
+                    <LogOut className="w-4 h-4 shrink-0" />
+                    로그아웃
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* 비로그인 상태: 기존 버튼 */
+              <>
+                <button
+                  type="button"
+                  onClick={() => setIsAuthModalOpen(true)}
+                  className={`text-foreground/70 hover:text-foreground transition-all duration-500 cursor-pointer ${isScrolled ? "text-xs" : "text-sm"}`}
+                >
+                  로그인
+                </button>
+                <Button
+                  size="sm"
+                  className={`bg-black hover:bg-neutral-800 text-white rounded-lg shadow-lg transition-all duration-500 cursor-pointer ${isScrolled ? "px-4 h-8 text-xs" : "px-5 h-9"}`}
+                  onClick={() => setIsAuthModalOpen(true)}
+                >
+                  시작하기
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
