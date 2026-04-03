@@ -25,19 +25,19 @@ export function SegmentGauge({ score, segments = 10, label, hint, variant = "pri
 
   return (
     <div className="space-y-1.5">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex gap-1 flex-1">
+      <div className="flex items-center gap-2">
+        <div className="flex gap-1">
           {Array.from({ length: segments }).map((_, i) => (
             <div
               key={i}
-              className={`h-2.5 flex-1 rounded-sm transition-colors ${
+              className={`h-2.5 w-2.5 rounded-sm transition-colors ${
                 i < filled ? filledClass : "bg-muted"
               }`}
             />
           ))}
         </div>
         {displayLabel != null && (
-          <span className="text-sm font-semibold tabular-nums w-10 text-right shrink-0">
+          <span className="text-sm font-semibold tabular-nums shrink-0">
             {displayLabel}
           </span>
         )}

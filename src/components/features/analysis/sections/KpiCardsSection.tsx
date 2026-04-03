@@ -3,6 +3,7 @@
 import { Upload, TrendingUp, Layers, Target, BarChart3 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { SegmentGauge } from "@/components/ui/SegmentGauge"
 import type { KpiData } from "../mock-data"
 
 interface AnalysisKpiCardsProps {
@@ -27,17 +28,6 @@ function getStatusBadgeStyle(status: string) {
   }
 }
 
-function MiniProgressBar({ value, max, color }: { value: number; max: number; color: string }) {
-  const percentage = Math.min((value / max) * 100, 100)
-  return (
-    <div className="h-1.5 w-full rounded-full bg-muted">
-      <div
-        className={`h-full rounded-full transition-all ${color}`}
-        style={{ width: `${percentage}%` }}
-      />
-    </div>
-  )
-}
 
 function MiniSparkline({ trend }: { trend: "상승" | "유지" | "하락" }) {
   const paths = {
@@ -136,7 +126,7 @@ export function AnalysisKpiCards({ data }: AnalysisKpiCardsProps) {
                 <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
                   {data.uploadFrequency.interpretation}
                 </p>
-                <MiniProgressBar value={data.uploadFrequency.value} max={5} color="bg-emerald-500" />
+                <SegmentGauge score={Math.min((data.uploadFrequency.value / 5) * 100, 100)} label={false} />
               </>
             ) : (
               <NullState reason="발행 간격 데이터가 없어 업로드 리듬 판단이 제한됩니다" />

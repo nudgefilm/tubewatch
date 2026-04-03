@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
+import { SegmentGauge } from "@/components/ui/SegmentGauge"
 import { Film, Clock, Repeat, ArrowRight } from "lucide-react"
 import type { FormatRecommendation } from "../mock-data"
 
@@ -57,11 +57,8 @@ export function NextTrendFormatSection({ data }: NextTrendFormatSectionProps) {
               </div>
 
               <div className="space-y-1">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">내부 적합도</span>
-                  <span className="font-medium">{format.internalFit}%</span>
-                </div>
-                <Progress value={format.internalFit} className="h-2" />
+                <p className="text-xs text-muted-foreground">내부 적합도</p>
+                <SegmentGauge score={format.internalFit} />
               </div>
 
               <p className="text-xs text-muted-foreground italic">

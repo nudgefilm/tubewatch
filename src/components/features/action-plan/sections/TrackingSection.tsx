@@ -3,7 +3,7 @@
 import { TrendingUp, Clock, Link2 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
+import { SegmentGauge } from "@/components/ui/SegmentGauge"
 
 interface TrackingKPI {
   id: string
@@ -63,7 +63,7 @@ export function ActionPlanTrackingSection({ data }: ActionPlanTrackingProps) {
 
                 {/* 진행률 */}
                 <div className="space-y-2">
-                  <Progress value={progressValue} className="h-2" />
+                  <SegmentGauge score={progressValue} />
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>기준: {kpi.baseline.toLocaleString()}{kpi.unit}</span>
                     <span>목표: {kpi.target.toLocaleString()}{kpi.unit}</span>

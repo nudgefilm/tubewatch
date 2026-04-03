@@ -40,7 +40,7 @@ export function DnaPatternAnalysisSection({ data }: DnaPatternAnalysisSectionPro
                   <div className="space-y-1">
                     <div className="flex gap-1">
                       {Array.from({ length: 10 }).map((_, i) => (
-                        <div key={i} className="h-2.5 flex-1 rounded-sm bg-muted" />
+                        <div key={i} className="h-2.5 w-2.5 rounded-sm bg-muted" />
                       ))}
                     </div>
                     <p className="text-xs text-muted-foreground">
@@ -88,7 +88,7 @@ export function DnaPatternAnalysisSection({ data }: DnaPatternAnalysisSectionPro
                   <div className="space-y-1">
                     <div className="flex gap-1">
                       {Array.from({ length: 10 }).map((_, i) => (
-                        <div key={i} className="h-2.5 flex-1 rounded-sm bg-muted" />
+                        <div key={i} className="h-2.5 w-2.5 rounded-sm bg-muted" />
                       ))}
                     </div>
                     <p className="text-xs text-muted-foreground">

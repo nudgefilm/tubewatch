@@ -9,7 +9,7 @@ import {
 } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
+import { SegmentGauge } from "@/components/ui/SegmentGauge"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import type { ChannelDnaData } from "../mock-data"
 
@@ -90,20 +90,14 @@ export function DnaVisualizationSection({ data }: DnaVisualizationSectionProps) 
                 <span className="text-emerald-600">강점 점수</span>
                 <span className="font-semibold">{data.strengthVsWeakness.strengths}</span>
               </div>
-              <Progress
-                value={data.strengthVsWeakness.strengths}
-                className="h-3 [&>div]:bg-emerald-500"
-              />
+              <SegmentGauge score={data.strengthVsWeakness.strengths} label={false} />
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-red-600">약점 점수</span>
                 <span className="font-semibold">{data.strengthVsWeakness.weaknesses}</span>
               </div>
-              <Progress
-                value={data.strengthVsWeakness.weaknesses}
-                className="h-3 [&>div]:bg-red-500"
-              />
+              <SegmentGauge score={data.strengthVsWeakness.weaknesses} variant="destructive" label={false} />
             </div>
             <div className="rounded-lg border bg-muted/30 p-3 text-center">
               <span className="text-2xl font-bold text-primary">
@@ -131,7 +125,7 @@ export function DnaVisualizationSection({ data }: DnaVisualizationSectionProps) 
                     {item.strength}%
                   </Badge>
                 </div>
-                <Progress value={item.strength} className="h-2" />
+                <SegmentGauge score={item.strength} label={false} />
               </div>
             ))}
           </CardContent>

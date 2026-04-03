@@ -19,7 +19,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
+import { SegmentGauge } from "@/components/ui/SegmentGauge"
 
 interface ActionCard {
   id: string
@@ -323,7 +323,7 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                             </div>
                             <span className="text-sm font-medium">{action.confidence}%</span>
                           </div>
-                          <Progress value={action.confidence} className="h-2" />
+                          <SegmentGauge score={action.confidence} label={false} />
                           {action.evidenceData && (
                             <p className="text-xs text-muted-foreground mt-1">
                               표본 {action.evidenceData.sampleSize}개 · 패턴 일관성 분석
