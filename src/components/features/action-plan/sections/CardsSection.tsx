@@ -259,7 +259,7 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                         </div>
                       </div>
 
-                      <div className="grid gap-4 md:grid-cols-2">
+                      <div className={`grid gap-4 ${action.applicationScope ? "md:grid-cols-2" : ""}`}>
                         <div className="space-y-3">
                           <div className="flex items-center gap-2 text-sm font-medium">
                             <TrendingUp className="h-4 w-4 text-emerald-500" />
@@ -288,7 +288,7 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                       </div>
 
                       {(action.experimentPeriod || action.caution) && (
-                        <div className="grid gap-4 md:grid-cols-2">
+                        <div className={`grid gap-4 ${action.experimentPeriod && action.caution ? "md:grid-cols-2" : ""}`}>
                           {action.experimentPeriod && (
                             <div className="space-y-3">
                               <div className="flex items-center gap-2 text-sm font-medium">
