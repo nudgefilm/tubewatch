@@ -34,6 +34,7 @@ export async function saveAnalysisResult(
     growth_action_plan: payload.growthActionPlan,
     target_audience: payload.targetAudience,
     sample_size_note: payload.sampleSizeNote,
+    interpretation_mode: payload.interpretationMode,
     feature_snapshot: payload.featureSnapshot,
     feature_total_score: payload.featureTotalScore,
     feature_section_scores: payload.featureSectionScores,
