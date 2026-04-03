@@ -9,8 +9,8 @@ interface SegmentGaugeProps {
   label?: string | false
   /** 하단 1줄 해석 문장 */
   hint?: string
-  /** 강점(고성과)용: primary, 약점(저성과)용: destructive */
-  variant?: "primary" | "destructive"
+  /** 강점(고성과)용: primary, 약점(저성과)용: destructive, 보조용: subtle */
+  variant?: "primary" | "destructive" | "subtle"
   /** true 시 블록이 컨테이너 너비에 꽉 차도록 stretch */
   stretch?: boolean
 }
@@ -23,6 +23,8 @@ export function SegmentGauge({ score, segments = 10, label, hint, variant = "pri
   const filledClass =
     variant === "destructive"
       ? "bg-red-500 border-red-500"
+      : variant === "subtle"
+      ? "bg-primary/40 border-primary/40"
       : "bg-primary border-primary"
 
   return (

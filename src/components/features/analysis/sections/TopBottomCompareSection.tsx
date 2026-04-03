@@ -2,6 +2,7 @@
 
 import { TrendingUp, TrendingDown, ArrowRight, ThumbsUp, MessageSquare } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { SegmentGauge } from "@/components/ui/SegmentGauge"
 import type { ComparisonData, VideoData } from "../mock-data"
 
 interface AnalysisTopBottomCompareProps {
@@ -49,32 +50,26 @@ function ComparisonBar({
   const numTop = typeof topValue === "number" ? topValue : parseFloat(topValue) || 0
   const numBottom = typeof bottomValue === "number" ? bottomValue : parseFloat(bottomValue) || 0
   const maxVal = Math.max(numTop, numBottom)
-  const topWidth = maxVal > 0 ? (numTop / maxVal) * 100 : 0
-  const bottomWidth = maxVal > 0 ? (numBottom / maxVal) * 100 : 0
+  const topScore = maxVal > 0 ? (numTop / maxVal) * 100 : 0
+  const bottomScore = maxVal > 0 ? (numBottom / maxVal) * 100 : 0
 
   return (
     <div className="space-y-1.5">
       <span className="text-[11px] text-muted-foreground">{label}</span>
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <div className="flex items-center gap-2">
-          <div className="h-1.5 w-full rounded-full bg-muted">
-            <div
-              className="h-full rounded-full bg-emerald-500 transition-all"
-              style={{ width: `${topWidth}%` }}
-            />
+          <div className="flex-1">
+            <SegmentGauge score={topScore} stretch label={false} variant="primary" />
           </div>
-          <span className="w-14 text-right text-xs font-medium tabular-nums">
+          <span className="w-14 shrink-0 text-right text-xs font-medium tabular-nums">
             {format(topValue)}{unit}
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="h-1.5 w-full rounded-full bg-muted">
-            <div
-              className="h-full rounded-full bg-rose-400 transition-all"
-              style={{ width: `${bottomWidth}%` }}
-            />
+          <div className="flex-1">
+            <SegmentGauge score={bottomScore} stretch label={false} variant="subtle" />
           </div>
-          <span className="w-14 text-right text-xs font-medium tabular-nums">
+          <span className="w-14 shrink-0 text-right text-xs font-medium tabular-nums">
             {format(bottomValue)}{unit}
           </span>
         </div>
@@ -290,11 +285,11 @@ export function AnalysisTopBottomCompare({ data, sampleCount, videos }: Analysis
           <div className="space-y-4">
             <div className="flex items-center gap-3 text-xs">
               <div className="flex items-center gap-1.5">
-                <div className="size-2 rounded-full bg-emerald-500" />
+                <div className="size-2 rounded-sm bg-primary" />
                 <span className="text-muted-foreground">상위</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <div className="size-2 rounded-full bg-rose-400" />
+                <div className="size-2 rounded-sm bg-primary/40" />
                 <span className="text-muted-foreground">하위</span>
               </div>
             </div>
