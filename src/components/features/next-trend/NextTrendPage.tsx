@@ -3,6 +3,7 @@
 import { NextTrendFormatSection } from "./sections/FormatSection"
 import { NextTrendExecutionHints } from "./sections/ExecutionHintsSection"
 import { NextTrendActionSection } from "./sections/ActionSection"
+import { NextTrendDataInsightsSection } from "./sections/DataInsightsSection"
 import { NextTrendEmptyState } from "./sections/EmptyState"
 import { ChannelContextHeader, type ChannelContext } from "@/components/features/shared/ChannelContextHeader"
 import { FeaturePaywallBlock } from "@/components/features/shared/FeaturePaywallBlock"
@@ -231,7 +232,21 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                 )}
               </section>
 
-              {/* [3] 실행 힌트 — Starter 차단 */}
+              {/* [3] 데이터 인사이트 — 태그 효율성 + 시간대별 반응도 */}
+              {(viewModel.tagEfficiency.length > 0 || viewModel.temporalResonance != null) && (
+                <section className="space-y-4">
+                  <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
+                    <h2 className="text-xl font-bold tracking-tight">성공 공식 분석</h2>
+                    <p className="text-xs text-muted-foreground mt-0.5">내 데이터 안에서 발견된 조회수·참여율 패턴</p>
+                  </div>
+                  <NextTrendDataInsightsSection
+                    tagEfficiency={viewModel.tagEfficiency}
+                    temporalResonance={viewModel.temporalResonance}
+                  />
+                </section>
+              )}
+
+              {/* [4] 실행 힌트 — Starter 차단 */}
               {isStarterPlan ? (
                 <FeaturePaywallBlock
                   title="제목·훅·썸네일에 바로 적용할 실행 힌트가 준비되어 있습니다."

@@ -15,6 +15,7 @@ import { buildTrendInsights } from "@/lib/next-trend/buildTrendInsights";
 import type { TrendItemVm as TrendItemVmBase } from "@/lib/next-trend/buildTrendInsights";
 import { parseSectionScores } from "@/lib/analysis/engine/parseSectionScores";
 import { normalizeFeatureSnapshot } from "@/lib/analysis/normalizeSnapshot";
+import type { NormalizedSnapshotVideo } from "@/lib/analysis/normalizeSnapshot";
 import type { StrategicCommentVm } from "@/lib/shared/strategicCommentTypes";
 import {
   buildNextTrendExtensionBlock,
@@ -27,6 +28,23 @@ import type {
 } from "@/lib/next-trend/buildNextTrendInternalSpec";
 
 export type TrendItemVm = TrendItemVmBase;
+
+/** 태그별 조회수 효율 — 전체 평균 대비 배수 */
+export type TagEfficiencyVm = {
+  tag: string;
+  /** 전체 평균 대비 배수. e.g. 2.4 = 평소보다 2.4배 */
+  multiplier: number;
+  avgViews: number;
+  sampleCount: number;
+};
+
+/** 요일별 참여율 상승 — 최적 업로드 요일 */
+export type TemporalResonanceVm = {
+  dayLabel: string;       // "금요일"
+  liftPercent: number;    // 35 (overall 대비 %)
+  metric: "댓글" | "좋아요";
+  sampleCount: number;
+};
 
 const DATA_PIPELINE_NOTICE =
   "저장된 분석 표본 기반입니다. 외부 검색량·시즌 트렌드는 포함하지 않습니다.";
@@ -59,9 +77,123 @@ export type NextTrendPageViewModel = {
   avgUploadIntervalDays: number | null;
   /** SEO 최적화 상태 섹션 점수 (0–100), 없으면 null */
   seoOptimization: number | null;
+  /** 태그 효율성 — 전체 평균 대비 조회 배수 상위 태그 */
+  tagEfficiency: TagEfficiencyVm[];
+  /** 요일별 참여율 최적 시간대 */
+  temporalResonance: TemporalResonanceVm | null;
 };
 
 const EMPTY_ITEMS: TrendItemVm[] = [];
+const DAY_LABELS = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
+
+function buildTagEfficiency(videos: NormalizedSnapshotVideo[]): TagEfficiencyVm[] {
+  const withViews = videos.filter(
+    (v) => v.viewCount != null && v.viewCount >= 0 && v.tags.length > 0
+  );
+  if (withViews.length < 4) return [];
+
+  const overallAvg =
+    withViews.reduce((s, v) => s + (v.viewCount ?? 0), 0) / withViews.length;
+  if (overallAvg === 0) return [];
+
+  const tagMap = new Map<string, number[]>();
+  for (const v of withViews) {
+    for (const raw of v.tags) {
+      const tag = raw.trim();
+      if (!tag) continue;
+      if (!tagMap.has(tag)) tagMap.set(tag, []);
+      tagMap.get(tag)!.push(v.viewCount ?? 0);
+    }
+  }
+
+  const results: TagEfficiencyVm[] = [];
+  for (const [tag, views] of Array.from(tagMap.entries())) {
+    if (views.length < 2) continue;
+    const avgViews = views.reduce((s, v) => s + v, 0) / views.length;
+    const multiplier = avgViews / overallAvg;
+    if (multiplier < 1.2) continue;
+    results.push({
+      tag,
+      multiplier: Math.round(multiplier * 10) / 10,
+      avgViews: Math.round(avgViews),
+      sampleCount: views.length,
+    });
+  }
+
+  return results.sort((a, b) => b.multiplier - a.multiplier).slice(0, 5);
+}
+
+function buildTemporalResonance(
+  videos: NormalizedSnapshotVideo[]
+): TemporalResonanceVm | null {
+  const valid = videos.filter(
+    (v) =>
+      v.publishedAt != null &&
+      v.viewCount != null &&
+      v.viewCount > 0 &&
+      (v.likeCount != null || v.commentCount != null)
+  );
+  if (valid.length < 6) return null;
+
+  const overallLikeRate =
+    valid.reduce((s, v) => s + (v.likeCount ?? 0) / (v.viewCount ?? 1), 0) /
+    valid.length;
+  const overallCommentRate =
+    valid.reduce(
+      (s, v) => s + (v.commentCount ?? 0) / (v.viewCount ?? 1),
+      0
+    ) / valid.length;
+
+  const dayGroups = new Map<number, typeof valid>();
+  for (const v of valid) {
+    const day = new Date(v.publishedAt!).getDay();
+    if (!dayGroups.has(day)) dayGroups.set(day, []);
+    dayGroups.get(day)!.push(v);
+  }
+
+  let bestDay: number | null = null;
+  let bestLift = 0;
+  let bestMetric: "댓글" | "좋아요" = "댓글";
+  let bestCount = 0;
+
+  for (const [day, vids] of Array.from(dayGroups.entries())) {
+    if (vids.length < 2) continue;
+    const avgLikeRate =
+      vids.reduce((s, v) => s + (v.likeCount ?? 0) / (v.viewCount ?? 1), 0) /
+      vids.length;
+    const avgCommentRate =
+      vids.reduce(
+        (s, v) => s + (v.commentCount ?? 0) / (v.viewCount ?? 1),
+        0
+      ) / vids.length;
+
+    const likeLift =
+      overallLikeRate > 0
+        ? (avgLikeRate - overallLikeRate) / overallLikeRate
+        : 0;
+    const commentLift =
+      overallCommentRate > 0
+        ? (avgCommentRate - overallCommentRate) / overallCommentRate
+        : 0;
+
+    const maxLift = Math.max(likeLift, commentLift);
+    if (maxLift > bestLift) {
+      bestLift = maxLift;
+      bestDay = day;
+      bestMetric = commentLift >= likeLift ? "댓글" : "좋아요";
+      bestCount = vids.length;
+    }
+  }
+
+  if (bestDay === null || bestLift < 0.15) return null;
+
+  return {
+    dayLabel: DAY_LABELS[bestDay] ?? "알 수 없음",
+    liftPercent: Math.round(bestLift * 100),
+    metric: bestMetric,
+    sampleCount: bestCount,
+  };
+}
 
 export function buildNextTrendPageViewModel(
   data: AnalysisPageData | null
@@ -100,6 +232,8 @@ export function buildNextTrendPageViewModel(
       growthMomentum: null,
       avgUploadIntervalDays: null,
       seoOptimization: null,
+      tagEfficiency: [],
+      temporalResonance: null,
     };
   }
 
@@ -126,6 +260,8 @@ export function buildNextTrendPageViewModel(
       growthMomentum: null,
       avgUploadIntervalDays: null,
       seoOptimization: null,
+      tagEfficiency: [],
+      temporalResonance: null,
     };
   }
 
@@ -166,6 +302,8 @@ export function buildNextTrendPageViewModel(
     avgUploadIntervalDays:
       typeof metrics?.avgUploadIntervalDays === "number" ? metrics.avgUploadIntervalDays : null,
     seoOptimization: sectionScores?.seoOptimization ?? null,
+    tagEfficiency: buildTagEfficiency(normalizedSnap.videos),
+    temporalResonance: buildTemporalResonance(normalizedSnap.videos),
   };
 }
 
