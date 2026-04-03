@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { ActionPlanPage } from "@/components/features/action-plan"
 import {
   redirectToLandingAuthUnlessSignedIn,
@@ -11,6 +12,11 @@ import { isCurrentUserAdmin } from "@/lib/auth/is-admin"
 
 type PageProps = {
   searchParams?: { channel?: string }
+}
+
+export const metadata: Metadata = {
+  title: "Action Plan | TubeWatch",
+  description: "채널 분석 기반 AI 실행 과제로 콘텐츠 전략을 개선하세요.",
 }
 
 export default async function Page({ searchParams }: PageProps) {

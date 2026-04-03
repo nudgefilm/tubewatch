@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import {
   redirectToLandingAuthUnlessSignedIn,
   buildProtectedReturnPath,
@@ -11,6 +12,11 @@ import { isCurrentUserAdmin } from "@/lib/auth/is-admin"
 
 type PageProps = {
   searchParams?: { channel?: string }
+}
+
+export const metadata: Metadata = {
+  title: "Channel Analysis | TubeWatch",
+  description: "채널 종합 점수, 구간 진단, 최근 성과 흐름을 확인하세요.",
 }
 
 export default async function Page({ searchParams }: PageProps) {

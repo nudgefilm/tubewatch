@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { ChannelDnaPage } from "@/components/features/channel-dna"
 import {
   redirectToLandingAuthUnlessSignedIn,
@@ -11,6 +12,11 @@ import { isCurrentUserAdmin } from "@/lib/auth/is-admin"
 
 type PageProps = {
   searchParams?: { channel?: string }
+}
+
+export const metadata: Metadata = {
+  title: "Channel DNA | TubeWatch",
+  description: "채널의 강점·약점 패턴, 포맷 분포, 성과 구조를 분석합니다.",
 }
 
 export default async function Page({ searchParams }: PageProps) {
