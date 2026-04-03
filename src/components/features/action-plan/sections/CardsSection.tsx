@@ -60,9 +60,9 @@ interface ActionPlanCardsProps {
 }
 
 const priorityColors: Record<string, string> = {
-  P1: "bg-destructive text-destructive-foreground",
-  P2: "bg-amber-500 text-white",
-  P3: "bg-blue-500 text-white",
+  P1: "bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-950/30 dark:text-rose-400 dark:border-rose-800",
+  P2: "bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800",
+  P3: "bg-blue-50 text-blue-700 border-blue-300 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-800",
 }
 
 const SCENARIO_STEP_LABELS = [
@@ -118,7 +118,7 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <Badge className={priorityColors[action.priority]}>
+                      <Badge variant="outline" className={priorityColors[action.priority]}>
                         {action.priority}
                       </Badge>
                       {isFullInsight && (
@@ -162,9 +162,9 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
 
                 {/* 문제 상황 — 항상 표시 */}
                 <div className="flex items-start gap-2 mt-3 p-3 bg-muted/50 rounded-lg">
-                  <AlertCircle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
+                  <AlertCircle className="h-4 w-4 text-rose-400 mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-xs font-semibold text-destructive mb-0.5">문제 상황</p>
+                    <p className="text-xs font-semibold text-rose-500 dark:text-rose-400 mb-0.5">문제 상황</p>
                     <p className="text-sm">{action.problemSummary}</p>
                   </div>
                 </div>

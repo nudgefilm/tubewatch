@@ -69,7 +69,7 @@ export function ActionPlanChecklistSection({ data, items }: ActionPlanChecklistP
         {/* 진행 게이지 */}
         <SegmentGauge
           score={items.length > 0 ? (doneCount / items.length) * 100 : 0}
-          segments={items.length}
+          segments={items.length * 2}
           label={false}
         />
 
