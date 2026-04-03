@@ -5,7 +5,7 @@ import { CircleCheck, CircleAlert, Fingerprint, AlertTriangle, ChevronDown } fro
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { DirectionalGauge } from "@/components/ui/DirectionalGauge"
-import type { ChannelDnaData } from "../mock-data"
+import type { ChannelDnaData } from "@/mocks/channel-dna"
 
 const INITIAL_SHOW = 3
 

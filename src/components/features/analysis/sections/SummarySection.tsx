@@ -2,7 +2,7 @@
 
 import { CheckCircle2, AlertCircle, FileText, AlertTriangle, ArrowRight } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import type { SummaryData } from "../mock-data"
+import type { SummaryData } from "@/mocks/analysis"
 
 interface AnalysisSummarySectionProps {
   data: SummaryData

@@ -14,7 +14,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts"
-import type { VisualizationData } from "../mock-data"
+import type { VisualizationData } from "@/mocks/next-trend"
 
 type PriorityStatus = VisualizationData["priorityList"][number]["status"]
 

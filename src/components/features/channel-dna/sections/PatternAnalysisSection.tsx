@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { SegmentGauge } from "@/components/ui/SegmentGauge"
 import { StatusBar } from "@/components/ui/StatusBar"
-import type { ChannelDnaData } from "../mock-data"
+import type { ChannelDnaData } from "@/mocks/channel-dna"
 
 interface DnaPatternAnalysisSectionProps {
   data: ChannelDnaData["patternAnalysis"]

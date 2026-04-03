@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import type { VideoData } from "../mock-data"
+import type { VideoData } from "@/mocks/analysis"
 
 interface AnalysisRecentVideosSectionProps {
   videos: VideoData[]

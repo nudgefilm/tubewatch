@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { AlertTriangle, AlertCircle, Info } from "lucide-react"
-import type { RiskMemo } from "../mock-data"
+import type { RiskMemo } from "@/mocks/next-trend"
 
 interface NextTrendRiskSectionProps {
   data: RiskMemo[]

@@ -3,7 +3,7 @@
 import { TrendingUp, TrendingDown, ArrowRight, ThumbsUp, MessageSquare } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { SegmentGauge } from "@/components/ui/SegmentGauge"
-import type { ComparisonData, VideoData } from "../mock-data"
+import type { ComparisonData, VideoData } from "@/mocks/analysis"
 
 interface AnalysisTopBottomCompareProps {
   data: ComparisonData | null

@@ -2,7 +2,7 @@
 
 import { Badge } from "@/components/ui/badge"
 import { Video, Image, FileText } from "lucide-react"
-import type { ExecutionAction } from "../mock-data"
+import type { ExecutionAction } from "@/mocks/next-trend"
 
 interface NextTrendActionSectionProps {
   data: ExecutionAction[]

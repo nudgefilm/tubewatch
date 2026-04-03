@@ -2,7 +2,7 @@
 
 import { Badge } from "@/components/ui/badge"
 import { Type, Zap, Image, Compass, Play } from "lucide-react"
-import type { ExecutionHint } from "../mock-data"
+import type { ExecutionHint } from "@/mocks/next-trend"
 
 interface NextTrendExecutionHintsProps {
   data: ExecutionHint[]

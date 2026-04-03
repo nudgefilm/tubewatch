@@ -6,7 +6,7 @@ import { Users, Video, Upload, Clock } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { formatAnalysisDate } from "@/lib/engines/analysisPageEngine"
-import type { ChannelData } from "../mock-data"
+import type { ChannelData } from "@/mocks/analysis"
 
 interface AnalysisHeaderSectionProps {
   channel: ChannelData

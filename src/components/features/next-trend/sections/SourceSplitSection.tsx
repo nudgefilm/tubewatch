@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { GitBranch, Home, ExternalLink, Sun } from "lucide-react"
-import type { SourceSplit } from "../mock-data"
+import type { SourceSplit } from "@/mocks/next-trend"
 
 interface NextTrendSourceSplitSectionProps {
   data: SourceSplit

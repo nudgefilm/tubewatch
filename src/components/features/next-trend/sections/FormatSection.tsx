@@ -3,7 +3,7 @@
 import { Badge } from "@/components/ui/badge"
 import { SegmentGauge } from "@/components/ui/SegmentGauge"
 import { Clock, Repeat, ArrowRight } from "lucide-react"
-import type { FormatRecommendation } from "../mock-data"
+import type { FormatRecommendation } from "@/mocks/next-trend"
 
 interface NextTrendFormatSectionProps {
   data: FormatRecommendation[]

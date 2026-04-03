@@ -4,7 +4,7 @@ import { TrendingUp, Target, Shield, BookOpen, FileText } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { SegmentGauge } from "@/components/ui/SegmentGauge"
-import type { ChannelDnaData } from "../mock-data"
+import type { ChannelDnaData } from "@/mocks/channel-dna"
 
 // UI 전용: 요약 텍스트의 snake_case 기계어를 자연어로 치환
 const SNAKE_TO_KOREAN: Record<string, string> = {

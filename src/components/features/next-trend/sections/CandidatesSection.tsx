@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { TrendingUp } from "lucide-react"
 import { EvidenceBlock } from "@/components/common/EvidenceBlock"
-import type { TrendCandidate } from "../mock-data"
+import type { TrendCandidate } from "@/mocks/next-trend"
 
 interface NextTrendCandidatesSectionProps {
   data: TrendCandidate[]

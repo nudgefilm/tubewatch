@@ -4,7 +4,7 @@ import { Upload, TrendingUp, Layers, Target, BarChart3 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { SegmentGauge } from "@/components/ui/SegmentGauge"
-import type { KpiData } from "../mock-data"
+import type { KpiData } from "@/mocks/analysis"
 
 interface AnalysisKpiCardsProps {
   data: KpiData
