@@ -76,11 +76,16 @@ export function NextTrendDataInsightsSection({
               <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-1">
                 골든 타임 구간
               </p>
-              <p className="text-2xl font-bold tabular-nums text-primary leading-tight">
-                {watchTimeCatalyst.sweetSpotMinSec === watchTimeCatalyst.sweetSpotMaxSec
-                  ? formatSeconds(watchTimeCatalyst.sweetSpotMinSec)
-                  : `${formatSeconds(watchTimeCatalyst.sweetSpotMinSec)} ~ ${formatSeconds(watchTimeCatalyst.sweetSpotMaxSec)}`}
-              </p>
+              {watchTimeCatalyst.sweetSpotMinSec === watchTimeCatalyst.sweetSpotMaxSec ? (
+                <p className="text-2xl font-bold tabular-nums text-primary leading-tight">
+                  {formatSeconds(watchTimeCatalyst.sweetSpotMinSec)}
+                </p>
+              ) : (
+                <div className="text-2xl font-bold tabular-nums text-primary leading-snug">
+                  <p>{formatSeconds(watchTimeCatalyst.sweetSpotMinSec)}</p>
+                  <p className="text-lg text-primary/70">~ {formatSeconds(watchTimeCatalyst.sweetSpotMaxSec)}</p>
+                </div>
+              )}
               <p className="text-[10px] text-muted-foreground mt-0.5">{watchTimeCatalyst.formatLabel}</p>
             </div>
             {/* 상위 10% 평균 */}
