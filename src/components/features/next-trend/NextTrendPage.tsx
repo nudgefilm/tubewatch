@@ -128,7 +128,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
 
               {/* [1] 다음 영상 주제 후보 */}
               <section className="space-y-4">
-                <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
+                <div className="border-l-4 border-primary pl-3">
                   <h2 className="text-xl font-bold tracking-tight">다음 영상 주제 후보</h2>
                   <p className="text-xs text-muted-foreground mt-0.5">이 중 하나를 골라 다음 영상 주제로 결정하세요</p>
                 </div>
@@ -139,7 +139,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                   return (
                     <div className="space-y-3">
                       {/* 1순위 강조 카드 */}
-                      <div className="rounded-lg border-2 border-primary bg-primary/10 dark:bg-primary/15 p-5 space-y-3 shadow-sm">
+                      <div className="rounded-xl border-2 border-primary bg-primary/10 dark:bg-primary/15 p-5 space-y-3 shadow-sm">
                         <div className="flex items-center gap-2 text-primary">
                           <ArrowRight className="h-4 w-4 shrink-0" />
                           <span className="text-xs font-bold uppercase tracking-wider">지금 1순위</span>
@@ -190,7 +190,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                       {rest.length > 0 && (
                         <div className="space-y-2">
                           {rest.map((c, i) => (
-                            <div key={c.id} className="flex items-center gap-3 rounded-md border bg-card px-3 py-2.5">
+                            <div key={c.id} className="flex items-center gap-3 rounded-lg border bg-card px-3 py-2.5">
                               <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary shrink-0">
                                 {i + 2}
                               </span>
@@ -224,7 +224,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
 
               {/* [2] 포맷 방향 */}
               <section className="space-y-4">
-                <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
+                <div className="border-l-4 border-primary pl-3">
                   <h2 className="text-xl font-bold tracking-tight">포맷 방향</h2>
                   <p className="text-xs text-muted-foreground mt-0.5">다음 영상에 적용할 길이·형식 권장</p>
                 </div>
@@ -250,7 +250,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
               {/* [3] 데이터 인사이트 — 태그 효율성 + 시간대별 반응도 + 체류 시간 예측 */}
               {(viewModel.tagEfficiency.length > 0 || viewModel.temporalResonance != null || viewModel.watchTimeCatalyst != null) && (
                 <section className="space-y-4">
-                  <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
+                  <div className="border-l-4 border-primary pl-3">
                     <h2 className="text-xl font-bold tracking-tight">성공 공식 분석</h2>
                     <p className="text-xs text-muted-foreground mt-0.5">내 데이터 안에서 발견된 조회수·참여율 패턴</p>
                   </div>
@@ -274,7 +274,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
               ) : (
                 <>
                   <section className="space-y-4">
-                    <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
+                    <div className="border-l-4 border-primary pl-3">
                       <h2 className="text-xl font-bold tracking-tight">실행 힌트</h2>
                       <p className="text-xs text-muted-foreground mt-0.5">제목·훅·썸네일에 바로 적용할 방향</p>
                     </div>
@@ -290,7 +290,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                   {/* [4] 영상 기획안 */}
                   {actions.length > 0 && (
                     <section className="space-y-4">
-                      <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
+                      <div className="border-l-4 border-primary pl-3">
                         <h2 className="text-xl font-bold tracking-tight">영상 기획안</h2>
                         <p className="text-xs text-muted-foreground mt-0.5">1순위 주제를 기반으로 한 초안</p>
                       </div>
