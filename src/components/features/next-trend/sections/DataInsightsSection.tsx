@@ -1,7 +1,6 @@
 "use client"
 
 import { TrendingUp, Clock, Timer } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type {
   TagEfficiencyVm,
   TemporalResonanceVm,
@@ -61,60 +60,58 @@ export function NextTrendDataInsightsSection({
     <div className="space-y-4">
       {/* Watch Time Catalyst — 전체 너비 */}
       {hasWTC && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
+        <div className="rounded-xl border bg-card p-5 space-y-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
               <Timer className="size-4 text-primary" />
-              최적 영상 길이 (Sweet Spot)
-            </CardTitle>
+              <h3 className="text-base font-semibold">최적 영상 길이 (Sweet Spot)</h3>
+            </div>
             <p className="text-xs text-muted-foreground">
               Shorts 제외, 조회수 상위 {watchTimeCatalyst.topSampleCount}편의 영상 길이를 분석했습니다.
             </p>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {/* 스윗스팟 */}
-              <div className="rounded-lg border bg-primary/5 px-4 py-3 text-center col-span-2 sm:col-span-1">
-                <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-1">
-                  골든 타임 구간
-                </p>
-                <p className="text-lg font-bold tabular-nums text-primary leading-tight">
-                  {watchTimeCatalyst.sweetSpotMinSec === watchTimeCatalyst.sweetSpotMaxSec
-                    ? formatSeconds(watchTimeCatalyst.sweetSpotMinSec)
-                    : `${formatSeconds(watchTimeCatalyst.sweetSpotMinSec)} ~ ${formatSeconds(watchTimeCatalyst.sweetSpotMaxSec)}`}
-                </p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">{watchTimeCatalyst.formatLabel}</p>
-              </div>
-              {/* 상위 10% 평균 */}
-              <div className="rounded-lg border bg-muted/20 px-4 py-3 text-center">
-                <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-1">
-                  상위 10% 평균
-                </p>
-                <p className="text-lg font-bold tabular-nums leading-tight">
-                  {formatSeconds(watchTimeCatalyst.sweetSpotAvgSec)}
-                </p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">
-                  {watchTimeCatalyst.topSampleCount}편 기준
-                </p>
-              </div>
-              {/* 채널 전체 평균 */}
-              <div className="rounded-lg border bg-muted/20 px-4 py-3 text-center">
-                <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-1">
-                  채널 전체 평균
-                </p>
-                <p className="text-lg font-bold tabular-nums leading-tight">
-                  {formatSeconds(watchTimeCatalyst.overallAvgSec)}
-                </p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">
-                  {watchTimeCatalyst.totalSampleCount}편 기준
-                </p>
-              </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {/* 스윗스팟 */}
+            <div className="rounded-xl border bg-primary/5 px-4 py-3 text-center col-span-2 sm:col-span-1">
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-1">
+                골든 타임 구간
+              </p>
+              <p className="text-2xl font-bold tabular-nums text-primary leading-tight">
+                {watchTimeCatalyst.sweetSpotMinSec === watchTimeCatalyst.sweetSpotMaxSec
+                  ? formatSeconds(watchTimeCatalyst.sweetSpotMinSec)
+                  : `${formatSeconds(watchTimeCatalyst.sweetSpotMinSec)} ~ ${formatSeconds(watchTimeCatalyst.sweetSpotMaxSec)}`}
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">{watchTimeCatalyst.formatLabel}</p>
             </div>
-            <p className="text-xs leading-relaxed text-muted-foreground rounded-lg bg-muted/30 px-3 py-2">
-              {buildCatalystMessage(watchTimeCatalyst)}
-            </p>
-          </CardContent>
-        </Card>
+            {/* 상위 10% 평균 */}
+            <div className="rounded-xl border bg-muted/20 px-4 py-3 text-center">
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-1">
+                상위 10% 평균
+              </p>
+              <p className="text-lg font-bold tabular-nums leading-tight">
+                {formatSeconds(watchTimeCatalyst.sweetSpotAvgSec)}
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                {watchTimeCatalyst.topSampleCount}편 기준
+              </p>
+            </div>
+            {/* 채널 전체 평균 */}
+            <div className="rounded-xl border bg-muted/20 px-4 py-3 text-center">
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-1">
+                채널 전체 평균
+              </p>
+              <p className="text-lg font-bold tabular-nums leading-tight">
+                {formatSeconds(watchTimeCatalyst.overallAvgSec)}
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                {watchTimeCatalyst.totalSampleCount}편 기준
+              </p>
+            </div>
+          </div>
+          <p className="text-xs leading-relaxed text-muted-foreground rounded-xl bg-muted/30 px-3 py-2">
+            {buildCatalystMessage(watchTimeCatalyst)}
+          </p>
+        </div>
       )}
 
       {/* 태그 효율성 + 시간대별 반응도 */}
@@ -123,17 +120,17 @@ export function NextTrendDataInsightsSection({
 
           {/* 태그 효율성 */}
           {hasTag && (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base">
+            <div className="rounded-xl border bg-card p-5 space-y-3">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
                   <TrendingUp className="size-4 text-primary" />
-                  태그 효율성
-                </CardTitle>
+                  <h3 className="text-base font-semibold">태그 효율성</h3>
+                </div>
                 <p className="text-xs text-muted-foreground">
                   평균 조회수 대비 높은 성과를 낸 태그입니다. 다음 영상 기획에 우선 적용하세요.
                 </p>
-              </CardHeader>
-              <CardContent className="space-y-2">
+              </div>
+              <div className="space-y-2">
                 {tagEfficiency.map((item) => (
                   <div
                     key={item.tag}
@@ -156,47 +153,45 @@ export function NextTrendDataInsightsSection({
                   </div>
                 ))}
                 {tagEfficiency[0] && (
-                  <p className="text-xs leading-relaxed text-muted-foreground rounded-lg bg-muted/30 px-3 py-2 mt-1">
+                  <p className="text-xs leading-relaxed text-muted-foreground rounded-xl bg-muted/30 px-3 py-2">
                     &apos;{tagEfficiency[0].tag}&apos; 태그를 달았을 때 평소보다 조회수가{" "}
                     <span className="font-semibold text-foreground">{tagEfficiency[0].multiplier}배</span>{" "}
                     높았습니다. 다음 영상도 이 태그를 축으로 기획하세요.
                   </p>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           )}
 
           {/* 시간대별 반응도 */}
           {hasTemporal && (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base">
+            <div className="rounded-xl border bg-card p-5 space-y-3">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
                   <Clock className="size-4 text-primary" />
-                  시간대별 반응도
-                </CardTitle>
+                  <h3 className="text-base font-semibold">시간대별 반응도</h3>
+                </div>
                 <p className="text-xs text-muted-foreground">
                   표본 내 요일별 참여율 패턴입니다. 업로드 타이밍 참고용으로 활용하세요.
                 </p>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="rounded-lg border bg-muted/20 px-4 py-4 text-center space-y-1">
-                  <p className="text-3xl font-bold tabular-nums text-primary">
-                    +{temporalResonance.liftPercent}%
-                  </p>
-                  <p className="text-sm font-medium">
-                    {temporalResonance.dayLabel} 업로드 시 {temporalResonance.metric} 참여율
-                  </p>
-                  <p className="text-xs text-muted-foreground tabular-nums">
-                    표본 {temporalResonance.sampleCount}편 기준
-                  </p>
-                </div>
-                <p className="text-xs leading-relaxed text-muted-foreground rounded-lg bg-muted/30 px-3 py-2">
-                  {temporalResonance.dayLabel} 업로드 시 {temporalResonance.metric} 참여율이{" "}
-                  <span className="font-semibold text-foreground">{temporalResonance.liftPercent}%</span>{" "}
-                  상승합니다. 커뮤니티 활성화를 노린다면 이 요일을 활용하세요.
+              </div>
+              <div className="rounded-xl border bg-muted/20 px-4 py-4 text-center space-y-1">
+                <p className="text-3xl font-bold tabular-nums text-primary">
+                  +{temporalResonance.liftPercent}%
                 </p>
-              </CardContent>
-            </Card>
+                <p className="text-sm font-medium">
+                  {temporalResonance.dayLabel} 업로드 시 {temporalResonance.metric} 참여율
+                </p>
+                <p className="text-xs text-muted-foreground tabular-nums">
+                  표본 {temporalResonance.sampleCount}편 기준
+                </p>
+              </div>
+              <p className="text-xs leading-relaxed text-muted-foreground rounded-xl bg-muted/30 px-3 py-2">
+                {temporalResonance.dayLabel} 업로드 시 {temporalResonance.metric} 참여율이{" "}
+                <span className="font-semibold text-foreground">{temporalResonance.liftPercent}%</span>{" "}
+                상승합니다. 커뮤니티 활성화를 노린다면 이 요일을 활용하세요.
+              </p>
+            </div>
           )}
         </div>
       )}

@@ -60,7 +60,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                     <div className="flex items-center gap-3 px-5 py-4">
                       <div className="space-y-1.5">
                         <p className="text-xs text-muted-foreground">성장 모멘텀</p>
-                        <SegmentGauge score={viewModel.growthMomentum} segments={5} label={false} />
+                        <SegmentGauge score={viewModel.growthMomentum} label={false} />
                       </div>
                       <span className="text-sm font-semibold tabular-nums shrink-0">
                         {Math.round(viewModel.growthMomentum)}
