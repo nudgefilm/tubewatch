@@ -108,10 +108,10 @@ export function ActionPlanPage({ channelId = "", channelContext, viewModel, isSt
             </section>
           )}
 
-          {/* [3] SEO 키워드 진단 — Starter 차단, 태그 데이터 있을 때만 */}
-          {!isStarterPlan && seoKeywordsData && (
+          {/* [3] SEO 키워드 진단 — Starter 차단, 실질 데이터 있을 때만 */}
+          {!isStarterPlan && seoKeywordsData && (seoKeywordsData.hasTagData || seoKeywordsData.descriptionStats != null) && (
             <section className="space-y-4">
-              <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
+              <div className="border-l-4 border-primary pl-3">
                 <h2 className="text-xl font-bold tracking-tight">SEO 키워드 진단</h2>
                 <p className="text-xs text-muted-foreground mt-0.5">태그와 설명란을 점검하고 바로 수정하세요</p>
               </div>

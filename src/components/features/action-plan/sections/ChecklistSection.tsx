@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Check, Minus, X, Clock } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { SegmentGauge } from "@/components/ui/SegmentGauge"
 
 interface ChecklistItem {
   id: string
@@ -65,13 +66,12 @@ export function ActionPlanChecklistSection({ data, items }: ActionPlanChecklistP
             {doneCount} / {items.length} 완료
           </span>
         </div>
-        {/* 진행 바 */}
-        <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
-          <div
-            className="h-full rounded-full bg-emerald-500 transition-all duration-300"
-            style={{ width: `${items.length > 0 ? (doneCount / items.length) * 100 : 0}%` }}
-          />
-        </div>
+        {/* 진행 게이지 */}
+        <SegmentGauge
+          score={items.length > 0 ? (doneCount / items.length) * 100 : 0}
+          segments={items.length}
+          label={false}
+        />
 
         <div className="grid gap-3 md:grid-cols-2">
           {items.map((item) => {
