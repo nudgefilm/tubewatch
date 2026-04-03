@@ -1,8 +1,7 @@
 "use client"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Lightbulb, Type, Zap, Image, Compass, Play } from "lucide-react"
+import { Type, Zap, Image, Compass, Play } from "lucide-react"
 import type { ExecutionHint } from "../mock-data"
 
 interface NextTrendExecutionHintsProps {
@@ -19,41 +18,28 @@ const typeConfig = {
 
 export function NextTrendExecutionHints({ data }: NextTrendExecutionHintsProps) {
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <Lightbulb className="h-5 w-5 text-primary" />
-          <CardTitle>실행 힌트</CardTitle>
-        </div>
-        <CardDescription>
-          SEO + DNA 연결 기반의 실행 가이드
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {data.map((hint) => {
-            const config = typeConfig[hint.type]
-            const Icon = config.icon
-            return (
-              <div
-                key={hint.id}
-                className="rounded-lg border bg-card p-4 space-y-3"
-              >
-                <div className="flex items-center gap-2">
-                  <div className={`rounded-md p-1.5 ${config.color}`}>
-                    <Icon className="h-4 w-4" />
-                  </div>
-                  <span className="text-sm font-medium">{hint.label}</span>
-                </div>
-                <p className="text-sm break-words">{hint.content}</p>
-                <Badge variant="outline" className="text-xs">
-                  {hint.linkedTo}
-                </Badge>
+    <div className="grid gap-3 sm:grid-cols-2">
+      {data.map((hint) => {
+        const config = typeConfig[hint.type]
+        const Icon = config.icon
+        return (
+          <div
+            key={hint.id}
+            className="rounded-xl border bg-card p-4 space-y-3"
+          >
+            <div className="flex items-center gap-2">
+              <div className={`rounded-md p-1.5 ${config.color}`}>
+                <Icon className="h-4 w-4" />
               </div>
-            )
-          })}
-        </div>
-      </CardContent>
-    </Card>
+              <span className="text-sm font-medium">{hint.label}</span>
+            </div>
+            <p className="text-sm break-words">{hint.content}</p>
+            <Badge variant="outline" className="text-xs">
+              {hint.linkedTo}
+            </Badge>
+          </div>
+        )
+      })}
+    </div>
   )
 }
