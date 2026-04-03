@@ -12,6 +12,31 @@ import { PageFlowConnector } from "@/components/features/shared/PageFlowConnecto
 import { FeaturePaywallBlock } from "@/components/features/shared/FeaturePaywallBlock"
 import { buildChannelDnaPageSections } from "@/lib/engines/channelDnaPageEngine"
 import type { ChannelDnaPageViewModel } from "@/lib/channel-dna/channelDnaPageViewModel"
+import type { FanbaseLoyaltyVm } from "@/lib/channel-dna/internalChannelDnaSummary"
+
+function fanbaseLoyaltyDisplay(fl: FanbaseLoyaltyVm) {
+  const gradeLabel =
+    fl.grade === "very_high" ? "매우 높음" : fl.grade === "average" ? "보통" : "낮음"
+  const gradeBadgeClass =
+    fl.grade === "very_high"
+      ? "bg-emerald-100 text-emerald-700 border-emerald-200"
+      : fl.grade === "average"
+      ? "bg-amber-100 text-amber-700 border-amber-200"
+      : "bg-rose-100 text-rose-700 border-rose-200"
+  const valueColor =
+    fl.grade === "very_high"
+      ? "text-emerald-600"
+      : fl.grade === "average"
+      ? "text-amber-600"
+      : "text-rose-600"
+  const insightText =
+    fl.grade === "very_high"
+      ? "팬덤 결속력이 강합니다. 커뮤니티 탭을 활성화해 이 흐름을 채널 성장으로 연결하세요."
+      : fl.grade === "average"
+      ? "참여율이 평균 수준입니다. 영상 중반부에 좋아요·댓글 유도 멘트를 추가해 반응률을 높여보세요."
+      : "시청자 반응이 낮은 편입니다. 질문형 제목이나 영상 끝 CTA를 강화해 참여를 유도하세요."
+  return { gradeLabel, gradeBadgeClass, valueColor, insightText }
+}
 
 interface ChannelDnaPageProps {
   channelId?: string
@@ -133,23 +158,9 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
               <DnaStructureSummarySection data={structureSummary} />
 
               {/* 팬덤 응집도 */}
-              {vm.fanbaseLoyalty && (() => {
-                const fl = vm.fanbaseLoyalty
-                const gradeLabel = fl.grade === "very_high" ? "매우 높음" : fl.grade === "average" ? "보통" : "낮음"
-                const gradeBadgeClass =
-                  fl.grade === "very_high" ? "bg-emerald-100 text-emerald-700 border-emerald-200"
-                  : fl.grade === "average" ? "bg-amber-100 text-amber-700 border-amber-200"
-                  : "bg-rose-100 text-rose-700 border-rose-200"
-                const valueColor =
-                  fl.grade === "very_high" ? "text-emerald-600"
-                  : fl.grade === "average" ? "text-amber-600"
-                  : "text-rose-600"
-                const insightText =
-                  fl.grade === "very_high"
-                    ? "팬덤 결속력이 강합니다. 커뮤니티 탭을 활성화해 이 흐름을 채널 성장으로 연결하세요."
-                    : fl.grade === "average"
-                    ? "참여율이 평균 수준입니다. 영상 중반부에 좋아요·댓글 유도 멘트를 추가해 반응률을 높여보세요."
-                    : "시청자 반응이 낮은 편입니다. 질문형 제목이나 영상 끝 CTA를 강화해 참여를 유도하세요."
+              {vm.fanbaseLoyalty != null && (() => {
+                const fl = vm.fanbaseLoyalty!
+                const { gradeLabel, gradeBadgeClass, valueColor, insightText } = fanbaseLoyaltyDisplay(fl)
                 return (
                   <Card>
                     <CardHeader className="pb-3">
