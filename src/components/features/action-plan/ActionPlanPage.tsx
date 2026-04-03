@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Target, ClipboardList, Search, Wrench } from "lucide-react"
+import { Target, ClipboardList, Search, Wrench, FileText } from "lucide-react"
 import { ActionPlanCardsSection } from "./sections/CardsSection"
 import { ActionPlanChecklistSection } from "./sections/ChecklistSection"
 import { ActionPlanKeywordSection } from "./sections/KeywordSection"
@@ -39,9 +39,14 @@ export function ActionPlanPage({ channelId = "", channelContext, viewModel, isSt
     return (
       <div className="min-h-screen bg-background">
         <div className="mx-auto max-w-7xl space-y-8 p-6 lg:p-8">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight lg:text-3xl">Action Plan</h1>
-            <p className="mt-1 text-sm text-muted-foreground">오늘 당장 할 일 리스트</p>
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
+              <FileText className="size-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight lg:text-3xl">Action Plan</h1>
+              <p className="mt-1 text-sm text-muted-foreground">오늘 당장 할 일 리스트</p>
+            </div>
           </div>
 
           <ChannelContextHeader channelContext={channelContext} />

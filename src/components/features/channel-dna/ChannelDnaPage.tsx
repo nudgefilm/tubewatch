@@ -1,6 +1,6 @@
 "use client"
 
-import { Dna, Users, BarChart3, Layers, Calendar, Film, RefreshCw } from "lucide-react"
+import { Dna, Users, BarChart3, Layers, Calendar, Film, RefreshCw, Target } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { DnaStructureSummarySection } from "./sections/StructureSummarySection"
@@ -49,7 +49,7 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
           <div>
             <div className="flex items-center gap-3">
               <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
-                <Dna className="size-5 text-primary" />
+                <Target className="size-5 text-primary" />
               </div>
               <div>
                 <h1 className="text-2xl font-semibold tracking-tight lg:text-3xl">Channel DNA</h1>

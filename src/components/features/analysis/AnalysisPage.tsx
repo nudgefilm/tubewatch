@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { RefreshCw, Clock, Activity, Gauge, TrendingUp, History as HistoryIcon } from "lucide-react"
+import { RefreshCw, Clock, Activity, Gauge, TrendingUp, History as HistoryIcon, BarChart3 } from "lucide-react"
 import { AnalysisHeaderSection } from "./sections/HeaderSection"
 import { AnalysisScoreOverview, type SectionScores } from "./sections/ScoreOverviewSection"
 import { AnalysisKpiCards } from "./sections/KpiCardsSection"
@@ -168,9 +168,14 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
     return (
       <div className="min-h-screen bg-background">
         <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight lg:text-3xl">Channel Analysis</h1>
-            <p className="mt-1 text-sm text-muted-foreground">채널 건강검진 리포트</p>
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
+              <BarChart3 className="size-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight lg:text-3xl">Channel Analysis</h1>
+              <p className="mt-1 text-sm text-muted-foreground">채널 건강검진 리포트</p>
+            </div>
           </div>
           <AnalysisEmptyState type="no-data" title="채널 분석 결과가 없습니다" description="사이드바에서 채널을 선택하거나, 채널을 등록하면 분석을 시작할 수 있습니다." />
         </div>
@@ -197,9 +202,14 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
     return (
       <div className="min-h-screen bg-background">
         <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight lg:text-3xl">Channel Analysis</h1>
-            <p className="mt-1 text-sm text-muted-foreground">채널 건강검진 리포트</p>
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
+              <BarChart3 className="size-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight lg:text-3xl">Channel Analysis</h1>
+              <p className="mt-1 text-sm text-muted-foreground">채널 건강검진 리포트</p>
+            </div>
           </div>
           <div className="flex min-h-[280px] flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
             <h3 className="mb-2 text-lg font-semibold">먼저 분석할 채널을 추가하세요</h3>

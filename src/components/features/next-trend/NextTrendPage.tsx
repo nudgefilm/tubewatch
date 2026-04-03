@@ -33,9 +33,14 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
     return (
       <div className="min-h-screen bg-background">
         <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight lg:text-3xl">Next Trend</h1>
-            <p className="mt-1 text-sm text-muted-foreground">내부 흐름 기반 다음 시도</p>
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
+              <TrendingUp className="size-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight lg:text-3xl">Next Trend</h1>
+              <p className="mt-1 text-sm text-muted-foreground">내부 흐름 기반 다음 시도</p>
+            </div>
           </div>
 
           <ChannelContextHeader channelContext={channelContext} />
