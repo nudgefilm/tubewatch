@@ -25,7 +25,7 @@ export function DirectionalGauge({
   strengthLabel = "강점",
   weaknessLabel = "약점",
 }: DirectionalGaugeProps) {
-  const safe = Math.max(0, Math.min(100, Math.round(score)))
+  const safe = Math.max(0, Math.min(100, Math.round(isNaN(score) ? 50 : score)))
 
   // 중앙 기준: 0~50 → 약점 블록 수 (0~5), 50~100 → 강점 블록 수 (0~5)
   const strengthBlocks = safe > 50 ? Math.round((safe - 50) / 10) : 0

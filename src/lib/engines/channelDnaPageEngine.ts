@@ -82,7 +82,9 @@ function buildDnaCards(vm: InternalChannelDnaSummaryVm) {
     // 라벨과 설명이 모두 동일한 카드는 강점과 중복으로 간주해 제외
     if (strengthCardMap.get(label) === description) return acc
     seenWeaknessLabels.add(label)
-    acc.push({ title: label, description, score: Math.min(40, 15 + acc.length * 5), tags: [] })
+    // score가 낮을수록 DirectionalGauge 왼쪽(약점) 블록이 더 많이 채워짐
+    // 첫 번째 약점: score=10 → 4블록, 이후 조금씩 올라가 최대 30 → 2블록
+    acc.push({ title: label, description, score: Math.min(30, 10 + acc.length * 5), tags: [] })
     return acc
   }, [])
   const corePatterns = vm.dominantFormat
