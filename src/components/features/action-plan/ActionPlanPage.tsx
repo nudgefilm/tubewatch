@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { Target, ClipboardList, Search, Wrench } from "lucide-react"
 import { ActionPlanCardsSection } from "./sections/CardsSection"
 import { ActionPlanChecklistSection } from "./sections/ChecklistSection"
 import { ActionPlanKeywordSection } from "./sections/KeywordSection"
@@ -74,7 +75,7 @@ export function ActionPlanPage({ channelId = "", channelContext, viewModel, isSt
           {/* [1] 우선순위별 실행 계획 */}
           <section className="space-y-4">
             <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-              <h2 className="text-xl font-bold tracking-tight">우선순위별 실행 계획</h2>
+              <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><Target className="size-5 shrink-0 text-primary" />우선순위별 실행 계획</h2>
               <p className="text-xs text-muted-foreground mt-0.5">P1부터 순서대로 실행하세요. 각 카드에 실행 근거와 기대 변화가 포함됩니다</p>
             </div>
             {cardsData.length > 0 ? (
@@ -101,7 +102,7 @@ export function ActionPlanPage({ channelId = "", channelContext, viewModel, isSt
           {!isStarterPlan && checklistData.length > 0 && (
             <section className="space-y-4">
               <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-                <h2 className="text-xl font-bold tracking-tight">업로드 전 체크리스트</h2>
+                <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><ClipboardList className="size-5 shrink-0 text-primary" />업로드 전 체크리스트</h2>
                 <p className="text-xs text-muted-foreground mt-0.5">영상을 올리기 전 매번 확인할 항목</p>
               </div>
               <ActionPlanChecklistSection items={checklistData} />
@@ -112,7 +113,7 @@ export function ActionPlanPage({ channelId = "", channelContext, viewModel, isSt
           {!isStarterPlan && seoKeywordsData && (seoKeywordsData.hasTagData || seoKeywordsData.descriptionStats != null) && (
             <section className="space-y-4">
               <div className="border-l-4 border-primary pl-3">
-                <h2 className="text-xl font-bold tracking-tight">SEO 키워드 진단</h2>
+                <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><Search className="size-5 shrink-0 text-primary" />SEO 키워드 진단</h2>
                 <p className="text-xs text-muted-foreground mt-0.5">태그와 설명란을 점검하고 바로 수정하세요</p>
               </div>
               <ActionPlanKeywordSection data={seoKeywordsData} />
@@ -123,7 +124,7 @@ export function ActionPlanPage({ channelId = "", channelContext, viewModel, isSt
           {!isStarterPlan && (seoDeficitData || engagementGapData || linguisticInsightData) && (
             <section className="space-y-4">
               <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-                <h2 className="text-xl font-bold tracking-tight">지금 바로 수정하세요</h2>
+                <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><Wrench className="size-5 shrink-0 text-primary" />지금 바로 수정하세요</h2>
                 <p className="text-xs text-muted-foreground mt-0.5">유튜브 스튜디오에서 즉시 적용 가능한 결손 항목</p>
               </div>
               <ActionPlanDeficitSection seoDeficit={seoDeficitData} engagementGap={engagementGapData} linguisticInsight={linguisticInsightData} />

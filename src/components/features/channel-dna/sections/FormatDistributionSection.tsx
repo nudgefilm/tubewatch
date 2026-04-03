@@ -12,6 +12,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts"
+import { Timer, PieChart as PieChartIcon } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { FormatDistributionVm } from "@/lib/channel-dna/internalChannelDnaSummary"
 
@@ -82,7 +83,7 @@ export function DnaFormatDistributionSection({ data }: FormatDistributionSection
         {hasDurationData && (
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">⏱️ 영상 길이 분포</CardTitle>
+              <CardTitle className="flex items-center gap-2 text-base"><Timer className="size-4 text-primary" />영상 길이 분포</CardTitle>
               <p className="text-xs text-muted-foreground">
                 표본 {sampleSize}편 기준 — Shorts · 단편 · 장편 비율
               </p>
@@ -154,7 +155,7 @@ export function DnaFormatDistributionSection({ data }: FormatDistributionSection
         {showPie && (
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">🥧 카테고리 분포</CardTitle>
+              <CardTitle className="flex items-center gap-2 text-base"><PieChartIcon className="size-4 text-primary" />카테고리 분포</CardTitle>
               <p className="text-xs text-muted-foreground">
                 표본 기준 카테고리 비중 — 채널 주제 집중도를 확인하세요
               </p>

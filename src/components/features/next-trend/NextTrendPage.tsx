@@ -9,7 +9,7 @@ import { ChannelContextHeader, type ChannelContext } from "@/components/features
 import { FeaturePaywallBlock } from "@/components/features/shared/FeaturePaywallBlock"
 import { Badge } from "@/components/ui/badge"
 import { SegmentGauge } from "@/components/ui/SegmentGauge"
-import { AlertCircle, ArrowRight, TrendingUp } from "lucide-react"
+import { AlertCircle, ArrowRight, TrendingUp, Lightbulb, Video, FlaskConical, Zap, FileText } from "lucide-react"
 import { EvidenceBlock } from "@/components/common/EvidenceBlock"
 import type { NextTrendPageViewModel } from "@/lib/next-trend/nextTrendPageViewModel"
 import { buildNextTrendPageSections, SIGNAL_STRENGTH_BADGE } from "@/lib/engines/nextTrendPageEngine"
@@ -116,7 +116,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
               {/* [1] 다음 영상 주제 후보 */}
               <section className="space-y-4">
                 <div className="border-l-4 border-primary pl-3">
-                  <h2 className="text-xl font-bold tracking-tight">다음 영상 주제 후보</h2>
+                  <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><Lightbulb className="size-5 shrink-0 text-primary" />다음 영상 주제 후보</h2>
                   <p className="text-xs text-muted-foreground mt-0.5">이 중 하나를 골라 다음 영상 주제로 결정하세요</p>
                 </div>
 
@@ -212,7 +212,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
               {/* [2] 포맷 방향 */}
               <section className="space-y-4">
                 <div className="border-l-4 border-primary pl-3">
-                  <h2 className="text-xl font-bold tracking-tight">포맷 방향</h2>
+                  <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><Video className="size-5 shrink-0 text-primary" />포맷 방향</h2>
                   <p className="text-xs text-muted-foreground mt-0.5">다음 영상에 적용할 길이·형식 권장</p>
                 </div>
                 {formats.length > 0 ? (
@@ -238,7 +238,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
               {(viewModel.tagEfficiency.length > 0 || viewModel.temporalResonance != null || viewModel.watchTimeCatalyst != null) && (
                 <section className="space-y-4">
                   <div className="border-l-4 border-primary pl-3">
-                    <h2 className="text-xl font-bold tracking-tight">성공 공식 분석</h2>
+                    <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><FlaskConical className="size-5 shrink-0 text-primary" />성공 공식 분석</h2>
                     <p className="text-xs text-muted-foreground mt-0.5">내 데이터 안에서 발견된 조회수·참여율 패턴</p>
                   </div>
                   <NextTrendDataInsightsSection
@@ -262,7 +262,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                 <>
                   <section className="space-y-4">
                     <div className="border-l-4 border-primary pl-3">
-                      <h2 className="text-xl font-bold tracking-tight">실행 힌트</h2>
+                      <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><Zap className="size-5 shrink-0 text-primary" />실행 힌트</h2>
                       <p className="text-xs text-muted-foreground mt-0.5">제목·훅·썸네일에 바로 적용할 방향</p>
                     </div>
                     {hints.length > 0 ? (
@@ -278,7 +278,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                   {actions.length > 0 && (
                     <section className="space-y-4">
                       <div className="border-l-4 border-primary pl-3">
-                        <h2 className="text-xl font-bold tracking-tight">영상 기획안</h2>
+                        <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><FileText className="size-5 shrink-0 text-primary" />영상 기획안</h2>
                         <p className="text-xs text-muted-foreground mt-0.5">1순위 주제를 기반으로 한 초안</p>
                       </div>
                       <NextTrendActionSection data={actions} />

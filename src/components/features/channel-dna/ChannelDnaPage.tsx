@@ -1,6 +1,6 @@
 "use client"
 
-import { Dna, Users } from "lucide-react"
+import { Dna, Users, BarChart3, Layers, Calendar, Film, RefreshCw } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { DnaStructureSummarySection } from "./sections/StructureSummarySection"
@@ -69,13 +69,13 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
           {/* [1] 채널 정체성 — 타겟 시청자 + 콘텐츠 패턴 */}
           <section className="space-y-6">
             <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-              <h2 className="text-xl font-bold tracking-tight">🧬 채널 정체성</h2>
+              <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><Dna className="size-5 shrink-0 text-primary" />채널 정체성</h2>
               <p className="text-xs text-muted-foreground mt-0.5">튜브워치가 분석한 시청자층과 반복되는 콘텐츠 흐름</p>
             </div>
 
             {vm.targetAudience.length > 0 && (
               <div className="space-y-2">
-                <p className="text-sm font-medium">👥 타겟 시청자</p>
+                <p className="flex items-center gap-1.5 text-sm font-medium"><Users className="size-4 shrink-0 text-primary" />타겟 시청자</p>
                 <div className="flex flex-wrap gap-2">
                   {vm.targetAudience.map((audience, i) => (
                     <span
@@ -91,7 +91,7 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
 
             {vm.contentPatterns.length > 0 && (
               <div className="space-y-2">
-                <p className="text-sm font-medium">🔄 콘텐츠 주제 일관성</p>
+                <p className="flex items-center gap-1.5 text-sm font-medium"><RefreshCw className="size-4 shrink-0 text-primary" />콘텐츠 주제 일관성</p>
                 <div className="space-y-2">
                   {vm.contentPatterns.map((pattern, i) => (
                     <div key={i} className="flex items-start gap-3 rounded-lg border px-4 py-3 text-sm">
@@ -115,7 +115,7 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
           {/* [2] 채널 성과 패턴 — 강점·약점 */}
           <section className="space-y-4">
             <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-              <h2 className="text-xl font-bold tracking-tight">📊 채널 성과 패턴</h2>
+              <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><BarChart3 className="size-5 shrink-0 text-primary" />채널 성과 패턴</h2>
               <p className="text-xs text-muted-foreground mt-0.5">데이터에서 반복 확인된 강점과 개선이 필요한 약점</p>
             </div>
             {(dnaCards.strengths.length > 0 || dnaCards.weaknesses.length > 0) ? (
@@ -142,7 +142,7 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
           {!isStarterPlan && (
             <section className="space-y-4">
               <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-                <h2 className="text-xl font-bold tracking-tight">🏗️ 채널 구조 안정성</h2>
+                <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><Layers className="size-5 shrink-0 text-primary" />채널 구조 안정성</h2>
                 <p className="text-xs text-muted-foreground mt-0.5">성과 재현성과 지속 가능성을 결정하는 구조 변수</p>
               </div>
               <DnaStructureSummarySection data={structureSummary} />
@@ -188,7 +188,7 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
               {/* 채널 활동 패턴 — 업로드 일관성·빈도·간격 */}
               {(vm.uploadConsistencyLevel != null || vm.recent30dUploadCount != null || vm.avgUploadIntervalDays != null) && (
                 <div className="rounded-lg border border-muted px-5 py-4 space-y-3">
-                  <p className="text-sm font-medium">📅 채널 활동 패턴</p>
+                  <p className="flex items-center gap-1.5 text-sm font-medium"><Calendar className="size-4 shrink-0 text-primary" />채널 활동 패턴</p>
                   <div className="grid grid-cols-3 gap-3">
                     {/* 업로드 일관성 */}
                     <div className="space-y-0.5">
@@ -232,7 +232,7 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
           {!isStarterPlan && formatDistribution && (
             <section className="space-y-4">
               <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-                <h2 className="text-xl font-bold tracking-tight">🎬 포맷 분포</h2>
+                <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><Film className="size-5 shrink-0 text-primary" />포맷 분포</h2>
                 <p className="text-xs text-muted-foreground mt-0.5">영상 길이 구간과 카테고리 비중으로 채널 정체성을 확인하세요</p>
               </div>
               <DnaFormatDistributionSection data={formatDistribution} />

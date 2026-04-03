@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { RefreshCw, Clock } from "lucide-react"
+import { RefreshCw, Clock, Activity, Gauge, TrendingUp, History as HistoryIcon } from "lucide-react"
 import { AnalysisHeaderSection } from "./sections/HeaderSection"
 import { AnalysisScoreOverview, type SectionScores } from "./sections/ScoreOverviewSection"
 import { AnalysisKpiCards } from "./sections/KpiCardsSection"
@@ -228,7 +228,7 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
         {/* 채널 현황 */}
         <section className="space-y-4">
           <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-            <h2 className="text-xl font-bold tracking-tight">채널 현황</h2>
+            <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><Activity className="size-5 shrink-0 text-primary" />채널 현황</h2>
             <p className="text-xs text-muted-foreground mt-0.5">현재 채널 상태와 진단 결과를 한눈에 확인합니다</p>
           </div>
 
@@ -304,7 +304,7 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
         {/* 채널 진단 지표 */}
         <section className="space-y-4">
           <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-            <h2 className="text-xl font-bold tracking-tight">채널 진단 지표</h2>
+            <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><Gauge className="size-5 shrink-0 text-primary" />채널 진단 지표</h2>
             <p className="text-xs text-muted-foreground mt-0.5">업로드 빈도·조회 반응·콘텐츠 구조 등 핵심 수치를 구간별로 확인합니다</p>
           </div>
           <div className="grid gap-4 lg:grid-cols-[1.2fr_2fr]">
@@ -405,7 +405,7 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
         {!isStarterPlan && (
           <section className="space-y-4">
             <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-              <h2 className="text-xl font-bold tracking-tight">조회수 흐름 시그널</h2>
+              <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><TrendingUp className="size-5 shrink-0 text-primary" />조회수 흐름 시그널</h2>
               <p className="text-xs text-muted-foreground mt-0.5">최근 표본 영상의 조회수 변화 흐름을 시각화합니다</p>
             </div>
             {trendData.length >= 1 ? (
@@ -427,7 +427,7 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
         {!isStarterPlan && (
           <section className="space-y-4">
             <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-              <h2 className="text-xl font-bold tracking-tight">최근 성과 히스토리</h2>
+              <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><HistoryIcon className="size-5 shrink-0 text-primary" />최근 성과 히스토리</h2>
               <p className="text-xs text-muted-foreground mt-0.5">스냅샷에 포함된 최근 영상과 상위·하위 성과 비교를 확인합니다</p>
             </div>
             {videosData.length > 0 ? (
