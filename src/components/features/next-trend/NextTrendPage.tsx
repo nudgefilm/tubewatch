@@ -286,6 +286,20 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                   )}
                 </>
               )}
+
+              {/* 페이지 마무리 — 실행 독려 */}
+              <div className="rounded-xl border border-primary/20 bg-primary/5 px-5 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm font-medium leading-relaxed">주제도 정했고, 방향도 잡혔습니다. 이제 촬영하고 편집할 차례입니다.</p>
+                <a
+                  href="https://studio.youtube.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors shrink-0"
+                >
+                  YouTube Studio 열기
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </a>
+              </div>
             </>
           )}
 
