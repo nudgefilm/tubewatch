@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { NextTrendPage } from "@/components/features/next-trend"
 import {
   redirectToLandingAuthUnlessSignedIn,
@@ -11,6 +12,11 @@ import { isCurrentUserAdmin } from "@/lib/auth/is-admin"
 
 type PageProps = {
   searchParams?: { channel?: string }
+}
+
+export const metadata: Metadata = {
+  title: "Next Trend | TubeWatch",
+  description: "트렌드 신호로 다음 콘텐츠 아이디어를 발굴하세요.",
 }
 
 export default async function Page({ searchParams }: PageProps) {
