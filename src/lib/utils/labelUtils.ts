@@ -52,6 +52,14 @@ const FULL_RULES: [RegExp, string][] = [
   // 조회수 편차
   [/조회수?.*편차.*크|편차.*크고|조회.*격차.*큰|조회.*격차.*크/, "조회수 편차 큼"],
   [/성과 재현성.*낮|재현성.*낮|재현.*어렵/, "성과 재현성 낮음"],
+  // 영상 길이
+  [/영상.*짧|짧은.*영상|평균.*초.*짧|평균.*영상.*길이.*짧/, "영상 길이 짧음"],
+  [/영상.*길이.*편차|영상.*길이.*불일관|길이.*불일관/, "영상 길이 불일관"],
+  // 댓글/좋아요 반응
+  [/댓글.*비율.*낮|댓글.*낮|댓글.*반응.*낮/, "댓글 반응 낮음"],
+  [/좋아요.*비율.*낮|좋아요.*낮|좋아요.*반응.*낮/, "좋아요 반응 낮음"],
+  // 태그
+  [/태그.*부족|태그.*없|태그.*낮|태그.*미활용/, "태그 활용 부족"],
   // 강점 — 짧은 제목
   [/짧은.*제목.*반복|짧은.*제목.*강|짧은.*제목.*우세/, "짧은 제목 패턴 강세"],
   // 강점 — 썸네일
@@ -137,8 +145,14 @@ export function makeDiagnosticLabel(text: string, maxLen = 20): string {
   if (!raw) return ""
 
   // 접두 제거
-  const t = stripPrefix(raw)
-  if (!t) return raw.slice(0, maxLen)
+  const stripped = stripPrefix(raw)
+  if (!stripped) return raw.slice(0, maxLen)
+
+  // 숫자 수치 제거 (예: "31초로", "0.00%로", "57,200명" 등) — 라벨 추출에 방해됨
+  const t = stripped
+    .replace(/[\d,]+\.?\d*\s*(%|초|분|시간|회|개|명|만|억|K|M)\s*(로|이|가|은|는|으로|이라)?/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .trim() || stripped
 
   // 짧고 문장형이 아니면 그대로 반환
   if (t.length <= maxLen && !looksLikeSentence(t)) return t
