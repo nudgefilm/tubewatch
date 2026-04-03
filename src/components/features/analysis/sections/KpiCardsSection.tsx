@@ -55,19 +55,6 @@ function MiniSparkline({ trend }: { trend: "상승" | "유지" | "하락" }) {
   )
 }
 
-function TinyBars({ values, maxValue }: { values: number[]; maxValue: number }) {
-  return (
-    <div className="flex h-4 items-end gap-0.5">
-      {values.map((v, i) => (
-        <div
-          key={i}
-          className="w-1.5 rounded-sm bg-foreground/25"
-          style={{ height: `${(v / maxValue) * 100}%` }}
-        />
-      ))}
-    </div>
-  )
-}
 
 function NullState({ reason }: { reason?: string }) {
   return (
@@ -199,7 +186,7 @@ export function AnalysisKpiCards({ data }: AnalysisKpiCardsProps) {
                 <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
                   {data.contentStability.interpretation}
                 </p>
-                <TinyBars values={[85, 78, 82, 88, 80]} maxValue={100} />
+                <SegmentGauge score={data.contentStability.stabilityScore} stretch label={false} />
               </>
             ) : (
               <NullState reason="구조 지표 표본이 없어 포맷 일관성 판단이 제한됩니다" />
