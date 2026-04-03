@@ -6,13 +6,6 @@ import {
   PolarGrid,
   PolarAngleAxis,
   PolarRadiusAxis,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Cell,
 } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -22,10 +15,9 @@ import type { ChannelDnaData } from "../mock-data"
 
 interface DnaVisualizationSectionProps {
   data: ChannelDnaData["visualization"]
-  distribution: ChannelDnaData["structureSummary"]["performanceDistribution"]
 }
 
-export function DnaVisualizationSection({ data, distribution }: DnaVisualizationSectionProps) {
+export function DnaVisualizationSection({ data }: DnaVisualizationSectionProps) {
   const radarConfig = {
     value: {
       label: "점수",
@@ -36,13 +28,6 @@ export function DnaVisualizationSection({ data, distribution }: DnaVisualization
   const barConfig = {
     strength: {
       label: "강도",
-      color: "hsl(var(--primary))",
-    },
-  }
-
-  const distributionConfig = {
-    count: {
-      label: "영상 수",
       color: "hsl(var(--primary))",
     },
   }
@@ -91,37 +76,6 @@ export function DnaVisualizationSection({ data, distribution }: DnaVisualization
           </CardContent>
         </Card>
 
-        {/* 성과 분포 히스토그램 */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">성과 분포</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={distributionConfig} className="h-[280px]">
-              <BarChart data={distribution} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-                <XAxis
-                  dataKey="range"
-                  tick={{ fontSize: 11 }}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-                <ChartTooltip
-                  content={<ChartTooltipContent />}
-                  formatter={(value, name) => [`${value}개`, "영상 수"]}
-                />
-                <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                  {distribution.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={`hsl(var(--primary) / ${0.4 + index * 0.15})`}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">

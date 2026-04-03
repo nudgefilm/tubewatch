@@ -8,13 +8,6 @@ export const channelDnaData = {
     growthAxis: ["포맷 일관성", "주제 집중도"], // 성장 축 (1~2개)
     structureStability: "안정", // 안정 | 불안정 | 취약
     structureStabilityScore: 78,
-    performanceDistribution: [
-      { range: "0-1K", count: 8, percentage: 16 },
-      { range: "1K-5K", count: 12, percentage: 24 },
-      { range: "5K-10K", count: 15, percentage: 30 },
-      { range: "10K-50K", count: 10, percentage: 20 },
-      { range: "50K+", count: 5, percentage: 10 },
-    ],
     summaryText:
       "이 채널은 특정 포맷과 주제에 집중하여 안정적인 조회수를 유지하는 구조입니다. 히트 영상 의존도가 낮아 일관된 성과를 보입니다.",
   },

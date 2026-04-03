@@ -43,7 +43,6 @@ function buildStructureSummary(vm: InternalChannelDnaSummaryVm) {
     structureStability: stability,
     structureStabilityScore:
       vm.performanceSpreadLevel === "low" ? 75 : vm.performanceSpreadLevel === "high" ? 30 : 50,
-    performanceDistribution: [] as { range: string; count: number; percentage: number }[],
     summaryText: vm.channelDnaNarrative,
     topicConsistency,
   }
