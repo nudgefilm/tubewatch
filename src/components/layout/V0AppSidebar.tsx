@@ -91,6 +91,7 @@ const secondaryNavItems = [
 type SidebarChannel = {
   id: string
   channel_title: string | null
+  thumbnail_url: string | null
 }
 
 export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -281,7 +282,7 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                   side="bottom"
                   sideOffset={4}
                 >
-                  {channels.map((ch, i) => (
+                  {channels.map((ch) => (
                     <DropdownMenuItem
                       key={ch.id}
                       onSelect={() => {
@@ -289,15 +290,18 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                       }}
                     >
                       <div className="flex items-center gap-2">
-                        <div
-                          className={
-                            i % 2 === 0
-                              ? "flex size-6 items-center justify-center rounded bg-orange-500 text-white"
-                              : "flex size-6 items-center justify-center rounded bg-blue-500 text-white"
-                          }
-                        >
-                          <Youtube className="size-3" />
-                        </div>
+                        {ch.thumbnail_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={ch.thumbnail_url}
+                            alt={ch.channel_title ?? "채널"}
+                            className="size-6 rounded-full object-cover shrink-0"
+                          />
+                        ) : (
+                          <div className="flex size-6 items-center justify-center rounded-full bg-orange-500 text-white shrink-0">
+                            <Youtube className="size-3" />
+                          </div>
+                        )}
                         <span>{ch.channel_title ?? "채널"}</span>
                       </div>
                     </DropdownMenuItem>
