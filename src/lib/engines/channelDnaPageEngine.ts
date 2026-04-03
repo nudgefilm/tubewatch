@@ -73,7 +73,8 @@ function buildDnaCards(vm: InternalChannelDnaSummaryVm) {
   }, [])
   const strengthSignalSet = new Set(positiveSignals)
   const weaknessCandidates = [...misplacedNegatives, ...vm.weakPatternSignals.filter((s) => !strengthSignalSet.has(s))]
-  const seenWeaknessLabels = new Set<string>()
+  // seenStrengthLabels로 초기화 → 강점에 이미 있는 라벨은 약점에도 중복 노출되지 않음
+  const seenWeaknessLabels = new Set<string>(seenStrengthLabels)
   const weaknesses = weaknessCandidates.reduce<{ title: string; description: string; score: number; tags: string[] }[]>((acc, signal, i) => {
     const { label, description } = humanizeSignal(signal)
     if (seenWeaknessLabels.has(label)) return acc
