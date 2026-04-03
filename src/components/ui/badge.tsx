@@ -12,7 +12,7 @@ export function Badge({
   ...props
 }: BadgeProps): JSX.Element {
   const base =
-    "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors";
+    "inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors";
   const styles: Record<BadgeVariant, string> = {
     default: "border-transparent bg-slate-900 text-slate-50",
     outline: "border-slate-200 bg-slate-50 text-slate-700",
