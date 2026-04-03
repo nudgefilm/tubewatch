@@ -10,6 +10,12 @@ interface AnalysisKpiCardsProps {
   data: KpiData
 }
 
+function pastelGaugeClass(score: number): string {
+  if (score >= 65) return "bg-sky-400/60 border-sky-400/60"
+  if (score >= 45) return "bg-amber-300/70 border-amber-300/70"
+  return "bg-rose-300/70 border-rose-300/70"
+}
+
 function getStatusBadgeStyle(status: string) {
   switch (status) {
     case "양호":
@@ -114,7 +120,11 @@ export function AnalysisKpiCards({ data }: AnalysisKpiCardsProps) {
                 <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
                   {data.uploadFrequency.interpretation}
                 </p>
-                <SegmentGauge score={Math.min((data.uploadFrequency.value / 5) * 100, 100)} label={false} />
+                <SegmentGauge
+                  score={Math.min((data.uploadFrequency.value / 5) * 100, 100)}
+                  label={false}
+                  filledClassName={pastelGaugeClass(Math.min((data.uploadFrequency.value / 5) * 100, 100))}
+                />
               </>
             ) : (
               <NullState reason="발행 간격 데이터가 없어 업로드 리듬 판단이 제한됩니다" />

@@ -3,6 +3,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { SegmentGauge } from "@/components/ui/SegmentGauge"
 
+function pastelGaugeClass(score: number): string {
+  if (score >= 65) return "bg-sky-400/60 border-sky-400/60"
+  if (score >= 45) return "bg-amber-300/70 border-amber-300/70"
+  return "bg-rose-300/70 border-rose-300/70"
+}
+
 export type SectionScores = {
   channelActivity?: number
   audienceResponse?: number
@@ -168,7 +174,7 @@ export function AnalysisScoreOverview({ score, sectionScores }: AnalysisScoreOve
                     {label}
                   </span>
                   <div className="flex-1">
-                    <SegmentGauge score={val} segments={8} label={false} stretch />
+                    <SegmentGauge score={val} segments={8} label={false} stretch filledClassName={pastelGaugeClass(val)} />
                   </div>
                   <span className="w-5 text-right text-[10px] tabular-nums text-muted-foreground">
                     {Math.round(val)}

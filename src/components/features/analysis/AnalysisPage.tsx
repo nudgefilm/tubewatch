@@ -17,6 +17,12 @@ import { buildAnalysisPageSections } from "@/lib/engines/analysisPageEngine"
 import type { AnalysisPageViewModel } from "@/lib/analysis/analysisPageViewModel"
 import { SegmentGauge } from "@/components/ui/SegmentGauge"
 
+function pastelGaugeClass(score: number): string {
+  if (score >= 65) return "bg-sky-400/60 border-sky-400/60"
+  if (score >= 45) return "bg-amber-300/70 border-amber-300/70"
+  return "bg-rose-300/70 border-rose-300/70"
+}
+
 // ─── 재분석 쿨다운 타이머 박스 ───────────────────────────────────────────────
 
 const COOLDOWN_MS = 12 * 60 * 60 * 1000 // 12시간
@@ -380,7 +386,7 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
                         <span className="text-xs text-muted-foreground font-normal ml-0.5">/ 100</span>
                       </span>
                     </div>
-                    <SegmentGauge score={score} stretch label={false} />
+                    <SegmentGauge score={score} stretch label={false} filledClassName={pastelGaugeClass(score)} />
                     {metaItems.length > 0 && (
                       <div className="flex flex-wrap gap-x-3 gap-y-0.5">
                         {metaItems.map(m => <span key={m} className="text-[11px] text-muted-foreground">{m}</span>)}

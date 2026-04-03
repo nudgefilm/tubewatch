@@ -13,19 +13,22 @@ interface SegmentGaugeProps {
   variant?: "primary" | "destructive" | "subtle"
   /** true 시 블록이 컨테이너 너비에 꽉 차도록 stretch */
   stretch?: boolean
+  /** variant 대신 채운 블록 색상을 직접 지정 (예: "bg-sky-400/70 border-sky-400/70") */
+  filledClassName?: string
 }
 
-export function SegmentGauge({ score, segments = 10, label, hint, variant = "primary", stretch = false }: SegmentGaugeProps) {
+export function SegmentGauge({ score, segments = 10, label, hint, variant = "primary", stretch = false, filledClassName }: SegmentGaugeProps) {
   const safe = Math.max(0, Math.min(100, Math.round(score)))
   const filled = Math.round((safe / 100) * segments)
   const displayLabel = label === false ? null : (label ?? `${safe}%`)
 
-  const filledClass =
+  const filledClass = filledClassName ?? (
     variant === "destructive"
       ? "bg-red-500 border-red-500"
       : variant === "subtle"
       ? "bg-primary/40 border-primary/40"
       : "bg-primary border-primary"
+  )
 
   return (
     <div className="space-y-1.5">
