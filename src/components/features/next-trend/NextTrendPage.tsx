@@ -8,11 +8,24 @@ import { NextTrendEmptyState } from "./sections/EmptyState"
 import { ChannelContextHeader, type ChannelContext } from "@/components/features/shared/ChannelContextHeader"
 import { FeaturePaywallBlock } from "@/components/features/shared/FeaturePaywallBlock"
 import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
 import { AlertCircle, ArrowRight, TrendingUp } from "lucide-react"
 import { EvidenceBlock } from "@/components/common/EvidenceBlock"
 import type { NextTrendPageViewModel } from "@/lib/next-trend/nextTrendPageViewModel"
 import { buildNextTrendPageSections, SIGNAL_STRENGTH_BADGE } from "@/lib/engines/nextTrendPageEngine"
+
+function SegmentGauge({ value }: { value: number }) {
+  const filled = Math.round((value / 100) * 5)
+  return (
+    <div className="flex gap-1">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div
+          key={i}
+          className={`h-1.5 w-8 rounded-full ${i < filled ? "bg-primary" : "bg-muted"}`}
+        />
+      ))}
+    </div>
+  )
+}
 
 interface NextTrendPageProps {
   channelId?: string
@@ -54,12 +67,13 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
 
               {/* 채널 활동 맥락 — 성장 모멘텀 + 업로드 주기 */}
               {(viewModel.growthMomentum != null || viewModel.avgUploadIntervalDays != null) && (
-                <div className="flex flex-wrap divide-x divide-border rounded-lg border border-muted px-5 py-4">
+                <div className="flex justify-center">
+                  <div className="inline-flex divide-x divide-border rounded-lg border border-muted">
                   {viewModel.growthMomentum != null && (
-                    <div className="flex items-center gap-3 min-w-[180px] pr-5">
-                      <div className="flex-1">
-                        <p className="text-xs text-muted-foreground mb-1.5">성장 모멘텀</p>
-                        <Progress value={viewModel.growthMomentum} className="h-1.5" />
+                    <div className="flex items-center gap-3 px-5 py-4">
+                      <div className="space-y-1.5">
+                        <p className="text-xs text-muted-foreground">성장 모멘텀</p>
+                        <SegmentGauge value={viewModel.growthMomentum} />
                       </div>
                       <span className="text-sm font-semibold tabular-nums shrink-0">
                         {Math.round(viewModel.growthMomentum)}
@@ -67,7 +81,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                     </div>
                   )}
                   {viewModel.avgUploadIntervalDays != null && (
-                    <div className="space-y-1 min-w-[180px] pl-5">
+                    <div className="space-y-1 px-5 py-4">
                       <div className="flex items-center gap-2">
                         <p className="text-xs text-muted-foreground">업로드 주기</p>
                         <span className="text-sm font-semibold tabular-nums">
@@ -85,6 +99,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                       </p>
                     </div>
                   )}
+                  </div>
                 </div>
               )}
 
