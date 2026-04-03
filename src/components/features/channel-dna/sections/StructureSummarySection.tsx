@@ -101,7 +101,7 @@ export function DnaStructureSummarySection({ data }: DnaStructureSummarySectionP
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              히트 영상 의존도
+              ⚡ 히트 영상 의존도
             </CardTitle>
             <TrendingUp className="size-4 text-muted-foreground" />
           </CardHeader>
@@ -131,7 +131,7 @@ export function DnaStructureSummarySection({ data }: DnaStructureSummarySectionP
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              성장 방식
+              📈 성장 방식
             </CardTitle>
             <Target className="size-4 text-muted-foreground" />
           </CardHeader>
@@ -151,7 +151,7 @@ export function DnaStructureSummarySection({ data }: DnaStructureSummarySectionP
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              구조 안정성
+              🛡️ 구조 안정성
             </CardTitle>
             <Shield className="size-4 text-muted-foreground" />
           </CardHeader>
@@ -179,7 +179,7 @@ export function DnaStructureSummarySection({ data }: DnaStructureSummarySectionP
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              주제 일관성
+              📚 주제 일관성
             </CardTitle>
             <BookOpen className="size-4 text-muted-foreground" />
           </CardHeader>
@@ -214,7 +214,7 @@ export function DnaStructureSummarySection({ data }: DnaStructureSummarySectionP
       <Card className="bg-muted/30">
         <CardContent className="pt-6 pb-5 px-5">
           <p className="text-sm font-semibold text-foreground/90 mb-3">
-            구조 분석 요약
+            📋 구조 분석 요약
           </p>
           <div className="space-y-4">
             {splitSummaryIntoSections(sanitizeSummaryText(data.summaryText)).map(

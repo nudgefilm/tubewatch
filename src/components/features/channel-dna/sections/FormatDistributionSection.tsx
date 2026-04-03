@@ -82,7 +82,7 @@ export function DnaFormatDistributionSection({ data }: FormatDistributionSection
         {hasDurationData && (
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">영상 길이 분포</CardTitle>
+              <CardTitle className="text-base">⏱️ 영상 길이 분포</CardTitle>
               <p className="text-xs text-muted-foreground">
                 표본 {sampleSize}편 기준 — Shorts · 단편 · 장편 비율
               </p>
@@ -154,7 +154,7 @@ export function DnaFormatDistributionSection({ data }: FormatDistributionSection
         {showPie && (
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">카테고리 분포</CardTitle>
+              <CardTitle className="text-base">🥧 카테고리 분포</CardTitle>
               <p className="text-xs text-muted-foreground">
                 표본 기준 카테고리 비중 — 채널 주제 집중도를 확인하세요
               </p>
