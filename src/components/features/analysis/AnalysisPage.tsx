@@ -153,8 +153,8 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
         setRequestError(result.error ?? "분석 요청에 실패했습니다.")
         return
       }
-      console.log("[AnalysisPage/reanalyze] SUCCESS → navigate to /analysis?channel=", viewModel.selectedChannelId)
-      router.push(`/analysis?channel=${viewModel.selectedChannelId}`)
+      console.log("[AnalysisPage/reanalyze] SUCCESS → refresh page data")
+      router.refresh()
     } catch (err) {
       console.error("[AnalysisPage/reanalyze] fetch exception:", err)
       setRequestError("네트워크 오류가 발생했습니다. 다시 시도해 주세요.")
