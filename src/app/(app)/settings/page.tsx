@@ -7,6 +7,7 @@ type ChannelRow = {
   channel_title: string | null;
   channel_url: string | null;
   channel_id: string | null;
+  thumbnail_url: string | null;
 };
 
 export default async function SettingsRoutePage() {
@@ -21,7 +22,7 @@ export default async function SettingsRoutePage() {
 
   const { data: channelsData } = await supabase
     .from("user_channels")
-    .select("id, channel_title, channel_url, channel_id")
+    .select("id, channel_title, channel_url, channel_id, thumbnail_url")
     .order("created_at", { ascending: true });
 
   const channels: ChannelRow[] = Array.isArray(channelsData) ? channelsData : [];

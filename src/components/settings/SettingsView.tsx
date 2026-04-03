@@ -18,6 +18,7 @@ type ChannelRow = {
   channel_title: string | null;
   channel_url: string | null;
   channel_id: string | null;
+  thumbnail_url: string | null;
 };
 
 type Props = {
@@ -107,9 +108,17 @@ export default function SettingsView({ email, channels }: Props) {
                     className="flex items-center justify-between py-3 border-b last:border-b-0"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="flex size-8 items-center justify-center rounded bg-red-500/10">
-                        <Youtube className="size-4 text-red-500" />
-                      </div>
+                      {ch.thumbnail_url ? (
+                        <img
+                          src={ch.thumbnail_url}
+                          alt={ch.channel_title ?? "채널"}
+                          className="size-8 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex size-8 items-center justify-center rounded-full bg-red-500/10">
+                          <Youtube className="size-4 text-red-500" />
+                        </div>
+                      )}
                       <div className="min-w-0">
                         <p className="text-sm font-medium truncate">
                           {ch.channel_title ?? ch.channel_id ?? "채널"}
