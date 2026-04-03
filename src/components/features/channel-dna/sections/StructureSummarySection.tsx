@@ -1,6 +1,6 @@
 "use client"
 
-import { TrendingUp, Target, Shield, BarChart3, BookOpen } from "lucide-react"
+import { TrendingUp, Target, Shield, BookOpen } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { StatusBar } from "@/components/ui/StatusBar"
@@ -175,39 +175,6 @@ export function DnaStructureSummarySection({ data }: DnaStructureSummarySectionP
           </CardContent>
         </Card>
 
-        {/* 성과 분포 */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              성과 분포
-            </CardTitle>
-            <BarChart3 className="size-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {data.performanceDistribution.length > 0 ? (
-              <>
-                <div className="flex h-12 items-end gap-1">
-                  {data.performanceDistribution.map((item) => (
-                    <div
-                      key={item.range}
-                      className="flex-1 rounded-t bg-primary/80 transition-all hover:bg-primary"
-                      style={{ height: `${item.percentage * 1.2}%` }}
-                      title={`${item.range}: ${item.count}개 (${item.percentage}%)`}
-                    />
-                  ))}
-                </div>
-                <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
-                  <span>0</span>
-                  <span>50K+</span>
-                </div>
-              </>
-            ) : (
-              <div className="flex h-12 items-center">
-                <p className="text-sm font-medium text-muted-foreground">미산출</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
         {/* 주제 일관성 */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
