@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import {
   HelpCircle,
   MessageCircle,
@@ -38,12 +39,15 @@ function GuideCard({
   title,
   description,
   icon: Icon,
+  href,
 }: {
   title: string
   description: string
   icon: React.ElementType
+  href: string
 }) {
   return (
+    <Link href={href}>
     <Card className="hover:shadow-md transition-shadow cursor-pointer group">
       <CardContent className="pt-6">
         <div className="flex items-start gap-4">
@@ -58,6 +62,7 @@ function GuideCard({
         </div>
       </CardContent>
     </Card>
+    </Link>
   )
 }
 
@@ -105,26 +110,31 @@ export default function SupportView() {
       title: "채널 분석 시작하기",
       description: "채널 종합 점수, 구간 진단, 성과 흐름을 확인하는 방법",
       icon: BarChart3,
+      href: "/analysis",
     },
     {
       title: "Channel DNA 읽기",
       description: "강점·약점 패턴과 포맷 분포로 채널 구조 파악하기",
       icon: Users,
+      href: "/channel-dna",
     },
     {
       title: "Action Plan 활용하기",
       description: "AI 추천 실행 과제를 우선순위에 따라 적용하는 방법",
       icon: Zap,
+      href: "/action-plan",
     },
     {
       title: "Next Trend 활용하기",
       description: "트렌드 신호로 다음 콘텐츠 아이디어 발굴하기",
       icon: TrendingUp,
+      href: "/next-trend",
     },
     {
       title: "크레딧 & 플랜 가이드",
       description: "분석 크레딧 충전 방법과 플랜별 기능 차이 안내",
       icon: CreditCard,
+      href: "/billing",
     },
   ]
 
