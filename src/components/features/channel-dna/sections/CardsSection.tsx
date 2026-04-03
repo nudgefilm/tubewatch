@@ -60,7 +60,6 @@ export function DnaCardsSection({ data }: DnaCardsSectionProps) {
                   score={item.score}
                   strengthLabel="강점"
                   weaknessLabel="약점"
-                  hint="상위 20% 구조에서 반복되는 강점 패턴입니다"
                 />
                 {sanitizeDescription(item.description) && (
                   <p className="text-xs text-muted-foreground">{sanitizeDescription(item.description)}</p>
@@ -113,7 +112,6 @@ export function DnaCardsSection({ data }: DnaCardsSectionProps) {
                   score={item.score}
                   strengthLabel="강점"
                   weaknessLabel="약점"
-                  hint="재현성이 낮은 구조로 개선이 필요한 패턴입니다"
                 />
                 {sanitizeDescription(item.description) && (
                   <p className="text-xs text-muted-foreground">{sanitizeDescription(item.description)}</p>

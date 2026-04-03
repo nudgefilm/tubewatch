@@ -44,7 +44,7 @@ export function DirectionalGauge({
             <div
               key={`w-${i}`}
               className={`h-2.5 flex-1 rounded-sm border transition-colors ${
-                filled ? "bg-foreground/70 border-foreground/70" : "border-foreground/25 bg-transparent"
+                filled ? "bg-rose-400/70 border-rose-400/70" : "border-foreground/25 bg-transparent"
               }`}
             />
           )
