@@ -61,15 +61,11 @@ function ReanalyzeCooldownBox({ lastRunAt, sampleCount, isRequesting, requestErr
   const isCooldown = remainingMs === null || remainingMs > 0
 
   return (
-    <div className={`rounded-lg border px-4 py-3 space-y-2.5 ${
-      isCooldown
-        ? "border-emerald-200 bg-emerald-50/50 dark:border-emerald-800 dark:bg-emerald-950/20"
-        : "border-primary/30 bg-primary/5 dark:border-primary/40"
-    }`}>
+    <div className="rounded-lg border bg-muted/30 px-4 py-3 space-y-2.5">
 
       {/* 타이머 줄 */}
-      <div className="flex items-center gap-1.5 text-sm font-medium text-emerald-800 dark:text-emerald-300">
-        <Clock className="size-4 shrink-0" />
+      <div className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+        <Clock className="size-4 shrink-0 text-muted-foreground" />
         {remainingMs === null ? (
           <span>다음 재분석까지 계산 중…</span>
         ) : isCooldown ? (
@@ -80,7 +76,7 @@ function ReanalyzeCooldownBox({ lastRunAt, sampleCount, isRequesting, requestErr
       </div>
 
       {/* 안내 문구 */}
-      <div className="flex items-start gap-1.5 rounded-md bg-emerald-100/60 dark:bg-emerald-900/20 px-3 py-2 text-xs text-emerald-800 dark:text-emerald-300">
+      <div className="flex items-start gap-1.5 rounded-md bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
         <span className="shrink-0 mt-0.5">💡</span>
         <span>
           <span className="font-semibold">알림:</span>{" "}
