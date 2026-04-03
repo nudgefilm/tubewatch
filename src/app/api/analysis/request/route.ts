@@ -391,8 +391,13 @@ export async function POST(request: Request) {
     title: v.title,
     publishedAt: v.published_at ?? null,
     viewCount: v.view_count ?? null,
+    likeCount: v.like_count ?? null,
+    commentCount: v.comment_count ?? null,
     thumbnail: v.thumbnail_url ?? null,
     duration: v.duration ?? null,
+    tags: v.tags ?? [],
+    descriptionLength: typeof v.description === "string" ? v.description.length : 0,
+    categoryId: v.category_id ?? null,
   }));
 
   // [pipe/2] 저장 직전 영상 배열 확인
