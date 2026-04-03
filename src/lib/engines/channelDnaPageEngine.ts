@@ -67,7 +67,8 @@ function buildDnaCards(vm: InternalChannelDnaSummaryVm) {
     const { label, description } = humanizeSignal(signal)
     return { title: label, description, score: Math.max(60, 85 - i * 5), tags: [] as string[] }
   })
-  const weaknesses = [...misplacedNegatives, ...vm.weakPatternSignals].map((signal, i) => {
+  const strengthSignalSet = new Set(positiveSignals)
+  const weaknesses = [...misplacedNegatives, ...vm.weakPatternSignals.filter((s) => !strengthSignalSet.has(s))].map((signal, i) => {
     const { label, description } = humanizeSignal(signal)
     return { title: label, description, score: Math.min(45, 40 + i * 3), tags: [] as string[] }
   })
