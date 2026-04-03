@@ -1,6 +1,6 @@
 "use client"
 
-import { TrendingUp, Target, Shield, BookOpen } from "lucide-react"
+import { TrendingUp, Target, Shield, BookOpen, FileText } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { SegmentGauge } from "@/components/ui/SegmentGauge"
@@ -213,7 +213,8 @@ export function DnaStructureSummarySection({ data }: DnaStructureSummarySectionP
       {/* 요약 카드 */}
       <Card className="bg-muted/30">
         <CardContent className="pt-6 pb-5 px-5">
-          <p className="text-sm font-semibold text-foreground/90 mb-3">
+          <p className="flex items-center gap-1.5 text-sm font-semibold text-foreground/90 mb-3">
+            <FileText className="size-4 shrink-0 text-primary" />
             구조 분석 요약
           </p>
           <div className="space-y-4">
