@@ -1,6 +1,6 @@
 "use client"
 
-import { Tag, AlertCircle, CheckCircle2, MinusCircle, Search } from "lucide-react"
+import { Sparkles, AlertCircle, CheckCircle2, MinusCircle, Search } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import type { SeoKeywordVm } from "@/lib/action-plan/actionPlanPageViewModel"
@@ -51,7 +51,7 @@ export function ActionPlanKeywordSection({ data }: KeywordSectionProps) {
             <div className="flex items-start justify-between gap-3">
               <div className="space-y-0.5">
                 <CardTitle className="flex items-center gap-2 text-base">
-                  <Tag className="size-4 text-amber-500" />
+                  <Sparkles className="size-4 text-amber-500" />
                   황금 키워드
                 </CardTitle>
                 <p className="text-xs text-muted-foreground">
