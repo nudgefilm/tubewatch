@@ -37,6 +37,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
   SidebarSeparator,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import {
   DropdownMenu,
@@ -95,6 +96,7 @@ type SidebarChannel = {
 export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
   const router = useRouter()
+  const { state: sidebarState } = useSidebar()
   const [channels, setChannels] = React.useState<SidebarChannel[]>([])
   const [selectedChannelId, setSelectedChannelId] = React.useState<string | null>(null)
   const [userEmail, setUserEmail] = React.useState<string | null>(null)
@@ -217,10 +219,12 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader className="p-4 pb-0">
-        <Link href="/" className="flex flex-col">
-          <span className="text-[23px] lg:text-[24px] leading-none font-heading font-medium tracking-[-0.02em]">TubeWatch™</span>
-          <span className="text-xs text-muted-foreground">YouTube Growth OS</span>
-        </Link>
+        {sidebarState === "expanded" && (
+          <Link href="/" className="flex flex-col">
+            <span className="text-[23px] lg:text-[24px] leading-none font-heading font-medium tracking-[-0.02em]">TubeWatch™</span>
+            <span className="text-xs text-muted-foreground">YouTube Growth OS</span>
+          </Link>
+        )}
 
         <div className="pt-2">
           <div className="px-2 py-2">
