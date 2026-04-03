@@ -1,6 +1,6 @@
 "use client"
 
-import { TrendingUp, TrendingDown, ArrowRight } from "lucide-react"
+import { TrendingUp, TrendingDown, ArrowRight, ThumbsUp, MessageSquare } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { ComparisonData, VideoData } from "../mock-data"
 
@@ -18,6 +18,12 @@ function formatViews(views: number): string {
     return `${(views / 1000).toFixed(1)}K`
   }
   return views.toString()
+}
+
+function formatCount(n: number): string {
+  if (n >= 10000) return `${Math.floor(n / 1000)}K`
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}K`
+  return n.toString()
 }
 
 function formatDate(dateString: string): string {
@@ -107,6 +113,18 @@ function SparseSampleCompare({ videos, sampleCount }: { videos: VideoData[]; sam
               <span className="font-semibold tabular-nums text-emerald-700">
                 {formatViews(best.views)}
               </span>
+              {best.likeCount != null && (
+                <span className="flex items-center gap-1 tabular-nums">
+                  <ThumbsUp className="size-3 shrink-0" />
+                  {formatCount(best.likeCount)}
+                </span>
+              )}
+              {best.commentCount != null && (
+                <span className="flex items-center gap-1 tabular-nums">
+                  <MessageSquare className="size-3 shrink-0" />
+                  {formatCount(best.commentCount)}
+                </span>
+              )}
               {best.uploadDate && <span>{formatDate(best.uploadDate)}</span>}
               <span>{best.duration}</span>
             </div>
@@ -124,6 +142,18 @@ function SparseSampleCompare({ videos, sampleCount }: { videos: VideoData[]; sam
                 <span className="font-semibold tabular-nums text-rose-600">
                   {formatViews(worst.views)}
                 </span>
+                {worst.likeCount != null && (
+                  <span className="flex items-center gap-1 tabular-nums">
+                    <ThumbsUp className="size-3 shrink-0" />
+                    {formatCount(worst.likeCount)}
+                  </span>
+                )}
+                {worst.commentCount != null && (
+                  <span className="flex items-center gap-1 tabular-nums">
+                    <MessageSquare className="size-3 shrink-0" />
+                    {formatCount(worst.commentCount)}
+                  </span>
+                )}
                 {worst.uploadDate && <span>{formatDate(worst.uploadDate)}</span>}
                 <span>{worst.duration}</span>
               </div>

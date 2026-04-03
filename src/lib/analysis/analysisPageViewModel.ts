@@ -44,6 +44,8 @@ export type AnalysisVideoRow = {
   thumbnailUrl: string | null;
   publishedAt: string | null;
   viewCount: number | null;
+  likeCount: number | null;
+  commentCount: number | null;
   durationLabel: string | null;
   relativeBadge: string | null;
 };
@@ -314,6 +316,8 @@ function snapshotVideoToRow(v: NormalizedSnapshotVideo): AnalysisVideoRow {
     thumbnailUrl: v.thumbnailUrl,
     publishedAt: v.publishedAt,
     viewCount: v.viewCount,
+    likeCount: v.likeCount,
+    commentCount: v.commentCount,
     durationLabel: v.durationLabel !== "—" ? v.durationLabel : null,
     relativeBadge: null,
   };

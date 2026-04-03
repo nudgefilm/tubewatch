@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import { ThumbsUp, MessageSquare } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -40,6 +41,13 @@ function formatViews(views: number): string {
     return `${(views / 1000).toFixed(1)}K`
   }
   return views.toString()
+}
+
+/** 좋아요·댓글 수 compact 포맷 (10000 → 1만, 1000 → 1K) */
+function formatCount(n: number): string {
+  if (n >= 10000) return `${Math.floor(n / 1000)}K`
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}K`
+  return n.toString()
 }
 
 function formatDate(dateString: string): string {
@@ -112,6 +120,18 @@ export function AnalysisRecentVideosSection({ videos }: AnalysisRecentVideosSect
                   >
                     {formatViews(video.views)}
                   </span>
+                  {video.likeCount != null && (
+                    <span className="flex items-center gap-1 tabular-nums">
+                      <ThumbsUp className="size-3 shrink-0" />
+                      {formatCount(video.likeCount)}
+                    </span>
+                  )}
+                  {video.commentCount != null && (
+                    <span className="flex items-center gap-1 tabular-nums">
+                      <MessageSquare className="size-3 shrink-0" />
+                      {formatCount(video.commentCount)}
+                    </span>
+                  )}
                   {video.uploadDate && <span>{formatDate(video.uploadDate)}</span>}
                   <span>{video.duration}</span>
                 </div>
@@ -158,6 +178,18 @@ export function AnalysisRecentVideosSection({ videos }: AnalysisRecentVideosSect
                 <TableHead className="w-[360px] pl-6">영상</TableHead>
                 <TableHead className="whitespace-nowrap text-center">업로드</TableHead>
                 <TableHead className="whitespace-nowrap text-right">조회수</TableHead>
+                <TableHead className="whitespace-nowrap text-right">
+                  <span className="flex items-center justify-end gap-1">
+                    <ThumbsUp className="size-3" />
+                    좋아요
+                  </span>
+                </TableHead>
+                <TableHead className="whitespace-nowrap text-right">
+                  <span className="flex items-center justify-end gap-1">
+                    <MessageSquare className="size-3" />
+                    댓글
+                  </span>
+                </TableHead>
                 <TableHead className="whitespace-nowrap text-center">길이</TableHead>
                 <TableHead className="whitespace-nowrap pr-6 text-center">성과</TableHead>
               </TableRow>
@@ -202,6 +234,12 @@ export function AnalysisRecentVideosSection({ videos }: AnalysisRecentVideosSect
                     >
                       {formatViews(video.views)}
                     </span>
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap text-right font-mono text-sm tabular-nums text-muted-foreground">
+                    {video.likeCount != null ? formatCount(video.likeCount) : "—"}
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap text-right font-mono text-sm tabular-nums text-muted-foreground">
+                    {video.commentCount != null ? formatCount(video.commentCount) : "—"}
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-center text-sm text-muted-foreground">
                     {video.duration}

@@ -3,6 +3,7 @@
 import { Dna } from "lucide-react"
 import { DnaStructureSummarySection } from "./sections/StructureSummarySection"
 import { DnaCardsSection } from "./sections/CardsSection"
+import { DnaFormatDistributionSection } from "./sections/FormatDistributionSection"
 import { DnaEmptyState } from "./sections/EmptyState"
 import { ChannelContextHeader, type ChannelContext } from "@/components/features/shared/ChannelContextHeader"
 import { PageFlowConnector } from "@/components/features/shared/PageFlowConnector"
@@ -21,7 +22,7 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
   // Real data path
   if (viewModel) {
     const vm = viewModel.internalChannelDnaSummary
-    const { structureSummary, dnaCards } = buildChannelDnaPageSections(vm)
+    const { structureSummary, dnaCards, formatDistribution } = buildChannelDnaPageSections(vm)
 
     return (
       <div className="min-h-screen bg-background">
@@ -173,6 +174,17 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
                   )}
                 </div>
               )}
+            </section>
+          )}
+
+          {/* [4] 포맷 분포 시각화 — Starter 차단, 데이터 있을 때만 */}
+          {!isStarterPlan && formatDistribution && (
+            <section className="space-y-4">
+              <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
+                <h2 className="text-xl font-bold tracking-tight">포맷 분포</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">영상 길이 구간과 카테고리 비중으로 채널 정체성을 확인하세요</p>
+              </div>
+              <DnaFormatDistributionSection data={formatDistribution} />
             </section>
           )}
 

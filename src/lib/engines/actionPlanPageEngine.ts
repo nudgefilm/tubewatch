@@ -6,6 +6,7 @@ import type {
   ActionPlanPageViewModel,
   ActionPlanCardVm,
   ActionPlanChecklistVm,
+  SeoKeywordVm,
 } from "@/lib/action-plan/actionPlanPageViewModel"
 
 const DIFFICULTY_LABEL: Record<ActionPlanCardVm["difficulty"], string> = {
@@ -59,6 +60,7 @@ export function buildActionPlanPageSections(
     isStarterPlan ? viewModel.actions.slice(0, 2) : viewModel.actions
   )
   const checklistData: ActionPlanChecklistVm[] = viewModel.checklistItems
+  const seoKeywordsData: SeoKeywordVm | null = viewModel.seoKeywords ?? null
 
-  return { cardsData, checklistData }
+  return { cardsData, checklistData, seoKeywordsData }
 }

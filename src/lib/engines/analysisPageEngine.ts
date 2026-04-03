@@ -193,6 +193,8 @@ function mapToVideoData(videos: AnalysisVideoRow[]) {
     title: v.title,
     uploadDate: v.publishedAt ?? "",
     views: v.viewCount ?? 0,
+    likeCount: v.likeCount ?? null,
+    commentCount: v.commentCount ?? null,
     duration: v.durationLabel ?? "—",
     performanceBadge: (
       v.relativeBadge?.includes("높은") ? "상위" :

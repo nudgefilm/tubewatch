@@ -45,6 +45,14 @@ export type NormalizedSnapshotVideo = {
   thumbnailUrl: string | null
   publishedAt: string | null
   viewCount: number | null
+  likeCount: number | null
+  commentCount: number | null
+  /** 영상에 설정된 태그 목록. 미존재 시 빈 배열 */
+  tags: string[]
+  /** 설명란 문자 수. 미존재 시 null */
+  descriptionLength: number | null
+  /** YouTube 카테고리 ID 문자열. 미존재 시 null */
+  categoryId: string | null
   /** 초 단위 재생 시간. 미존재 시 null */
   durationSeconds: number | null
   /** UI 표시용 "M:SS" 형식. 항상 문자열 (미존재 시 "—") */
@@ -171,9 +179,33 @@ function parseSnapshotVideos(obj: Record<string, unknown>): NormalizedSnapshotVi
         : typeof r.view_count === "number"
           ? r.view_count
           : null
+    const likeCount =
+      typeof r.likeCount === "number"
+        ? r.likeCount
+        : typeof r.like_count === "number"
+          ? r.like_count
+          : null
+    const commentCount =
+      typeof r.commentCount === "number"
+        ? r.commentCount
+        : typeof r.comment_count === "number"
+          ? r.comment_count
+          : null
+    const tags = Array.isArray(r.tags)
+      ? (r.tags as unknown[]).filter((t): t is string => typeof t === "string" && t.trim().length > 0)
+      : []
+    const descRaw = r.description ?? r.desc
+    const descriptionLength =
+      typeof descRaw === "string" ? descRaw.length : null
+    const categoryId =
+      typeof r.categoryId === "string" && r.categoryId.trim()
+        ? r.categoryId.trim()
+        : typeof r.category_id === "string" && r.category_id.trim()
+          ? r.category_id.trim()
+          : null
     const { durationSeconds, durationLabel } = parseDuration(r)
 
-    result.push({ title, thumbnailUrl, publishedAt, viewCount, durationSeconds, durationLabel })
+    result.push({ title, thumbnailUrl, publishedAt, viewCount, likeCount, commentCount, tags, descriptionLength, categoryId, durationSeconds, durationLabel })
   }
   return result
 }

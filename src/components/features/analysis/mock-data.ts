@@ -49,6 +49,8 @@ export interface VideoData {
   title: string
   uploadDate: string
   views: number
+  likeCount: number | null
+  commentCount: number | null
   duration: string
   performanceBadge: "상위" | "평균권" | "하위" | "관찰 필요"
   patternTags: string[]
@@ -146,6 +148,8 @@ export const mockVideosData: VideoData[] = [
     title: "2024년 AI 트렌드 총정리 - 개발자가 알아야 할 10가지",
     uploadDate: "2024-01-15",
     views: 72000,
+    likeCount: 3200,
+    commentCount: 187,
     duration: "18:42",
     performanceBadge: "상위",
     patternTags: ["긴 호흡", "리스트형"],
@@ -156,6 +160,8 @@ export const mockVideosData: VideoData[] = [
     title: "ChatGPT vs Claude 실사용 비교",
     uploadDate: "2024-01-13",
     views: 68000,
+    likeCount: 2900,
+    commentCount: 214,
     duration: "12:15",
     performanceBadge: "상위",
     patternTags: ["비교형", "반복 포맷"],
@@ -166,6 +172,8 @@ export const mockVideosData: VideoData[] = [
     title: "React 19 새 기능 3분 정리",
     uploadDate: "2024-01-10",
     views: 55000,
+    likeCount: 1800,
+    commentCount: 92,
     duration: "3:28",
     performanceBadge: "평균권",
     patternTags: ["짧은 제목", "숏폼"],
@@ -176,6 +184,8 @@ export const mockVideosData: VideoData[] = [
     title: "개발자 생산성 200% 올리는 VSCode 설정",
     uploadDate: "2024-01-07",
     views: 61000,
+    likeCount: 2600,
+    commentCount: 143,
     duration: "15:20",
     performanceBadge: "상위",
     patternTags: ["실용형", "긴 호흡"],
@@ -186,6 +196,8 @@ export const mockVideosData: VideoData[] = [
     title: "Next.js 15 마이그레이션 가이드",
     uploadDate: "2024-01-04",
     views: 48000,
+    likeCount: 1500,
+    commentCount: 78,
     duration: "22:10",
     performanceBadge: "평균권",
     patternTags: ["긴 호흡", "튜토리얼"],
@@ -196,6 +208,8 @@ export const mockVideosData: VideoData[] = [
     title: "2024 개발자 연봉 현실",
     uploadDate: "2024-01-01",
     views: 52000,
+    likeCount: 1700,
+    commentCount: 203,
     duration: "8:45",
     performanceBadge: "평균권",
     patternTags: ["이슈형"],
@@ -206,6 +220,8 @@ export const mockVideosData: VideoData[] = [
     title: "TypeScript 5.3 주요 변경점",
     uploadDate: "2023-12-29",
     views: 38000,
+    likeCount: 980,
+    commentCount: 44,
     duration: "10:30",
     performanceBadge: "평균권",
     patternTags: ["반복 포맷"],
@@ -216,6 +232,8 @@ export const mockVideosData: VideoData[] = [
     title: "면접 질문 모음 - 시니어편",
     uploadDate: "2023-12-26",
     views: 41000,
+    likeCount: 1200,
+    commentCount: 96,
     duration: "25:00",
     performanceBadge: "평균권",
     patternTags: ["긴 호흡", "리스트형"],
@@ -226,6 +244,8 @@ export const mockVideosData: VideoData[] = [
     title: "Rust 입문 1화",
     uploadDate: "2023-12-23",
     views: 28000,
+    likeCount: 620,
+    commentCount: 31,
     duration: "35:12",
     performanceBadge: "하위",
     patternTags: ["실험형", "시리즈"],
@@ -236,6 +256,8 @@ export const mockVideosData: VideoData[] = [
     title: "개발 브이로그 #12",
     uploadDate: "2023-12-20",
     views: 32000,
+    likeCount: 710,
+    commentCount: 38,
     duration: "12:00",
     performanceBadge: "하위",
     patternTags: ["실험형"],

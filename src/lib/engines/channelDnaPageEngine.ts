@@ -2,7 +2,7 @@
  * Channel DNA 페이지 엔진.
  * InternalChannelDnaSummaryVm → UI 섹션별 렌더 props 변환.
  */
-import type { InternalChannelDnaSummaryVm } from "@/lib/channel-dna/internalChannelDnaSummary"
+import type { InternalChannelDnaSummaryVm, FormatDistributionVm } from "@/lib/channel-dna/internalChannelDnaSummary"
 import { humanizeSignal } from "@/lib/engines/channelDnaHelper"
 
 function spreadLevelToStability(level: InternalChannelDnaSummaryVm["performanceSpreadLevel"]): string {
@@ -99,5 +99,6 @@ export function buildChannelDnaPageSections(vm: InternalChannelDnaSummaryVm) {
   return {
     structureSummary: buildStructureSummary(vm),
     dnaCards: buildDnaCards(vm),
+    formatDistribution: vm.formatDistribution as FormatDistributionVm | null,
   }
 }

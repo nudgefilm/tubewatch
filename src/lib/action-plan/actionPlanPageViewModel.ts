@@ -7,7 +7,7 @@ import type {
   AnalysisResultRow,
 } from "@/lib/analysis/getAnalysisPageData";
 import type { ChannelMetrics } from "@/lib/analysis/engine/types";
-import { normalizeFeatureSnapshot } from "@/lib/analysis/normalizeSnapshot";
+import { normalizeFeatureSnapshot, type NormalizedSnapshotVideo } from "@/lib/analysis/normalizeSnapshot";
 import { enrichRowScores } from "@/lib/server/analysis/mapAnalysisHistoryAndCompare";
 import type { MarketExtensionSliceVm } from "@/lib/data/marketExtensionSlice";
 import { buildDefaultMarketExtensionSlice } from "@/lib/data/marketExtensionSlice";
@@ -75,6 +75,25 @@ export type ActionPlanSectionLineVm = {
   score: number;
 };
 
+/** 황금·누락 키워드 + 설명란 진단 ViewModel */
+export type SeoKeywordVm = {
+  /** 상위 성과 영상에서 자주 쓰인 태그 */
+  goldenKeywords: { tag: string; usageCount: number; avgViews: number }[];
+  /** 상위 영상엔 있지만 하위 영상엔 없는 태그 */
+  missingKeywords: { tag: string; topOnlyCount: number }[];
+  descriptionStats: {
+    avgLength: number;
+    shortCount: number;
+    goodCount: number;
+    totalCount: number;
+    status: "too_short" | "moderate" | "good";
+    guideText: string;
+  } | null;
+  /** 태그 데이터 자체가 없는 경우 false */
+  hasTagData: boolean;
+  sampleSize: number;
+};
+
 export type ActionPlanPageViewModel = {
   limitNotice: string | null;
   hasChannel: boolean;
@@ -95,6 +114,8 @@ export type ActionPlanPageViewModel = {
   youtubeVerificationUi: YoutubeVerificationUiState;
   /** 페이지 하단 전략 코멘트 카드 */
   strategicComment: StrategicCommentVm | null;
+  /** SEO 키워드·설명란 진단 — 태그 데이터 없으면 null */
+  seoKeywords: SeoKeywordVm | null;
 } & MarketExtensionSliceVm;
 
 export type ChannelSectionScores = {
@@ -770,6 +791,91 @@ function sectionLinesFrom(
     }));
 }
 
+/**
+ * NormalizedSnapshotVideo 배열로 SEO 키워드 진단 ViewModel 계산.
+ * 상위 성과 영상의 태그를 황금 키워드로, 하위 영상에 없는 것을 누락 키워드로 분류.
+ */
+function buildSeoKeywordVm(videos: NormalizedSnapshotVideo[]): SeoKeywordVm | null {
+  if (videos.length === 0) return null;
+
+  const withViews = videos.filter((v) => v.viewCount != null);
+
+  // 태그 데이터 보유 여부 확인
+  const hasTagData = videos.some((v) => v.tags.length > 0);
+
+  // 설명란 통계 (태그 없어도 계산 가능)
+  const withDesc = videos.filter((v) => v.descriptionLength != null);
+  let descriptionStats: SeoKeywordVm["descriptionStats"] = null;
+  if (withDesc.length > 0) {
+    const avg = Math.round(
+      withDesc.reduce((s, v) => s + (v.descriptionLength ?? 0), 0) / withDesc.length
+    );
+    const shortCount = withDesc.filter((v) => (v.descriptionLength ?? 0) < 100).length;
+    const goodCount = withDesc.filter((v) => (v.descriptionLength ?? 0) >= 300).length;
+    let status: "too_short" | "moderate" | "good";
+    let guideText: string;
+    if (avg < 100) {
+      status = "too_short";
+      guideText = "설명란이 평균 100자 미만입니다. 주제 요약 + 링크 + 키워드를 포함해 300자 이상으로 보완하세요.";
+    } else if (avg < 300) {
+      status = "moderate";
+      guideText = "설명란이 보통 수준입니다. 검색 노출을 높이려면 300자 이상, 핵심 키워드 2~3개를 첫 문단에 배치하세요.";
+    } else {
+      status = "good";
+      guideText = "설명란 길이가 충분합니다. 첫 2줄 안에 핵심 키워드가 포함되어 있는지 확인하세요.";
+    }
+    descriptionStats = { avgLength: avg, shortCount, goodCount, totalCount: withDesc.length, status, guideText };
+  }
+
+  if (!hasTagData) {
+    return { goldenKeywords: [], missingKeywords: [], descriptionStats, hasTagData: false, sampleSize: videos.length };
+  }
+
+  // 조회수 기준 상위/하위 분류 (중앙값 기준)
+  const sorted = [...withViews].sort((a, b) => (b.viewCount ?? 0) - (a.viewCount ?? 0));
+  const medianIdx = Math.floor(sorted.length / 2);
+  const median = sorted[medianIdx]?.viewCount ?? 0;
+
+  const topVideos = sorted.filter((v) => (v.viewCount ?? 0) >= median);
+  const bottomVideos = sorted.filter((v) => (v.viewCount ?? 0) < median);
+
+  // 황금 키워드: 상위 영상 태그 빈도 + 평균 조회수
+  const tagStats = new Map<string, { count: number; totalViews: number }>();
+  for (const v of topVideos) {
+    for (const tag of v.tags) {
+      const key = tag.trim().toLowerCase();
+      if (!key) continue;
+      const existing = tagStats.get(key) ?? { count: 0, totalViews: 0 };
+      tagStats.set(key, {
+        count: existing.count + 1,
+        totalViews: existing.totalViews + (v.viewCount ?? 0),
+      });
+    }
+  }
+  const goldenKeywords = Array.from(tagStats.entries())
+    .map(([tag, stat]) => ({
+      tag,
+      usageCount: stat.count,
+      avgViews: Math.round(stat.totalViews / stat.count),
+    }))
+    .sort((a, b) => b.usageCount - a.usageCount || b.avgViews - a.avgViews)
+    .slice(0, 12);
+
+  // 누락 키워드: 상위에만 있고 하위에는 없는 태그
+  const bottomTagSet = new Set<string>();
+  for (const v of bottomVideos) {
+    for (const tag of v.tags) {
+      bottomTagSet.add(tag.trim().toLowerCase());
+    }
+  }
+  const missingKeywords = goldenKeywords
+    .filter((k) => !bottomTagSet.has(k.tag))
+    .slice(0, 6)
+    .map((k) => ({ tag: k.tag, topOnlyCount: k.usageCount }));
+
+  return { goldenKeywords, missingKeywords, descriptionStats, hasTagData, sampleSize: videos.length };
+}
+
 export function buildActionPlanPageViewModel(
   data: AnalysisPageData | null
 ): ActionPlanPageViewModel {
@@ -792,6 +898,7 @@ export function buildActionPlanPageViewModel(
     sampleSizeNote: null,
     analysisConfidence: null,
     strategicComment: null,
+    seoKeywords: null,
   };
 
   if (!data || data.channels.length === 0 || !data.selectedChannel) {
@@ -928,6 +1035,7 @@ export function buildActionPlanPageViewModel(
   }
 
   const strategicComment = buildActionPlanStrategicComment(actions, totalScore, cautions);
+  const seoKeywords = buildSeoKeywordVm(normalized.videos);
 
   return {
     ...ext,
@@ -947,6 +1055,7 @@ export function buildActionPlanPageViewModel(
     sampleSizeNote: sampleNote,
     analysisConfidence,
     strategicComment,
+    seoKeywords,
   };
 }
 

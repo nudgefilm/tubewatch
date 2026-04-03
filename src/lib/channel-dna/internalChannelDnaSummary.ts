@@ -56,6 +56,35 @@ export type InternalChannelDnaSummaryVm = {
   readonly targetAudience: readonly string[];
   /** Gemini가 감지한 콘텐츠 패턴 — analysis_results.content_patterns */
   readonly contentPatterns: readonly string[];
+  /** 포맷 분포 — durationSeconds + categoryId 기반 시각화용 */
+  readonly formatDistribution: FormatDistributionVm | null;
+};
+
+export type DurationBucket = {
+  label: string;
+  /** 레이블 설명 (ex. "60초 미만") */
+  subLabel: string;
+  count: number;
+  percentage: number;
+  /** UI 색상 키: "shorts" | "short" | "long" */
+  colorKey: "shorts" | "short" | "long";
+};
+
+export type CategoryBucket = {
+  /** YouTube 카테고리 이름 (한국어) */
+  label: string;
+  count: number;
+  percentage: number;
+};
+
+export type FormatDistributionVm = {
+  durationBuckets: DurationBucket[];
+  categoryBuckets: CategoryBucket[];
+  /** duration 데이터 보유 여부 */
+  hasDurationData: boolean;
+  /** category 데이터 보유 여부 */
+  hasCategoryData: boolean;
+  sampleSize: number;
 };
 
 function safeStringArray(value: unknown): string[] {
@@ -223,6 +252,110 @@ function buildNarrative(args: {
   return parts.join(" ");
 }
 
+// ─── YouTube 카테고리 ID → 한국어 이름 ───────────────────────────────────────
+const YT_CATEGORY_MAP: Record<string, string> = {
+  "1": "영화·애니",
+  "2": "자동차",
+  "10": "음악",
+  "15": "반려동물",
+  "17": "스포츠",
+  "19": "여행",
+  "20": "게임",
+  "21": "블로그",
+  "22": "일상·사람",
+  "23": "코미디",
+  "24": "엔터테인먼트",
+  "25": "뉴스·정치",
+  "26": "뷰티·스타일",
+  "27": "교육",
+  "28": "과학·기술",
+  "29": "비영리",
+};
+
+function ytCategoryLabel(id: string): string {
+  return YT_CATEGORY_MAP[id] ?? `카테고리 ${id}`;
+}
+
+/**
+ * NormalizedSnapshotVideo 배열에서 포맷 분포 ViewModel 계산.
+ * Duration: Shorts(<60s) / 단편(1~10분) / 장편(10분+) 3구간.
+ * Category: categoryId 별 빈도 분포.
+ */
+function buildFormatDistributionVm(videos: NormalizedSnapshotVideo[]): FormatDistributionVm | null {
+  if (videos.length === 0) return null;
+
+  // ── Duration 분류 ────────────────────────────────────────────────────────
+  const withDuration = videos.filter((v) => v.durationSeconds != null);
+  let durationBuckets: DurationBucket[] = [];
+  const hasDurationData = withDuration.length > 0;
+
+  if (hasDurationData) {
+    let shorts = 0, shortForm = 0, longForm = 0;
+    for (const v of withDuration) {
+      const s = v.durationSeconds as number;
+      if (s < 60) shorts++;
+      else if (s < 600) shortForm++;
+      else longForm++;
+    }
+    const total = withDuration.length;
+    durationBuckets = [
+      {
+        label: "Shorts",
+        subLabel: "60초 미만",
+        count: shorts,
+        percentage: Math.round((shorts / total) * 100),
+        colorKey: "shorts",
+      },
+      {
+        label: "단편",
+        subLabel: "1~10분",
+        count: shortForm,
+        percentage: Math.round((shortForm / total) * 100),
+        colorKey: "short",
+      },
+      {
+        label: "장편",
+        subLabel: "10분 이상",
+        count: longForm,
+        percentage: Math.round((longForm / total) * 100),
+        colorKey: "long",
+      },
+    ];
+  }
+
+  // ── Category 분류 ────────────────────────────────────────────────────────
+  const withCategory = videos.filter((v) => v.categoryId != null);
+  let categoryBuckets: CategoryBucket[] = [];
+  const hasCategoryData = withCategory.length > 0;
+
+  if (hasCategoryData) {
+    const freq = new Map<string, number>();
+    for (const v of withCategory) {
+      const id = v.categoryId as string;
+      freq.set(id, (freq.get(id) ?? 0) + 1);
+    }
+    const total = withCategory.length;
+    categoryBuckets = Array.from(freq.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 6)
+      .map(([id, count]) => ({
+        label: ytCategoryLabel(id),
+        count,
+        percentage: Math.round((count / total) * 100),
+      }));
+  }
+
+  if (!hasDurationData && !hasCategoryData) return null;
+
+  return {
+    durationBuckets,
+    categoryBuckets,
+    hasDurationData,
+    hasCategoryData,
+    sampleSize: videos.length,
+  };
+}
+
 export function buildInternalChannelDnaSummary(
   data: AnalysisPageData | null
 ): InternalChannelDnaSummaryVm {
@@ -262,6 +395,7 @@ export function buildInternalChannelDnaSummary(
       sectionScoresLine: null,
       targetAudience: [],
       contentPatterns: [],
+      formatDistribution: null,
     };
   }
 
@@ -502,6 +636,7 @@ export function buildInternalChannelDnaSummary(
     sectionScoresLine,
     targetAudience,
     contentPatterns,
+    formatDistribution: buildFormatDistributionVm(videos),
   };
 }
 

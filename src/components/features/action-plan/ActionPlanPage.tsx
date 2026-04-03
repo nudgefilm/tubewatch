@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { ActionPlanCardsSection } from "./sections/CardsSection"
 import { ActionPlanChecklistSection } from "./sections/ChecklistSection"
+import { ActionPlanKeywordSection } from "./sections/KeywordSection"
 import { ActionPlanEmptyState } from "./sections/EmptyState"
 import { ChannelContextHeader, type ChannelContext } from "@/components/features/shared/ChannelContextHeader"
 import { FeaturePaywallBlock } from "@/components/features/shared/FeaturePaywallBlock"
@@ -31,7 +32,7 @@ export function ActionPlanPage({ channelId = "", channelContext, viewModel, isSt
 
   // Real data path
   if (viewModel) {
-    const { cardsData, checklistData } = buildActionPlanPageSections(viewModel, isStarterPlan)
+    const { cardsData, checklistData, seoKeywordsData } = buildActionPlanPageSections(viewModel, isStarterPlan)
 
     return (
       <div className="min-h-screen bg-background">
@@ -103,6 +104,17 @@ export function ActionPlanPage({ channelId = "", channelContext, viewModel, isSt
                 <p className="text-xs text-muted-foreground mt-0.5">영상을 올리기 전 매번 확인할 항목</p>
               </div>
               <ActionPlanChecklistSection items={checklistData} />
+            </section>
+          )}
+
+          {/* [3] SEO 키워드 진단 — Starter 차단, 태그 데이터 있을 때만 */}
+          {!isStarterPlan && seoKeywordsData && (
+            <section className="space-y-4">
+              <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
+                <h2 className="text-xl font-bold tracking-tight">SEO 키워드 진단</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">태그와 설명란을 점검하고 바로 수정하세요</p>
+              </div>
+              <ActionPlanKeywordSection data={seoKeywordsData} />
             </section>
           )}
 
