@@ -36,22 +36,22 @@ export function DirectionalGauge({
 
   return (
     <div className="space-y-1.5">
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-0.5 w-full">
         {/* 약점 구간 (왼쪽 5칸) */}
         {Array.from({ length: 5 }).map((_, i) => {
           const filled = i >= 5 - weaknessBlocks
           return (
             <div
               key={`w-${i}`}
-              className={`h-2.5 w-2.5 rounded-sm border transition-colors ${
-                filled ? "bg-foreground border-foreground" : "border-foreground/25 bg-transparent"
+              className={`h-2.5 flex-1 rounded-sm border transition-colors ${
+                filled ? "bg-foreground/70 border-foreground/70" : "border-foreground/25 bg-transparent"
               }`}
             />
           )
         })}
 
         {/* 중앙 구분선 */}
-        <div className="w-px h-4 bg-border shrink-0 mx-0.5" />
+        <div className="w-px h-4 bg-border shrink-0 mx-1" />
 
         {/* 강점 구간 (오른쪽 5칸) */}
         {Array.from({ length: 5 }).map((_, i) => {
@@ -59,7 +59,7 @@ export function DirectionalGauge({
           return (
             <div
               key={`s-${i}`}
-              className={`h-2.5 w-2.5 rounded-sm border transition-colors ${
+              className={`h-2.5 flex-1 rounded-sm border transition-colors ${
                 filled ? "bg-primary border-primary" : "border-foreground/25 bg-transparent"
               }`}
             />

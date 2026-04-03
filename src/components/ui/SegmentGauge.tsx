@@ -25,7 +25,7 @@ export function SegmentGauge({ score, segments = 10, label, hint, variant = "pri
 
   return (
     <div className="space-y-1.5">
-      <div className="flex items-center justify-center gap-2">
+      <div className="flex items-center gap-2">
         <div className="flex gap-1">
           {Array.from({ length: segments }).map((_, i) => (
             <div

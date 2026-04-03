@@ -67,11 +67,13 @@ export function ActionPlanChecklistSection({ data, items }: ActionPlanChecklistP
           </span>
         </div>
         {/* 진행 게이지 */}
-        <SegmentGauge
-          score={items.length > 0 ? (doneCount / items.length) * 100 : 0}
-          segments={items.length * 2}
-          label={false}
-        />
+        <div className="flex justify-center">
+          <SegmentGauge
+            score={items.length > 0 ? (doneCount / items.length) * 100 : 0}
+            segments={items.length * 2}
+            label={false}
+          />
+        </div>
 
         <div className="grid gap-3 md:grid-cols-2">
           {items.map((item) => {
