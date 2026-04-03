@@ -64,22 +64,25 @@ function buildDnaCards(vm: InternalChannelDnaSummaryVm) {
   const misplacedNegatives = topSignals.filter((s) => INHERENTLY_NEGATIVE_SIGNALS.has(s))
 
   const seenStrengthLabels = new Set<string>()
-  const strengths = positiveSignals.reduce<{ title: string; description: string; score: number; tags: string[] }[]>((acc, signal, i) => {
+  const strengths = positiveSignals.reduce<{ title: string; description: string; score: number; tags: string[] }[]>((acc, signal) => {
     const { label, description } = humanizeSignal(signal)
     if (seenStrengthLabels.has(label)) return acc
     seenStrengthLabels.add(label)
-    acc.push({ title: label, description, score: Math.max(60, 85 - i * 5), tags: [] })
+    acc.push({ title: label, description, score: Math.max(60, 85 - acc.length * 5), tags: [] })
     return acc
   }, [])
+  // 강점 카드를 label→description 맵으로 만들어 완전 동일한 카드만 약점에서 제외
+  const strengthCardMap = new Map(strengths.map((s) => [s.title, s.description]))
   const strengthSignalSet = new Set(positiveSignals)
   const weaknessCandidates = [...misplacedNegatives, ...vm.weakPatternSignals.filter((s) => !strengthSignalSet.has(s))]
-  // seenStrengthLabels로 초기화 → 강점에 이미 있는 라벨은 약점에도 중복 노출되지 않음
-  const seenWeaknessLabels = new Set<string>(seenStrengthLabels)
-  const weaknesses = weaknessCandidates.reduce<{ title: string; description: string; score: number; tags: string[] }[]>((acc, signal, i) => {
+  const seenWeaknessLabels = new Set<string>()
+  const weaknesses = weaknessCandidates.reduce<{ title: string; description: string; score: number; tags: string[] }[]>((acc, signal) => {
     const { label, description } = humanizeSignal(signal)
     if (seenWeaknessLabels.has(label)) return acc
+    // 라벨과 설명이 모두 동일한 카드는 강점과 중복으로 간주해 제외
+    if (strengthCardMap.get(label) === description) return acc
     seenWeaknessLabels.add(label)
-    acc.push({ title: label, description, score: Math.min(40, 15 + i * 5), tags: [] })
+    acc.push({ title: label, description, score: Math.min(40, 15 + acc.length * 5), tags: [] })
     return acc
   }, [])
   const corePatterns = vm.dominantFormat
