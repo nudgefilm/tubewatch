@@ -147,7 +147,7 @@ function mapToKpiData(vm: AnalysisPageViewModel) {
         ? "표본이 적어 이 수치가 흔들릴 수 있습니다. 영상이 쌓이면 기준선이 더 안정화됩니다"
         : "이 수치가 현재 채널의 기대 성과 기준선입니다. 이하 영상은 포맷 점검 대상으로 볼 수 있습니다"
 
-  const medRatio = avgViews != null && avgViews > 0 ? medianViews / avgViews : null
+  const medRatio = avgViews != null && avgViews > 0 && medianViews != null ? medianViews / avgViews : null
   const auxInterp: string =
     medRatio != null && medRatio < 0.7
       ? "평균보다 중앙값이 낮아 일부 고조회 영상에 성과가 집중되어 있는 구조일 수 있습니다"
@@ -208,13 +208,14 @@ function mapToComparisonData(vm: AnalysisPageViewModel) {
   if (vm.topVideos.length === 0 && vm.weakVideos.length === 0) return null
 
   const avgV = (vids: AnalysisVideoRow[]) => {
+    if (!vids?.length) return 0
     const withV = vids.filter((v) => v.viewCount != null)
     if (!withV.length) return 0
     return Math.round(withV.reduce((s, v) => s + (v.viewCount ?? 0), 0) / withV.length)
   }
   const avgTitle = (vids: AnalysisVideoRow[]) => {
-    if (!vids.length) return 0
-    return Math.round(vids.reduce((s, v) => s + v.title.length, 0) / vids.length)
+    if (!vids?.length) return 0
+    return Math.round(vids.reduce((s, v) => s + (v?.title?.length ?? 0), 0) / vids.length)
   }
 
   return {

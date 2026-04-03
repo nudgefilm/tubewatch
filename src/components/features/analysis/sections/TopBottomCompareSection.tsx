@@ -12,19 +12,17 @@ interface AnalysisTopBottomCompareProps {
 }
 
 function formatViews(views: number): string {
-  if (views >= 1000000) {
-    return `${(views / 1000000).toFixed(1)}M`
-  }
-  if (views >= 1000) {
-    return `${(views / 1000).toFixed(1)}K`
-  }
-  return views.toString()
+  if (!Number.isFinite(views)) return "—"
+  if (views >= 1000000) return `${(views / 1000000).toFixed(1)}M`
+  if (views >= 1000) return `${(views / 1000).toFixed(1)}K`
+  return Math.round(views).toString()
 }
 
 function formatCount(n: number): string {
+  if (!Number.isFinite(n)) return "—"
   if (n >= 10000) return `${Math.floor(n / 1000)}K`
   if (n >= 1000) return `${(n / 1000).toFixed(1)}K`
-  return n.toString()
+  return Math.round(n).toString()
 }
 
 function formatDate(dateString: string): string {
@@ -80,6 +78,7 @@ function ComparisonBar({
 
 /** 표본 부족 시 videos 배열로 최고/최저 카드 렌더링 */
 function SparseSampleCompare({ videos, sampleCount }: { videos: VideoData[]; sampleCount: number }) {
+  if (!videos?.length) return null
   const sorted = [...videos].sort((a, b) => b.views - a.views)
   const best = sorted[0]
   const worst = sorted[sorted.length - 1]

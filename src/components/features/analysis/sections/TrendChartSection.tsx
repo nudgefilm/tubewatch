@@ -31,9 +31,10 @@ const chartConfig = {
 } satisfies ChartConfig
 
 function formatViews(value: number): string {
+  if (!Number.isFinite(value)) return "—"
   if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`
   if (value >= 1000) return `${(value / 1000).toFixed(0)}K`
-  return value.toString()
+  return Math.round(value).toString()
 }
 
 function deriveSummaryLine(
@@ -42,6 +43,7 @@ function deriveSummaryLine(
   maxViews: number,
   minViews: number
 ): string {
+  if (!data?.length) return "데이터가 부족하여 흐름 해석이 제한됩니다"
   const n = data.length
   const variationRatio = maxViews > 0 ? (maxViews - minViews) / maxViews : 0
   if (variationRatio > 0.6) {
