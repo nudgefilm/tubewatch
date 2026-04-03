@@ -28,6 +28,24 @@ function getStatusBadgeStyle(status: string) {
   }
 }
 
+function getCardBorderStyle(status: string) {
+  switch (status) {
+    case "양호": case "안정": case "상승": return "border-emerald-200"
+    case "보통": case "유지": return "border-amber-200"
+    case "부족": case "불안정": case "하락": return "border-rose-200"
+    default: return ""
+  }
+}
+
+function getNumberColor(status: string) {
+  switch (status) {
+    case "양호": case "안정": case "상승": return "text-emerald-700"
+    case "보통": case "유지": return "text-amber-700"
+    case "부족": case "불안정": case "하락": return "text-rose-700"
+    default: return ""
+  }
+}
+
 
 function MiniSparkline({ trend }: { trend: "상승" | "유지" | "하락" }) {
   const paths = {
@@ -100,7 +118,7 @@ export function AnalysisKpiCards({ data }: AnalysisKpiCardsProps) {
       <div className="grid grid-cols-2 gap-3">
 
         {/* 1. Upload Frequency */}
-        <Card>
+        <Card className={data.uploadFrequency.value != null ? getCardBorderStyle(data.uploadFrequency.status) : ""}>
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
@@ -120,7 +138,7 @@ export function AnalysisKpiCards({ data }: AnalysisKpiCardsProps) {
             {data.uploadFrequency.value != null ? (
               <>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-bold tabular-nums">{data.uploadFrequency.value}</span>
+                  <span className={`text-2xl font-bold tabular-nums ${getNumberColor(data.uploadFrequency.status)}`}>{data.uploadFrequency.value}</span>
                   <span className="text-sm text-muted-foreground">회/주</span>
                 </div>
                 <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
@@ -135,7 +153,7 @@ export function AnalysisKpiCards({ data }: AnalysisKpiCardsProps) {
         </Card>
 
         {/* 2. View Trend */}
-        <Card>
+        <Card className={getCardBorderStyle(data.viewTrend.trend)}>
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
@@ -151,7 +169,7 @@ export function AnalysisKpiCards({ data }: AnalysisKpiCardsProps) {
           </CardHeader>
           <CardContent className="space-y-2 min-h-[88px]">
             <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-bold tabular-nums">
+              <span className={`text-2xl font-bold tabular-nums ${getNumberColor(data.viewTrend.trend)}`}>
                 {data.viewTrend.value > 0 ? "+" : ""}
                 {data.viewTrend.value}
               </span>
@@ -170,7 +188,7 @@ export function AnalysisKpiCards({ data }: AnalysisKpiCardsProps) {
       <div className="grid grid-cols-3 gap-3">
 
         {/* 3. Content Stability */}
-        <Card>
+        <Card className={data.contentStability.stabilityScore != null ? getCardBorderStyle(data.contentStability.status) : ""}>
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
@@ -190,7 +208,7 @@ export function AnalysisKpiCards({ data }: AnalysisKpiCardsProps) {
             {data.contentStability.stabilityScore != null ? (
               <>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-bold tabular-nums">
+                  <span className={`text-2xl font-bold tabular-nums ${getNumberColor(data.contentStability.status)}`}>
                     {data.contentStability.stabilityScore}
                   </span>
                   <span className="text-sm text-muted-foreground">/ 100</span>

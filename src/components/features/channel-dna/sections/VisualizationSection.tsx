@@ -99,9 +99,10 @@ export function DnaVisualizationSection({ data }: DnaVisualizationSectionProps) 
               </div>
               <SegmentGauge score={data.strengthVsWeakness.weaknesses} variant="destructive" label={false} />
             </div>
-            <div className="rounded-lg border bg-muted/30 p-3 text-center">
-              <span className="text-2xl font-bold text-primary">
-                +{data.strengthVsWeakness.strengths - data.strengthVsWeakness.weaknesses}
+            <div className={`rounded-lg border p-3 text-center ${data.strengthVsWeakness.strengths > data.strengthVsWeakness.weaknesses ? "border-emerald-200 bg-emerald-50/50 dark:border-emerald-800 dark:bg-emerald-950/20" : "border-rose-200 bg-rose-50/50 dark:border-rose-800 dark:bg-rose-950/20"}`}>
+              <span className={`text-2xl font-bold ${data.strengthVsWeakness.strengths > data.strengthVsWeakness.weaknesses ? "text-emerald-700 dark:text-emerald-400" : "text-rose-700 dark:text-rose-400"}`}>
+                {data.strengthVsWeakness.strengths > data.strengthVsWeakness.weaknesses ? "+" : ""}
+                {data.strengthVsWeakness.strengths - data.strengthVsWeakness.weaknesses}
               </span>
               <p className="text-xs text-muted-foreground">강점 우위</p>
             </div>
