@@ -282,30 +282,36 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                   side="bottom"
                   sideOffset={4}
                 >
-                  {channels.map((ch) => (
-                    <DropdownMenuItem
-                      key={ch.id}
-                      onSelect={() => {
-                        selectChannel(ch.id)
-                      }}
-                    >
-                      <div className="flex items-center gap-2">
-                        {ch.thumbnail_url ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={ch.thumbnail_url}
-                            alt={ch.channel_title ?? "채널"}
-                            className="size-6 rounded-full object-cover shrink-0"
-                          />
-                        ) : (
-                          <div className="flex size-6 items-center justify-center rounded-full bg-orange-500 text-white shrink-0">
-                            <Youtube className="size-3" />
-                          </div>
-                        )}
-                        <span>{ch.channel_title ?? "채널"}</span>
-                      </div>
-                    </DropdownMenuItem>
-                  ))}
+                  {channels.length === 0 ? (
+                    <div className="px-3 py-2 text-sm text-muted-foreground">
+                      등록된 채널이 없습니다
+                    </div>
+                  ) : (
+                    channels.map((ch) => (
+                      <DropdownMenuItem
+                        key={ch.id}
+                        onSelect={() => {
+                          selectChannel(ch.id)
+                        }}
+                      >
+                        <div className="flex items-center gap-2">
+                          {ch.thumbnail_url ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={ch.thumbnail_url}
+                              alt={ch.channel_title ?? "채널"}
+                              className="size-6 rounded-full object-cover shrink-0"
+                            />
+                          ) : (
+                            <div className="flex size-6 items-center justify-center rounded-full bg-orange-500 text-white shrink-0">
+                              <Youtube className="size-3" />
+                            </div>
+                          )}
+                          <span>{ch.channel_title ?? "채널"}</span>
+                        </div>
+                      </DropdownMenuItem>
+                    ))
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onSelect={() => {
