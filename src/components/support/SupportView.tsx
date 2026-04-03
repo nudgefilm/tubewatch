@@ -134,10 +134,10 @@ export default function SupportView() {
                     <h3 className="font-medium mb-1">이메일 문의</h3>
                     <p className="text-sm text-muted-foreground mb-3">24시간 이내에 답변드립니다.</p>
                     <a
-                      href="mailto:support@tubewatch.io"
+                      href="mailto:nudgefilm@gmail.com"
                       className="text-sm text-orange-500 hover:underline inline-flex items-center gap-1"
                     >
-                      support@tubewatch.io
+                      nudgefilm@gmail.com
                       <ExternalLink className="w-3 h-3" />
                     </a>
                   </div>
@@ -205,7 +205,7 @@ export default function SupportView() {
           <h2 className="text-xl font-bold mb-3">원하는 답을 찾지 못하셨나요?</h2>
           <p className="text-muted-foreground mb-6">직접 문의해주시면 빠르게 도움드리겠습니다.</p>
           <Button asChild>
-            <a href="mailto:support@tubewatch.io">
+            <a href="mailto:nudgefilm@gmail.com">
               <Mail className="w-4 h-4 mr-2" />
               문의하기
             </a>
