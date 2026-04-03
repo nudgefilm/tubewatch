@@ -10,8 +10,8 @@ import {
   Zap,
   Users,
   BarChart3,
-  Search,
   TrendingUp,
+  CreditCard,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -56,56 +56,67 @@ function GuideCard({
 export default function SupportView() {
   const faqs = [
     {
-      question: "채널 분석은 얼마나 자주 업데이트 되나요?",
+      question: "채널 분석은 어떻게 실행하나요?",
       answer:
-        "채널 분석 데이터는 매일 자동으로 업데이트됩니다. 최신 데이터는 대시보드에서 확인하실 수 있습니다.",
+        "Channel Analysis 페이지에서 '분석 시작' 버튼을 눌러 직접 실행합니다. 자동 업데이트는 없으며, 재분석은 마지막 분석 후 12시간이 지나야 다시 실행할 수 있습니다.",
     },
     {
-      question: "여러 채널을 동시에 분석할 수 있나요?",
+      question: "분석 크레딧은 어떻게 충전하나요?",
       answer:
-        "네, Premium 플랜 이상에서는 최대 5개의 채널을 동시에 분석하고 비교할 수 있습니다.",
+        "Creator 플랜은 월 90회, Pro 플랜은 월 300회 분석이 포함됩니다. 추가 충전이 필요하면 Billing 페이지에서 싱글 패스(1회) 또는 트리플 팩(3회)을 구매할 수 있습니다. Free 플랜은 최초 3회까지 무료로 사용 가능합니다.",
     },
     {
-      question: "액션 플랜은 어떻게 생성되나요?",
+      question: "채널은 몇 개까지 등록할 수 있나요?",
       answer:
-        "튜브워치가 채널 데이터를 분석하여 현재 상황에 맞는 맞춤형 액션 플랜을 자동으로 생성합니다.",
+        "Creator 플랜은 최대 3개, Pro 플랜은 최대 10개의 채널을 등록하고 분석할 수 있습니다. 채널 등록·관리는 Settings 또는 Channels 메뉴에서 할 수 있습니다.",
+    },
+    {
+      question: "Channel DNA는 무엇인가요?",
+      answer:
+        "Channel DNA는 내 채널의 성과 패턴을 분석하는 기능입니다. 강점·약점 패턴, 영상 포맷 분포, 팬덤 응집도 등 채널 고유의 구조를 진단합니다. 외부 경쟁 채널 비교 기능은 별도로 제공됩니다.",
+    },
+    {
+      question: "Action Plan은 어떻게 활용하나요?",
+      answer:
+        "채널 분석 결과를 바탕으로 AI가 자동 생성한 실행 과제 목록입니다. 우선순위별로 정렬된 액션 항목을 확인하고, 각 항목의 근거와 실행 시나리오를 참고해 콘텐츠 전략에 적용하세요.",
     },
     {
       question: "플랜을 변경하거나 취소하려면 어떻게 하나요?",
-      answer: "Billing 페이지에서 언제든지 플랜을 변경하거나 구독을 취소할 수 있습니다.",
+      answer:
+        "Billing 페이지에서 언제든지 플랜을 변경하거나 구독을 취소할 수 있습니다. 구독 취소 후에도 남은 결제 기간까지는 서비스를 계속 이용할 수 있습니다.",
     },
     {
       question: "데이터는 안전하게 보호되나요?",
       answer:
-        "모든 데이터는 암호화되어 저장되며, Google OAuth를 통해 안전하게 인증됩니다. 귀하의 YouTube 계정 정보는 분석 목적으로만 사용됩니다.",
+        "모든 데이터는 암호화되어 저장되며, Google OAuth를 통해 안전하게 인증됩니다. YouTube 채널 정보는 분석 목적으로만 사용되며 제3자에게 제공되지 않습니다.",
     },
   ]
 
   const guides = [
     {
       title: "채널 분석 시작하기",
-      description: "채널 점수와 진단 리포트를 이해하는 방법",
+      description: "채널 종합 점수, 구간 진단, 성과 흐름을 확인하는 방법",
       icon: BarChart3,
     },
     {
-      title: "액션 플랜 활용하기",
-      description: "튜브워치 추천 액션을 효과적으로 실행하는 방법",
-      icon: Zap,
-    },
-    {
-      title: "SEO Lab 가이드",
-      description: "키워드 분석과 태그 최적화 전략",
-      icon: Search,
-    },
-    {
-      title: "채널 DNA 분석",
-      description: "경쟁 채널과 비교 분석하는 방법",
+      title: "Channel DNA 읽기",
+      description: "강점·약점 패턴과 포맷 분포로 채널 구조 파악하기",
       icon: Users,
     },
     {
-      title: "트렌드 활용하기",
-      description: "Next Trend로 콘텐츠 아이디어 발굴",
+      title: "Action Plan 활용하기",
+      description: "AI 추천 실행 과제를 우선순위에 따라 적용하는 방법",
+      icon: Zap,
+    },
+    {
+      title: "Next Trend 활용하기",
+      description: "트렌드 신호로 다음 콘텐츠 아이디어 발굴하기",
       icon: TrendingUp,
+    },
+    {
+      title: "크레딧 & 플랜 가이드",
+      description: "분석 크레딧 충전 방법과 플랜별 기능 차이 안내",
+      icon: CreditCard,
     },
   ]
 
