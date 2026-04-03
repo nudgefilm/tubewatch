@@ -69,11 +69,8 @@ export async function POST(request: Request) {
         ? raw.user_channel_id.trim()
         : "";
 
-  console.log("[Analysis Start API] request body:", JSON.stringify(body));
-  console.log("[Analysis Start API] resolved userChannelId:", userChannelId || "(empty)");
-
   if (!userChannelId) {
-    console.error("[Analysis Start API] REJECTED: channelId missing. body keys:", Object.keys(raw));
+    console.error("[Analysis Start API] REJECTED: channelId missing");
     return NextResponse.json(
       { ok: false, error: "채널 ID가 누락되었습니다. (channelId 필드 필요)" },
       { status: 400 }
@@ -87,8 +84,6 @@ export async function POST(request: Request) {
     error: authError,
   } = await supabase.auth.getUser();
 
-  console.log("[Analysis Start API] user:", user ? { id: user.id } : null);
-
   if (authError || !user) {
     console.error("[Analysis Start API] REJECTED: auth failed.", authError?.message ?? "no user");
     return NextResponse.json(
@@ -99,7 +94,6 @@ export async function POST(request: Request) {
 
   // admin 판별 — profiles.role 기준, 이메일 하드코딩 없음
   const isAdmin = await isAdminUser(user.id);
-  console.log("[Analysis Start API] isAdmin:", isAdmin, "userId:", user.id);
 
   // 채널 소유권 확인
   const { data: channelRow, error: channelErr } = await supabase
@@ -111,9 +105,6 @@ export async function POST(request: Request) {
     .eq("user_id", user.id)
     .maybeSingle();
 
-  console.log("[Analysis Start API] channel lookup — userChannelId:", userChannelId, "userId:", user.id);
-  console.log("[Analysis Start API] channel lookup result:", channelRow ? { id: channelRow.id, channel_id: channelRow.channel_id } : null);
-
   if (channelErr) {
     console.error("[Analysis Start API] REJECTED: channel DB error:", channelErr.message, "code:", channelErr.code);
     return NextResponse.json(
@@ -122,7 +113,7 @@ export async function POST(request: Request) {
     );
   }
   if (!channelRow) {
-    console.error("[Analysis Start API] REJECTED: channel not found. userChannelId:", userChannelId, "userId:", user.id);
+    console.error("[Analysis Start API] REJECTED: channel not found");
     return NextResponse.json(
       { ok: false, error: "채널을 찾을 수 없습니다. 올바른 채널을 선택했는지 확인하세요." },
       { status: 404 }
@@ -198,7 +189,7 @@ export async function POST(request: Request) {
 
   const youtubeChannelId = channelRow.channel_id as string | null;
   if (!youtubeChannelId) {
-    console.error("[Analysis Start API] REJECTED: channel_id (YouTube ID) is null. userChannelId:", userChannelId);
+    console.error("[Analysis Start API] REJECTED: channel_id (YouTube ID) is null");
     return NextResponse.json(
       { ok: false, error: "채널에 YouTube ID가 없습니다. 채널을 삭제 후 다시 등록하세요." },
       { status: 422 }
@@ -399,13 +390,6 @@ export async function POST(request: Request) {
     descriptionLength: typeof v.description === "string" ? v.description.length : 0,
     categoryId: v.category_id ?? null,
   }));
-
-  // [pipe/2] 저장 직전 영상 배열 확인
-  console.log(`[Analysis/pipe-2/snapshot] featureSnapshot.videos: ${featureSnapshotVideos.length}, metrics keys: ${Object.keys(channelMetrics).length}`);
-  if (featureSnapshotVideos.length > 0) {
-    const sample = featureSnapshotVideos[0];
-    console.log(`[Analysis/pipe-2/snapshot] sample[0]: title="${sample.title}" viewCount=${sample.viewCount} publishedAt=${sample.publishedAt}`);
-  }
 
   const featureSnapshot = {
     collectedVideoCount: normalizedDataset.collectedVideoCount,
