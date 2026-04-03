@@ -3,18 +3,20 @@
 interface SegmentGaugeProps {
   /** 0–100 scale */
   score: number
-  /** 게이지 우측 레이블 (기본: 퍼센트) */
-  label?: string
+  /** 총 세그먼트 수 (기본 10) */
+  segments?: number
+  /** 게이지 우측 레이블 (기본: 퍼센트). false 전달 시 숨김 */
+  label?: string | false
   /** 하단 1줄 해석 문장 */
   hint?: string
   /** 강점(고성과)용: primary, 약점(저성과)용: destructive */
   variant?: "primary" | "destructive"
 }
 
-export function SegmentGauge({ score, label, hint, variant = "primary" }: SegmentGaugeProps) {
+export function SegmentGauge({ score, segments = 10, label, hint, variant = "primary" }: SegmentGaugeProps) {
   const safe = Math.max(0, Math.min(100, Math.round(score)))
-  const filled = Math.round(safe / 10)
-  const displayLabel = label ?? `${safe}%`
+  const filled = Math.round((safe / 100) * segments)
+  const displayLabel = label === false ? null : (label ?? `${safe}%`)
 
   const filledClass =
     variant === "destructive"
@@ -24,19 +26,21 @@ export function SegmentGauge({ score, label, hint, variant = "primary" }: Segmen
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between gap-3">
-        <div className="flex gap-[3px] flex-1">
-          {Array.from({ length: 10 }).map((_, i) => (
+        <div className="flex gap-1 flex-1">
+          {Array.from({ length: segments }).map((_, i) => (
             <div
               key={i}
-              className={`h-3 flex-1 rounded-sm transition-colors ${
+              className={`h-2.5 flex-1 rounded-sm transition-colors ${
                 i < filled ? filledClass : "bg-muted"
               }`}
             />
           ))}
         </div>
-        <span className="text-sm font-semibold tabular-nums w-10 text-right shrink-0">
-          {displayLabel}
-        </span>
+        {displayLabel != null && (
+          <span className="text-sm font-semibold tabular-nums w-10 text-right shrink-0">
+            {displayLabel}
+          </span>
+        )}
       </div>
       {hint && (
         <p className="text-xs text-muted-foreground leading-snug">{hint}</p>

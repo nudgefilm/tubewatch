@@ -36,7 +36,7 @@ export function DirectionalGauge({
 
   return (
     <div className="space-y-1.5">
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 flex-1">
         {/* 약점 구간 (왼쪽 5칸) */}
         {Array.from({ length: 5 }).map((_, i) => {
           // 약점은 오른쪽(중앙 근처)부터 채워짐 — 인덱스 4가 중앙에 가장 가까움
@@ -44,7 +44,7 @@ export function DirectionalGauge({
           return (
             <div
               key={`w-${i}`}
-              className={`h-3 flex-1 rounded-sm transition-colors ${
+              className={`h-2.5 flex-1 rounded-sm transition-colors ${
                 filled ? "bg-red-500" : "bg-muted"
               }`}
             />
@@ -61,7 +61,7 @@ export function DirectionalGauge({
           return (
             <div
               key={`s-${i}`}
-              className={`h-3 flex-1 rounded-sm transition-colors ${
+              className={`h-2.5 flex-1 rounded-sm transition-colors ${
                 filled ? "bg-emerald-500" : "bg-muted"
               }`}
             />

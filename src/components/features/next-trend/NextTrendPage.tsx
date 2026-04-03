@@ -8,24 +8,11 @@ import { NextTrendEmptyState } from "./sections/EmptyState"
 import { ChannelContextHeader, type ChannelContext } from "@/components/features/shared/ChannelContextHeader"
 import { FeaturePaywallBlock } from "@/components/features/shared/FeaturePaywallBlock"
 import { Badge } from "@/components/ui/badge"
+import { SegmentGauge } from "@/components/ui/SegmentGauge"
 import { AlertCircle, ArrowRight, TrendingUp } from "lucide-react"
 import { EvidenceBlock } from "@/components/common/EvidenceBlock"
 import type { NextTrendPageViewModel } from "@/lib/next-trend/nextTrendPageViewModel"
 import { buildNextTrendPageSections, SIGNAL_STRENGTH_BADGE } from "@/lib/engines/nextTrendPageEngine"
-
-function SegmentGauge({ value }: { value: number }) {
-  const filled = Math.round((value / 100) * 5)
-  return (
-    <div className="flex gap-1">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <div
-          key={i}
-          className={`h-1.5 w-8 rounded-full ${i < filled ? "bg-primary" : "bg-muted"}`}
-        />
-      ))}
-    </div>
-  )
-}
 
 interface NextTrendPageProps {
   channelId?: string
@@ -73,7 +60,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                     <div className="flex items-center gap-3 px-5 py-4">
                       <div className="space-y-1.5">
                         <p className="text-xs text-muted-foreground">성장 모멘텀</p>
-                        <SegmentGauge value={viewModel.growthMomentum} />
+                        <SegmentGauge score={viewModel.growthMomentum} segments={5} label={false} />
                       </div>
                       <span className="text-sm font-semibold tabular-nums shrink-0">
                         {Math.round(viewModel.growthMomentum)}
