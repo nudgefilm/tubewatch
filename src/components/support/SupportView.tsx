@@ -155,7 +155,9 @@ export default function SupportView() {
                     <h3 className="font-medium mb-1">커뮤니티</h3>
                     <p className="text-sm text-muted-foreground mb-3">다른 크리에이터들과 소통하세요.</p>
                     <a
-                      href="#"
+                      href="https://t.me/+j18-UwlpPiUxZTI1"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="text-sm text-orange-500 hover:underline inline-flex items-center gap-1"
                     >
                       Telegram 참여하기
