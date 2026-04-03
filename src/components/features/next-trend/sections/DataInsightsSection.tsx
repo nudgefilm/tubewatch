@@ -139,7 +139,7 @@ export function NextTrendDataInsightsSection({
                 {tagEfficiency.map((item) => (
                   <div
                     key={item.tag}
-                    className={`flex items-center justify-between rounded-lg border px-3 py-2.5 ${item.multiplier >= 2 ? "border-emerald-200 bg-emerald-50/50 dark:border-emerald-800 dark:bg-emerald-950/20" : "bg-muted/20"}`}
+                    className="flex items-center justify-between rounded-lg border bg-muted/20 px-3 py-2.5"
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="text-sm font-medium truncate">{item.tag}</span>
@@ -180,8 +180,8 @@ export function NextTrendDataInsightsSection({
                   표본 내 요일별 참여율 패턴입니다. 업로드 타이밍 참고용으로 활용하세요.
                 </p>
               </div>
-              <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 dark:border-emerald-800 dark:bg-emerald-950/20 px-4 py-4 text-center space-y-1">
-                <p className="text-3xl font-bold tabular-nums text-emerald-700 dark:text-emerald-400">
+              <div className="rounded-xl border bg-muted/20 px-4 py-4 text-center space-y-1">
+                <p className="text-3xl font-bold tabular-nums text-primary">
                   +{temporalResonance.liftPercent}%
                 </p>
                 <p className="text-sm font-medium">

@@ -210,12 +210,12 @@ export function DnaFormatDistributionSection({ data }: FormatDistributionSection
 
           {/* 미드폼 공백 */}
           {midFormGapPercent != null && midFormGapPercent >= 50 && (
-            <div className="rounded-lg border border-amber-200 bg-amber-50/50 px-4 py-3 space-y-1">
+            <div className="rounded-lg border bg-muted/20 px-4 py-3 space-y-1">
               <div className="flex items-baseline gap-1.5">
-                <span className="text-2xl font-bold tabular-nums text-amber-700">{midFormGapPercent}%</span>
-                <span className="text-xs font-medium text-amber-600">미드폼 공백</span>
+                <span className="text-2xl font-bold tabular-nums">{midFormGapPercent}%</span>
+                <span className="text-xs font-medium text-muted-foreground">미드폼 공백</span>
               </div>
-              <p className="text-xs leading-relaxed text-amber-800/80">
+              <p className="text-xs leading-relaxed text-muted-foreground">
                 60초(Shorts)와 10분(Long) 사이 &apos;허리 라인&apos; 영상이 부족합니다. 1~10분 구간을 채우면 알고리즘 노출 다각화에 유리합니다.
               </p>
             </div>
@@ -223,30 +223,12 @@ export function DnaFormatDistributionSection({ data }: FormatDistributionSection
 
           {/* 카테고리 일관성 */}
           {categoryPurity != null && (
-            <div className={`rounded-lg border px-4 py-3 space-y-1 ${
-              categoryPurity >= 70
-                ? "border-emerald-200 bg-emerald-50/50"
-                : categoryPurity >= 45
-                ? "border-amber-200 bg-amber-50/50"
-                : "border-rose-200 bg-rose-50/50"
-            }`}>
+            <div className="rounded-lg border bg-muted/20 px-4 py-3 space-y-1">
               <div className="flex items-baseline gap-1.5">
-                <span className={`text-2xl font-bold tabular-nums ${
-                  categoryPurity >= 70 ? "text-emerald-700"
-                  : categoryPurity >= 45 ? "text-amber-700"
-                  : "text-rose-700"
-                }`}>{categoryPurity}%</span>
-                <span className={`text-xs font-medium ${
-                  categoryPurity >= 70 ? "text-emerald-600"
-                  : categoryPurity >= 45 ? "text-amber-600"
-                  : "text-rose-600"
-                }`}>카테고리 일관성</span>
+                <span className="text-2xl font-bold tabular-nums">{categoryPurity}%</span>
+                <span className="text-xs font-medium text-muted-foreground">카테고리 일관성</span>
               </div>
-              <p className={`text-xs leading-relaxed ${
-                categoryPurity >= 70 ? "text-emerald-800/80"
-                : categoryPurity >= 45 ? "text-amber-800/80"
-                : "text-rose-800/80"
-              }`}>
+              <p className="text-xs leading-relaxed text-muted-foreground">
                 {categoryPurity >= 70
                   ? `상위 카테고리 집중도 ${categoryPurity}%. 알고리즘이 채널 정체성을 명확히 인식합니다.`
                   : categoryPurity >= 45

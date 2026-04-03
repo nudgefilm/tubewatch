@@ -38,10 +38,10 @@ export function ActionPlanDeficitSection({ seoDeficit, engagementGap, linguistic
 
           {/* SEO 결손 리포트 */}
           {seoDeficit && (
-            <Card className="border-rose-200">
+            <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base">
-                  <FileWarning className="size-4 text-rose-500" />
+                  <FileWarning className="size-4 text-muted-foreground" />
                   SEO 결손 리포트
                 </CardTitle>
                 <p className="text-xs text-muted-foreground">
@@ -51,32 +51,24 @@ export function ActionPlanDeficitSection({ seoDeficit, engagementGap, linguistic
               <CardContent className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   {/* 설명란 짧음 */}
-                  <div className={`rounded-lg border px-4 py-3 space-y-0.5 ${
-                    seoDeficit.shortDescCount > 0 ? "border-rose-200 bg-rose-50/50" : "border-muted bg-muted/20"
-                  }`}>
-                    <p className={`text-2xl font-bold tabular-nums ${
-                      seoDeficit.shortDescCount > 0 ? "text-rose-700" : "text-muted-foreground"
-                    }`}>
+                  <div className="rounded-lg border bg-muted/20 px-4 py-3 space-y-0.5">
+                    <p className={`text-2xl font-bold tabular-nums ${seoDeficit.shortDescCount > 0 ? "" : "text-muted-foreground"}`}>
                       {seoDeficit.shortDescCount}
                       <span className="text-sm font-normal ml-0.5">개</span>
                     </p>
                     <p className="text-xs text-muted-foreground">설명란 100자 미만</p>
-                    <p className="text-xs font-medium text-rose-600/80">
+                    <p className="text-xs text-muted-foreground">
                       전체의 {seoDeficit.shortDescPercent}%
                     </p>
                   </div>
                   {/* 태그 부족 */}
-                  <div className={`rounded-lg border px-4 py-3 space-y-0.5 ${
-                    seoDeficit.lowTagCount > 0 ? "border-amber-200 bg-amber-50/50" : "border-muted bg-muted/20"
-                  }`}>
-                    <p className={`text-2xl font-bold tabular-nums ${
-                      seoDeficit.lowTagCount > 0 ? "text-amber-700" : "text-muted-foreground"
-                    }`}>
+                  <div className="rounded-lg border bg-muted/20 px-4 py-3 space-y-0.5">
+                    <p className={`text-2xl font-bold tabular-nums ${seoDeficit.lowTagCount > 0 ? "" : "text-muted-foreground"}`}>
                       {seoDeficit.lowTagCount}
                       <span className="text-sm font-normal ml-0.5">개</span>
                     </p>
                     <p className="text-xs text-muted-foreground">태그 3개 미만</p>
-                    <p className="text-xs font-medium text-amber-600/80">
+                    <p className="text-xs text-muted-foreground">
                       전체의 {seoDeficit.lowTagPercent}%
                     </p>
                   </div>
@@ -92,10 +84,10 @@ export function ActionPlanDeficitSection({ seoDeficit, engagementGap, linguistic
 
           {/* 인게이지먼트 갭 */}
           {engagementGap && (
-            <Card className={engagementGap.hasLowEngagement ? "border-rose-200" : "border-muted"}>
+            <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base">
-                  <ThumbsDown className={`size-4 ${engagementGap.hasLowEngagement ? "text-rose-500" : "text-muted-foreground"}`} />
+                  <ThumbsDown className="size-4 text-muted-foreground" />
                   인게이지먼트 갭
                 </CardTitle>
                 <p className="text-xs text-muted-foreground">
@@ -104,15 +96,11 @@ export function ActionPlanDeficitSection({ seoDeficit, engagementGap, linguistic
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="rounded-lg border bg-muted/20 px-4 py-4 text-center space-y-1">
-                  <p className={`text-3xl font-bold tabular-nums ${
-                    engagementGap.hasLowEngagement ? "text-rose-700" : "text-emerald-700"
-                  }`}>
+                  <p className="text-3xl font-bold tabular-nums">
                     {fmtRate(engagementGap.avgLikeRate)}
                   </p>
                   <p className="text-sm font-medium">평균 좋아요 비율</p>
-                  <p className={`text-xs font-semibold ${
-                    engagementGap.hasLowEngagement ? "text-rose-600" : "text-emerald-600"
-                  }`}>
+                  <p className="text-xs font-semibold text-muted-foreground">
                     표본 내 {engagementGap.percentileLabel}
                   </p>
                 </div>

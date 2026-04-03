@@ -22,14 +22,10 @@ export function DnaCardsSection({ data }: DnaCardsSectionProps) {
 
   const getRiskLevelColor = (level: string) => {
     switch (level) {
-      case "낮음":
-        return "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
-      case "중간":
-        return "bg-amber-500/10 text-amber-600 border-amber-500/20"
-      case "높음":
-        return "bg-red-500/10 text-red-600 border-red-500/20"
-      default:
-        return "bg-muted text-muted-foreground"
+      case "낮음": return "bg-muted text-muted-foreground border-muted"
+      case "중간": return "bg-muted text-foreground border-muted"
+      case "높음": return "bg-foreground/10 text-foreground border-foreground/20"
+      default: return "bg-muted text-muted-foreground"
     }
   }
 
@@ -38,7 +34,7 @@ export function DnaCardsSection({ data }: DnaCardsSectionProps) {
       {/* 강점 / 약점 2열 구조 */}
       <div className="grid gap-4 lg:grid-cols-2">
         {/* 강점 패턴 */}
-        <Card className="border-emerald-500/20">
+        <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
               <CircleCheck className="size-5 text-emerald-500" />
@@ -52,7 +48,7 @@ export function DnaCardsSection({ data }: DnaCardsSectionProps) {
           </CardHeader>
           <CardContent className="space-y-3">
             {visibleStrengths.map((item) => (
-              <div key={item.title} className="rounded-lg border bg-emerald-500/5 p-3 space-y-3">
+              <div key={item.title} className="rounded-lg border bg-muted/30 p-3 space-y-3">
                 <p className="font-medium text-sm">{item.title}</p>
                 <DirectionalGauge
                   score={item.score}
@@ -89,7 +85,7 @@ export function DnaCardsSection({ data }: DnaCardsSectionProps) {
         </Card>
 
         {/* 약점 패턴 */}
-        <Card className="border-red-500/20">
+        <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
               <CircleAlert className="size-5 text-red-500" />
@@ -103,7 +99,7 @@ export function DnaCardsSection({ data }: DnaCardsSectionProps) {
           </CardHeader>
           <CardContent className="space-y-3">
             {visibleWeaknesses.map((item) => (
-              <div key={item.title} className="rounded-lg border bg-red-500/5 p-3 space-y-3">
+              <div key={item.title} className="rounded-lg border bg-muted/30 p-3 space-y-3">
                 <p className="font-medium text-sm">{item.title}</p>
                 <DirectionalGauge
                   score={item.score}

@@ -38,9 +38,9 @@ const difficultyLabel: Record<FlatChecklistItem["difficulty"], string> = {
 }
 
 const difficultyColor: Record<FlatChecklistItem["difficulty"], string> = {
-  easy: "text-emerald-600",
-  medium: "text-amber-600",
-  hard: "text-destructive",
+  easy: "text-foreground",
+  medium: "text-foreground/70",
+  hard: "text-muted-foreground",
 }
 
 export function ActionPlanChecklistSection({ data, items }: ActionPlanChecklistProps) {
@@ -82,7 +82,7 @@ export function ActionPlanChecklistSection({ data, items }: ActionPlanChecklistP
                 onClick={() => toggle(item.id)}
                 className={`flex gap-3 rounded-lg border p-4 text-left transition-colors ${
                   isDone
-                    ? "border-emerald-200 bg-emerald-50/50 dark:border-emerald-800 dark:bg-emerald-950/20"
+                    ? "border-foreground/20 bg-muted/50"
                     : "bg-card hover:bg-muted/40"
                 }`}
               >
@@ -90,7 +90,7 @@ export function ActionPlanChecklistSection({ data, items }: ActionPlanChecklistP
                 <div
                   className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
                     isDone
-                      ? "border-emerald-500 bg-emerald-500 text-white"
+                      ? "border-foreground bg-foreground text-background"
                       : "border-muted-foreground/30"
                   }`}
                 >

@@ -17,18 +17,8 @@ import type { FanbaseLoyaltyVm } from "@/lib/channel-dna/internalChannelDnaSumma
 function fanbaseLoyaltyDisplay(fl: FanbaseLoyaltyVm) {
   const gradeLabel =
     fl.grade === "very_high" ? "매우 높음" : fl.grade === "average" ? "보통" : "낮음"
-  const gradeBadgeClass =
-    fl.grade === "very_high"
-      ? "bg-emerald-100 text-emerald-700 border-emerald-200"
-      : fl.grade === "average"
-      ? "bg-amber-100 text-amber-700 border-amber-200"
-      : "bg-rose-100 text-rose-700 border-rose-200"
-  const valueColor =
-    fl.grade === "very_high"
-      ? "text-emerald-600"
-      : fl.grade === "average"
-      ? "text-amber-600"
-      : "text-rose-600"
+  const gradeBadgeClass = "bg-muted/50 text-foreground border-muted"
+  const valueColor = "text-foreground"
   const insightText =
     fl.grade === "very_high"
       ? "팬덤 결속력이 강합니다. 커뮤니티 탭을 활성화해 이 흐름을 채널 성장으로 연결하세요."
@@ -204,11 +194,7 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
                     <div className="space-y-0.5">
                       <p className="text-[11px] text-muted-foreground">업로드 일관성</p>
                       {vm.uploadConsistencyLevel != null ? (
-                        <p className={`text-sm font-semibold ${
-                          vm.uploadConsistencyLevel === "high" ? "text-emerald-600"
-                          : vm.uploadConsistencyLevel === "medium" ? "text-amber-600"
-                          : "text-rose-600"
-                        }`}>
+                        <p className="text-sm font-semibold">
                           {vm.uploadConsistencyLevel === "high" ? "안정적" : vm.uploadConsistencyLevel === "medium" ? "불규칙" : "불안정"}
                         </p>
                       ) : (

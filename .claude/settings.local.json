@@ -11,7 +11,8 @@
       "Bash(node -e \"const d=require\\('./node_modules/vitest/package.json'\\); console.log\\('vitest version:', d.version\\)\")",
       "Bash(npx vitest:*)",
       "Bash(xargs grep:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")"
     ]
   }
 }
