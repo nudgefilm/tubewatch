@@ -18,6 +18,7 @@ import type { FormatDistributionVm } from "@/lib/channel-dna/internalChannelDnaS
 
 interface FormatDistributionSectionProps {
   data: FormatDistributionVm
+  analysisDate?: string | null
 }
 
 // ─── 색상 팔레트 ──────────────────────────────────────────────────────────────
@@ -62,7 +63,23 @@ function CategoryTooltip({ active, payload }: { active?: boolean; payload?: { na
 }
 
 // ─── 메인 컴포넌트 ────────────────────────────────────────────────────────────
-export function DnaFormatDistributionSection({ data }: FormatDistributionSectionProps) {
+function formatAnalysisDate(iso: string | null | undefined): string | null {
+  if (!iso) return null
+  try {
+    const d = new Date(iso)
+    if (isNaN(d.getTime())) return null
+    const y = d.getFullYear()
+    const mo = String(d.getMonth() + 1).padStart(2, "0")
+    const day = String(d.getDate()).padStart(2, "0")
+    const h = String(d.getHours()).padStart(2, "0")
+    const min = String(d.getMinutes()).padStart(2, "0")
+    return `${y}.${mo}.${day} ${h}:${min} 분석 기준`
+  } catch {
+    return null
+  }
+}
+
+export function DnaFormatDistributionSection({ data, analysisDate }: FormatDistributionSectionProps) {
   const { durationBuckets, categoryBuckets, hasDurationData, hasCategoryData, sampleSize, midFormGapPercent, categoryPurity } = data
   const maxDurationCount = Math.max(...durationBuckets.map((b) => b.count), 1)
 
@@ -87,6 +104,11 @@ export function DnaFormatDistributionSection({ data }: FormatDistributionSection
               <p className="text-xs text-muted-foreground">
                 표본 {sampleSize}편 기준 — Shorts · 단편 · 장편 비율
               </p>
+              {formatAnalysisDate(analysisDate) && (
+                <p className="text-[11px] text-muted-foreground/60 mt-0.5">
+                  {formatAnalysisDate(analysisDate)}
+                </p>
+              )}
             </CardHeader>
             <CardContent className="space-y-4">
               {/* 수치 요약 배지 */}

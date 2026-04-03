@@ -89,7 +89,8 @@ async function getLatestAnalysisResultMapWithClient(
     .select("*")
     .eq("user_id", userId)
     .in("user_channel_id", userChannelIds)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false });
 
   if (error) {
     console.error("[getLatestAnalysisResultMap] error:", error);
@@ -126,6 +127,7 @@ async function fetchLatestResultForChannel(
     .eq("user_id", userId)
     .eq("user_channel_id", userChannelId)
     .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
     .limit(1)
     .maybeSingle();
 

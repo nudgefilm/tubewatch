@@ -235,7 +235,7 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
                 <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><Film className="size-5 shrink-0 text-primary" />포맷 분포</h2>
                 <p className="text-xs text-muted-foreground mt-0.5">영상 길이 구간과 카테고리 비중으로 채널 정체성을 확인하세요</p>
               </div>
-              <DnaFormatDistributionSection data={formatDistribution} />
+              <DnaFormatDistributionSection data={formatDistribution} analysisDate={viewModel.lastRunAt} />
             </section>
           )}
 
