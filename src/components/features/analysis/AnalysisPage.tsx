@@ -15,6 +15,7 @@ import { PageFlowConnector } from "@/components/features/shared/PageFlowConnecto
 import { FeaturePaywallBlock } from "@/components/features/shared/FeaturePaywallBlock"
 import { buildAnalysisPageSections } from "@/lib/engines/analysisPageEngine"
 import type { AnalysisPageViewModel } from "@/lib/analysis/analysisPageViewModel"
+import { SegmentGauge } from "@/components/ui/SegmentGauge"
 
 // ─── 재분석 쿨다운 타이머 박스 ───────────────────────────────────────────────
 
@@ -325,12 +326,6 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
 
           {/* 구간 인사이트 — 시청자 반응 구조·SEO·구독 전환 (신규 분석 결과에서만 표시) */}
           {(sectionScores?.audienceResponse != null || sectionScores?.seoOptimization != null || sectionScores?.subscriptionConversion != null) && (() => {
-            function insightBarColor(s: number) {
-              return s >= 65 ? "bg-emerald-500" : s >= 45 ? "bg-amber-400" : "bg-rose-400"
-            }
-            function insightTextColor(s: number) {
-              return s >= 65 ? "text-emerald-600" : s >= 45 ? "text-amber-600" : "text-rose-600"
-            }
             const audienceCard = viewModel.diagnosisCards.find(c => c.title === "시청자 반응 구조")
             const seoCard = viewModel.diagnosisCards.find(c => c.title === "SEO 최적화 상태")
             const insights: { title: string; score: number; metaItems: string[]; interp: string }[] = []
@@ -380,14 +375,12 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
                   <div key={title} className="rounded-lg border px-4 py-3 space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">{title}</span>
-                      <span className={`text-sm font-semibold tabular-nums ${insightTextColor(score)}`}>
+                      <span className="text-sm font-semibold tabular-nums text-foreground">
                         {Math.round(score)}
                         <span className="text-xs text-muted-foreground font-normal ml-0.5">/ 100</span>
                       </span>
                     </div>
-                    <div className="h-1.5 w-full rounded-full bg-muted">
-                      <div className={`h-full rounded-full transition-all ${insightBarColor(score)}`} style={{ width: `${score}%` }} />
-                    </div>
+                    <SegmentGauge score={score} stretch label={false} />
                     {metaItems.length > 0 && (
                       <div className="flex flex-wrap gap-x-3 gap-y-0.5">
                         {metaItems.map(m => <span key={m} className="text-[11px] text-muted-foreground">{m}</span>)}
