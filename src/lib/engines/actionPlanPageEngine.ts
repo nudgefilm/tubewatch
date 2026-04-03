@@ -9,6 +9,7 @@ import type {
   SeoKeywordVm,
   SeoDeficitVm,
   EngagementGapVm,
+  LinguisticInsightVm,
 } from "@/lib/action-plan/actionPlanPageViewModel"
 
 const DIFFICULTY_LABEL: Record<ActionPlanCardVm["difficulty"], string> = {
@@ -65,6 +66,7 @@ export function buildActionPlanPageSections(
   const seoKeywordsData: SeoKeywordVm | null = viewModel.seoKeywords ?? null
   const seoDeficitData: SeoDeficitVm | null = viewModel.seoDeficit ?? null
   const engagementGapData: EngagementGapVm | null = viewModel.engagementGap ?? null
+  const linguisticInsightData: LinguisticInsightVm | null = viewModel.linguisticInsight ?? null
 
-  return { cardsData, checklistData, seoKeywordsData, seoDeficitData, engagementGapData }
+  return { cardsData, checklistData, seoKeywordsData, seoDeficitData, engagementGapData, linguisticInsightData }
 }

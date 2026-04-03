@@ -120,6 +120,8 @@ export type ActionPlanPageViewModel = {
   seoDeficit: SeoDeficitVm | null;
   /** 인게이지먼트 갭 — 좋아요 비율 분위 진단 */
   engagementGap: EngagementGapVm | null;
+  /** 제목 언어 분석 — CTR 유발 키워드 추출 */
+  linguisticInsight: LinguisticInsightVm | null;
 } & MarketExtensionSliceVm;
 
 /** 설명란·태그 기반 SEO 결손 현황 */
@@ -141,6 +143,16 @@ export type EngagementGapVm = {
   percentileLabel: string;  // "하위 20%", "평균 수준" 등
   hasLowEngagement: boolean;
   sampleCount: number;
+};
+
+/** 제목 언어 분석 — 조회수 상위 영상에서 공통 발견되는 CTR 유발 키워드 */
+export type LinguisticInsightVm = {
+  /** 상위 영상 제목에서 전체 대비 빈도 lift가 높은 키워드 (최대 6개) */
+  ctrBoosters: { keyword: string; liftPercent: number }[];
+  /** 상위 10% 표본 수 */
+  topSampleCount: number;
+  /** 전체 유효 표본 수 */
+  totalSampleCount: number;
 };
 
 export type ChannelSectionScores = {
@@ -962,6 +974,75 @@ function buildEngagementGapVm(videos: NormalizedSnapshotVideo[]): EngagementGapV
   };
 }
 
+const TITLE_STOPWORDS = new Set([
+  "이것", "그것", "저것", "이런", "그런", "저런", "어떤", "모든",
+  "에서", "에게", "부터", "까지", "하면", "하고", "그리고", "하지만",
+  "또는", "그래서", "때문", "위해", "대한", "관한", "있는", "없는",
+  "되는", "하는", "으로", "으로서", "위한", "대해", "이라고", "라고",
+  "영상", "채널", "유튜브", "youtube", "동영상", "구독", "시청",
+  "the", "and", "for", "this", "that", "with", "from", "are", "was",
+]);
+
+function tokenizeTitle(title: string): string[] {
+  return title
+    .split(/[\s\[\]\(\)\{\}\!\?\.\,\:\;\'\"\-\_\/\|\~\`\^\+\=]+/)
+    .map((t) => t.trim().toLowerCase())
+    .filter((t) => t.length >= 2 && !/^\d+$/.test(t) && !TITLE_STOPWORDS.has(t));
+}
+
+function buildLinguisticInsightVm(
+  videos: NormalizedSnapshotVideo[]
+): LinguisticInsightVm | null {
+  const withViews = videos.filter(
+    (v) => v.viewCount != null && v.viewCount >= 0 && v.title.length > 0
+  );
+  if (withViews.length < 5) return null;
+
+  const sorted = [...withViews].sort(
+    (a, b) => (b.viewCount ?? 0) - (a.viewCount ?? 0)
+  );
+  // 상위 25% (최소 2편)
+  const topCount = Math.max(2, Math.ceil(sorted.length * 0.25));
+  const topVideos = sorted.slice(0, topCount);
+
+  // 상위/전체 제목 토큰 빈도 집계 (영상당 중복 제거)
+  const topFreq = new Map<string, number>();
+  const allFreq = new Map<string, number>();
+
+  for (const v of topVideos) {
+    for (const tok of Array.from(new Set(tokenizeTitle(v.title)))) {
+      topFreq.set(tok, (topFreq.get(tok) ?? 0) + 1);
+    }
+  }
+  for (const v of withViews) {
+    for (const tok of Array.from(new Set(tokenizeTitle(v.title)))) {
+      allFreq.set(tok, (allFreq.get(tok) ?? 0) + 1);
+    }
+  }
+
+  const results: { keyword: string; liftPercent: number }[] = [];
+  for (const [tok, tf] of Array.from(topFreq.entries())) {
+    if (tf < 2) continue; // 상위 영상 최소 2편에서 등장해야 의미 있음
+    const af = allFreq.get(tok) ?? 0;
+    const topRate = tf / topCount;
+    const allRate = af / withViews.length;
+    if (allRate === 0) continue;
+    const lift = (topRate - allRate) / allRate;
+    if (lift < 0.1) continue; // 10% 이상 lift만 포함
+    results.push({ keyword: tok, liftPercent: Math.round(lift * 100) });
+  }
+
+  if (results.length === 0) return null;
+
+  return {
+    ctrBoosters: results
+      .sort((a, b) => b.liftPercent - a.liftPercent)
+      .slice(0, 6),
+    topSampleCount: topCount,
+    totalSampleCount: withViews.length,
+  };
+}
+
 export function buildActionPlanPageViewModel(
   data: AnalysisPageData | null
 ): ActionPlanPageViewModel {
@@ -987,6 +1068,7 @@ export function buildActionPlanPageViewModel(
     seoKeywords: null,
     seoDeficit: null,
     engagementGap: null,
+    linguisticInsight: null,
   };
 
   if (!data || data.channels.length === 0 || !data.selectedChannel) {
@@ -1126,6 +1208,7 @@ export function buildActionPlanPageViewModel(
   const seoKeywords = buildSeoKeywordVm(normalized.videos);
   const seoDeficit = buildSeoDeficitVm(normalized.videos);
   const engagementGap = buildEngagementGapVm(normalized.videos);
+  const linguisticInsight = buildLinguisticInsightVm(normalized.videos);
 
   return {
     ...ext,
@@ -1148,6 +1231,7 @@ export function buildActionPlanPageViewModel(
     seoKeywords,
     seoDeficit,
     engagementGap,
+    linguisticInsight,
   };
 }
 

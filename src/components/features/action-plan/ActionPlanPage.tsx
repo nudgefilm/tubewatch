@@ -33,7 +33,7 @@ export function ActionPlanPage({ channelId = "", channelContext, viewModel, isSt
 
   // Real data path
   if (viewModel) {
-    const { cardsData, checklistData, seoKeywordsData, seoDeficitData, engagementGapData } = buildActionPlanPageSections(viewModel, isStarterPlan)
+    const { cardsData, checklistData, seoKeywordsData, seoDeficitData, engagementGapData, linguisticInsightData } = buildActionPlanPageSections(viewModel, isStarterPlan)
 
     return (
       <div className="min-h-screen bg-background">
@@ -120,13 +120,13 @@ export function ActionPlanPage({ channelId = "", channelContext, viewModel, isSt
           )}
 
           {/* [4] 수정 가능한 결손 리포트 — Starter 차단 */}
-          {!isStarterPlan && (seoDeficitData || engagementGapData) && (
+          {!isStarterPlan && (seoDeficitData || engagementGapData || linguisticInsightData) && (
             <section className="space-y-4">
               <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
                 <h2 className="text-xl font-bold tracking-tight">지금 바로 수정하세요</h2>
                 <p className="text-xs text-muted-foreground mt-0.5">유튜브 스튜디오에서 즉시 적용 가능한 결손 항목</p>
               </div>
-              <ActionPlanDeficitSection seoDeficit={seoDeficitData} engagementGap={engagementGapData} />
+              <ActionPlanDeficitSection seoDeficit={seoDeficitData} engagementGap={engagementGapData} linguisticInsight={linguisticInsightData} />
             </section>
           )}
 
