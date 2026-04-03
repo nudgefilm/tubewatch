@@ -48,15 +48,15 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
 
           {viewModel.hasAnalysisEffective && (
             <>
-              <div className="rounded-lg border border-muted bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+              <div className="rounded-lg border border-muted bg-muted/30 px-4 py-3 text-xs text-muted-foreground">
                 {viewModel.dataPipelineNotice}
               </div>
 
               {/* 채널 활동 맥락 — 성장 모멘텀 + 업로드 주기 */}
               {(viewModel.growthMomentum != null || viewModel.avgUploadIntervalDays != null) && (
-                <div className="flex flex-wrap gap-4 rounded-lg border border-muted px-5 py-4">
+                <div className="flex flex-wrap divide-x divide-border rounded-lg border border-muted px-5 py-4">
                   {viewModel.growthMomentum != null && (
-                    <div className="flex items-center gap-3 min-w-[180px]">
+                    <div className="flex items-center gap-3 min-w-[180px] pr-5">
                       <div className="flex-1">
                         <p className="text-xs text-muted-foreground mb-1.5">성장 모멘텀</p>
                         <Progress value={viewModel.growthMomentum} className="h-1.5" />
@@ -67,7 +67,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                     </div>
                   )}
                   {viewModel.avgUploadIntervalDays != null && (
-                    <div className="space-y-1 min-w-[180px]">
+                    <div className="space-y-1 min-w-[180px] pl-5">
                       <div className="flex items-center gap-2">
                         <p className="text-xs text-muted-foreground">업로드 주기</p>
                         <span className="text-sm font-semibold tabular-nums">
