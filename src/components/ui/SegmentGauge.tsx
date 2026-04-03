@@ -20,18 +20,18 @@ export function SegmentGauge({ score, segments = 10, label, hint, variant = "pri
 
   const filledClass =
     variant === "destructive"
-      ? "bg-red-500"
-      : "bg-primary"
+      ? "bg-red-500 border-red-500"
+      : "bg-primary border-primary"
 
   return (
     <div className="space-y-1.5">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-center gap-2">
         <div className="flex gap-1">
           {Array.from({ length: segments }).map((_, i) => (
             <div
               key={i}
-              className={`h-2.5 w-2.5 rounded-sm transition-colors ${
-                i < filled ? filledClass : "bg-muted"
+              className={`h-2.5 w-2.5 rounded-sm border transition-colors ${
+                i < filled ? filledClass : "border-foreground/25 bg-transparent"
               }`}
             />
           ))}

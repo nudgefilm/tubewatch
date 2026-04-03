@@ -39,13 +39,12 @@ export function DirectionalGauge({
       <div className="flex items-center gap-1">
         {/* 약점 구간 (왼쪽 5칸) */}
         {Array.from({ length: 5 }).map((_, i) => {
-          // 약점은 오른쪽(중앙 근처)부터 채워짐 — 인덱스 4가 중앙에 가장 가까움
           const filled = i >= 5 - weaknessBlocks
           return (
             <div
               key={`w-${i}`}
-              className={`h-2.5 w-2.5 rounded-sm transition-colors ${
-                filled ? "bg-red-500" : "bg-muted"
+              className={`h-2.5 w-2.5 rounded-sm border transition-colors ${
+                filled ? "bg-foreground border-foreground" : "border-foreground/25 bg-transparent"
               }`}
             />
           )
@@ -56,13 +55,12 @@ export function DirectionalGauge({
 
         {/* 강점 구간 (오른쪽 5칸) */}
         {Array.from({ length: 5 }).map((_, i) => {
-          // 강점은 왼쪽(중앙 근처)부터 채워짐 — 인덱스 0이 중앙에 가장 가까움
           const filled = i < strengthBlocks
           return (
             <div
               key={`s-${i}`}
-              className={`h-2.5 w-2.5 rounded-sm transition-colors ${
-                filled ? "bg-emerald-500" : "bg-muted"
+              className={`h-2.5 w-2.5 rounded-sm border transition-colors ${
+                filled ? "bg-primary border-primary" : "border-foreground/25 bg-transparent"
               }`}
             />
           )
@@ -71,15 +69,9 @@ export function DirectionalGauge({
 
       {/* 방향 레이블 + 퍼센트 */}
       <div className="flex items-center justify-between text-xs text-muted-foreground">
-        <span className="text-red-500 font-medium">{weaknessLabel}</span>
-        <span
-          className={`font-semibold tabular-nums ${
-            isStrength ? "text-emerald-600" : "text-red-600"
-          }`}
-        >
-          {displayPct}
-        </span>
-        <span className="text-emerald-600 font-medium">{strengthLabel}</span>
+        <span className="font-medium">{weaknessLabel}</span>
+        <span className="font-semibold tabular-nums">{displayPct}</span>
+        <span className="font-medium">{strengthLabel}</span>
       </div>
 
       {hint && (
