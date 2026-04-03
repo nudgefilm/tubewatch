@@ -3,7 +3,7 @@
 import { TrendingUp, Target, Shield, BookOpen } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { StatusBar } from "@/components/ui/StatusBar"
+import { SegmentGauge } from "@/components/ui/SegmentGauge"
 import type { ChannelDnaData } from "../mock-data"
 
 // UI 전용: 요약 텍스트의 snake_case 기계어를 자연어로 치환
@@ -107,9 +107,9 @@ export function DnaStructureSummarySection({ data }: DnaStructureSummarySectionP
           </CardHeader>
           <CardContent className="space-y-2">
             {data.hitDependency != null ? (
-              <StatusBar
-                label="의존도"
+              <SegmentGauge
                 score={data.hitDependency}
+                stretch
                 hint={
                   data.hitDependency < 50
                     ? "조회가 여러 영상에 분산되는 경향이 나타납니다"
@@ -161,9 +161,9 @@ export function DnaStructureSummarySection({ data }: DnaStructureSummarySectionP
                 {data.structureStability}
               </Badge>
             </div>
-            <StatusBar
-              label="안정성 점수"
+            <SegmentGauge
               score={data.structureStabilityScore}
+              stretch
               hint={
                 data.structureStabilityScore >= 70
                   ? "성과 구조가 안정적으로 유지되는 경향이 나타납니다"
@@ -188,9 +188,9 @@ export function DnaStructureSummarySection({ data }: DnaStructureSummarySectionP
               <>
                 <div className="text-lg font-bold leading-tight">{data.topicConsistency.label}</div>
                 {data.topicConsistency.score != null && (
-                  <StatusBar
-                    label="일관성 점수"
+                  <SegmentGauge
                     score={data.topicConsistency.score}
+                    stretch
                     hint={
                       data.topicConsistency.score >= 65
                         ? "반복 주제 패턴이 안정적으로 유지되고 있는 구조입니다"

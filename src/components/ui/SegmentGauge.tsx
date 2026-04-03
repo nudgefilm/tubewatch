@@ -11,9 +11,11 @@ interface SegmentGaugeProps {
   hint?: string
   /** 강점(고성과)용: primary, 약점(저성과)용: destructive */
   variant?: "primary" | "destructive"
+  /** true 시 블록이 컨테이너 너비에 꽉 차도록 stretch */
+  stretch?: boolean
 }
 
-export function SegmentGauge({ score, segments = 10, label, hint, variant = "primary" }: SegmentGaugeProps) {
+export function SegmentGauge({ score, segments = 10, label, hint, variant = "primary", stretch = false }: SegmentGaugeProps) {
   const safe = Math.max(0, Math.min(100, Math.round(score)))
   const filled = Math.round((safe / 100) * segments)
   const displayLabel = label === false ? null : (label ?? `${safe}%`)
@@ -25,12 +27,12 @@ export function SegmentGauge({ score, segments = 10, label, hint, variant = "pri
 
   return (
     <div className="space-y-1.5">
-      <div className="flex items-center gap-2">
-        <div className="flex gap-1">
+      <div className={`flex items-center gap-2${stretch ? " w-full" : ""}`}>
+        <div className={`flex gap-1${stretch ? " flex-1" : ""}`}>
           {Array.from({ length: segments }).map((_, i) => (
             <div
               key={i}
-              className={`h-2.5 w-2.5 rounded-sm border transition-colors ${
+              className={`h-2.5 rounded-sm border transition-colors ${stretch ? "flex-1" : "w-2.5"} ${
                 i < filled ? filledClass : "border-foreground/25 bg-transparent"
               }`}
             />
