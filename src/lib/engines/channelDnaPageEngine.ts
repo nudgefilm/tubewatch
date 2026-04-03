@@ -63,15 +63,24 @@ function buildDnaCards(vm: InternalChannelDnaSummaryVm) {
   const positiveSignals = topSignals.filter((s) => !INHERENTLY_NEGATIVE_SIGNALS.has(s))
   const misplacedNegatives = topSignals.filter((s) => INHERENTLY_NEGATIVE_SIGNALS.has(s))
 
-  const strengths = positiveSignals.map((signal, i) => {
+  const seenStrengthLabels = new Set<string>()
+  const strengths = positiveSignals.reduce<{ title: string; description: string; score: number; tags: string[] }[]>((acc, signal, i) => {
     const { label, description } = humanizeSignal(signal)
-    return { title: label, description, score: Math.max(60, 85 - i * 5), tags: [] as string[] }
-  })
+    if (seenStrengthLabels.has(label)) return acc
+    seenStrengthLabels.add(label)
+    acc.push({ title: label, description, score: Math.max(60, 85 - i * 5), tags: [] })
+    return acc
+  }, [])
   const strengthSignalSet = new Set(positiveSignals)
-  const weaknesses = [...misplacedNegatives, ...vm.weakPatternSignals.filter((s) => !strengthSignalSet.has(s))].map((signal, i) => {
+  const weaknessCandidates = [...misplacedNegatives, ...vm.weakPatternSignals.filter((s) => !strengthSignalSet.has(s))]
+  const seenWeaknessLabels = new Set<string>()
+  const weaknesses = weaknessCandidates.reduce<{ title: string; description: string; score: number; tags: string[] }[]>((acc, signal, i) => {
     const { label, description } = humanizeSignal(signal)
-    return { title: label, description, score: Math.min(45, 40 + i * 3), tags: [] as string[] }
-  })
+    if (seenWeaknessLabels.has(label)) return acc
+    seenWeaknessLabels.add(label)
+    acc.push({ title: label, description, score: Math.min(45, 40 + i * 3), tags: [] })
+    return acc
+  }, [])
   const corePatterns = vm.dominantFormat
     ? [{ pattern: vm.dominantFormat, importance: "핵심", note: "최근 분석 기준 주요 포맷" }]
     : []
