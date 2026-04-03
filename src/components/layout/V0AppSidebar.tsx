@@ -102,6 +102,7 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
   const [userEmail, setUserEmail] = React.useState<string | null>(null)
   const [userDisplayName, setUserDisplayName] = React.useState<string | null>(null)
   const [userAvatarUrl, setUserAvatarUrl] = React.useState<string | null>(null)
+  const [planLabel, setPlanLabel] = React.useState<string>("...")
   const channelsFetchingRef = React.useRef(false)
 
   const activeChannelLabel = React.useMemo(() => {
@@ -182,11 +183,34 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
         setChannels([])
         setSelectedChannelId(null)
         setUserAvatarUrl(null)
+        setPlanLabel("Free Plan")
         writeSelectedChannelIdToStorage(null)
         return
       }
       if (event === "INITIAL_SESSION" || event === "SIGNED_IN") {
         void loadChannels()
+        // 플랜 조회
+        void (async () => {
+          const { data } = await supabase
+            .from("user_subscriptions")
+            .select("plan_id, subscription_status")
+            .eq("user_id", session.user.id)
+            .limit(1)
+            .maybeSingle()
+          const validStatuses = ["active", "trialing"]
+          const status = typeof data?.subscription_status === "string"
+            ? data.subscription_status.trim().toLowerCase()
+            : ""
+          if (!data || !validStatuses.includes(status)) {
+            setPlanLabel("Free Plan")
+            return
+          }
+          const planMap: Record<string, string> = {
+            creator: "Creator Plan",
+            pro: "Pro Plan",
+          }
+          setPlanLabel(planMap[data.plan_id as string] ?? "Free Plan")
+        })()
       }
       // TOKEN_REFRESHED: 채널/세션 재요청 불필요
     })
@@ -246,7 +270,7 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                     </div>
                     <div className="grid flex-1 text-left text-sm leading-tight">
                       <span className="truncate font-semibold">{activeChannelLabel}</span>
-                      <span className="truncate text-xs text-muted-foreground">Premium Plan</span>
+                      <span className="truncate text-xs text-muted-foreground">{planLabel}</span>
                     </div>
                     <ChevronDown className="ml-auto size-4" />
                   </SidebarMenuButton>
