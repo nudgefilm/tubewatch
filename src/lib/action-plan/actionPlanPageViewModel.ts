@@ -116,7 +116,32 @@ export type ActionPlanPageViewModel = {
   strategicComment: StrategicCommentVm | null;
   /** SEO 키워드·설명란 진단 — 태그 데이터 없으면 null */
   seoKeywords: SeoKeywordVm | null;
+  /** SEO 결손 리포트 — 설명란 짧음 + 태그 부족 영상 집계 */
+  seoDeficit: SeoDeficitVm | null;
+  /** 인게이지먼트 갭 — 좋아요 비율 분위 진단 */
+  engagementGap: EngagementGapVm | null;
 } & MarketExtensionSliceVm;
+
+/** 설명란·태그 기반 SEO 결손 현황 */
+export type SeoDeficitVm = {
+  totalCount: number;
+  /** descriptionLength < 100자인 영상 수 */
+  shortDescCount: number;
+  shortDescPercent: number;
+  /** tags.length < 3인 영상 수 */
+  lowTagCount: number;
+  lowTagPercent: number;
+};
+
+/** 좋아요 비율 분위 진단 */
+export type EngagementGapVm = {
+  /** 표본 평균 좋아요 비율 (0–1) */
+  avgLikeRate: number;
+  /** 표본 내 백분위 (낮을수록 하위) */
+  percentileLabel: string;  // "하위 20%", "평균 수준" 등
+  hasLowEngagement: boolean;
+  sampleCount: number;
+};
 
 export type ChannelSectionScores = {
   channelActivity: number;
@@ -876,6 +901,67 @@ function buildSeoKeywordVm(videos: NormalizedSnapshotVideo[]): SeoKeywordVm | nu
   return { goldenKeywords, missingKeywords, descriptionStats, hasTagData, sampleSize: videos.length };
 }
 
+function buildSeoDeficitVm(videos: NormalizedSnapshotVideo[]): SeoDeficitVm | null {
+  if (videos.length === 0) return null;
+  const total = videos.length;
+  const shortDesc = videos.filter(
+    (v) => v.descriptionLength != null && v.descriptionLength < 100
+  ).length;
+  const lowTag = videos.filter((v) => v.tags.length < 3).length;
+  if (shortDesc === 0 && lowTag === 0) return null;
+  return {
+    totalCount: total,
+    shortDescCount: shortDesc,
+    shortDescPercent: Math.round((shortDesc / total) * 100),
+    lowTagCount: lowTag,
+    lowTagPercent: Math.round((lowTag / total) * 100),
+  };
+}
+
+function buildEngagementGapVm(videos: NormalizedSnapshotVideo[]): EngagementGapVm | null {
+  const valid = videos.filter(
+    (v) => v.viewCount != null && v.viewCount > 0 && v.likeCount != null
+  );
+  if (valid.length < 4) return null;
+
+  // 영상별 좋아요 비율 계산
+  const likeRates = valid
+    .map((v) => (v.likeCount ?? 0) / (v.viewCount ?? 1))
+    .sort((a, b) => a - b);
+
+  const avgLikeRate =
+    likeRates.reduce((s, r) => s + r, 0) / likeRates.length;
+
+  // 표본 내 중앙값 대비 분위 판정
+  const median = likeRates[Math.floor(likeRates.length / 2)] ?? 0;
+  const p25 = likeRates[Math.floor(likeRates.length * 0.25)] ?? 0;
+  const p75 = likeRates[Math.floor(likeRates.length * 0.75)] ?? 0;
+
+  let percentileLabel: string;
+  let hasLowEngagement: boolean;
+
+  if (avgLikeRate <= p25) {
+    percentileLabel = "하위 25%";
+    hasLowEngagement = true;
+  } else if (avgLikeRate <= median) {
+    percentileLabel = "하위 50%";
+    hasLowEngagement = true;
+  } else if (avgLikeRate <= p75) {
+    percentileLabel = "상위 50%";
+    hasLowEngagement = false;
+  } else {
+    percentileLabel = "상위 25%";
+    hasLowEngagement = false;
+  }
+
+  return {
+    avgLikeRate,
+    percentileLabel,
+    hasLowEngagement,
+    sampleCount: valid.length,
+  };
+}
+
 export function buildActionPlanPageViewModel(
   data: AnalysisPageData | null
 ): ActionPlanPageViewModel {
@@ -899,6 +985,8 @@ export function buildActionPlanPageViewModel(
     analysisConfidence: null,
     strategicComment: null,
     seoKeywords: null,
+    seoDeficit: null,
+    engagementGap: null,
   };
 
   if (!data || data.channels.length === 0 || !data.selectedChannel) {
@@ -1036,6 +1124,8 @@ export function buildActionPlanPageViewModel(
 
   const strategicComment = buildActionPlanStrategicComment(actions, totalScore, cautions);
   const seoKeywords = buildSeoKeywordVm(normalized.videos);
+  const seoDeficit = buildSeoDeficitVm(normalized.videos);
+  const engagementGap = buildEngagementGapVm(normalized.videos);
 
   return {
     ...ext,
@@ -1056,6 +1146,8 @@ export function buildActionPlanPageViewModel(
     analysisConfidence,
     strategicComment,
     seoKeywords,
+    seoDeficit,
+    engagementGap,
   };
 }
 
