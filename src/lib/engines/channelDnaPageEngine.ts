@@ -78,7 +78,7 @@ function buildDnaCards(vm: InternalChannelDnaSummaryVm) {
     const { label, description } = humanizeSignal(signal)
     if (seenWeaknessLabels.has(label)) return acc
     seenWeaknessLabels.add(label)
-    acc.push({ title: label, description, score: Math.min(45, 40 + i * 3), tags: [] })
+    acc.push({ title: label, description, score: Math.min(40, 15 + i * 5), tags: [] })
     return acc
   }, [])
   const corePatterns = vm.dominantFormat
