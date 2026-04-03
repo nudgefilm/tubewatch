@@ -232,8 +232,8 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                 )}
               </section>
 
-              {/* [3] 데이터 인사이트 — 태그 효율성 + 시간대별 반응도 */}
-              {(viewModel.tagEfficiency.length > 0 || viewModel.temporalResonance != null) && (
+              {/* [3] 데이터 인사이트 — 태그 효율성 + 시간대별 반응도 + 체류 시간 예측 */}
+              {(viewModel.tagEfficiency.length > 0 || viewModel.temporalResonance != null || viewModel.watchTimeCatalyst != null) && (
                 <section className="space-y-4">
                   <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
                     <h2 className="text-xl font-bold tracking-tight">성공 공식 분석</h2>
@@ -242,6 +242,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                   <NextTrendDataInsightsSection
                     tagEfficiency={viewModel.tagEfficiency}
                     temporalResonance={viewModel.temporalResonance}
+                    watchTimeCatalyst={viewModel.watchTimeCatalyst}
                   />
                 </section>
               )}

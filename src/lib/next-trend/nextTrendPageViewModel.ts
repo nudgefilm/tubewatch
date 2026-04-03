@@ -46,6 +46,24 @@ export type TemporalResonanceVm = {
   sampleCount: number;
 };
 
+/** 시청자 체류 시간 예측 — 조회수 상위 구간의 영상 길이 스윗스팟 */
+export type WatchTimeCatalystVm = {
+  /** 상위 10% 영상들의 최단 길이(초) */
+  sweetSpotMinSec: number;
+  /** 상위 10% 영상들의 최장 길이(초) */
+  sweetSpotMaxSec: number;
+  /** 상위 10% 영상들의 평균 길이(초) */
+  sweetSpotAvgSec: number;
+  /** 채널 전체 평균 길이(초) */
+  overallAvgSec: number;
+  /** 상위 10% 표본 수 */
+  topSampleCount: number;
+  /** 전체 유효 표본 수 */
+  totalSampleCount: number;
+  /** 스윗스팟 포맷 분류 */
+  formatLabel: string;
+};
+
 const DATA_PIPELINE_NOTICE =
   "저장된 분석 표본 기반입니다. 외부 검색량·시즌 트렌드는 포함하지 않습니다.";
 
@@ -81,6 +99,8 @@ export type NextTrendPageViewModel = {
   tagEfficiency: TagEfficiencyVm[];
   /** 요일별 참여율 최적 시간대 */
   temporalResonance: TemporalResonanceVm | null;
+  /** 조회수 상위 10% 영상의 길이 스윗스팟 */
+  watchTimeCatalyst: WatchTimeCatalystVm | null;
 };
 
 const EMPTY_ITEMS: TrendItemVm[] = [];
@@ -195,6 +215,61 @@ function buildTemporalResonance(
   };
 }
 
+function formatCatalystLabel(seconds: number): string {
+  if (seconds < 300) return "숏폼";
+  if (seconds < 480) return "미드폼(짧은)";
+  if (seconds < 1200) return "미드폼";
+  return "롱폼";
+}
+
+function buildWatchTimeCatalyst(
+  videos: NormalizedSnapshotVideo[]
+): WatchTimeCatalystVm | null {
+  // 최근 50개만 사용
+  const recent = videos.slice(0, 50);
+
+  // viewCount & durationSeconds 모두 유효한 것만
+  const valid = recent.filter(
+    (v) =>
+      v.viewCount != null &&
+      v.viewCount >= 0 &&
+      v.durationSeconds != null &&
+      v.durationSeconds > 0
+  );
+  if (valid.length < 5) return null;
+
+  // 조회수 내림차순 정렬
+  const sorted = [...valid].sort(
+    (a, b) => (b.viewCount ?? 0) - (a.viewCount ?? 0)
+  );
+
+  // 상위 10% (최소 2개)
+  const topCount = Math.max(2, Math.ceil(sorted.length * 0.1));
+  const topVideos = sorted.slice(0, topCount);
+
+  const topDurations = topVideos.map((v) => v.durationSeconds!);
+  const sweetSpotMinSec = Math.min(...topDurations);
+  const sweetSpotMaxSec = Math.max(...topDurations);
+  const sweetSpotAvgSec = Math.round(
+    topDurations.reduce((s, d) => s + d, 0) / topDurations.length
+  );
+
+  const allDurations = valid.map((v) => v.durationSeconds!);
+  const overallAvgSec = Math.round(
+    allDurations.reduce((s, d) => s + d, 0) / allDurations.length
+  );
+
+  return {
+    sweetSpotMinSec,
+    sweetSpotMaxSec,
+    sweetSpotAvgSec,
+    overallAvgSec,
+    topSampleCount: topCount,
+    totalSampleCount: valid.length,
+    formatLabel: formatCatalystLabel(sweetSpotAvgSec),
+  };
+}
+
 export function buildNextTrendPageViewModel(
   data: AnalysisPageData | null
 ): NextTrendPageViewModel {
@@ -234,6 +309,7 @@ export function buildNextTrendPageViewModel(
       seoOptimization: null,
       tagEfficiency: [],
       temporalResonance: null,
+      watchTimeCatalyst: null,
     };
   }
 
@@ -262,6 +338,7 @@ export function buildNextTrendPageViewModel(
       seoOptimization: null,
       tagEfficiency: [],
       temporalResonance: null,
+      watchTimeCatalyst: null,
     };
   }
 
@@ -304,6 +381,7 @@ export function buildNextTrendPageViewModel(
     seoOptimization: sectionScores?.seoOptimization ?? null,
     tagEfficiency: buildTagEfficiency(normalizedSnap.videos),
     temporalResonance: buildTemporalResonance(normalizedSnap.videos),
+    watchTimeCatalyst: buildWatchTimeCatalyst(normalizedSnap.videos),
   };
 }
 
