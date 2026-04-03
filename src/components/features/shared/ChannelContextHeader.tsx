@@ -44,7 +44,7 @@ export function ChannelContextHeader({ channelContext }: ChannelContextHeaderPro
 
       {/* 채널 정보 */}
       <div className="flex min-w-0 flex-col">
-        <span className="truncate text-sm font-medium leading-none">
+        <span className="truncate text-base font-bold leading-none">
           {channelContext.title}
         </span>
         <div className="mt-1.5 flex items-center gap-3 text-xs text-muted-foreground">
