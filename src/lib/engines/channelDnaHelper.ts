@@ -61,6 +61,30 @@ const SNAKE_SIGNAL_MAP: Record<string, { label: string; description: string }> =
     label: "썸네일 일관성 부족",
     description: "썸네일 스타일이 일관되지 않아 채널 브랜딩이 흐려집니다.",
   },
+  low_tag_usage: {
+    label: "태그 활용 부족",
+    description: "태그가 거의 사용되지 않아 검색 노출 기회가 줄어들 수 있습니다.",
+  },
+  low_comment_rate: {
+    label: "댓글 반응 낮음",
+    description: "평균 댓글 비율이 낮아 시청자 참여 유도가 필요합니다.",
+  },
+  low_like_rate: {
+    label: "좋아요 반응 낮음",
+    description: "평균 좋아요 비율이 낮아 콘텐츠 반응 개선이 필요합니다.",
+  },
+  low_ctr: {
+    label: "클릭율 낮음",
+    description: "제목·썸네일에 대한 클릭 반응이 낮아 개선이 필요합니다.",
+  },
+  high_title_length_variance: {
+    label: "제목 길이 불일관",
+    description: "제목 길이가 들쭉날쭉하여 채널 일관성이 떨어집니다.",
+  },
+  low_video_length_consistency: {
+    label: "영상 길이 불일관",
+    description: "영상 길이 편차가 커서 시청자의 기대 패턴이 흔들릴 수 있습니다.",
+  },
 }
 
 export function humanizeSignal(signal: string): { label: string; description: string } {

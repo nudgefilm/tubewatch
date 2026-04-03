@@ -56,6 +56,12 @@ const INHERENTLY_NEGATIVE_SIGNALS = new Set([
   "low_upload_frequency",
   "low_seo_score",
   "thumbnail_inconsistency",
+  "low_tag_usage",
+  "low_comment_rate",
+  "low_like_rate",
+  "low_ctr",
+  "high_title_length_variance",
+  "low_video_length_consistency",
 ])
 
 function buildDnaCards(vm: InternalChannelDnaSummaryVm) {

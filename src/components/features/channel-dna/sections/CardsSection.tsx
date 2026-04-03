@@ -9,6 +9,16 @@ import type { ChannelDnaData } from "../mock-data"
 
 const INITIAL_SHOW = 3
 
+/** 진단 수치(0.00% 등)가 포함된 raw 문장은 범용 설명으로 대체 */
+function sanitizeDescription(desc: string, isStrength: boolean): string {
+  if (/\d+\.\d+%/.test(desc) || desc.length > 60) {
+    return isStrength
+      ? "상위 20% 구조에서 반복되는 강점 패턴입니다"
+      : "재현성이 낮은 구조로 개선이 필요한 패턴입니다"
+  }
+  return desc
+}
+
 interface DnaCardsSectionProps {
   data: ChannelDnaData["dnaCards"]
 }
@@ -56,7 +66,7 @@ export function DnaCardsSection({ data }: DnaCardsSectionProps) {
                   weaknessLabel="약점"
                   hint="상위 20% 구조에서 반복되는 강점 패턴입니다"
                 />
-                <p className="text-xs text-muted-foreground">{item.description}</p>
+                <p className="text-xs text-muted-foreground">{sanitizeDescription(item.description, true)}</p>
                 {item.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1">
                     {item.tags.map((tag) => (
@@ -107,7 +117,7 @@ export function DnaCardsSection({ data }: DnaCardsSectionProps) {
                   weaknessLabel="약점"
                   hint="재현성이 낮은 구조로 개선이 필요한 패턴입니다"
                 />
-                <p className="text-xs text-muted-foreground">{item.description}</p>
+                <p className="text-xs text-muted-foreground">{sanitizeDescription(item.description, false)}</p>
                 {item.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1">
                     {item.tags.map((tag) => (
