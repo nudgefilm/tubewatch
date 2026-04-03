@@ -85,6 +85,18 @@ export type FormatDistributionVm = {
   /** category 데이터 보유 여부 */
   hasCategoryData: boolean;
   sampleSize: number;
+  /**
+   * 미드폼 공백 비율 (0–100).
+   * Shorts + 장편 비율 합계 = 1~10분 미드폼이 빠진 비중.
+   * null = duration 데이터 없음.
+   */
+  midFormGapPercent: number | null;
+  /**
+   * 카테고리 일관성 (0–100).
+   * 전체 영상 중 최다 categoryId 비율.
+   * null = category 데이터 없음.
+   */
+  categoryPurity: number | null;
 };
 
 function safeStringArray(value: unknown): string[] {
@@ -347,12 +359,28 @@ function buildFormatDistributionVm(videos: NormalizedSnapshotVideo[]): FormatDis
 
   if (!hasDurationData && !hasCategoryData) return null;
 
+  // ── 미드폼 공백 계산 ─────────────────────────────────────────────────────
+  let midFormGapPercent: number | null = null;
+  if (hasDurationData) {
+    const midBucket = durationBuckets.find((b) => b.colorKey === "short");
+    const midPercent = midBucket?.percentage ?? 0;
+    midFormGapPercent = 100 - midPercent;
+  }
+
+  // ── 카테고리 일관성 계산 ──────────────────────────────────────────────────
+  const categoryPurity: number | null =
+    hasCategoryData && categoryBuckets.length > 0
+      ? categoryBuckets[0].percentage
+      : null;
+
   return {
     durationBuckets,
     categoryBuckets,
     hasDurationData,
     hasCategoryData,
     sampleSize: videos.length,
+    midFormGapPercent,
+    categoryPurity,
   };
 }
 
