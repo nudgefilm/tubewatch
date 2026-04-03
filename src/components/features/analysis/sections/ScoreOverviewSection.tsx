@@ -1,6 +1,7 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { SegmentGauge } from "@/components/ui/SegmentGauge"
 
 export type SectionScores = {
   channelActivity?: number
@@ -85,11 +86,6 @@ function tierOf(score: number): 0 | 1 | 2 {
   return 2
 }
 
-function sectionBarColor(score: number) {
-  if (score >= 65) return "bg-emerald-500"
-  if (score >= 45) return "bg-amber-400"
-  return "bg-rose-400"
-}
 
 function deriveInterpretation(overallScore: number, sectionScores?: SectionScores): string {
   if (sectionScores) {
@@ -171,11 +167,8 @@ export function AnalysisScoreOverview({ score, sectionScores }: AnalysisScoreOve
                   <span className="w-[22px] shrink-0 text-right text-[10px] text-muted-foreground">
                     {label}
                   </span>
-                  <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className={`h-full rounded-full transition-all ${sectionBarColor(val)}`}
-                      style={{ width: `${val}%` }}
-                    />
+                  <div className="flex-1">
+                    <SegmentGauge score={val} segments={8} label={false} stretch />
                   </div>
                   <span className="w-5 text-right text-[10px] tabular-nums text-muted-foreground">
                     {Math.round(val)}
