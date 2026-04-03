@@ -10,6 +10,18 @@ import {
 /** 세 구간 요약 — 스냅샷만으로 판별 불가 시 null */
 export type ChannelDnaTriLevel = "low" | "medium" | "high";
 
+/** 팬덤 응집도 — (좋아요 + 댓글) / 조회수 비율 기반 */
+export type FanbaseLoyaltyVm = {
+  /** (좋아요 합 + 댓글 합) / 조회수 합 (0–1) */
+  loyaltyRate: number;
+  /** 조회수 100회당 반응 수 (소수점 1자리) */
+  per100Views: number;
+  /** 등급: 5% 이상 = very_high, 2–4.9% = average, 2% 미만 = low */
+  grade: "very_high" | "average" | "low";
+  /** 표본 영상 수 */
+  sampleCount: number;
+};
+
 export type InternalChannelDnaRadarVm = {
   readonly labels: readonly string[];
   /** 0–100 스케일, `feature_section_scores` 기반 */
@@ -58,6 +70,8 @@ export type InternalChannelDnaSummaryVm = {
   readonly contentPatterns: readonly string[];
   /** 포맷 분포 — durationSeconds + categoryId 기반 시각화용 */
   readonly formatDistribution: FormatDistributionVm | null;
+  /** 팬덤 응집도 — (좋아요 + 댓글) / 조회수 비율 */
+  readonly fanbaseLoyalty: FanbaseLoyaltyVm | null;
 };
 
 export type DurationBucket = {
@@ -289,6 +303,39 @@ function ytCategoryLabel(id: string): string {
 }
 
 /**
+ * 팬덤 응집도 — 최근 50개 영상의 (좋아요 + 댓글) / 조회수 비율.
+ * 기준값: 4.0% (유튜브 카테고리 평균)
+ */
+function buildFanbaseLoyaltyVm(
+  videos: NormalizedSnapshotVideo[]
+): FanbaseLoyaltyVm | null {
+  const recent = videos.slice(0, 50);
+  const valid = recent.filter(
+    (v) =>
+      v.viewCount != null &&
+      v.viewCount > 0 &&
+      (v.likeCount != null || v.commentCount != null)
+  );
+  if (valid.length < 4) return null;
+
+  const totalViews = valid.reduce((s, v) => s + (v.viewCount ?? 0), 0);
+  const totalLikes = valid.reduce((s, v) => s + (v.likeCount ?? 0), 0);
+  const totalComments = valid.reduce((s, v) => s + (v.commentCount ?? 0), 0);
+
+  if (totalViews === 0) return null;
+
+  const loyaltyRate = (totalLikes + totalComments) / totalViews;
+  const per100Views = Math.round(loyaltyRate * 100 * 10) / 10;
+
+  let grade: FanbaseLoyaltyVm["grade"];
+  if (loyaltyRate >= 0.05) grade = "very_high";
+  else if (loyaltyRate >= 0.02) grade = "average";
+  else grade = "low";
+
+  return { loyaltyRate, per100Views, grade, sampleCount: valid.length };
+}
+
+/**
  * NormalizedSnapshotVideo 배열에서 포맷 분포 ViewModel 계산.
  * Duration: Shorts(<60s) / 단편(1~10분) / 장편(10분+) 3구간.
  * Category: categoryId 별 빈도 분포.
@@ -424,6 +471,7 @@ export function buildInternalChannelDnaSummary(
       targetAudience: [],
       contentPatterns: [],
       formatDistribution: null,
+      fanbaseLoyalty: null,
     };
   }
 
@@ -665,6 +713,7 @@ export function buildInternalChannelDnaSummary(
     targetAudience,
     contentPatterns,
     formatDistribution: buildFormatDistributionVm(videos),
+    fanbaseLoyalty: buildFanbaseLoyaltyVm(videos),
   };
 }
 

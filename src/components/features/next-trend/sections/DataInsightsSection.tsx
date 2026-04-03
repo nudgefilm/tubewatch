@@ -65,10 +65,10 @@ export function NextTrendDataInsightsSection({
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
               <Timer className="size-4 text-primary" />
-              시청자 체류 시간 예측
+              최적 영상 길이 (Sweet Spot)
             </CardTitle>
             <p className="text-xs text-muted-foreground">
-              조회수 상위 {watchTimeCatalyst.topSampleCount}편의 영상 길이를 분석했습니다.
+              Shorts 제외, 조회수 상위 {watchTimeCatalyst.topSampleCount}편의 영상 길이를 분석했습니다.
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -76,7 +76,7 @@ export function NextTrendDataInsightsSection({
               {/* 스윗스팟 */}
               <div className="rounded-lg border bg-primary/5 px-4 py-3 text-center col-span-2 sm:col-span-1">
                 <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-1">
-                  조회수 폭발 구간
+                  골든 타임 구간
                 </p>
                 <p className="text-lg font-bold tabular-nums text-primary leading-tight">
                   {watchTimeCatalyst.sweetSpotMinSec === watchTimeCatalyst.sweetSpotMaxSec

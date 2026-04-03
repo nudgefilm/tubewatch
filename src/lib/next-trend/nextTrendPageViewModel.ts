@@ -228,13 +228,13 @@ function buildWatchTimeCatalyst(
   // 최근 50개만 사용
   const recent = videos.slice(0, 50);
 
-  // viewCount & durationSeconds 모두 유효한 것만
+  // viewCount & durationSeconds 유효 + Shorts(60초 이하) 제외
   const valid = recent.filter(
     (v) =>
       v.viewCount != null &&
       v.viewCount >= 0 &&
       v.durationSeconds != null &&
-      v.durationSeconds > 0
+      v.durationSeconds > 60
   );
   if (valid.length < 5) return null;
 

@@ -1,6 +1,8 @@
 "use client"
 
-import { Dna } from "lucide-react"
+import { Dna, Users } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { DnaStructureSummarySection } from "./sections/StructureSummarySection"
 import { DnaCardsSection } from "./sections/CardsSection"
 import { DnaFormatDistributionSection } from "./sections/FormatDistributionSection"
@@ -129,6 +131,58 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
                 <p className="text-xs text-muted-foreground mt-0.5">성과 재현성과 지속 가능성을 결정하는 구조 변수</p>
               </div>
               <DnaStructureSummarySection data={structureSummary} />
+
+              {/* 팬덤 응집도 */}
+              {vm.fanbaseLoyalty && (() => {
+                const fl = vm.fanbaseLoyalty
+                const gradeLabel = fl.grade === "very_high" ? "매우 높음" : fl.grade === "average" ? "보통" : "낮음"
+                const gradeBadgeClass =
+                  fl.grade === "very_high" ? "bg-emerald-100 text-emerald-700 border-emerald-200"
+                  : fl.grade === "average" ? "bg-amber-100 text-amber-700 border-amber-200"
+                  : "bg-rose-100 text-rose-700 border-rose-200"
+                const valueColor =
+                  fl.grade === "very_high" ? "text-emerald-600"
+                  : fl.grade === "average" ? "text-amber-600"
+                  : "text-rose-600"
+                const insightText =
+                  fl.grade === "very_high"
+                    ? "팬덤 결속력이 강합니다. 커뮤니티 탭을 활성화해 이 흐름을 채널 성장으로 연결하세요."
+                    : fl.grade === "average"
+                    ? "참여율이 평균 수준입니다. 영상 중반부에 좋아요·댓글 유도 멘트를 추가해 반응률을 높여보세요."
+                    : "시청자 반응이 낮은 편입니다. 질문형 제목이나 영상 끝 CTA를 강화해 참여를 유도하세요."
+                return (
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="flex items-center gap-2 text-base">
+                          <Users className="size-4 text-primary" />
+                          팬덤 응집도
+                        </CardTitle>
+                        <Badge variant="outline" className={`text-xs font-semibold ${gradeBadgeClass}`}>
+                          {gradeLabel}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        표본 {fl.sampleCount}편 기준 — 유튜브 카테고리별 평균 반응률(4.0%) 대비
+                      </p>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="rounded-lg border bg-muted/20 px-4 py-4 text-center space-y-1">
+                        <p className={`text-3xl font-bold tabular-nums ${valueColor}`}>
+                          {fl.per100Views}개
+                        </p>
+                        <p className="text-sm font-medium">조회수 100회당 반응</p>
+                      </div>
+                      <p className="text-xs leading-relaxed text-muted-foreground rounded-lg bg-muted/30 px-3 py-2">
+                        {insightText}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground/60">
+                        유튜브 카테고리별 평균 반응률(4.0%)을 기준으로 산출된 수치입니다.
+                      </p>
+                    </CardContent>
+                  </Card>
+                )
+              })()}
 
               {/* 채널 활동 패턴 — 업로드 일관성·빈도·간격 */}
               {(vm.uploadConsistencyLevel != null || vm.recent30dUploadCount != null || vm.avgUploadIntervalDays != null) && (
