@@ -1,6 +1,7 @@
 "use client"
 
-import { Suspense } from "react"
+import { Suspense, useRef, useEffect } from "react"
+import { usePathname } from "next/navigation"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { Separator } from "@/components/ui/separator"
@@ -10,6 +11,13 @@ export default function AppLayout({
 }: {
   children: React.ReactNode
 }) {
+  const pathname = usePathname()
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: 0 })
+  }, [pathname])
+
   return (
     <SidebarProvider>
       <Suspense fallback={null}>
@@ -23,7 +31,7 @@ export default function AppLayout({
             TubeWatch
           </div>
         </header>
-        <div className="min-h-0 min-w-0 flex-1 overflow-auto">
+        <div ref={scrollRef} className="min-h-0 min-w-0 flex-1 overflow-auto">
           {children}
         </div>
       </SidebarInset>
