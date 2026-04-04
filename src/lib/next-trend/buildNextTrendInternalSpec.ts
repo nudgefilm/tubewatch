@@ -1,4 +1,5 @@
 import type { AnalysisResultRow } from "@/lib/analysis/getAnalysisPageData";
+import { normalizeFeatureSnapshot } from "@/lib/analysis/normalizeSnapshot";
 import type {
   TrendInsightsBundle,
   TrendItemVm,
@@ -46,12 +47,24 @@ export type NextTrendHintsVm = {
   contentAngle: string;
 };
 
+export type ViewingPointGauge = {
+  label: string;
+  score: number; // 1–5
+};
+
 export type NextTrendActionsVm = {
   videoPlanDraft: string;
   titleThumbnail: string;
   openingHook: string;
   scriptOutline: string;
   contentPlan: string;
+  whyThisTopic: string;
+  painPoint: string;
+  titleCandidates: string[];
+  recommendedTags: string[];
+  exitPrevention: string;
+  expectedReaction: string;
+  viewingPoints: ViewingPointGauge[];
 };
 
 export type NextTrendExtensionVm = {
@@ -623,6 +636,68 @@ export function buildNextTrendInternalSpec(
   const topTopic = candidates[0]?.topic ?? null;
   const durationHint = formatDurationHint(dur.avgDurationSec, dur.sampleCount);
 
+  // ── 채널 특화 데이터 추출 ──────────────────────────────────────────────────
+  const getRF = <T>(key: string, fb: T): T => {
+    const v = (latestResult as Record<string, unknown> | null)?.[key];
+    return v !== undefined && v !== null ? (v as T) : fb;
+  };
+  const strengths = getRF<string[]>("strengths", []);
+  const weaknesses = getRF<string[]>("weaknesses", []);
+  const bottlenecks = getRF<string[]>("bottlenecks", []);
+  const targetAudience = getRF<string[]>("target_audience", []);
+  const sectionScores = getRF<Record<string, number>>("feature_section_scores", {});
+
+  const videos = normalizeFeatureSnapshot(snapshot).videos;
+
+  // 팬덤 응집도 계산
+  const totalEngagement = videos.reduce((s, v) => s + (v.likeCount ?? 0) + (v.commentCount ?? 0), 0);
+  const totalViews = videos.reduce((s, v) => s + (v.viewCount ?? 0), 0);
+  const loyaltyRate = totalViews > 0 ? totalEngagement / totalViews : 0;
+  const per100Views = Math.round(loyaltyRate * 1000) / 10;
+  const loyaltyGrade = loyaltyRate >= 0.05 ? "높음" : loyaltyRate >= 0.02 ? "평균" : "낮음";
+
+  // 고성과 영상 추출 (view 신호)
+  const viewRecord = bundle.records.find((r) => r.category === "view" && r.detail.includes("«"));
+  const topVideoTitle = viewRecord?.detail.match(/«([^»]+)»/)?.[1] ?? null;
+  const viewRatio = viewRecord?.detail.match(/약 ([\d.]+)배/)?.[1] ?? null;
+
+  // 반복 키워드 (실제 단어만 추출)
+  const topKeywords = insights.repeatedTopics
+    .slice(0, 3)
+    .map((t) => { const m = t.title.match(/[''']([^''']+)[''']/); return m ? m[1] : null; })
+    .filter((k): k is string => !!k);
+
+  // 태그 빈도 추출 (스냅샷 영상)
+  const tagFreq: Record<string, number> = {};
+  for (const video of videos) {
+    for (const tag of video.tags) {
+      if (tag.length >= 2) tagFreq[tag] = (tagFreq[tag] ?? 0) + 1;
+    }
+  }
+  const topTagsFromSnapshot = Object.entries(tagFreq)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([t]) => t);
+
+  // 시청 포인트 게이지 (1–5)
+  const g = (s: number) => Math.max(1, Math.min(5, Math.round(s / 20)));
+  const hasExpertSignal = strengths.some((s) =>
+    ["전문", "정보", "깊이", "분석", "설명"].some((kw) => s.includes(kw))
+  );
+  const avgDescLen = videos.length > 0
+    ? videos.reduce((s, v) => s + (v.descriptionLength ?? 0), 0) / videos.length
+    : 0;
+  const avgTagCount = videos.length > 0
+    ? videos.reduce((s, v) => s + v.tags.length, 0) / videos.length
+    : 0;
+  const viewingPoints: ViewingPointGauge[] = [
+    { label: "대중성",   score: g(sectionScores.audienceResponse ?? 50) },
+    { label: "전문성",   score: hasExpertSignal ? 4 : avgDescLen > 400 ? 4 : avgDescLen > 150 ? 3 : 2 },
+    { label: "자극도",   score: viewRecord?.strength === "clear" ? 4 : viewRecord ? 3 : 2 },
+    { label: "정보성",   score: avgTagCount > 5 ? 4 : avgTagCount > 3 ? 3 : avgDescLen > 200 ? 3 : 2 },
+    { label: "팬서비스", score: g(sectionScores.channelActivity ?? 50) },
+  ];
+
   const actions: NextTrendActionsVm = {
     videoPlanDraft: [
       topTopic
@@ -665,6 +740,67 @@ export function buildNextTrendInternalSpec(
         : `업로드 후 **처음 48시간** 동안 댓글·좋아요 반응을 확인하세요. 초반 지표가 다음 편의 방향을 결정합니다.`,
       `썸네일과 제목은 **A/B 테스트**를 권장합니다. 클릭률(CTR) 차이가 2% 이상이면 좋은 신호입니다.`,
     ].join("\n"),
+
+    whyThisTopic: [
+      strengths[0]
+        ? `이 채널의 강점인 **'${strengths[0].slice(0, 50)}'** 을 살려 이 주제를 다루면 기존 구독자에게도 자연스럽게 이어집니다.`
+        : `채널의 현재 방향성과 연결된 주제로, 기존 구독자 이탈을 최소화하면서 신규 유입도 기대할 수 있습니다.`,
+      `팬덤 응집도 **${loyaltyGrade}** — 조회 100회당 **${per100Views}회** 좋아요·댓글 반응이 확인됩니다.`,
+      sectionScores.audienceResponse != null
+        ? `  → 시청자 응답률 점수: **${Math.round(sectionScores.audienceResponse)}점** / 100점`
+        : "",
+      topVideoTitle && viewRatio
+        ? `  → 채널 최고 성과 영상(평균 대비 **${viewRatio}배**): «${topVideoTitle}» — 이 방향성을 이어받은 기획입니다.`
+        : "",
+    ].filter(Boolean).join("\n"),
+
+    painPoint: [
+      `이 채널에서 아직 충분히 다루지 않은 영역입니다. 이 영상에서 채워준다면 시청자의 미충족 수요를 정면으로 공략할 수 있습니다.`,
+      ...weaknesses.slice(0, 2).map((w) => `  → ${w}`),
+      bottlenecks[0] ? `  → 병목 구간: ${bottlenecks[0]}` : "",
+      sectionScores.seoOptimization != null
+        ? `  → SEO 최적화 점수: **${Math.round(sectionScores.seoOptimization)}점** / 100점 — 제목·태그 보완으로 검색 유입을 높일 여지가 있습니다.`
+        : "",
+    ].filter(Boolean).join("\n"),
+
+    titleCandidates: (() => {
+      const kw0 = topKeywords[0] ?? topTopic?.split(" ")[0] ?? "주제";
+      const kw1 = topKeywords[1] ?? "";
+      const base = topTopic ?? kw0;
+      return [
+        `[숫자형] ${base} — 바로 써먹는 핵심 정리 (${kw0} 완전 가이드)`,
+        kw1
+          ? `[질문형] ${kw0}와 ${kw1}, 어떻게 다를까? 헷갈리는 분들 필수 시청`
+          : `[질문형] ${kw0}를 처음 시작하는 분들이 가장 많이 묻는 것들`,
+        `[비교형] ${base} 전vs후 — 실제로 얼마나 달라지는지 직접 보여드립니다`,
+      ];
+    })(),
+
+    recommendedTags: Array.from(
+      new Set([
+        ...topTagsFromSnapshot,
+        ...topKeywords,
+        ...(topTopic ? topTopic.split(" ").slice(0, 2) : []),
+      ])
+    ).filter((t) => t.length >= 2).slice(0, 5),
+
+    exitPrevention: [
+      `**도입부 30초**: 결론 또는 가장 임팩트 있는 장면을 먼저 배치하세요. 시청자는 이 구간에서 '끝까지 볼지'를 결정합니다.`,
+      `**중반 이탈 구간**: 영상 전체의 40~60% 지점에 '다음 파트 예고' 또는 '핵심 요약 자막'을 넣어 이탈을 방지하세요.`,
+      `**언어 단순화**: 전문 용어 사용 시 즉시 1줄 설명을 추가하세요. '이해 실패' 느낌은 이탈률을 급격히 높입니다.`,
+    ].join("\n"),
+
+    expectedReaction: [
+      targetAudience[0]
+        ? `**${targetAudience[0]}** 시청자를 중심으로 '실용적인 정보를 얻었다'는 댓글 반응이 예상됩니다.`
+        : `기존 구독자 중심의 긍정 반응이 예상됩니다.`,
+      viewRatio
+        ? `채널 최고 성과 영상이 평균 대비 ${viewRatio}배를 기록한 만큼, 유사한 방향의 영상은 평균 이상 반응 가능성이 있습니다.`
+        : `표본이 제한적이므로 초반 24시간 CTR과 시청 유지율을 먼저 확인하세요.`,
+      `  → 과장된 기대보다 **초반 2~3편 테스트**로 반응을 검증하는 것을 권장합니다.`,
+    ].join("\n"),
+
+    viewingPoints,
   };
 
   return {
@@ -735,6 +871,13 @@ export function buildNextTrendInternalBlocksSkipped(
       openingHook: "—",
       scriptOutline: "—",
       contentPlan: summaryLine,
+      whyThisTopic: "—",
+      painPoint: "—",
+      titleCandidates: [],
+      recommendedTags: [],
+      exitPrevention: "—",
+      expectedReaction: "—",
+      viewingPoints: [],
     },
   };
 }

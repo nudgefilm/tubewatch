@@ -43,6 +43,11 @@ export interface ExecutionHint {
   linkedTo: string
 }
 
+export interface ViewingPointGauge {
+  label: string
+  score: number // 1–5
+}
+
 export interface ExecutionAction {
   id: string
   videoTitle: string
@@ -50,6 +55,13 @@ export interface ExecutionAction {
   openingHook: string
   scriptOutline: string
   contentPlan: string
+  whyThisTopic: string
+  painPoint: string
+  titleCandidates: string[]
+  recommendedTags: string[]
+  exitPrevention: string
+  expectedReaction: string
+  viewingPoints: ViewingPointGauge[]
   experimentPriority: number
 }
 
@@ -271,6 +283,23 @@ export const executionActions: ExecutionAction[] = [
     openingHook: "**첫 15초** 안에 핵심 수치를 먼저 공개하세요. 시청자가 '끝까지 봐야 할 이유'를 즉시 파악하도록 만드는 것이 목표입니다.\n  → 예시 오프닝: **\"AI 도구 하나로 업무 시간이 절반이 됐습니다. 오늘 바로 따라할 수 있게 보여드릴게요.\"**\n  → 초반 **이탈률**이 낮아지면 알고리즘 추천 가중치도 함께 올라갑니다.",
     scriptOutline: "**① 오프닝** (0~15초) — 시간 절감 수치를 바로 공개해 시청자를 붙잡으세요.\n**② 본론 전반** — 도구 소개 및 설치·설정을 단계별로 설명하세요.\n**③ 본론 후반** — 실전 적용 사례와 흔한 실수를 함께 다루세요. 시청자 공감이 **시청 완료율**을 높입니다.\n**④ 클로징** (마지막 30초) — 핵심을 한 줄로 요약한 뒤 다음 편 예고나 **구독·댓글 유도**로 마무리하세요.\n  → 권장 길이: 8~12분 내외 (채널 표본 평균 기준)",
     contentPlan: "같은 주제로 **짧은 클립(Shorts)** 을 병행하면 유입 경로가 넓어집니다. 1분 이내 핵심 요약본을 업로드해보세요.\n업로드 후 **처음 48시간** 동안 댓글·좋아요 반응을 확인하세요. 초반 지표가 다음 편의 방향을 결정합니다.",
+    whyThisTopic: "이 채널의 강점인 **'실용적인 도구 소개와 단계별 설명'** 을 살려 이 주제를 다루면 기존 구독자에게도 자연스럽게 이어집니다.\n팬덤 응집도 **평균** — 조회 100회당 **3.8회** 좋아요·댓글 반응이 확인됩니다.\n  → 시청자 응답률 점수: **68점** / 100점\n  → 채널 최고 성과 영상(평균 대비 **2.3배**): «AI 노션 자동화 완전 정복» — 이 방향성을 이어받은 기획입니다.",
+    painPoint: "이 채널에서 아직 충분히 다루지 않은 영역입니다. 이 영상에서 채워준다면 시청자의 미충족 수요를 정면으로 공략할 수 있습니다.\n  → 실제 비용·시간 절감 수치를 직접 보여주는 영상이 부족합니다.\n  → 초보자를 위한 단계별 실패 사례 분석이 없습니다.\n  → SEO 최적화 점수: **61점** / 100점 — 제목·태그 보완으로 검색 유입을 높일 여지가 있습니다.",
+    titleCandidates: [
+      "[숫자형] AI 도구 활용 실무 팁 — 바로 써먹는 핵심 정리 (AI 도구 완전 가이드)",
+      "[질문형] AI 도구와 기존 방식, 어떻게 다를까? 헷갈리는 분들 필수 시청",
+      "[비교형] AI 도구 도입 전vs후 — 실제로 얼마나 달라지는지 직접 보여드립니다",
+    ],
+    recommendedTags: ["AI 도구", "업무 자동화", "생산성", "튜토리얼", "실전 팁"],
+    exitPrevention: "**도입부 30초**: 결론 또는 가장 임팩트 있는 장면을 먼저 배치하세요. 시청자는 이 구간에서 '끝까지 볼지'를 결정합니다.\n**중반 이탈 구간**: 영상 전체의 40~60% 지점에 '다음 파트 예고' 또는 '핵심 요약 자막'을 넣어 이탈을 방지하세요.\n**언어 단순화**: 전문 용어 사용 시 즉시 1줄 설명을 추가하세요. '이해 실패' 느낌은 이탈률을 급격히 높입니다.",
+    expectedReaction: "**업무 효율화에 관심 있는 직장인·프리랜서** 시청자를 중심으로 '실용적인 정보를 얻었다'는 댓글 반응이 예상됩니다.\n채널 최고 성과 영상이 평균 대비 2.3배를 기록한 만큼, 유사한 방향의 영상은 평균 이상 반응 가능성이 있습니다.\n  → 과장된 기대보다 **초반 2~3편 테스트**로 반응을 검증하는 것을 권장합니다.",
+    viewingPoints: [
+      { label: "대중성",   score: 4 },
+      { label: "전문성",   score: 3 },
+      { label: "자극도",   score: 4 },
+      { label: "정보성",   score: 3 },
+      { label: "팬서비스", score: 3 },
+    ],
     experimentPriority: 1,
   },
 ]

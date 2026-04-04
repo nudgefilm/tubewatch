@@ -113,6 +113,13 @@ function toExecutionActions(vm: NextTrendActionsVm) {
       openingHook: vm.openingHook,
       scriptOutline: vm.scriptOutline,
       contentPlan: vm.contentPlan,
+      whyThisTopic: vm.whyThisTopic,
+      painPoint: vm.painPoint,
+      titleCandidates: vm.titleCandidates,
+      recommendedTags: vm.recommendedTags,
+      exitPrevention: vm.exitPrevention,
+      expectedReaction: vm.expectedReaction,
+      viewingPoints: vm.viewingPoints,
       experimentPriority: 1,
     },
   ]
