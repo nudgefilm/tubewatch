@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { RefreshCw, Clock, Activity, Gauge, TrendingUp, History as HistoryIcon, BarChart3, ArrowDownToLine } from "lucide-react"
-import NextImage from "next/image"
 import { AnalysisHeaderSection } from "./sections/HeaderSection"
 import { AnalysisScoreOverview, type SectionScores } from "./sections/ScoreOverviewSection"
 import { AnalysisKpiCards } from "./sections/KpiCardsSection"
@@ -326,10 +325,9 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
             <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><Gauge className="size-5 shrink-0 text-primary" />채널 진단 지표</h2>
             <div className="flex items-center justify-between mt-0.5">
               <p className="text-xs text-muted-foreground">업로드 빈도·조회 반응·콘텐츠 구조 등 핵심 수치를 구간별로 확인합니다</p>
-              <div className="flex items-center gap-1.5 ml-3 shrink-0">
-                <ArrowDownToLine className="size-4 text-primary drop-shadow-sm" strokeWidth={2.5} />
-                <NextImage src="/logo.png" alt="TubeWatch" width={18} height={18} className="rounded-sm opacity-80" />
-                <span className="text-xs font-semibold text-muted-foreground tracking-wide">TubeWatch</span>
+              <div className="flex items-center gap-2 ml-3 shrink-0">
+                <ArrowDownToLine className="size-6 text-primary" strokeWidth={2.5} />
+                <span className="text-base font-heading font-medium tracking-[-0.02em] leading-none">TubeWatch™</span>
               </div>
             </div>
           </div>

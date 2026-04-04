@@ -68,8 +68,8 @@ function mapToChannelData(vm: AnalysisPageViewModel) {
 }
 
 function mapToKpiData(vm: AnalysisPageViewModel) {
-  const activityCard = vm.diagnosisCards.find((c) => c.title === "업로드·활동")
-  const responseCard = vm.diagnosisCards.find((c) => c.title === "조회·반응")
+  const activityCard = vm.diagnosisCards.find((c) => c.title === "채널 활동 패턴")
+  const responseCard = vm.diagnosisCards.find((c) => c.title === "시청자 반응 구조")
   const structureCard = vm.diagnosisCards.find((c) => c.title === "콘텐츠·구조")
 
   const FALLBACK_LABEL = "표시 가능한 세부 지표"
