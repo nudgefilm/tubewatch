@@ -243,7 +243,7 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
           <PageFlowConnector
             message="이 분석을 실행 전략으로 바꾸세요."
             ctaLabel="Action Plan 보기"
-            href="/action-plan"
+            href={viewModel.selectedChannelId ? `/action-plan?channel=${viewModel.selectedChannelId}` : "/action-plan"}
           />
 
         </div>

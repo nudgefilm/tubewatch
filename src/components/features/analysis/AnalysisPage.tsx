@@ -473,7 +473,7 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
           <PageFlowConnector
             message="분석이 완료되었습니다. 채널의 DNA를 확인하세요."
             ctaLabel="Channel DNA 보기"
-            href="/channel-dna"
+            href={viewModel.selectedChannelId ? `/channel-dna?channel=${viewModel.selectedChannelId}` : "/channel-dna"}
           />
         )}
       </div>

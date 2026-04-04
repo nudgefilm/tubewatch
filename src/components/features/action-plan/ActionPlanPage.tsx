@@ -141,7 +141,7 @@ export function ActionPlanPage({ channelId = "", channelContext, viewModel, isSt
             <PageFlowConnector
               message="다음 트렌드 방향을 확인하고 주제를 결정하세요."
               ctaLabel="Next Trend 보기"
-              href="/next-trend"
+              href={viewModel.selectedChannelId ? `/next-trend?channel=${viewModel.selectedChannelId}` : "/next-trend"}
             />
           )}
 
