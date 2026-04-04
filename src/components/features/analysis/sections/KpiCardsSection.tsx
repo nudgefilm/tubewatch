@@ -244,7 +244,7 @@ export function AnalysisKpiCards({ data }: AnalysisKpiCardsProps) {
               <span className="text-2xl font-bold tabular-nums">
                 {formatNumber(data.auxiliaryBaseline.medianViews)}
               </span>
-              <span className="text-sm text-muted-foreground">중앙</span>
+              <span className="text-sm text-muted-foreground">영상성과</span>
             </div>
             <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
               {data.auxiliaryBaseline.interpretation}
