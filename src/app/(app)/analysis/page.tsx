@@ -41,6 +41,7 @@ export default async function Page({ searchParams }: PageProps) {
       channelId={channelId ?? data?.selectedChannel?.id}
       viewModel={viewModel}
       isStarterPlan={isStarterPlan}
+      isAdmin={adminUser}
     />
   )
 }

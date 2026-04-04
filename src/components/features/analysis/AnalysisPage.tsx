@@ -44,9 +44,10 @@ interface ReanalyzeCooldownBoxProps {
   isRequesting: boolean
   requestError: string | null
   onReanalyze: () => void
+  isAdmin?: boolean
 }
 
-function ReanalyzeCooldownBox({ lastRunAt, sampleCount, isRequesting, requestError, onReanalyze }: ReanalyzeCooldownBoxProps) {
+function ReanalyzeCooldownBox({ lastRunAt, sampleCount, isRequesting, requestError, onReanalyze, isAdmin = false }: ReanalyzeCooldownBoxProps) {
   // null = 마운트 전(서버 렌더) — 하이드레이션 불일치 방지
   const [remainingMs, setRemainingMs] = useState<number | null>(null)
 
@@ -65,7 +66,8 @@ function ReanalyzeCooldownBox({ lastRunAt, sampleCount, isRequesting, requestErr
     return () => clearInterval(id)
   }, [lastRunAt])
 
-  const isCooldown = remainingMs === null || remainingMs > 0
+  // admin은 쿨다운 무시 — 서버도 bypass하므로 UI도 동일하게 적용
+  const isCooldown = !isAdmin && (remainingMs === null || remainingMs > 0)
 
   return (
     <div className="rounded-lg border bg-muted/30 px-4 py-3 space-y-2.5">
@@ -117,9 +119,10 @@ interface ChannelAnalysisPageProps {
   channelId?: string
   viewModel?: AnalysisPageViewModel
   isStarterPlan?: boolean
+  isAdmin?: boolean
 }
 
-export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isStarterPlan = false }: ChannelAnalysisPageProps) {
+export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isStarterPlan = false, isAdmin = false }: ChannelAnalysisPageProps) {
   const router = useRouter()
   const [isRequesting, setIsRequesting] = useState(false)
   const [requestError, setRequestError] = useState<string | null>(null)
@@ -363,6 +366,7 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
               isRequesting={isRequesting}
               requestError={requestError}
               onReanalyze={handleReanalyze}
+              isAdmin={isAdmin}
             />
           )}
         </section>
