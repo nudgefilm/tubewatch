@@ -180,12 +180,13 @@ export function NextTrendDataInsightsSection({
                   표본 내 요일별 참여율 패턴입니다. 업로드 타이밍 참고용으로 활용하세요.
                 </p>
               </div>
-              <div className="rounded-xl border bg-muted/20 px-4 py-4 text-center space-y-1">
+              <div className="rounded-xl border border-primary/30 bg-primary/10 px-4 py-4 text-center space-y-1">
                 <p className="text-3xl font-bold tabular-nums text-primary">
                   +{temporalResonance.liftPercent}%
                 </p>
-                <p className="text-sm font-medium">
-                  {temporalResonance.dayLabel} 업로드 시 {temporalResonance.metric} 참여율
+                <p className="text-sm font-semibold text-primary">
+                  {temporalResonance.dayLabel} 업로드 시{" "}
+                  <span className="text-primary/80">{temporalResonance.metric} 참여율</span>
                 </p>
                 <p className="text-xs text-muted-foreground tabular-nums">
                   표본 {temporalResonance.sampleCount}편 기준
