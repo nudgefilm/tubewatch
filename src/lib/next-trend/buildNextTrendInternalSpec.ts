@@ -636,6 +636,21 @@ export function buildNextTrendInternalSpec(
   const topTopic = candidates[0]?.topic ?? null;
   const durationHint = formatDurationHint(dur.avgDurationSec, dur.sampleCount);
 
+  // coreTopic: 제목·대본에 쓸 수 있는 짧고 깨끗한 주제어
+  // 우선순위: ① Gemini recommended_topics (짧은 구) → ② toActionTopic 출력에서 키워드 추출 → ③ null
+  const firstCleanGemini = recommendedTopics.find(
+    (t) => t.trim().length >= 4 && t.trim().length <= 40
+  ) ?? null;
+  function extractKeywordFromDirective(s: string): string | null {
+    const m = s.match(/[''']([^''']+)[''']/);
+    return m && m[1].length >= 2 ? m[1] : null;
+  }
+  const coreTopic: string | null =
+    firstCleanGemini?.trim() ??
+    (topTopic ? extractKeywordFromDirective(topTopic) : null);
+
+  const isShorts = dur.avgDurationSec != null && dur.avgDurationSec < 65;
+
   // ── 채널 특화 데이터 추출 ──────────────────────────────────────────────────
   const getRF = <T>(key: string, fb: T): T => {
     const v = (latestResult as Record<string, unknown> | null)?.[key];
@@ -702,8 +717,8 @@ export function buildNextTrendInternalSpec(
 
     // ── 기획 의도 ─────────────────────────────────────────────────────────────
     whyThisTopic: [
-      topTopic
-        ? `이 영상의 역할: **${topTopic}**으로 신규 검색 유입과 기존 구독자 재방문을 동시에 잡는 것.`
+      coreTopic
+        ? `이 영상의 역할: **${coreTopic}**으로 신규 검색 유입과 기존 구독자 재방문을 동시에 잡는 것.`
         : `이 영상의 역할: 채널의 현재 강점을 새로운 시청자층에게 닿게 하는 것.`,
       viewRatio
         ? `지금 해야 하는 이유: 이 방향의 영상이 채널 평균 대비 **${viewRatio}배** 조회를 기록했습니다. 이 흐름을 지금 이어가세요.`
@@ -732,9 +747,17 @@ export function buildNextTrendInternalSpec(
     })(),
 
     // ── 영상 기획안 (촬영 기준) ───────────────────────────────────────────────
-    videoPlanDraft: [
-      topTopic
-        ? `**컨셉** — ${topTopic}: 시청자가 영상 한 편으로 바로 실행할 수 있는 수준의 가이드`
+    videoPlanDraft: isShorts ? [
+      coreTopic
+        ? `**컨셉** — ${coreTopic}: 핵심 1가지를 60초 안에 압축 전달`
+        : `**컨셉** — 채널의 핵심 강점을 Shorts 포맷으로 압축 전달`,
+      `**Hook (0~3초)** — 결과 화면 또는 핵심 수치를 첫 프레임에 바로 등장시키세요.`,
+      `**본론 (3~45초)** — 단계 시연, 텍스트 설명 없이 화면 직접 보여주기. 자막은 핵심 단어만.`,
+      `**결론 (45~60초)** — "이게 핵심입니다" 한 줄 요약 + 구독/좋아요 CTA.`,
+      `**흐름** — Hook(0~3초) → 핵심 장면(3~45초) → 반전·결론·CTA(45~60초)`,
+    ].join("\n") : [
+      coreTopic
+        ? `**컨셉** — ${coreTopic}: 시청자가 영상 한 편으로 바로 실행할 수 있는 수준의 가이드`
         : `**컨셉** — 최근 반응이 좋았던 포맷을 유지하면서 구체적인 결과물을 보여주는 영상`,
       topVideoTitle
         ? `**핵심 장면 ①** — 오프닝: «${topVideoTitle}» 구조를 참고해 결과 장면부터 시작하세요.`
@@ -746,7 +769,7 @@ export function buildNextTrendInternalSpec(
 
     // ── 제목 후보 3안 ─────────────────────────────────────────────────────────
     titleCandidates: (() => {
-      const subject = topTopic ?? "이 주제";
+      const subject = coreTopic ?? "이 주제";
       const ratioText = viewRatio ? `조회수 ${viewRatio}배 차이 만든` : "채널에서 반응 좋았던";
       return [
         `${ratioText} — ${subject} 핵심만 정리 (바로 따라하기)`,
@@ -757,9 +780,13 @@ export function buildNextTrendInternalSpec(
 
     // ── 썸네일 방향 ──────────────────────────────────────────────────────────
     titleThumbnail: (() => {
-      const subject = topTopic ?? "핵심 정리";
+      const subject = coreTopic ?? "핵심 정리";
       const textOverlay = subject.length <= 14 ? subject : subject.split(" ").slice(0, 3).join(" ");
-      const repeatedKw = insights.repeatedTopics[0]?.title.match(/[''']([^''']+)[''']/)?.[1];
+      const repeatedTitle = insights.repeatedTopics[0]?.title ?? "";
+      const repeatedKw =
+        repeatedTitle.match(/'([^']+)'/)?.[1] ??
+        repeatedTitle.match(/"([^"]+)"/)?.[1] ??
+        null;
       return [
         `**텍스트 문구** — "${textOverlay}"`,
         viewRecord?.strength === "clear"
@@ -771,11 +798,10 @@ export function buildNextTrendInternalSpec(
 
     // ── 오프닝 훅 ────────────────────────────────────────────────────────────
     openingHook: (() => {
-      const subject = topTopic ?? "이 주제";
-      const shortSub = subject.split(" ").slice(0, 3).join(" ");
+      const subject = coreTopic ?? "이 주제";
       const hookLine = viewRatio
-        ? `"${shortSub}, 이것만 바꿨는데 조회수가 ${viewRatio}배가 됐습니다. 지금 바로 보여드릴게요."`
-        : `"${shortSub} — 결론부터 드릴게요. 오늘 영상 끝나면 바로 쓸 수 있습니다."`;
+        ? `"${subject}, 이것만 바꿨는데 조회수가 ${viewRatio}배가 됐습니다. 지금 바로 보여드릴게요."`
+        : `"${subject} — 결론부터 드릴게요. 오늘 영상 끝나면 바로 쓸 수 있습니다."`;
       return [
         `**1문장 훅** — ${hookLine}`,
         `  → 첫 3초 안에 "이 영상이 나에게 필요하다"는 신호를 줘야 이탈이 멈춥니다.`,
@@ -784,11 +810,19 @@ export function buildNextTrendInternalSpec(
 
     // ── 대본 구조 ────────────────────────────────────────────────────────────
     scriptOutline: (() => {
-      const subject = topTopic ?? "이 주제";
-      const shortSub = subject.split(" ").slice(0, 3).join(" ");
+      const subject = coreTopic ?? "이 주제";
+      if (isShorts) {
+        return [
+          `**① Hook** (0~3초) — 결과 화면 or 수치를 첫 컷에 등장시키세요.`,
+          `  대사: "${subject}, 결론부터 보여드릴게요."`,
+          `**② 핵심 장면** (3~45초) — 단계 시연, 자막은 핵심 단어만. 텍스트 설명 금지.`,
+          `**③ 반전·결론** (45~60초) — "이게 전부입니다" 한 줄 요약 + 구독/좋아요 CTA.`,
+          `  → 권장 길이: 60초 이하 (Shorts)`,
+        ].join("\n");
+      }
       return [
         `**① 오프닝** (0~15초)`,
-        `  대사: "${shortSub}, 결론부터 드릴게요. [핵심 수치 or 결과]. 처음부터 바로 따라할 수 있게 보여드립니다."`,
+        `  대사: "${subject}, 결론부터 드릴게요. [핵심 수치 or 결과]. 처음부터 바로 따라할 수 있게 보여드립니다."`,
         `**② 본론 전반** — ${formatDetail}`,
         `  각 단계 시작에 "Step N" 자막을 붙이고, 텍스트 설명보다 화면 직접 시연으로 구성하세요.`,
         `**③ 본론 후반** — 실전 적용 + 댓글 참여 유도`,
@@ -829,10 +863,10 @@ export function buildNextTrendInternalSpec(
     recommendedTags: Array.from(
       new Set([
         ...topTagsFromSnapshot,
-        ...topKeywords.filter((k) => k.length <= 10),
-        ...(topTopic ? topTopic.split(" ").filter((w) => w.length >= 2).slice(0, 2) : []),
+        ...topKeywords.filter((k) => k.length >= 2 && k.length <= 10),
+        ...(coreTopic ? coreTopic.split(" ").filter((w) => /^[가-힣a-zA-Z0-9]+$/.test(w) && w.length >= 2).slice(0, 2) : []),
       ])
-    ).filter((t) => t.length >= 2).slice(0, 5),
+    ).filter((t) => t.length >= 2 && t.length <= 15).slice(0, 5),
 
     viewingPoints,
   };
