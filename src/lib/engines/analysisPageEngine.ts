@@ -94,10 +94,21 @@ function mapToKpiData(vm: AnalysisPageViewModel) {
     ? parseNumFromItemValue(medianViewsItem.value)
     : avgViews != null ? Math.round(avgViews * 0.8) : 0
 
+  // 조회 흐름: 최신 절반 평균 vs 이전 절반 평균 비교 (단일 영상 의존 제거)
   const videosWithViews = vm.recentVideos.filter((v) => v.viewCount != null)
   let trendValue = 0
   let trendDir: "상승" | "유지" | "하락" = "유지"
-  if (videosWithViews.length >= 2) {
+  if (videosWithViews.length >= 4) {
+    const half = Math.floor(videosWithViews.length / 2)
+    const recentHalf = videosWithViews.slice(0, half)
+    const olderHalf = videosWithViews.slice(half)
+    const avgRecent = recentHalf.reduce((s, v) => s + (v.viewCount ?? 0), 0) / recentHalf.length
+    const avgOlder = olderHalf.reduce((s, v) => s + (v.viewCount ?? 0), 0) / olderHalf.length
+    if (avgOlder > 0) {
+      trendValue = Math.round(((avgRecent - avgOlder) / avgOlder) * 100)
+      trendDir = trendValue > 5 ? "상승" : trendValue < -5 ? "하락" : "유지"
+    }
+  } else if (videosWithViews.length >= 2) {
     const oldest = videosWithViews[videosWithViews.length - 1].viewCount ?? 0
     const newest = videosWithViews[0].viewCount ?? 0
     if (oldest > 0) {
