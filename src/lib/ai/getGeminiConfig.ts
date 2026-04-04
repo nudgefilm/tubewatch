@@ -214,7 +214,7 @@ export type TubeWatchAnalysisResult = {
             },
             video_plan_document: {
               type: "string",
-              description: "채널 실제 데이터(수치·영상 제목·패턴)를 인용한 전략 리포트 전문. 마크다운 형식. 7개 섹션 구성. 각 섹션 헤더: ## 숫자. 제목 (영문 부제). 길이 제한 없음 — 풍부하게 작성.",
+              description: "채널 실제 데이터(수치·영상 제목·패턴)를 인용한 전략 리포트 전문. 마크다운 형식. 6개 섹션(## 1~## 6). 필수 항목 — 빈 문자열 절대 금지. 500자 이상 실제 내용으로 작성.",
             },
           },
           required: ["topic", "why_this_topic", "pain_point", "content_angle", "opening_hook", "title_candidates", "recommended_tags", "viewing_points", "video_plan_document"],
