@@ -49,7 +49,7 @@ function parseNumFromItemValue(value: string): number {
 }
 
 function mapToChannelData(vm: AnalysisPageViewModel) {
-  const activityCard = vm.diagnosisCards.find((c) => c.title === "업로드·활동")
+  const activityCard = vm.diagnosisCards.find((c) => c.title === "채널 활동 패턴")
   const recentUploadsItem = activityCard?.items.find((i) => i.label.includes("30일"))
   const recentUploads = recentUploadsItem ? parseNumFromItemValue(recentUploadsItem.value) : 0
 
