@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { RefreshCw, Clock, Activity, Gauge, TrendingUp, History as HistoryIcon, BarChart3, ArrowDownToLine } from "lucide-react"
 import { AnalysisHeaderSection } from "./sections/HeaderSection"
@@ -123,6 +123,27 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
   const router = useRouter()
   const [isRequesting, setIsRequesting] = useState(false)
   const [requestError, setRequestError] = useState<string | null>(null)
+  const [isDownloading, setIsDownloading] = useState(false)
+  const diagnosisCaptureRef = useRef<HTMLDivElement>(null)
+
+  async function handleDiagnosisDownload() {
+    if (!diagnosisCaptureRef.current || isDownloading) return
+    setIsDownloading(true)
+    try {
+      const html2canvas = (await import("html2canvas")).default
+      const canvas = await html2canvas(diagnosisCaptureRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+      })
+      const link = document.createElement("a")
+      link.download = `채널진단지표_${viewModel?.channel?.title ?? "분석"}.png`
+      link.href = canvas.toDataURL("image/png")
+      link.click()
+    } finally {
+      setIsDownloading(false)
+    }
+  }
 
   async function handleReanalyze() {
     if (!viewModel?.selectedChannelId) {
@@ -326,13 +347,21 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
             <div className="flex items-center justify-between mt-0.5">
               <p className="text-xs text-muted-foreground">업로드 빈도·조회 반응·콘텐츠 구조 등 핵심 수치를 구간별로 확인합니다</p>
               <div className="flex items-center gap-3 ml-3 shrink-0">
-                <ArrowDownToLine className="size-6 text-primary" strokeWidth={2.5} />
+                <button
+                  onClick={handleDiagnosisDownload}
+                  disabled={isDownloading}
+                  title="이미지로 저장"
+                  className="flex items-center gap-1 text-primary hover:text-primary/70 transition-colors disabled:opacity-50"
+                >
+                  <ArrowDownToLine className="size-6" strokeWidth={2.5} />
+                  {isDownloading && <span className="text-xs">저장 중…</span>}
+                </button>
                 <span className="text-lg leading-none select-none">🔗</span>
                 <span className="text-base font-heading font-medium tracking-[-0.02em] leading-none">TubeWatch™</span>
               </div>
             </div>
           </div>
-          <div className="grid gap-4 lg:grid-cols-[1.2fr_2fr]">
+          <div ref={diagnosisCaptureRef} className="grid gap-4 lg:grid-cols-[1.2fr_2fr]">
             <AnalysisScoreOverview score={score} sectionScores={sectionScores} />
             <AnalysisKpiCards data={kpiData} />
           </div>
