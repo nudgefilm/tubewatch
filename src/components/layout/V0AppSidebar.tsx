@@ -158,6 +158,9 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
 
   React.useEffect(() => {
     const onUpdate = () => {
+      // localStorage에서 즉시 동기적으로 반영 (fetch 완료를 기다리지 않음)
+      const stored = readSelectedChannelIdFromStorage()
+      if (stored) setSelectedChannelId(stored)
       void loadChannels()
     }
     window.addEventListener("tubewatch-channels-updated", onUpdate)
