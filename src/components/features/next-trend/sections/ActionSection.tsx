@@ -7,6 +7,7 @@ import type { ExecutionAction, ViewingPointGauge } from "@/mocks/next-trend"
 
 interface NextTrendActionSectionProps {
   data: ExecutionAction[]
+  topCandidate?: { topic: string; reason: string } | null
 }
 
 /** **bold** 마크업과 들여쓰기 줄을 처리하는 리치 텍스트 렌더러 */
@@ -81,7 +82,7 @@ function SectionRow({
 }
 
 /** 기획안 카드 1장 (다운로드 기능 포함) */
-function ActionCard({ action }: { action: ExecutionAction }) {
+function ActionCard({ action, topCandidate }: { action: ExecutionAction; topCandidate?: { topic: string; reason: string } | null }) {
   const cardRef = useRef<HTMLDivElement>(null)
 
   async function handleDownload() {
@@ -134,6 +135,17 @@ function ActionCard({ action }: { action: ExecutionAction }) {
           <span>이미지 저장</span>
         </button>
       </div>
+
+      {/* 1순위 주제 요약 배너 */}
+      {action.experimentPriority === 1 && topCandidate && (
+        <div className="px-5 py-4 border-b bg-primary/5">
+          <p className="text-[11px] font-medium text-primary/70 uppercase tracking-wide mb-1.5">다음 영상 주제 · 1순위</p>
+          <p className="text-xl font-bold leading-snug break-words text-foreground">{topCandidate.topic}</p>
+          {topCandidate.reason && (
+            <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">{topCandidate.reason}</p>
+          )}
+        </div>
+      )}
 
       <div className="divide-y">
 
@@ -251,11 +263,11 @@ function ActionCard({ action }: { action: ExecutionAction }) {
   )
 }
 
-export function NextTrendActionSection({ data }: NextTrendActionSectionProps) {
+export function NextTrendActionSection({ data, topCandidate }: NextTrendActionSectionProps) {
   return (
     <div className="space-y-4">
       {data.map((action) => (
-        <ActionCard key={action.id} action={action} />
+        <ActionCard key={action.id} action={action} topCandidate={topCandidate} />
       ))}
     </div>
   )
