@@ -456,7 +456,38 @@ export async function POST(request: Request) {
   console.log("[Analysis Start API] created run:", savedRow.id);
 
   // 페이지별 AI 콘텐츠를 analysis_module_results에 저장 (non-fatal)
-  {
+  if (isDeltaRun && existingSnapshot?.id) {
+    // Delta run: 신규 Gemini 호출 없음 → 이전 snapshot의 모듈 결과를 새 snapshot으로 복사
+    const { data: prevModules, error: prevModErr } = await supabaseAdmin
+      .from("analysis_module_results")
+      .select("module_key, result")
+      .eq("snapshot_id", existingSnapshot.id)
+      .eq("user_id", user.id)
+      .eq("status", "completed");
+
+    if (prevModErr) {
+      console.error("[Analysis Start API] delta: prev module_results fetch failed (non-fatal):", prevModErr.message);
+    } else if (prevModules && prevModules.length > 0) {
+      const copyRows = (prevModules as Array<{ module_key: string; result: Record<string, unknown> }>).map((m) => ({
+        user_id: user.id,
+        channel_id: userChannelId,
+        snapshot_id: savedRow.id,
+        module_key: m.module_key,
+        result: m.result,
+        status: "completed",
+        analyzed_at: now,
+      }));
+      const { error: copyErr } = await supabaseAdmin.from("analysis_module_results").insert(copyRows);
+      if (copyErr) {
+        console.error("[Analysis Start API] delta: module_results copy failed (non-fatal):", copyErr.message);
+      } else {
+        console.log("[Analysis Start API] delta: module_results copied from", existingSnapshot.id, "→", savedRow.id, "keys:", prevModules.map((m) => m.module_key));
+      }
+    } else {
+      console.log("[Analysis Start API] delta: no previous module_results to copy (snapshot:", existingSnapshot.id, ")");
+    }
+  } else {
+    // Full run: Gemini 신규 호출 결과를 저장
     const modulesToSave: Array<{ module_key: string; result: Record<string, unknown> }> = [];
     if (geminiSuccess.result.next_trend_plan) {
       modulesToSave.push({ module_key: "next_trend", result: { plan: geminiSuccess.result.next_trend_plan } });
