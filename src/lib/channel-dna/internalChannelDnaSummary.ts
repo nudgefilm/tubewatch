@@ -409,9 +409,9 @@ function buildFormatDistributionVm(videos: NormalizedSnapshotVideo[]): FormatDis
   // ── 미드폼 공백 계산 ─────────────────────────────────────────────────────
   let midFormGapPercent: number | null = null;
   if (hasDurationData) {
-    const midBucket = durationBuckets.find((b) => b.colorKey === "short");
-    const midPercent = midBucket?.percentage ?? 0;
-    midFormGapPercent = 100 - midPercent;
+    midFormGapPercent = durationBuckets
+      .filter((b) => b.colorKey !== "short")
+      .reduce((sum, b) => sum + b.percentage, 0);
   }
 
   // ── 카테고리 일관성 계산 ──────────────────────────────────────────────────

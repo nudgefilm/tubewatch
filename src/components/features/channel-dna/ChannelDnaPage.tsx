@@ -37,7 +37,7 @@ interface ChannelDnaPageProps {
 
 export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isStarterPlan = false }: ChannelDnaPageProps) {
   // Real data path
-  if (viewModel) {
+  if (viewModel?.hasChannel) {
     const vm = viewModel.internalChannelDnaSummary
     const { structureSummary, dnaCards, formatDistribution } = buildChannelDnaPageSections(vm)
 
