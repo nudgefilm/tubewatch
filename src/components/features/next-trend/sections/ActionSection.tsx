@@ -8,17 +8,38 @@ interface NextTrendActionSectionProps {
   data: ExecutionAction[]
 }
 
-function MultiLineText({ text }: { text: string }) {
-  return (
-    <span>
-      {text.split("\n").map((line, i) => (
-        <span key={i}>
-          {line}
-          {i < text.split("\n").length - 1 && <br />}
-        </span>
-      ))}
-    </span>
-  )
+/** **bold** 마크업과 들여쓰기 줄을 처리하는 리치 텍스트 렌더러 */
+function RichText({ text }: { text: string }) {
+  function parseLine(line: string, key: number, isLast: boolean) {
+    const isIndented = line.startsWith("  ")
+    const trimmed = isIndented ? line.trimStart() : line
+
+    // **text** → bold + primary color
+    const parts = trimmed.split(/(\*\*[^*]+\*\*)/)
+    const rendered = parts.map((part, i) => {
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return (
+          <strong key={i} className="font-semibold text-foreground">
+            {part.slice(2, -2)}
+          </strong>
+        )
+      }
+      return <span key={i}>{part}</span>
+    })
+
+    return (
+      <span
+        key={key}
+        className={isIndented ? "text-xs text-muted-foreground" : ""}
+      >
+        {rendered}
+        {!isLast && <br />}
+      </span>
+    )
+  }
+
+  const lines = text.split("\n")
+  return <span>{lines.map((line, i) => parseLine(line, i, i === lines.length - 1))}</span>
 }
 
 export function NextTrendActionSection({ data }: NextTrendActionSectionProps) {
@@ -51,10 +72,10 @@ export function NextTrendActionSection({ data }: NextTrendActionSectionProps) {
             {/* 영상 개요 */}
             <div className="flex items-start gap-3 px-5 py-4">
               <Video className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-              <div className="space-y-1 min-w-0">
+              <div className="space-y-1.5 min-w-0">
                 <p className="text-xs font-medium text-muted-foreground">영상 개요</p>
                 <p className="text-sm leading-relaxed break-words">
-                  <MultiLineText text={action.videoTitle} />
+                  <RichText text={action.videoTitle} />
                 </p>
               </div>
             </div>
@@ -62,10 +83,10 @@ export function NextTrendActionSection({ data }: NextTrendActionSectionProps) {
             {/* 제목 · 썸네일 방향 */}
             <div className="flex items-start gap-3 px-5 py-4">
               <Image className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-              <div className="space-y-1 min-w-0">
+              <div className="space-y-1.5 min-w-0">
                 <p className="text-xs font-medium text-muted-foreground">제목 · 썸네일 방향</p>
                 <p className="text-sm leading-relaxed break-words">
-                  <MultiLineText text={action.thumbnailDirection} />
+                  <RichText text={action.thumbnailDirection} />
                 </p>
               </div>
             </div>
@@ -74,10 +95,10 @@ export function NextTrendActionSection({ data }: NextTrendActionSectionProps) {
             {action.openingHook && action.openingHook !== "—" && (
               <div className="flex items-start gap-3 px-5 py-4">
                 <Zap className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                <div className="space-y-1 min-w-0">
+                <div className="space-y-1.5 min-w-0">
                   <p className="text-xs font-medium text-muted-foreground">오프닝 훅</p>
                   <p className="text-sm leading-relaxed break-words">
-                    <MultiLineText text={action.openingHook} />
+                    <RichText text={action.openingHook} />
                   </p>
                 </div>
               </div>
@@ -87,22 +108,22 @@ export function NextTrendActionSection({ data }: NextTrendActionSectionProps) {
             {action.scriptOutline && action.scriptOutline !== "—" && (
               <div className="flex items-start gap-3 px-5 py-4">
                 <AlignLeft className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                <div className="space-y-1 min-w-0">
+                <div className="space-y-1.5 min-w-0">
                   <p className="text-xs font-medium text-muted-foreground">대본 구성</p>
                   <p className="text-sm leading-relaxed break-words">
-                    <MultiLineText text={action.scriptOutline} />
+                    <RichText text={action.scriptOutline} />
                   </p>
                 </div>
               </div>
             )}
 
-            {/* 콘텐츠 플랜 */}
+            {/* 제작 팁 */}
             <div className="flex items-start gap-3 px-5 py-4">
               <FileText className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-              <div className="space-y-1 min-w-0">
-                <p className="text-xs font-medium text-muted-foreground">콘텐츠 플랜</p>
+              <div className="space-y-1.5 min-w-0">
+                <p className="text-xs font-medium text-muted-foreground">제작 팁</p>
                 <p className="text-sm leading-relaxed break-words">
-                  <MultiLineText text={action.contentPlan} />
+                  <RichText text={action.contentPlan} />
                 </p>
               </div>
             </div>
