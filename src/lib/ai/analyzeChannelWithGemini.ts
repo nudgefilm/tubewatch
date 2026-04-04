@@ -297,14 +297,36 @@ function normalizeNextTrendPlan(raw: unknown): NextTrendAIPlan | null {
   if (!topic || !why || !pain) return null;
   const titles = cleanInsightArray(normalizeStringArray(obj.title_candidates), 3);
   const tags = cleanInsightArray(normalizeStringArray(obj.recommended_tags), 8);
+
+  // viewing_points normalization: clamp to 1–5 integers
+  const vpRaw = obj.viewing_points && typeof obj.viewing_points === "object" && !Array.isArray(obj.viewing_points)
+    ? (obj.viewing_points as Record<string, unknown>)
+    : null;
+  const clampScore = (v: unknown) => {
+    const n = typeof v === "number" ? v : typeof v === "string" ? parseFloat(v) : NaN;
+    return Number.isFinite(n) ? Math.max(1, Math.min(5, Math.round(n))) : 3;
+  };
+
   return {
     topic: truncateToLimit(topic, 40),
     why_this_topic: truncateToLimit(why, 300),
     pain_point: truncateToLimit(pain, 200),
     content_angle: truncateToLimit(normalizeString(obj.content_angle) ?? "", 150),
-    opening_hook: truncateToLimit(normalizeString(obj.opening_hook) ?? "", 150),
+    opening_hook: truncateToLimit(normalizeString(obj.opening_hook) ?? "", 200),
     title_candidates: titles.length > 0 ? titles : [],
     recommended_tags: tags,
+    script_outline: truncateToLimit(normalizeString(obj.script_outline) ?? "", 400),
+    thumbnail_direction: truncateToLimit(normalizeString(obj.thumbnail_direction) ?? "", 300),
+    content_plan: truncateToLimit(normalizeString(obj.content_plan) ?? "", 400),
+    exit_prevention: truncateToLimit(normalizeString(obj.exit_prevention) ?? "", 400),
+    expected_reaction: truncateToLimit(normalizeString(obj.expected_reaction) ?? "", 400),
+    viewing_points: {
+      popularity:      clampScore(vpRaw?.popularity),
+      expertise:       clampScore(vpRaw?.expertise),
+      stimulation:     clampScore(vpRaw?.stimulation),
+      informativeness: clampScore(vpRaw?.informativeness),
+      fan_service:     clampScore(vpRaw?.fan_service),
+    },
   };
 }
 
@@ -701,6 +723,12 @@ ${videoLines.join("\n\n")}
 - opening_hook: 시청자가 처음 15초 안에 "계속 봐야겠다"고 느낄 오프닝 방향 1문장. 실제 대사체 권장.
 - title_candidates: 클릭률을 높일 제목 후보 3개. 각 30자 이내. 번호·기호 없이 제목만.
 - recommended_tags: SEO에 적합한 태그 5~8개. 단어 또는 짧은 구.
+- script_outline: 이 영상의 대본 구조. 3~4개 섹션. 형식: "도입(0~30초): [내용]\n전개1: [내용]\n전개2: [내용]\n마무리: [내용]". 각 섹션 한 줄. topic·content_angle에 맞는 구체적 내용.
+- thumbnail_direction: 썸네일 구도·텍스트·색상 방향 2~3문장. "왼쪽에 [요소], 오른쪽에 [요소]" 형태의 구체적 구성 제시. 이 영상 주제 맥락에 맞게.
+- content_plan: 제작 팁 3가지. "1. ... 2. ... 3. ..." 번호 목록. CTR·시청 유지·커뮤니티 반응 관점에서 이 영상 주제에 맞는 실행 팁.
+- exit_prevention: 이 영상에서 이탈을 막는 방법 2~3가지. 각 방법은 한 문장. 오프닝 훅·중간 전환·예고 포인트 중 주제에 맞는 것 선택.
+- expected_reaction: 업로드 후 48시간 체크포인트 3항목. CTR 기준·시청 유지율 목표·댓글 반응 예상 각 한 문장.
+- viewing_points: 이 영상 주제 기준 5개 지표를 1~5 정수로 평가. 채널 특성과 주제 성격을 반영해 차별화된 점수 부여. 모두 3점 금지.
 
 [channel_dna_narrative 작성 규칙]
 - content_patterns, target_audience, strengths를 종합해 채널의 핵심 성격·포지션을 3~4문장으로 자연스럽게 서술

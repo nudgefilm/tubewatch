@@ -883,20 +883,34 @@ export function buildNextTrendInternalSpec(
     viewingPoints,
   };
 
-  // AI plan이 있으면 핵심 actions 필드를 AI 생성 콘텐츠로 교체
+  // AI plan이 있으면 모든 actions 필드를 AI 생성 콘텐츠로 교체
   const finalActions: NextTrendActionsVm = aiPlan
     ? {
         ...actions,
         whyThisTopic: aiPlan.why_this_topic,
         painPoint: aiPlan.pain_point,
-        openingHook: `**오프닝 방향** — ${aiPlan.opening_hook}\n  → 첫 15초 안에 "이 영상이 나에게 필요하다"는 신호를 줘야 이탈이 멈춥니다.`,
+        openingHook: aiPlan.opening_hook,
         titleCandidates: aiPlan.title_candidates.length > 0 ? aiPlan.title_candidates : actions.titleCandidates,
         recommendedTags: aiPlan.recommended_tags.length > 0 ? aiPlan.recommended_tags : actions.recommendedTags,
-        // videoPlanDraft의 컨셉 줄만 AI topic으로 교체 (나머지 구조는 유지)
         videoPlanDraft: actions.videoPlanDraft.replace(
           /^\*\*컨셉\*\* — [^\n]*/,
           `**컨셉** — ${aiPlan.topic}: ${aiPlan.content_angle}`
         ),
+        // 신규 AI 필드 — 기존 템플릿 전면 교체
+        scriptOutline: aiPlan.script_outline || actions.scriptOutline,
+        titleThumbnail: aiPlan.thumbnail_direction || actions.titleThumbnail,
+        contentPlan: aiPlan.content_plan || actions.contentPlan,
+        exitPrevention: aiPlan.exit_prevention || actions.exitPrevention,
+        expectedReaction: aiPlan.expected_reaction || actions.expectedReaction,
+        viewingPoints: aiPlan.viewing_points
+          ? [
+              { label: "대중성",  score: aiPlan.viewing_points.popularity },
+              { label: "전문성",  score: aiPlan.viewing_points.expertise },
+              { label: "자극도",  score: aiPlan.viewing_points.stimulation },
+              { label: "정보성",  score: aiPlan.viewing_points.informativeness },
+              { label: "팬서비스", score: aiPlan.viewing_points.fan_service },
+            ]
+          : actions.viewingPoints,
       }
     : actions;
 

@@ -8,6 +8,18 @@ export type NextTrendAIPlan = {
   opening_hook: string;       // 오프닝 훅 방향 (1문장)
   title_candidates: string[]; // 제목 후보 3개 (각 30자 이내)
   recommended_tags: string[]; // 추천 태그 5~8개
+  script_outline: string;     // 대본 구조 (섹션별 소제목+핵심내용 한 줄)
+  thumbnail_direction: string; // 썸네일 구도·텍스트·색상 방향 (2~3문장)
+  content_plan: string;        // 제작 팁 3가지 (번호 목록)
+  exit_prevention: string;     // 이탈 방지 포인트 2~3가지
+  expected_reaction: string;   // 업로드 후 48시간 체크포인트
+  viewing_points: {            // 시청 포인트 게이지 (1~5 정수)
+    popularity: number;        // 대중성
+    expertise: number;         // 전문성
+    stimulation: number;       // 자극도
+    informativeness: number;   // 정보성
+    fan_service: number;       // 팬서비스
+  };
 };
 
 export type ActionExecutionHint = {
@@ -187,8 +199,40 @@ export type TubeWatchAnalysisResult = {
               items: { type: "string" },
               description: "SEO에 적합한 태그 5~8개. 단어 또는 짧은 구.",
             },
+            script_outline: {
+              type: "string",
+              description: "이 영상의 대본 구조. 3~4개 섹션. 형식: '도입(0~30초): [핵심내용]\\n전개1: [핵심내용]\\n전개2: [핵심내용]\\n마무리: [핵심내용]'. 각 섹션 한 줄로 작성.",
+            },
+            thumbnail_direction: {
+              type: "string",
+              description: "썸네일 구도·텍스트·색상 방향 2~3문장. 이 영상 주제에 맞게 클릭을 유도하는 시각적 요소를 구체적으로 제시.",
+            },
+            content_plan: {
+              type: "string",
+              description: "업로드 전후 제작 팁 3가지. 번호 목록(1. 2. 3.). CTR·시청 유지·커뮤니티 반응 관점에서 이 영상 주제에 맞는 구체적 팁.",
+            },
+            exit_prevention: {
+              type: "string",
+              description: "이 영상 주제에서 시청자 이탈을 막는 구체적 방법 2~3가지. 훅·전환 포인트·중간 예고 등 실행 가능한 기법 중심.",
+            },
+            expected_reaction: {
+              type: "string",
+              description: "업로드 후 48시간 체크포인트. CTR 기준값·시청 유지율 목표·댓글 반응 예상을 각 1문장씩 서술.",
+            },
+            viewing_points: {
+              type: "object",
+              description: "이 영상 주제 기준 5개 지표를 1~5 정수로 평가.",
+              properties: {
+                popularity:     { type: "integer", minimum: 1, maximum: 5, description: "대중성 — 일반 시청자 접근성" },
+                expertise:      { type: "integer", minimum: 1, maximum: 5, description: "전문성 — 깊이와 정보 밀도" },
+                stimulation:    { type: "integer", minimum: 1, maximum: 5, description: "자극도 — 감정·호기심 유발 강도" },
+                informativeness:{ type: "integer", minimum: 1, maximum: 5, description: "정보성 — 실용적 정보 밀도" },
+                fan_service:    { type: "integer", minimum: 1, maximum: 5, description: "팬서비스 — 기존 구독자 만족도" },
+              },
+              required: ["popularity", "expertise", "stimulation", "informativeness", "fan_service"],
+            },
           },
-          required: ["topic", "why_this_topic", "pain_point", "content_angle", "opening_hook", "title_candidates", "recommended_tags"],
+          required: ["topic", "why_this_topic", "pain_point", "content_angle", "opening_hook", "title_candidates", "recommended_tags", "script_outline", "thumbnail_direction", "content_plan", "exit_prevention", "expected_reaction", "viewing_points"],
         },
         channel_dna_narrative: {
           type: "string",
