@@ -713,19 +713,28 @@ export function buildNextTrendInternalSpec(
     { label: "팬서비스", score: g(sectionScores.channelActivity ?? 50) },
   ];
 
+  // 한국어 조사 "로"/"으로" 선택 (받침 없음·ㄹ받침 → "로", 그 외 → "으로")
+  function particleRo(s: string): string {
+    const code = s.charCodeAt(s.length - 1);
+    if (code < 0xAC00 || code > 0xD7A3) return "로";
+    const j = (code - 0xAC00) % 28;
+    return j === 0 || j === 8 ? "로" : "으로";
+  }
+
   const actions: NextTrendActionsVm = {
 
     // ── 기획 의도 ─────────────────────────────────────────────────────────────
     whyThisTopic: [
       coreTopic
-        ? `이 영상의 역할: **${coreTopic}**으로 신규 검색 유입과 기존 구독자 재방문을 동시에 잡는 것.`
+        ? `이 영상의 역할: **${coreTopic}**${particleRo(coreTopic)} 신규 검색 유입과 기존 구독자 재방문을 동시에 잡는 것.`
         : `이 영상의 역할: 채널의 현재 강점을 새로운 시청자층에게 닿게 하는 것.`,
       viewRatio
         ? `지금 해야 하는 이유: 이 방향의 영상이 채널 평균 대비 **${viewRatio}배** 조회를 기록했습니다. 이 흐름을 지금 이어가세요.`
         : `지금 해야 하는 이유: 팬덤 응집도 **${loyaltyGrade}** — 조회 100회당 **${per100Views}회** 반응. ${sectionScores.audienceResponse != null ? `시청자 응답률 **${Math.round(sectionScores.audienceResponse)}점** / 100점.` : ""}`,
-      strengths[0]
-        ? `기대 효과: 채널 강점 **'${strengths[0].slice(0, 40)}'** 을 전면에 내세워 이탈을 최소화하면서 신규 구독자를 확보하세요.`
-        : `기대 효과: 검색 유입과 시청 완료율을 동시에 높일 수 있는 구조입니다.`,
+      // strengths[0]이 짧은 키워드 구일 때만 태그라인으로 사용, 긴 데이터 문장은 무시
+      strengths[0] && strengths[0].length <= 20
+        ? `기대 효과: 채널 강점 **'${strengths[0]}'**을 전면에 내세워 이탈을 최소화하면서 신규 구독자를 확보하세요.`
+        : `기대 효과: 채널의 강점을 전면에 배치해 검색 유입과 시청 완료율을 동시에 높이세요.`,
     ].join("\n"),
 
     // ── 문제 진단 & 해결 방향 ────────────────────────────────────────────────
@@ -852,19 +861,22 @@ export function buildNextTrendInternalSpec(
 
     // ── 예상 시청자 반응 ──────────────────────────────────────────────────────
     expectedReaction: [
+      // targetAudience[0]이 완전한 문장이므로 독립 줄로 표시, 이후 반응 예측 문장과 분리
       targetAudience[0]
-        ? `**${targetAudience[0]}** 중심으로 '써먹을 수 있었다'는 댓글 반응이 예상됩니다.`
+        ? `**예상 시청자** — ${targetAudience[0]}`
         : `기존 구독자 중심으로 실용적 정보에 대한 긍정 반응이 예상됩니다.`,
+      targetAudience[0] ? `'써먹을 수 있었다'는 댓글 반응이 예상됩니다.` : "",
       `초반 24시간 **CTR**과 **시청 유지율**을 확인하세요. 채널 평균 이상이면 후속편을 바로 기획하세요.`,
       `  → 2~3편 테스트 후 반응이 좋은 포맷을 시리즈로 확장하세요.`,
-    ].join("\n"),
+    ].filter(Boolean).join("\n"),
 
     // ── 추천 태그 ─────────────────────────────────────────────────────────────
     recommendedTags: Array.from(
       new Set([
         ...topTagsFromSnapshot,
         ...topKeywords.filter((k) => k.length >= 2 && k.length <= 10),
-        ...(coreTopic ? coreTopic.split(" ").filter((w) => /^[가-힣a-zA-Z0-9]+$/.test(w) && w.length >= 2).slice(0, 2) : []),
+        // coreTopic이 단일 단어(공백 없음)일 때만 태그로 추가 — 복합어 쪼개기 금지
+        ...(coreTopic && !coreTopic.includes(" ") && coreTopic.length <= 10 ? [coreTopic] : []),
       ])
     ).filter((t) => t.length >= 2 && t.length <= 15).slice(0, 5),
 
