@@ -110,6 +110,8 @@ function toExecutionActions(vm: NextTrendActionsVm) {
       id: "action-1",
       videoTitle: vm.videoPlanDraft,
       thumbnailDirection: vm.titleThumbnail,
+      openingHook: vm.openingHook,
+      scriptOutline: vm.scriptOutline,
       contentPlan: vm.contentPlan,
       experimentPriority: 1,
     },

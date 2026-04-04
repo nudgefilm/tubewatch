@@ -49,6 +49,8 @@ export type NextTrendHintsVm = {
 export type NextTrendActionsVm = {
   videoPlanDraft: string;
   titleThumbnail: string;
+  openingHook: string;
+  scriptOutline: string;
   contentPlan: string;
 };
 
@@ -618,19 +620,48 @@ export function buildNextTrendInternalSpec(
     contentAngle: insights.trendSummary,
   };
 
+  const topTopic = candidates[0]?.topic ?? null;
+  const durationHint = formatDurationHint(dur.avgDurationSec, dur.sampleCount);
+
   const actions: NextTrendActionsVm = {
     videoPlanDraft: [
-      `1) ${insights.trendSummary}`,
-      candidates[0]
-        ? `2) 지금 만들 영상: ${candidates[0].topic}`
-        : "2) 후보 신호가 없으면 최근 반응이 좋았던 편과 동일 포맷으로 1편 먼저 제작하세요.",
-      `3) 포맷 방향: ${formatHeadline}`,
+      topTopic
+        ? `주제: ${topTopic}`
+        : "주제: 후보 신호가 없습니다. 최근 반응이 좋았던 편과 동일 포맷으로 1편 먼저 제작하세요.",
+      `트렌드 요약: ${insights.trendSummary}`,
+      `포맷 방향: ${formatHeadline}`,
     ].join("\n"),
-    titleThumbnail:
-      "제목: 반복 키워드 + 이번 편만의 구체 숫자·기간을 앞쪽에 배치하세요. 썸네일: 대표 프레임 + 짧은 라벨로 클릭 기대값을 맞추세요.",
+    titleThumbnail: [
+      `[제목] 반복 확인된 키워드를 앞부분에 배치하고 구체적인 숫자·기간을 함께 쓰세요.`,
+      insights.repeatedTopics[0]?.title
+        ? `  → 표본에서 반복된 표현: '${insights.repeatedTopics[0].title.slice(0, 40)}'`
+        : `  → 표본 상위 검색 키워드를 제목 첫 어절에 위치시키세요.`,
+      `[썸네일] 채널의 기존 색·구도를 유지하면서 대표 프레임 1컷 + 짧은 라벨 텍스트를 배치하세요.`,
+      `  → 클릭베이트는 시청 완료율을 낮춥니다. 기대값과 내용을 일치시키세요.`,
+    ].join("\n"),
+    openingHook: [
+      `[첫 15초 훅 전략]`,
+      `결론·핵심 숫자·변화 포인트를 오프닝에서 먼저 공개하세요. 시청자가 "끝까지 봐야 할 이유"를 즉시 파악하게 만드는 것이 목표입니다.`,
+      topTopic
+        ? `  → 예시: "${topTopic}에 대해 많이들 궁금해하시는 이유, 지금 바로 보여드릴게요."`
+        : `  → 질문형 또는 숫자형 오프닝이 초반 이탈률을 낮추는 데 효과적입니다.`,
+      `초반 15초 이탈률이 낮아지면 알고리즘 추천 가중치도 함께 올라갑니다.`,
+    ].join("\n"),
+    scriptOutline: [
+      `① 오프닝 (0~15초)  — 결론 또는 핵심 포인트 선공개, 시청 유지 유도`,
+      `② 본론 전반  — ${formatDetail}`,
+      `③ 본론 후반  — 실전 적용 사례 또는 대안 비교. 시청자 공감 포인트를 중심으로 전개하세요.`,
+      `④ 클로징 (마지막 30초)  — 핵심 내용 한 줄 요약 + 다음 편 예고 또는 구독·댓글 CTA`,
+      `· 권장 길이: ${durationHint}`,
+      insights.formatChanges[1]
+        ? `· 추가 포맷 신호: ${insights.formatChanges[1].title}`
+        : "",
+    ]
+      .filter(Boolean)
+      .join("\n"),
     contentPlan: [
       formatDetail,
-      formatDurationHint(dur.avgDurationSec, dur.sampleCount),
+      durationHint,
       insights.formatChanges[1]
         ? `추가 포맷 신호: ${insights.formatChanges[1].title}`
         : "",
@@ -704,6 +735,8 @@ export function buildNextTrendInternalBlocksSkipped(
     actions: {
       videoPlanDraft: summaryLine,
       titleThumbnail: "—",
+      openingHook: "—",
+      scriptOutline: "—",
       contentPlan: summaryLine,
     },
   };

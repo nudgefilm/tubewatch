@@ -47,6 +47,8 @@ export interface ExecutionAction {
   id: string
   videoTitle: string
   thumbnailDirection: string
+  openingHook: string
+  scriptOutline: string
   contentPlan: string
   experimentPriority: number
 }
@@ -264,24 +266,12 @@ export const executionHints: ExecutionHint[] = [
 export const executionActions: ExecutionAction[] = [
   {
     id: "1",
-    videoTitle: "AI 도구로 업무 시간 50% 줄이는 실전 가이드",
-    thumbnailDirection: "작업 전후 비교 이미지 + '50% 절약' 텍스트",
-    contentPlan: "도구 소개 → 실제 적용 → 시간 비교 → 요약",
+    videoTitle: "주제: AI 도구 활용 실무 팁\n트렌드 요약: 표본 내 AI 관련 편이 평균 대비 2.3배 조회를 기록했습니다.\n포맷 방향: 실전 적용 중심의 단계별 튜토리얼",
+    thumbnailDirection: "[제목] 반복 확인된 키워드 'AI 도구'를 앞부분에 배치하고 구체적인 숫자(예: '50% 절약', '3배 빠르게')를 함께 쓰세요.\n  → 표본에서 반복된 표현: 'AI 도구 활용'\n[썸네일] 채널의 기존 색·구도를 유지하면서 작업 전후 비교 이미지 + 짧은 라벨 텍스트를 배치하세요.\n  → 클릭베이트는 시청 완료율을 낮춥니다. 기대값과 내용을 일치시키세요.",
+    openingHook: "[첫 15초 훅 전략]\n결론·핵심 숫자·변화 포인트를 오프닝에서 먼저 공개하세요. 시청자가 '끝까지 봐야 할 이유'를 즉시 파악하게 만드는 것이 목표입니다.\n  → 예시: 'AI 도구 하나로 제 업무 시간이 절반으로 줄었습니다. 오늘 바로 따라할 수 있게 보여드릴게요.'\n초반 15초 이탈률이 낮아지면 알고리즘 추천 가중치도 함께 올라갑니다.",
+    scriptOutline: "① 오프닝 (0~15초)  — 핵심 결과(시간 절감 수치) 선공개, 시청 유지 유도\n② 본론 전반  — 도구 소개 및 설치·설정 단계별 설명\n③ 본론 후반  — 실전 적용 사례 시연. 시청자 공감 포인트(흔한 실수·해결법)를 중심으로 전개하세요.\n④ 클로징 (마지막 30초)  — 핵심 내용 한 줄 요약 + 다음 편 예고 또는 구독·댓글 CTA\n· 권장 길이: 표본 평균 기준 8~12분 내외",
+    contentPlan: "단계별 튜토리얼 포맷\n표본 평균 재생 길이 기준 8~12분 내외를 목표로 하세요.\n추가 포맷 신호: 짧은 요약 클립(1분 이내 Shorts)을 병행하면 유입 경로가 넓어집니다.",
     experimentPriority: 1,
-  },
-  {
-    id: "2",
-    videoTitle: "완전 초보를 위한 시작 가이드 (2024 최신판)",
-    thumbnailDirection: "친근한 표정 + '초보 환영' 배지",
-    contentPlan: "준비물 → 첫 단계 → 흔한 실수 → 다음 단계 안내",
-    experimentPriority: 2,
-  },
-  {
-    id: "3",
-    videoTitle: "A vs B 솔직 비교 (어떤 게 맞을까?)",
-    thumbnailDirection: "양측 로고 대비 + 물음표",
-    contentPlan: "각 장단점 → 사용 사례 → 추천 상황",
-    experimentPriority: 3,
   },
 ]
 
