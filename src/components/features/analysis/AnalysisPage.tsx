@@ -157,11 +157,24 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
         scale: 2,
         useCORS: true,
         backgroundColor: "#ffffff",
+        logging: false,
       })
-      const link = document.createElement("a")
-      link.download = `채널진단지표_${viewModel?.channel?.title ?? "분석"}.png`
-      link.href = canvas.toDataURL("image/png")
-      link.click()
+      await new Promise<void>((resolve, reject) => {
+        canvas.toBlob((blob) => {
+          if (!blob) { reject(new Error("blob null")); return }
+          const url = URL.createObjectURL(blob)
+          const link = document.createElement("a")
+          link.download = `채널진단지표_${viewModel?.channel?.title ?? "분석"}.png`
+          link.href = url
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+          setTimeout(() => URL.revokeObjectURL(url), 100)
+          resolve()
+        }, "image/png")
+      })
+    } catch (e) {
+      console.error("[download]", e)
     } finally {
       setIsDownloading(false)
     }
@@ -373,9 +386,9 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
                   onClick={handleDiagnosisDownload}
                   disabled={isDownloading}
                   title="이미지로 저장"
-                  className="flex items-center gap-1 text-primary hover:text-primary/70 transition-colors disabled:opacity-50"
+                  className="flex items-center gap-1 text-primary/80 hover:text-primary transition-colors disabled:opacity-50"
                 >
-                  <ArrowDownToLine className="size-6" strokeWidth={2.5} />
+                  <ArrowDownToLine className="size-5" strokeWidth={2} />
                   {isDownloading && <span className="text-xs">저장 중…</span>}
                 </button>
                 <div
@@ -383,7 +396,7 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
                   onMouseEnter={onShareEnter}
                   onMouseLeave={onShareLeave}
                 >
-                  <span className="text-lg leading-none select-none cursor-pointer" title="공유하기">🔗</span>
+                  <span className="text-[20px] leading-none select-none cursor-pointer opacity-80 hover:opacity-100 transition-opacity" title="공유하기">🔗</span>
                   {showShareMenu && (
                     <div className="absolute right-0 top-full mt-1.5 z-50 min-w-[148px] rounded-lg border bg-popover shadow-md overflow-hidden">
                       <button
@@ -410,7 +423,7 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
                     </div>
                   )}
                 </div>
-                <span className="text-base font-heading font-medium tracking-[-0.02em] leading-none">TubeWatch™</span>
+                <span className="text-base font-heading font-medium tracking-[-0.02em] leading-none text-foreground opacity-100">TubeWatch™</span>
               </div>
             </div>
           </div>
