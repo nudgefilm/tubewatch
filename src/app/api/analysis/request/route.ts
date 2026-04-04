@@ -69,6 +69,8 @@ export async function POST(request: Request) {
       : typeof raw.user_channel_id === "string"
         ? raw.user_channel_id.trim()
         : "";
+  // forceFullRun: admin 전용 — delta 감지 무시하고 Gemini 신규 호출 강제
+  const forceFullRun = raw.forceFullRun === true;
 
   if (!userChannelId) {
     console.error("[Analysis Start API] REJECTED: channelId missing");
@@ -244,11 +246,13 @@ export async function POST(request: Request) {
   }
 
   // Delta 감지: 신규 영상이 없으면 Gemini 스킵 (detectDeltaRun.ts 참고)
-  const { isDeltaRun, prevKnownCount, newVideoCount } = detectDeltaRun(
+  // forceFullRun(admin 전용)이면 delta 무시하고 항상 Gemini 신규 호출
+  const { isDeltaRun: _isDeltaRunRaw, prevKnownCount, newVideoCount } = detectDeltaRun(
     existingSnapshot?.feature_snapshot,
     youtubeVideos.map((v) => v.video_id)
   );
-  console.log(`[Analysis/delta] prev_known=${prevKnownCount} new=${newVideoCount} skip_gemini=${isDeltaRun}`);
+  const isDeltaRun = _isDeltaRunRaw && !(isAdmin && forceFullRun);
+  console.log(`[Analysis/delta] prev_known=${prevKnownCount} new=${newVideoCount} skip_gemini=${isDeltaRun}${isAdmin && forceFullRun ? " (force-bypassed by admin)" : ""}`);
 
   void updateJobStep("processing_data");
 

@@ -43,7 +43,7 @@ interface ReanalyzeCooldownBoxProps {
   sampleCount: number | null
   isRequesting: boolean
   requestError: string | null
-  onReanalyze: () => void
+  onReanalyze: (force?: boolean) => void
   isAdmin?: boolean
 }
 
@@ -99,14 +99,27 @@ function ReanalyzeCooldownBox({ lastRunAt, sampleCount, isRequesting, requestErr
           {requestError && (
             <p className="text-xs text-destructive">{requestError}</p>
           )}
-          <button
-            onClick={onReanalyze}
-            disabled={isRequesting}
-            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60 transition-colors"
-          >
-            <RefreshCw className={`size-3.5 ${isRequesting ? "animate-spin" : ""}`} />
-            {isRequesting ? "분석 중…" : "지금 재분석하기"}
-          </button>
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={() => onReanalyze()}
+              disabled={isRequesting}
+              className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60 transition-colors"
+            >
+              <RefreshCw className={`size-3.5 ${isRequesting ? "animate-spin" : ""}`} />
+              {isRequesting ? "분석 중…" : "지금 재분석하기"}
+            </button>
+            {/* 어드민 전용 — delta 무시하고 Gemini 신규 호출 강제 */}
+            {isAdmin && (
+              <button
+                onClick={() => onReanalyze(true)}
+                disabled={isRequesting}
+                className="inline-flex items-center gap-1.5 rounded-md border border-amber-400 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800 hover:bg-amber-100 disabled:opacity-60 transition-colors dark:bg-amber-950/30 dark:text-amber-300 dark:border-amber-700"
+              >
+                <RefreshCw className={`size-3.5 ${isRequesting ? "animate-spin" : ""}`} />
+                강제 재분석 (AI 새로 생성)
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -175,7 +188,7 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
     }
   }
 
-  async function handleReanalyze() {
+  async function handleReanalyze(force = false) {
     if (!viewModel?.selectedChannelId) {
       console.warn("[AnalysisPage/reanalyze] ABORTED: selectedChannelId is null")
       return
@@ -183,7 +196,8 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
     setIsRequesting(true)
     setRequestError(null)
 
-    const payload = { channelId: viewModel.selectedChannelId }
+    const payload: Record<string, unknown> = { channelId: viewModel.selectedChannelId }
+    if (force) payload.forceFullRun = true
     console.log("[AnalysisPage/reanalyze] payload:", payload)
 
     try {
@@ -316,7 +330,7 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
                 <p className="text-xs text-red-600 dark:text-red-400">{requestError}</p>
               )}
               <button
-                onClick={handleReanalyze}
+                onClick={() => void handleReanalyze()}
                 disabled={isRequesting}
                 className="inline-flex items-center justify-center rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-amber-700 disabled:opacity-60 transition-colors"
               >
