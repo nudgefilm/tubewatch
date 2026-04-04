@@ -87,13 +87,11 @@ function ActionCard({ action }: { action: ExecutionAction }) {
   async function handleDownload() {
     if (!cardRef.current) return
     try {
-      const html2canvas = (await import("html2canvas")).default
-      const canvas = await html2canvas(cardRef.current, {
-        scale: 2,
-        useCORS: true,
+      const { toPng } = await import("html-to-image")
+      const dataUrl = await toPng(cardRef.current, {
+        pixelRatio: 2,
         backgroundColor: "#ffffff",
       })
-      const dataUrl = canvas.toDataURL("image/png")
       const link = document.createElement("a")
       link.href = dataUrl
       link.download = `영상기획안_${action.experimentPriority}순위.png`

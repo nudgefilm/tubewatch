@@ -152,14 +152,11 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
     if (!diagnosisCaptureRef.current || isDownloading) return
     setIsDownloading(true)
     try {
-      const html2canvas = (await import("html2canvas")).default
-      const canvas = await html2canvas(diagnosisCaptureRef.current, {
-        scale: 2,
-        useCORS: true,
+      const { toPng } = await import("html-to-image")
+      const dataUrl = await toPng(diagnosisCaptureRef.current, {
+        pixelRatio: 2,
         backgroundColor: "#ffffff",
-        logging: false,
       })
-      const dataUrl = canvas.toDataURL("image/png")
       const link = document.createElement("a")
       link.href = dataUrl
       link.download = `채널진단지표_${viewModel?.channel?.title ?? "분석"}.png`
