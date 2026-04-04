@@ -106,11 +106,14 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
   const [planLabel, setPlanLabel] = React.useState<string>("...")
   const channelsFetchingRef = React.useRef(false)
 
+  const activeChannel = React.useMemo(
+    () => channels.find((c) => c.id === selectedChannelId) ?? null,
+    [channels, selectedChannelId]
+  )
   const activeChannelLabel = React.useMemo(() => {
     if (channels.length === 0) return "채널을 등록하세요"
-    const ch = channels.find((c) => c.id === selectedChannelId)
-    return ch?.channel_title ?? "채널 선택"
-  }, [channels, selectedChannelId])
+    return activeChannel?.channel_title ?? "채널 선택"
+  }, [channels, activeChannel])
 
   const hrefWithChannel = React.useCallback(
     (base: string) => {
@@ -269,9 +272,19 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                     size="lg"
                     className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground border border-border/50 rounded-lg"
                   >
-                    <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-orange-500 text-white">
-                      <Youtube className="size-4" />
-                    </div>
+                    {/* 선택된 채널 썸네일 — activeChannel 기준으로 렌더 (하드코딩 금지) */}
+                    {activeChannel?.thumbnail_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={activeChannel.thumbnail_url}
+                        alt={activeChannel.channel_title ?? "채널"}
+                        className="flex aspect-square size-8 rounded-lg object-cover shrink-0"
+                      />
+                    ) : (
+                      <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-orange-500 text-white">
+                        <Youtube className="size-4" />
+                      </div>
+                    )}
                     <div className="grid flex-1 text-left text-sm leading-tight">
                       <span className="truncate font-semibold">{activeChannelLabel}</span>
                       <span className="truncate text-xs text-muted-foreground">{planLabel}</span>
