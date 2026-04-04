@@ -86,29 +86,25 @@ function ActionCard({ action }: { action: ExecutionAction }) {
 
   async function handleDownload() {
     if (!cardRef.current) return
-    const html2canvas = (await import("html2canvas")).default
-    const canvas = await html2canvas(cardRef.current, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: "#ffffff",
-    })
-    await new Promise<void>((resolve, reject) => {
-      canvas.toBlob((blob) => {
-        if (!blob) { reject(new Error("blob null")); return }
-        const url = URL.createObjectURL(blob)
-        const link = document.createElement("a")
-        link.download = `영상기획안_${action.experimentPriority}순위.png`
-        link.href = url
-        link.style.display = "none"
-        document.body.appendChild(link)
-        link.click()
-        setTimeout(() => {
-          document.body.removeChild(link)
-          URL.revokeObjectURL(url)
-        }, 2000)
-        resolve()
-      }, "image/png")
-    })
+    try {
+      const html2canvas = (await import("html2canvas")).default
+      const canvas = await html2canvas(cardRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+      })
+      const dataUrl = canvas.toDataURL("image/png")
+      const link = document.createElement("a")
+      link.href = dataUrl
+      link.download = `영상기획안_${action.experimentPriority}순위.png`
+      link.style.position = "fixed"
+      link.style.opacity = "0"
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    } catch (e) {
+      console.error("[download]", e)
+    }
   }
 
   const priorityBadgeClass =

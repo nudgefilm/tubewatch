@@ -159,23 +159,15 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
         backgroundColor: "#ffffff",
         logging: false,
       })
-      await new Promise<void>((resolve, reject) => {
-        canvas.toBlob((blob) => {
-          if (!blob) { reject(new Error("blob null")); return }
-          const url = URL.createObjectURL(blob)
-          const link = document.createElement("a")
-          link.download = `채널진단지표_${viewModel?.channel?.title ?? "분석"}.png`
-          link.href = url
-          link.style.display = "none"
-          document.body.appendChild(link)
-          link.click()
-          setTimeout(() => {
-            document.body.removeChild(link)
-            URL.revokeObjectURL(url)
-          }, 2000)
-          resolve()
-        }, "image/png")
-      })
+      const dataUrl = canvas.toDataURL("image/png")
+      const link = document.createElement("a")
+      link.href = dataUrl
+      link.download = `채널진단지표_${viewModel?.channel?.title ?? "분석"}.png`
+      link.style.position = "fixed"
+      link.style.opacity = "0"
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
     } catch (e) {
       console.error("[download]", e)
     } finally {
