@@ -89,10 +89,34 @@ function mapToKpiData(vm: AnalysisPageViewModel) {
     ? parseNumFromItemValue(avgViewsItem.value)
     : vm.channel?.avgViews.value ?? null
 
+  // 실제 분포에서 중앙값 / 상위 20% 계산
+  const allViewCounts = vm.recentVideos
+    .map((v) => v.viewCount)
+    .filter((n): n is number => n != null && n > 0)
+    .sort((a, b) => a - b)
+
+  function calcMedian(sorted: number[]): number | null {
+    if (sorted.length === 0) return null
+    const mid = Math.floor(sorted.length / 2)
+    return sorted.length % 2 !== 0
+      ? sorted[mid]!
+      : Math.round((sorted[mid - 1]! + sorted[mid]!) / 2)
+  }
+
+  function calcTop20(sorted: number[]): number | null {
+    if (sorted.length === 0) return null
+    const idx = Math.floor(sorted.length * 0.8)
+    return sorted[idx] ?? sorted[sorted.length - 1] ?? null
+  }
+
   const medianViewsItem = responseItems.find((i) => i.label.includes("중앙"))
-  const medianViews = medianViewsItem
-    ? parseNumFromItemValue(medianViewsItem.value)
-    : avgViews != null ? Math.round(avgViews * 0.8) : 0
+  const medianViews: number =
+    medianViewsItem
+      ? parseNumFromItemValue(medianViewsItem.value)
+      : (calcMedian(allViewCounts) ?? (avgViews != null ? Math.round(avgViews * 0.8) : 0))
+
+  const top20Threshold: number =
+    calcTop20(allViewCounts) ?? Math.round((avgViews ?? 0) * 2)
 
   // 조회 흐름: 최신 절반 평균 vs 이전 절반 평균 비교 (단일 영상 의존 제거)
   const videosWithViews = vm.recentVideos.filter((v) => v.viewCount != null)
@@ -180,7 +204,7 @@ function mapToKpiData(vm: AnalysisPageViewModel) {
     baselinePerformance: { averageViews: avgViews, medianViews, interpretation: baselineInterp },
     auxiliaryBaseline: {
       medianViews,
-      top20Threshold: Math.round((avgViews ?? 0) * 2),
+      top20Threshold,
       interpretation: auxInterp,
     },
   }
