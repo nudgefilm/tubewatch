@@ -1,7 +1,6 @@
 "use client"
 
 import { useRef } from "react"
-import NextImage from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { Video, Image as ImageIcon, FileText, Zap, AlignLeft, Lightbulb, AlertCircle, BarChart2, Type, Tag, Shield, Users, Download } from "lucide-react"
 import type { ExecutionAction, ViewingPointGauge } from "@/mocks/next-trend"
@@ -91,12 +90,25 @@ function ActionCard({ action }: { action: ExecutionAction }) {
     const canvas = await html2canvas(cardRef.current, {
       scale: 2,
       useCORS: true,
-      backgroundColor: null,
+      backgroundColor: "#ffffff",
     })
-    const link = document.createElement("a")
-    link.download = `영상기획안_${action.experimentPriority}순위.png`
-    link.href = canvas.toDataURL("image/png")
-    link.click()
+    await new Promise<void>((resolve, reject) => {
+      canvas.toBlob((blob) => {
+        if (!blob) { reject(new Error("blob null")); return }
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement("a")
+        link.download = `영상기획안_${action.experimentPriority}순위.png`
+        link.href = url
+        link.style.display = "none"
+        document.body.appendChild(link)
+        link.click()
+        setTimeout(() => {
+          document.body.removeChild(link)
+          URL.revokeObjectURL(url)
+        }, 2000)
+        resolve()
+      }, "image/png")
+    })
   }
 
   const priorityBadgeClass =
@@ -112,7 +124,8 @@ function ActionCard({ action }: { action: ExecutionAction }) {
       {/* 헤더 */}
       <div className="flex items-center justify-between px-5 py-3 border-b bg-muted/30">
         <div className="flex items-center gap-2">
-          <NextImage src="/logo.png" alt="TubeWatch" width={20} height={20} className="rounded" />
+          <span className="font-heading font-medium text-sm leading-none tracking-[-0.01em]">TubeWatch™</span>
+          <span className="text-muted-foreground/40 text-sm">|</span>
           <span className="text-sm font-semibold text-foreground">영상 기획안</span>
           <Badge variant="outline" className={priorityBadgeClass}>
             실험 우선순위 #{action.experimentPriority}
