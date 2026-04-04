@@ -166,7 +166,7 @@ function mapToKpiData(vm: AnalysisPageViewModel) {
       status: structureStatus,
       interpretation: structureInterp,
     },
-    baselinePerformance: { averageViews: avgViews, interpretation: baselineInterp },
+    baselinePerformance: { averageViews: avgViews, medianViews, interpretation: baselineInterp },
     auxiliaryBaseline: {
       medianViews,
       top20Threshold: Math.round((avgViews ?? 0) * 2),

@@ -34,6 +34,7 @@ export interface KpiData {
   }
   baselinePerformance: {
     averageViews: number | null  // null = 미산출 (조회 지표 없음)
+    medianViews: number
     interpretation: string
   }
   auxiliaryBaseline: {
@@ -119,6 +120,7 @@ export const mockKpiData: KpiData = {
   },
   baselinePerformance: {
     averageViews: 45200,
+    medianViews: 38500,
     interpretation: "이 수치가 현재 채널의 기대 성과 기준선입니다. 이하 영상은 포맷 점검 대상으로 볼 수 있습니다",
   },
   auxiliaryBaseline: {

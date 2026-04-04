@@ -193,6 +193,11 @@ export function AnalysisKpiCards({ data }: AnalysisKpiCardsProps) {
                 <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
                   {data.contentStability.interpretation}
                 </p>
+                <SegmentGauge
+                  score={data.contentStability.stabilityScore}
+                  label={false}
+                  filledClassName={pastelGaugeClass(data.contentStability.stabilityScore)}
+                />
               </>
             ) : (
               <NullState reason="구조 지표 표본이 없어 포맷 일관성 판단이 제한됩니다" />
@@ -221,6 +226,9 @@ export function AnalysisKpiCards({ data }: AnalysisKpiCardsProps) {
                 </div>
                 <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
                   {data.baselinePerformance.interpretation}
+                </p>
+                <p className="text-sm text-muted-foreground/60">
+                  중앙값: {formatNumber(data.baselinePerformance.medianViews)}
                 </p>
               </>
             ) : (
