@@ -125,7 +125,7 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
   const [requestError, setRequestError] = useState<string | null>(null)
   const [isDownloading, setIsDownloading] = useState(false)
   const [showShareMenu, setShowShareMenu] = useState(false)
-  const diagnosisCaptureRef = useRef<HTMLDivElement>(null)
+  const diagnosisCaptureRef = useRef<HTMLElement>(null)
   const shareLeaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   function onShareEnter() {
@@ -156,6 +156,7 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
       const dataUrl = await toPng(diagnosisCaptureRef.current, {
         pixelRatio: 2,
         backgroundColor: "#ffffff",
+        filter: (node) => !(node instanceof HTMLElement && node.dataset.captureExclude === "true"),
       })
       const link = document.createElement("a")
       link.href = dataUrl
@@ -368,12 +369,12 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
         </section>
 
         {/* 채널 진단 지표 */}
-        <section className="space-y-4">
+        <section ref={diagnosisCaptureRef} className="space-y-4">
           <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
             <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><Gauge className="size-5 shrink-0 text-primary" />채널 진단 지표</h2>
             <div className="flex items-center justify-between mt-0.5">
               <p className="text-xs text-muted-foreground">업로드 빈도·조회 반응·콘텐츠 구조 등 핵심 수치를 구간별로 확인합니다</p>
-              <div className="flex items-center gap-3 ml-3 shrink-0">
+              <div className="flex items-center gap-3 ml-3 shrink-0" data-capture-exclude="true">
                 <button
                   onClick={handleDiagnosisDownload}
                   disabled={isDownloading}
@@ -423,7 +424,7 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
               </div>
             </div>
           </div>
-          <div ref={diagnosisCaptureRef} className="grid gap-4 lg:grid-cols-[1.2fr_2fr]">
+          <div className="grid gap-4 lg:grid-cols-[1.2fr_2fr]">
             <AnalysisScoreOverview score={score} sectionScores={sectionScores} />
             <AnalysisKpiCards data={kpiData} />
           </div>
