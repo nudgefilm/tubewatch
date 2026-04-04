@@ -23,6 +23,18 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // 삭제된 채널 or 타인 채널 접근 방지 — user_channels 소유권 검증
+  const { data: channelRow } = await supabase
+    .from("user_channels")
+    .select("id")
+    .eq("id", channelId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!channelRow) {
+    return NextResponse.json({ job: null });
+  }
+
   const { data, error } = await supabaseAdmin
     .from("analysis_jobs")
     .select("id, status, progress_step, started_at")

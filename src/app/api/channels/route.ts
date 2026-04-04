@@ -5,6 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { parseChannelRegistrationInput } from "@/lib/channels/parseChannelRegistrationInput";
 import { getChannelInfo } from "@/lib/youtube/getChannelInfo";
 import { createClient as createServerClient } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { isAdminUser } from "@/lib/server/isAdminUser";
 import { getEffectiveLimits } from "@/lib/server/subscription/getEffectiveLimits";
 
@@ -288,6 +289,33 @@ export async function DELETE(request: Request) {
     );
   }
 
+  // ─── 연관 데이터 순차 삭제 (admin client — RLS DELETE 정책 없는 테이블)
+  // 삭제 순서: FK 의존성 높은 테이블 → 낮은 테이블 → user_channels
+  const cascadeSteps: Array<{ table: string; field: string }> = [
+    { table: "credit_reservations",    field: "channel_id" },
+    { table: "credit_logs",            field: "channel_id" },
+    { table: "analysis_module_results", field: "channel_id" },
+    { table: "analysis_jobs",          field: "user_channel_id" },
+    { table: "analysis_runs",          field: "channel_id" },
+    { table: "analysis_results",       field: "user_channel_id" },
+  ];
+
+  for (const { table, field } of cascadeSteps) {
+    const { error: stepErr } = await supabaseAdmin
+      .from(table)
+      .delete()
+      .eq("user_id", user.id)
+      .eq(field, idRaw);
+    if (stepErr) {
+      console.error(`[api/channels] cascade delete failed on ${table}:`, stepErr);
+      return NextResponse.json(
+        { error: `채널 데이터 삭제 중 오류가 발생했습니다. (${table})` },
+        { status: 500 }
+      );
+    }
+  }
+
+  // user_channels 본행 삭제 (user client — RLS 적용)
   const { error: delErr } = await supabase
     .from("user_channels")
     .delete()
@@ -295,7 +323,7 @@ export async function DELETE(request: Request) {
     .eq("id", idRaw);
 
   if (delErr) {
-    console.error("[api/channels] delete", delErr);
+    console.error("[api/channels] delete user_channels", delErr);
     return NextResponse.json(
       { error: "채널 삭제에 실패했습니다." },
       { status: 500 }
