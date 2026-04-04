@@ -799,9 +799,10 @@ export function buildNextTrendInternalSpec(
     // ── 오프닝 훅 ────────────────────────────────────────────────────────────
     openingHook: (() => {
       const subject = coreTopic ?? "이 주제";
+      const shortSubject = subject.length <= 18 ? subject : subject.split(" ").slice(0, 3).join(" ");
       const hookLine = viewRatio
-        ? `"${subject}, 이것만 바꿨는데 조회수가 ${viewRatio}배가 됐습니다. 지금 바로 보여드릴게요."`
-        : `"${subject} — 결론부터 드릴게요. 오늘 영상 끝나면 바로 쓸 수 있습니다."`;
+        ? `"${shortSubject}, 이것만 바꿨는데 조회수가 ${viewRatio}배가 됐습니다. 지금 바로 보여드릴게요."`
+        : `"${shortSubject} — 결론부터 드릴게요. 오늘 영상 끝나면 바로 쓸 수 있습니다."`;
       return [
         `**1문장 훅** — ${hookLine}`,
         `  → 첫 3초 안에 "이 영상이 나에게 필요하다"는 신호를 줘야 이탈이 멈춥니다.`,
@@ -811,27 +812,26 @@ export function buildNextTrendInternalSpec(
     // ── 대본 구조 ────────────────────────────────────────────────────────────
     scriptOutline: (() => {
       const subject = coreTopic ?? "이 주제";
+      const shortSubject = subject.length <= 18 ? subject : subject.split(" ").slice(0, 3).join(" ");
+
       if (isShorts) {
         return [
           `**① Hook** (0~3초) — 결과 화면 or 수치를 첫 컷에 등장시키세요.`,
-          `  대사: "${subject}, 결론부터 보여드릴게요."`,
+          `  대사: "${shortSubject}, 결론부터 보여드릴게요."`,
           `**② 핵심 장면** (3~45초) — 단계 시연, 자막은 핵심 단어만. 텍스트 설명 금지.`,
           `**③ 반전·결론** (45~60초) — "이게 전부입니다" 한 줄 요약 + 구독/좋아요 CTA.`,
           `  → 권장 길이: 60초 이하 (Shorts)`,
         ].join("\n");
       }
+
       return [
         `**① 오프닝** (0~15초)`,
-        `  대사: "${subject}, 결론부터 드릴게요. [핵심 수치 or 결과]. 처음부터 바로 따라할 수 있게 보여드립니다."`,
+        `  대사: "${shortSubject}, 결론부터 드릴게요. [핵심 수치 or 결과]. 처음부터 바로 따라할 수 있게 보여드립니다."`,
         `**② 본론 전반** — ${formatDetail}`,
         `  각 단계 시작에 "Step N" 자막을 붙이고, 텍스트 설명보다 화면 직접 시연으로 구성하세요.`,
         `**③ 본론 후반** — 실전 적용 + 댓글 참여 유도`,
-        `  중간 자막: "여러분은 어떤 방법을 쓰고 계신가요? 댓글로 알려주세요!"`,
-        `**④ 클로징** (마지막 30초)`,
-        `  대사: "오늘 핵심은 딱 하나입니다. [1줄 요약]. 다음 편은 [예고 주제]로 돌아오겠습니다."`,
-        `  → 권장 길이: ${durationHint}`,
-        insights.formatChanges[1] ? `  → 추가 포맷 신호: ${insights.formatChanges[1].title}` : "",
-      ].filter(Boolean).join("\n");
+        `**④ 클로징** (마지막 30초) — 핵심 요약 + 다음 편 예고`,
+      ].join("\n");
     })(),
 
     // ── 이탈 방지 포인트 ──────────────────────────────────────────────────────
