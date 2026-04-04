@@ -103,7 +103,7 @@ export function NextTrendActionSection({ data }: NextTrendActionSectionProps) {
 
           <div className="divide-y">
 
-            {/* 기획 의도 */}
+            {/* 2. 기획 의도 */}
             {action.whyThisTopic && action.whyThisTopic !== "—" && (
               <SectionRow icon={<Lightbulb className="h-4 w-4" />} label="기획 의도">
                 <p className="text-sm leading-relaxed break-words">
@@ -112,31 +112,29 @@ export function NextTrendActionSection({ data }: NextTrendActionSectionProps) {
               </SectionRow>
             )}
 
-            {/* 결핍 요소 */}
+            {/* 3. 문제 진단 & 해결 방향 */}
             {action.painPoint && action.painPoint !== "—" && (
-              <SectionRow icon={<AlertCircle className="h-4 w-4" />} label="결핍 요소">
+              <SectionRow icon={<AlertCircle className="h-4 w-4" />} label="문제 진단 & 해결 방향">
                 <p className="text-sm leading-relaxed break-words">
                   <RichText text={action.painPoint} />
                 </p>
               </SectionRow>
             )}
 
-            {/* 영상 개요 */}
-            <SectionRow icon={<Video className="h-4 w-4" />} label="영상 개요">
+            {/* 4. 영상 기획안 (촬영 기준) */}
+            <SectionRow icon={<Video className="h-4 w-4" />} label="영상 기획안 (촬영 기준)">
               <p className="text-sm leading-relaxed break-words">
                 <RichText text={action.videoTitle} />
               </p>
             </SectionRow>
 
-            {/* 제목 후보 */}
+            {/* 5. 제목 후보 (3개) */}
             {action.titleCandidates && action.titleCandidates.length > 0 && (
-              <SectionRow icon={<Type className="h-4 w-4" />} label="제목 후보 (3안)">
-                <ol className="space-y-1.5">
+              <SectionRow icon={<Type className="h-4 w-4" />} label="제목 후보 (3개)">
+                <ol className="space-y-2">
                   {action.titleCandidates.map((title, i) => (
                     <li key={i} className="text-sm leading-relaxed break-words">
-                      <span className="font-semibold text-primary mr-1.5">
-                        {["①", "②", "③"][i]}
-                      </span>
+                      <span className="font-semibold text-primary mr-1.5">{["①", "②", "③"][i]}</span>
                       <RichText text={title} />
                     </li>
                   ))}
@@ -144,14 +142,55 @@ export function NextTrendActionSection({ data }: NextTrendActionSectionProps) {
               </SectionRow>
             )}
 
-            {/* 제목 · 썸네일 방향 */}
-            <SectionRow icon={<Image className="h-4 w-4" />} label="제목 · 썸네일 방향">
+            {/* 6. 썸네일 방향 */}
+            <SectionRow icon={<Image className="h-4 w-4" />} label="썸네일 방향">
               <p className="text-sm leading-relaxed break-words">
                 <RichText text={action.thumbnailDirection} />
               </p>
             </SectionRow>
 
-            {/* 추천 태그 */}
+            {/* 7. 오프닝 훅 */}
+            {action.openingHook && action.openingHook !== "—" && (
+              <SectionRow icon={<Zap className="h-4 w-4" />} label="오프닝 훅">
+                <p className="text-sm leading-relaxed break-words">
+                  <RichText text={action.openingHook} />
+                </p>
+              </SectionRow>
+            )}
+
+            {/* 8. 대본 구조 */}
+            {action.scriptOutline && action.scriptOutline !== "—" && (
+              <SectionRow icon={<AlignLeft className="h-4 w-4" />} label="대본 구조">
+                <p className="text-sm leading-relaxed break-words">
+                  <RichText text={action.scriptOutline} />
+                </p>
+              </SectionRow>
+            )}
+
+            {/* 9. 이탈 방지 포인트 */}
+            {action.exitPrevention && action.exitPrevention !== "—" && (
+              <SectionRow icon={<Shield className="h-4 w-4" />} label="이탈 방지 포인트">
+                <p className="text-sm leading-relaxed break-words">
+                  <RichText text={action.exitPrevention} />
+                </p>
+              </SectionRow>
+            )}
+
+            {/* 10. 제작 팁 */}
+            <SectionRow icon={<FileText className="h-4 w-4" />} label="제작 팁">
+              <p className="text-sm leading-relaxed break-words">
+                <RichText text={action.contentPlan} />
+              </p>
+            </SectionRow>
+
+            {/* 보조: 시청 포인트 게이지 */}
+            {action.viewingPoints && action.viewingPoints.length > 0 && (
+              <SectionRow icon={<BarChart2 className="h-4 w-4" />} label="시청 포인트">
+                <ViewingGauge points={action.viewingPoints} />
+              </SectionRow>
+            )}
+
+            {/* 보조: 추천 태그 */}
             {action.recommendedTags && action.recommendedTags.length > 0 && (
               <SectionRow icon={<Tag className="h-4 w-4" />} label="추천 태그">
                 <div className="flex flex-wrap gap-1.5">
@@ -164,41 +203,7 @@ export function NextTrendActionSection({ data }: NextTrendActionSectionProps) {
               </SectionRow>
             )}
 
-            {/* 오프닝 훅 */}
-            {action.openingHook && action.openingHook !== "—" && (
-              <SectionRow icon={<Zap className="h-4 w-4" />} label="오프닝 훅">
-                <p className="text-sm leading-relaxed break-words">
-                  <RichText text={action.openingHook} />
-                </p>
-              </SectionRow>
-            )}
-
-            {/* 대본 구성 */}
-            {action.scriptOutline && action.scriptOutline !== "—" && (
-              <SectionRow icon={<AlignLeft className="h-4 w-4" />} label="대본 구성">
-                <p className="text-sm leading-relaxed break-words">
-                  <RichText text={action.scriptOutline} />
-                </p>
-              </SectionRow>
-            )}
-
-            {/* 이탈 방지 포인트 */}
-            {action.exitPrevention && action.exitPrevention !== "—" && (
-              <SectionRow icon={<Shield className="h-4 w-4" />} label="이탈 방지 포인트">
-                <p className="text-sm leading-relaxed break-words">
-                  <RichText text={action.exitPrevention} />
-                </p>
-              </SectionRow>
-            )}
-
-            {/* 시청 포인트 게이지 */}
-            {action.viewingPoints && action.viewingPoints.length > 0 && (
-              <SectionRow icon={<BarChart2 className="h-4 w-4" />} label="시청 포인트">
-                <ViewingGauge points={action.viewingPoints} />
-              </SectionRow>
-            )}
-
-            {/* 예상 시청자 반응 */}
+            {/* 보조: 예상 시청자 반응 */}
             {action.expectedReaction && action.expectedReaction !== "—" && (
               <SectionRow icon={<Users className="h-4 w-4" />} label="예상 시청자 반응">
                 <p className="text-sm leading-relaxed break-words">
@@ -206,13 +211,6 @@ export function NextTrendActionSection({ data }: NextTrendActionSectionProps) {
                 </p>
               </SectionRow>
             )}
-
-            {/* 제작 팁 */}
-            <SectionRow icon={<FileText className="h-4 w-4" />} label="제작 팁">
-              <p className="text-sm leading-relaxed break-words">
-                <RichText text={action.contentPlan} />
-              </p>
-            </SectionRow>
 
           </div>
         </div>

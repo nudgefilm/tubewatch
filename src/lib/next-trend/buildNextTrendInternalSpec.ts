@@ -699,106 +699,140 @@ export function buildNextTrendInternalSpec(
   ];
 
   const actions: NextTrendActionsVm = {
+
+    // ── 기획 의도 ─────────────────────────────────────────────────────────────
+    whyThisTopic: [
+      topTopic
+        ? `이 영상의 역할: **${topTopic}**으로 신규 검색 유입과 기존 구독자 재방문을 동시에 잡는 것.`
+        : `이 영상의 역할: 채널의 현재 강점을 새로운 시청자층에게 닿게 하는 것.`,
+      viewRatio
+        ? `지금 해야 하는 이유: 이 방향의 영상이 채널 평균 대비 **${viewRatio}배** 조회를 기록했습니다. 이 흐름을 지금 이어가세요.`
+        : `지금 해야 하는 이유: 팬덤 응집도 **${loyaltyGrade}** — 조회 100회당 **${per100Views}회** 반응. ${sectionScores.audienceResponse != null ? `시청자 응답률 **${Math.round(sectionScores.audienceResponse)}점** / 100점.` : ""}`,
+      strengths[0]
+        ? `기대 효과: 채널 강점 **'${strengths[0].slice(0, 40)}'** 을 전면에 내세워 이탈을 최소화하면서 신규 구독자를 확보하세요.`
+        : `기대 효과: 검색 유입과 시청 완료율을 동시에 높일 수 있는 구조입니다.`,
+    ].join("\n"),
+
+    // ── 문제 진단 & 해결 방향 ────────────────────────────────────────────────
+    painPoint: (() => {
+      const problem = weaknesses[0] ?? bottlenecks[0];
+      const cause = weaknesses[1] ?? null;
+      const seoLine = sectionScores.seoOptimization != null
+        ? `SEO 최적화 점수 **${Math.round(sectionScores.seoOptimization)}점** / 100점 — 제목 첫 어절에 검색 키워드를 배치해 점수를 올리세요.`
+        : null;
+      if (!problem && !seoLine) {
+        return `채널 데이터에서 구체적인 결핍 신호가 확인되지 않았습니다. 표본 영상을 늘린 후 재분석하면 더 정밀한 진단이 나옵니다.`;
+      }
+      return [
+        problem ? `**문제** — ${problem}` : "",
+        cause ? `**원인** — ${cause}` : "",
+        problem ? `**해결** — 이 영상 중반에 댓글 유도 질문("여러분은 어떻게 하고 계신가요?")을 자막으로 삽입하세요. 참여율이 오르면 알고리즘 노출도 함께 올라갑니다.` : "",
+        seoLine ? `  → ${seoLine}` : "",
+      ].filter(Boolean).join("\n");
+    })(),
+
+    // ── 영상 기획안 (촬영 기준) ───────────────────────────────────────────────
     videoPlanDraft: [
       topTopic
-        ? `**추천 주제** — ${topTopic}`
-        : "**추천 주제** — 후보 신호가 부족합니다. 최근 반응이 좋았던 영상과 동일한 포맷으로 1편을 먼저 제작해보세요.",
-      `**지금 만들어야 하는 이유** — ${insights.trendSummary}`,
-      `**권장 포맷** — ${formatHeadline}`,
-    ].join("\n"),
-    titleThumbnail: [
-      `**제목 방향**`,
-      `시청자가 제목만 보고 클릭할 이유를 만드세요. 채널에서 반응이 좋았던 키워드를 앞부분에 배치하고, 구체적인 숫자나 기간을 함께 써서 기대감을 높이는 것이 핵심입니다.`,
-      insights.repeatedTopics[0]?.title
-        ? `  → 채널 반복 신호: ${insights.repeatedTopics[0].title}`
-        : `  → 채널 표본에서 반복 노출된 키워드를 제목 첫 어절에 위치시키세요.`,
-      `**썸네일 방향**`,
-      `채널의 **기존 색·구도를 유지**하면서 대표 프레임 1컷과 짧은 라벨 텍스트를 배치하세요. 제목과 썸네일이 약속하는 내용을 영상이 그대로 전달해야 시청 완료율이 지켜집니다.`,
-    ].join("\n"),
-    openingHook: [
-      `**첫 15초** 안에 핵심 결과나 수치를 먼저 공개하세요. 시청자가 '끝까지 봐야 할 이유'를 즉시 파악하도록 만드는 것이 목표입니다.`,
-      topTopic
-        ? `  → 예시 오프닝: **"${topTopic}, 오늘 결론부터 바로 보여드릴게요."**`
-        : `  → 질문형 또는 숫자형 오프닝이 초반 이탈을 줄이는 데 효과적입니다.`,
-      `  → 초반 **이탈률**이 낮아지면 알고리즘 추천 가중치도 함께 올라갑니다.`,
-    ].join("\n"),
-    scriptOutline: [
-      `**① 오프닝** (0~15초) — 핵심 결과·수치를 바로 공개해 시청자를 붙잡으세요.`,
-      `**② 본론 전반** — ${formatDetail}`,
-      `**③ 본론 후반** — 실전 적용 사례나 흔한 실수를 다루세요. 시청자 공감이 **시청 완료율**을 높입니다.`,
-      `**④ 클로징** (마지막 30초) — 핵심을 한 줄로 요약한 뒤 다음 편 예고나 **구독·댓글 유도**로 마무리하세요.`,
-      `  → 권장 길이: ${durationHint}`,
-      insights.formatChanges[1]
-        ? `  → 추가로 고려할 포맷: ${insights.formatChanges[1].title}`
-        : "",
-    ]
-      .filter(Boolean)
-      .join("\n"),
-    contentPlan: [
-      insights.formatChanges[1]
-        ? `같은 주제로 **짧은 클립(Shorts)** 을 병행하면 유입 경로가 넓어집니다. ${insights.formatChanges[1].title} 신호를 참고해 포맷을 실험해보세요.`
-        : `업로드 후 **처음 48시간** 동안 댓글·좋아요 반응을 확인하세요. 초반 지표가 다음 편의 방향을 결정합니다.`,
-      `썸네일과 제목은 **A/B 테스트**를 권장합니다. 클릭률(CTR) 차이가 2% 이상이면 좋은 신호입니다.`,
+        ? `**컨셉** — ${topTopic}: 시청자가 영상 한 편으로 바로 실행할 수 있는 수준의 가이드`
+        : `**컨셉** — 최근 반응이 좋았던 포맷을 유지하면서 구체적인 결과물을 보여주는 영상`,
+      topVideoTitle
+        ? `**핵심 장면 ①** — 오프닝: «${topVideoTitle}» 구조를 참고해 결과 장면부터 시작하세요.`
+        : `**핵심 장면 ①** — 오프닝: 완성 결과물 또는 핵심 수치를 첫 화면에 배치하세요.`,
+      `**핵심 장면 ②** — 과정 시연: 텍스트 설명 없이 화면을 직접 보여주세요. 각 단계마다 "Step N" 자막을 붙이세요.`,
+      `**핵심 장면 ③** — 전후 비교 또는 수치 공개: 시청자가 "나도 할 수 있다"고 느끼게 마무리하세요.`,
+      `**흐름** — Hook(0~15초) → 단계별 시연(15초~중반) → 결론·CTA(말미 30초)`,
     ].join("\n"),
 
-    whyThisTopic: [
-      strengths[0]
-        ? `이 채널의 강점인 **'${strengths[0].slice(0, 50)}'** 을 살려 이 주제를 다루면 기존 구독자에게도 자연스럽게 이어집니다.`
-        : `채널의 현재 방향성과 연결된 주제로, 기존 구독자 이탈을 최소화하면서 신규 유입도 기대할 수 있습니다.`,
-      `팬덤 응집도 **${loyaltyGrade}** — 조회 100회당 **${per100Views}회** 좋아요·댓글 반응이 확인됩니다.`,
-      sectionScores.audienceResponse != null
-        ? `  → 시청자 응답률 점수: **${Math.round(sectionScores.audienceResponse)}점** / 100점`
-        : "",
-      topVideoTitle && viewRatio
-        ? `  → 채널 최고 성과 영상(평균 대비 **${viewRatio}배**): «${topVideoTitle}» — 이 방향성을 이어받은 기획입니다.`
-        : "",
-    ].filter(Boolean).join("\n"),
-
-    painPoint: [
-      `이 채널에서 아직 충분히 다루지 않은 영역입니다. 이 영상에서 채워준다면 시청자의 미충족 수요를 정면으로 공략할 수 있습니다.`,
-      ...weaknesses.slice(0, 2).map((w) => `  → ${w}`),
-      bottlenecks[0] ? `  → 병목 구간: ${bottlenecks[0]}` : "",
-      sectionScores.seoOptimization != null
-        ? `  → SEO 최적화 점수: **${Math.round(sectionScores.seoOptimization)}점** / 100점 — 제목·태그 보완으로 검색 유입을 높일 여지가 있습니다.`
-        : "",
-    ].filter(Boolean).join("\n"),
-
+    // ── 제목 후보 3안 ─────────────────────────────────────────────────────────
     titleCandidates: (() => {
-      const kw0 = topKeywords[0] ?? topTopic?.split(" ")[0] ?? "주제";
-      const kw1 = topKeywords[1] ?? "";
-      const base = topTopic ?? kw0;
+      const subject = topTopic ?? "이 주제";
+      const ratioText = viewRatio ? `조회수 ${viewRatio}배 차이 만든` : "채널에서 반응 좋았던";
       return [
-        `[숫자형] ${base} — 바로 써먹는 핵심 정리 (${kw0} 완전 가이드)`,
-        kw1
-          ? `[질문형] ${kw0}와 ${kw1}, 어떻게 다를까? 헷갈리는 분들 필수 시청`
-          : `[질문형] ${kw0}를 처음 시작하는 분들이 가장 많이 묻는 것들`,
-        `[비교형] ${base} 전vs후 — 실제로 얼마나 달라지는지 직접 보여드립니다`,
+        `${ratioText} — ${subject} 핵심만 정리 (바로 따라하기)`,
+        `이걸 모르면 손해 — ${subject}, 지금 안 하면 늦는 이유`,
+        `직접 해봤습니다 — ${subject} 전vs후, 결과가 이렇게 달라요`,
       ];
     })(),
 
+    // ── 썸네일 방향 ──────────────────────────────────────────────────────────
+    titleThumbnail: (() => {
+      const subject = topTopic ?? "핵심 정리";
+      const textOverlay = subject.length <= 14 ? subject : subject.split(" ").slice(0, 3).join(" ");
+      const repeatedKw = insights.repeatedTopics[0]?.title.match(/[''']([^''']+)[''']/)?.[1];
+      return [
+        `**텍스트 문구** — "${textOverlay}"`,
+        viewRecord?.strength === "clear"
+          ? `**이미지 구성** — 채널 최고 성과 영상과 동일한 색·구도 유지. 얼굴 표정(확신 또는 놀람) + 수치 텍스트를 대비 구성으로 배치하세요.`
+          : `**이미지 구성** — 얼굴 클로즈업(확신 표정) + 결과 수치를 대비 배치하세요. 배경은 단색 또는 채널 고유색을 유지하세요.`,
+        repeatedKw ? `  → 채널 반복 노출 패턴: '${repeatedKw}' 관련 장면이 클릭율이 높습니다.` : "",
+      ].filter(Boolean).join("\n");
+    })(),
+
+    // ── 오프닝 훅 ────────────────────────────────────────────────────────────
+    openingHook: (() => {
+      const subject = topTopic ?? "이 주제";
+      const shortSub = subject.split(" ").slice(0, 3).join(" ");
+      const hookLine = viewRatio
+        ? `"${shortSub}, 이것만 바꿨는데 조회수가 ${viewRatio}배가 됐습니다. 지금 바로 보여드릴게요."`
+        : `"${shortSub} — 결론부터 드릴게요. 오늘 영상 끝나면 바로 쓸 수 있습니다."`;
+      return [
+        `**1문장 훅** — ${hookLine}`,
+        `  → 첫 3초 안에 "이 영상이 나에게 필요하다"는 신호를 줘야 이탈이 멈춥니다.`,
+      ].join("\n");
+    })(),
+
+    // ── 대본 구조 ────────────────────────────────────────────────────────────
+    scriptOutline: (() => {
+      const subject = topTopic ?? "이 주제";
+      const shortSub = subject.split(" ").slice(0, 3).join(" ");
+      return [
+        `**① 오프닝** (0~15초)`,
+        `  대사: "${shortSub}, 결론부터 드릴게요. [핵심 수치 or 결과]. 처음부터 바로 따라할 수 있게 보여드립니다."`,
+        `**② 본론 전반** — ${formatDetail}`,
+        `  각 단계 시작에 "Step N" 자막을 붙이고, 텍스트 설명보다 화면 직접 시연으로 구성하세요.`,
+        `**③ 본론 후반** — 실전 적용 + 댓글 참여 유도`,
+        `  중간 자막: "여러분은 어떤 방법을 쓰고 계신가요? 댓글로 알려주세요!"`,
+        `**④ 클로징** (마지막 30초)`,
+        `  대사: "오늘 핵심은 딱 하나입니다. [1줄 요약]. 다음 편은 [예고 주제]로 돌아오겠습니다."`,
+        `  → 권장 길이: ${durationHint}`,
+        insights.formatChanges[1] ? `  → 추가 포맷 신호: ${insights.formatChanges[1].title}` : "",
+      ].filter(Boolean).join("\n");
+    })(),
+
+    // ── 이탈 방지 포인트 ──────────────────────────────────────────────────────
+    exitPrevention: [
+      `**도입부 30초** — 결론이나 완성 장면을 먼저 보여주세요. 시청자는 이 구간에서 끝까지 볼지를 결정합니다.`,
+      `**중반 (40~60%)** — "다음 파트 예고" 자막 또는 댓글 유도 질문을 넣어 이탈을 막으세요.`,
+      `**전문 용어** — 즉시 1줄 설명을 붙이세요. '이해 실패' 느낌이 오면 시청자는 바로 나갑니다.`,
+    ].join("\n"),
+
+    // ── 제작 팁 ──────────────────────────────────────────────────────────────
+    contentPlan: [
+      `업로드 직후 **핀 댓글**로 시청자 질문을 남기세요. 초반 댓글 활성화가 알고리즘 노출을 높입니다.`,
+      `업로드 후 **48시간** 안에 CTR을 확인하세요. 4% 미만이면 썸네일부터 교체하세요.`,
+      insights.formatChanges[1]
+        ? `같은 주제로 **Shorts 1편**을 병행 업로드하면 유입 경로가 넓어집니다.`
+        : `제목을 2개 준비해 **A/B 테스트**하세요. 24시간 CTR이 높은 쪽으로 고정하세요.`,
+    ].join("\n"),
+
+    // ── 예상 시청자 반응 ──────────────────────────────────────────────────────
+    expectedReaction: [
+      targetAudience[0]
+        ? `**${targetAudience[0]}** 중심으로 '써먹을 수 있었다'는 댓글 반응이 예상됩니다.`
+        : `기존 구독자 중심으로 실용적 정보에 대한 긍정 반응이 예상됩니다.`,
+      `초반 24시간 **CTR**과 **시청 유지율**을 확인하세요. 채널 평균 이상이면 후속편을 바로 기획하세요.`,
+      `  → 2~3편 테스트 후 반응이 좋은 포맷을 시리즈로 확장하세요.`,
+    ].join("\n"),
+
+    // ── 추천 태그 ─────────────────────────────────────────────────────────────
     recommendedTags: Array.from(
       new Set([
         ...topTagsFromSnapshot,
-        ...topKeywords,
-        ...(topTopic ? topTopic.split(" ").slice(0, 2) : []),
+        ...topKeywords.filter((k) => k.length <= 10),
+        ...(topTopic ? topTopic.split(" ").filter((w) => w.length >= 2).slice(0, 2) : []),
       ])
     ).filter((t) => t.length >= 2).slice(0, 5),
-
-    exitPrevention: [
-      `**도입부 30초**: 결론 또는 가장 임팩트 있는 장면을 먼저 배치하세요. 시청자는 이 구간에서 '끝까지 볼지'를 결정합니다.`,
-      `**중반 이탈 구간**: 영상 전체의 40~60% 지점에 '다음 파트 예고' 또는 '핵심 요약 자막'을 넣어 이탈을 방지하세요.`,
-      `**언어 단순화**: 전문 용어 사용 시 즉시 1줄 설명을 추가하세요. '이해 실패' 느낌은 이탈률을 급격히 높입니다.`,
-    ].join("\n"),
-
-    expectedReaction: [
-      targetAudience[0]
-        ? `**${targetAudience[0]}** 시청자를 중심으로 '실용적인 정보를 얻었다'는 댓글 반응이 예상됩니다.`
-        : `기존 구독자 중심의 긍정 반응이 예상됩니다.`,
-      viewRatio
-        ? `채널 최고 성과 영상이 평균 대비 ${viewRatio}배를 기록한 만큼, 유사한 방향의 영상은 평균 이상 반응 가능성이 있습니다.`
-        : `표본이 제한적이므로 초반 24시간 CTR과 시청 유지율을 먼저 확인하세요.`,
-      `  → 과장된 기대보다 **초반 2~3편 테스트**로 반응을 검증하는 것을 권장합니다.`,
-    ].join("\n"),
 
     viewingPoints,
   };
