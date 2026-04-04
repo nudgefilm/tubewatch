@@ -205,7 +205,7 @@ export function NextTrendActionSection({ data }: NextTrendActionSectionProps) {
 
             {/* 보조: 예상 시청자 반응 */}
             {action.expectedReaction && action.expectedReaction !== "—" && (
-              <SectionRow icon={<Users className="h-4 w-4" />} label="예상 시청자 반응">
+              <SectionRow icon={<Users className="h-4 w-4" />} label="업로드 후 점검 포인트">
                 <p className="text-sm leading-relaxed break-words">
                   <RichText text={action.expectedReaction} />
                 </p>
