@@ -3,6 +3,7 @@
  * 외부 API·미래 추정·mock 없음.
  */
 import type { AnalysisPageData } from "@/lib/analysis/getAnalysisPageData";
+import type { NextTrendAIPlan } from "@/lib/ai/getGeminiConfig";
 import {
   deriveAnalysisRunsLoaded,
   deriveExtensionMenuFields,
@@ -345,11 +346,17 @@ export function buildNextTrendPageViewModel(
   const snapshot = data.latestResult.feature_snapshot;
   const signalBundle = buildTrendSignals(snapshot);
   const insights = buildTrendInsights(signalBundle);
+
+  // AI 생성 plan 우선 사용 (없으면 null → 기존 템플릿 폴백)
+  const nextTrendModule = (data.moduleResults?.["next_trend"] ?? null) as { plan?: NextTrendAIPlan } | null;
+  const aiPlan = nextTrendModule?.plan ?? null;
+
   const internal = buildNextTrendInternalSpec(
     insights,
     signalBundle,
     snapshot,
-    data.latestResult
+    data.latestResult,
+    aiPlan
   );
 
   const strategicComment = buildNextTrendStrategicComment(

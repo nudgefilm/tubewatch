@@ -666,7 +666,9 @@ export function buildInternalChannelDnaSummary(
     sectionScoresLine = `구간 점수(0–100): 활동 ${Math.round(a)} · 반응 ${Math.round(b)} · 구조 ${Math.round(c)} · SEO ${Math.round(d)} · 성장 ${Math.round(e)}`;
   }
 
-  const channelDnaNarrative = buildNarrative({
+  // AI 생성 narrative 우선 사용, 없으면 템플릿 폴백
+  const aiNarrative = (data?.moduleResults?.["channel_dna"] as { narrative?: string } | undefined)?.narrative ?? null;
+  const channelDnaNarrative = aiNarrative ?? buildNarrative({
     recentVideosUsed: videos.length,
     medianViews,
     averageViews,

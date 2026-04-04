@@ -28,6 +28,7 @@ import {
   filterMetricActionsSupersededByChannelDna,
   type ChannelDnaActionCandidate,
 } from "@/lib/action-plan/buildChannelDnaActionCandidates";
+import type { ActionExecutionHint } from "@/lib/ai/getGeminiConfig";
 
 export type ActionPlanPriority = "P1" | "P2" | "P3";
 
@@ -1158,7 +1159,23 @@ export function buildActionPlanPageViewModel(
     }
   }
 
-  const actions = assignPriorities(merged);
+  let actions = assignPriorities(merged);
+
+  // AI execution hints overlay: moduleResults["action_plan"]?.execution_hints 가 있으면
+  // 각 카드의 whyNeeded·executionHint·expectedEffect를 AI 내용으로 덮어씀
+  const rawHints = (data?.moduleResults?.["action_plan"] as { execution_hints?: unknown } | undefined)?.execution_hints;
+  const executionHints: ActionExecutionHint[] = Array.isArray(rawHints) ? (rawHints as ActionExecutionHint[]) : [];
+  if (executionHints.length > 0) {
+    actions = actions.map((card, idx) => {
+      const hint = executionHints[idx] ?? executionHints.find((h) => h.action && card.title.includes(h.action.slice(0, 6)));
+      if (!hint) return card;
+      return {
+        ...card,
+        ...(hint.execution_hint ? { executionHint: hint.execution_hint } : {}),
+        ...(hint.expected_effect ? { expectedEffect: hint.expected_effect } : {}),
+      };
+    });
+  }
 
   const checklistItems = buildChecklist(metrics, flags);
   const cautions = buildCautions(weaknesses, bottlenecks);

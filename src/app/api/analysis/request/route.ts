@@ -16,6 +16,7 @@ import { detectPatterns } from "@/lib/analysis/engine/detectPatterns";
 import { buildAnalysisContext } from "@/lib/analysis/engine/buildAnalysisContext";
 import {
   analyzeChannelWithGemini,
+  type AnalyzeChannelWithGeminiSuccess,
   type ChannelVideoSample,
 } from "@/lib/ai/analyzeChannelWithGemini";
 import { saveAnalysisResult } from "@/lib/server/analysis/saveAnalysisResult";
@@ -341,6 +342,9 @@ export async function POST(request: Request) {
         analysis_confidence: prevConfidence,
         interpretation_mode: "delta",
         sample_size_note: typeof prev.sample_size_note === "string" ? prev.sample_size_note : "",
+        next_trend_plan: null,
+        channel_dna_narrative: null,
+        action_execution_hints: null,
       },
     };
   } else {
@@ -374,6 +378,9 @@ export async function POST(request: Request) {
       );
     }
   }
+
+  // At this point gemini.ok is always true (failure paths returned early above)
+  const geminiSuccess = gemini as AnalyzeChannelWithGeminiSuccess;
 
   const now = new Date().toISOString();
 
@@ -412,24 +419,24 @@ export async function POST(request: Request) {
       channelTitle: (channelRow.channel_title as string | null) ?? null,
       thumbnailUrl: null,
       sampleVideoCount: youtubeVideos.length,
-      analysisConfidence: gemini.result.analysis_confidence ?? null,
+      analysisConfidence: geminiSuccess.result.analysis_confidence ?? null,
       status: "analyzed",
-      geminiModel: gemini.model,
+      geminiModel: geminiSuccess.model,
       geminiStatus: "completed",
       geminiAnalyzedAt: now,
-      geminiRawJson: gemini.rawJson,
+      geminiRawJson: geminiSuccess.rawJson,
       geminiAttemptCount: 1,
-      channelSummary: gemini.result.channel_summary,
-      contentPatternSummary: gemini.result.content_pattern_summary,
-      contentPatterns: gemini.result.content_patterns,
-      strengths: gemini.result.strengths,
-      weaknesses: gemini.result.weaknesses,
-      bottlenecks: gemini.result.bottlenecks,
-      recommendedTopics: gemini.result.recommended_topics,
-      growthActionPlan: gemini.result.growth_action_plan,
-      targetAudience: gemini.result.target_audience,
-      sampleSizeNote: gemini.result.sample_size_note,
-      interpretationMode: gemini.result.interpretation_mode,
+      channelSummary: geminiSuccess.result.channel_summary,
+      contentPatternSummary: geminiSuccess.result.content_pattern_summary,
+      contentPatterns: geminiSuccess.result.content_patterns,
+      strengths: geminiSuccess.result.strengths,
+      weaknesses: geminiSuccess.result.weaknesses,
+      bottlenecks: geminiSuccess.result.bottlenecks,
+      recommendedTopics: geminiSuccess.result.recommended_topics,
+      growthActionPlan: geminiSuccess.result.growth_action_plan,
+      targetAudience: geminiSuccess.result.target_audience,
+      sampleSizeNote: geminiSuccess.result.sample_size_note,
+      interpretationMode: geminiSuccess.result.interpretation_mode,
       featureSnapshot: featureSnapshot as unknown as import("@/lib/server/analysis/storageTypes").JsonValue,
       featureTotalScore: scoreResult.totalScore,
       featureSectionScores: scoreResult.sectionScores as unknown as import("@/lib/server/analysis/storageTypes").JsonValue,
@@ -447,6 +454,40 @@ export async function POST(request: Request) {
   }
 
   console.log("[Analysis Start API] created run:", savedRow.id);
+
+  // 페이지별 AI 콘텐츠를 analysis_module_results에 저장 (non-fatal)
+  {
+    const modulesToSave: Array<{ module_key: string; result: Record<string, unknown> }> = [];
+    if (geminiSuccess.result.next_trend_plan) {
+      modulesToSave.push({ module_key: "next_trend", result: { plan: geminiSuccess.result.next_trend_plan } });
+    }
+    if (geminiSuccess.result.channel_dna_narrative) {
+      modulesToSave.push({ module_key: "channel_dna", result: { narrative: geminiSuccess.result.channel_dna_narrative } });
+    }
+    if (geminiSuccess.result.action_execution_hints) {
+      modulesToSave.push({ module_key: "action_plan", result: { execution_hints: geminiSuccess.result.action_execution_hints } });
+    }
+    if (modulesToSave.length > 0) {
+      const insertRows = modulesToSave.map((m) => ({
+        user_id: user.id,
+        channel_id: userChannelId,
+        snapshot_id: savedRow.id,
+        module_key: m.module_key,
+        result: m.result,
+        status: "completed",
+        analyzed_at: now,
+      }));
+      const { error: modErr } = await supabaseAdmin
+        .from("analysis_module_results")
+        .insert(insertRows);
+      if (modErr) {
+        console.error("[Analysis Start API] module_results insert failed (non-fatal):", modErr.message);
+      } else {
+        console.log("[Analysis Start API] module_results saved:", modulesToSave.map((m) => m.module_key));
+      }
+    }
+  }
+
   void updateJobStep("completed", "success");
 
   // 크레딧 예약 확정 — non-fatal

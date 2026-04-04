@@ -1,4 +1,5 @@
 import type { AnalysisResultRow } from "@/lib/analysis/getAnalysisPageData";
+import type { NextTrendAIPlan } from "@/lib/ai/getGeminiConfig";
 import { normalizeFeatureSnapshot } from "@/lib/analysis/normalizeSnapshot";
 import type {
   TrendInsightsBundle,
@@ -548,7 +549,8 @@ export function buildNextTrendInternalSpec(
   insights: TrendInsightsBundle,
   bundle: TrendSignalsBundle,
   snapshot: unknown,
-  latestResult: AnalysisResultRow | null
+  latestResult: AnalysisResultRow | null,
+  aiPlan?: NextTrendAIPlan | null
 ): NextTrendInternalBlocks {
   const dur = getSnapshotVideoDurationStats(snapshot);
   const ac = readAnalysisConfidence(latestResult);
@@ -881,17 +883,40 @@ export function buildNextTrendInternalSpec(
     viewingPoints,
   };
 
+  // AI plan이 있으면 핵심 actions 필드를 AI 생성 콘텐츠로 교체
+  const finalActions: NextTrendActionsVm = aiPlan
+    ? {
+        ...actions,
+        whyThisTopic: aiPlan.why_this_topic,
+        painPoint: aiPlan.pain_point,
+        openingHook: `**오프닝 방향** — ${aiPlan.opening_hook}\n  → 첫 15초 안에 "이 영상이 나에게 필요하다"는 신호를 줘야 이탈이 멈춥니다.`,
+        titleCandidates: aiPlan.title_candidates.length > 0 ? aiPlan.title_candidates : actions.titleCandidates,
+        recommendedTags: aiPlan.recommended_tags.length > 0 ? aiPlan.recommended_tags : actions.recommendedTags,
+        // videoPlanDraft의 컨셉 줄만 AI topic으로 교체 (나머지 구조는 유지)
+        videoPlanDraft: actions.videoPlanDraft.replace(
+          /^\*\*컨셉\*\* — [^\n]*/,
+          `**컨셉** — ${aiPlan.topic}: ${aiPlan.content_angle}`
+        ),
+      }
+    : actions;
+
+  // AI plan이 있으면 hints.contentAngle도 업데이트
+  const finalHints = aiPlan
+    ? { ...hints, contentAngle: aiPlan.content_angle }
+    : hints;
+
   return {
     candidates:
       candidates.length > 0
         ? candidates
         : [
             {
-              topic: "신호 부족 — 분석을 다시 실행하면 추천 주제가 생성됩니다",
-              reason:
-                "추천 주제와 반복·패턴 신호 모두 확인되지 않았습니다. 분석을 재실행하거나 표본을 늘린 뒤 다시 확인하세요.",
-              signal: "데이터 부족",
-              signalStrength: "low" as const,
+              topic: aiPlan ? aiPlan.topic : "신호 부족 — 분석을 다시 실행하면 추천 주제가 생성됩니다",
+              reason: aiPlan
+                ? aiPlan.why_this_topic
+                : "추천 주제와 반복·패턴 신호 모두 확인되지 않았습니다. 분석을 재실행하거나 표본을 늘린 뒤 다시 확인하세요.",
+              signal: aiPlan ? "튜브워치 AI 추천" : "데이터 부족",
+              signalStrength: "medium" as const,
               evidence: [],
               expectedEffect: "소규모 실험으로 CTR과 반복 시청 가능성을 직접 확인하면 재현 패턴을 좁혀나갈 수 있습니다.",
             },
@@ -906,8 +931,8 @@ export function buildNextTrendInternalSpec(
       confidence,
       confidenceBasis: basisParts.join(" "),
     },
-    hints,
-    actions,
+    hints: finalHints,
+    actions: finalActions,
   };
 }
 

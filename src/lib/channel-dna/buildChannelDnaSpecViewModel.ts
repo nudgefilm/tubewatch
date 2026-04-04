@@ -70,6 +70,7 @@ function toAnalysisPageDataStub(data: ChannelDnaPageData): AnalysisPageData {
     recentAnalysisResults: data.latestResult ? [data.latestResult as AnalysisResultRow] : [],
     analysisRuns: [],
     youtubeFeatureAccess: STUB_YOUTUBE_ACCESS,
+    moduleResults: {},
   };
 }
 

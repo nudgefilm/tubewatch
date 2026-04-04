@@ -32,6 +32,9 @@ export type AnalysisResultRow = {
   [key: string]: unknown;
 };
 
+/** module_key → result 매핑. 각 페이지 ViewModel에서 타입 캐스팅해 사용 */
+export type ModuleResultsMap = Record<string, Record<string, unknown>>;
+
 export type AnalysisPageData = {
   userId: string;
   channels: UserChannelRow[];
@@ -46,6 +49,8 @@ export type AnalysisPageData = {
   analysisRuns: AnalysisRunRecord[] | null;
   /** YouTube `channels.list?mine=true` 기반 핵심 기능(분석 실행) 가드 */
   youtubeFeatureAccess: YoutubeFeatureAccessSnapshot;
+  /** analysis_module_results: 페이지별 AI 생성 콘텐츠 (없으면 빈 객체) */
+  moduleResults: ModuleResultsMap;
 };
 
 /** `buildYoutubeFeatureAccessSnapshot()` 로그인 성공 시와 동일(추가 네트워크 없이 재사용). */
@@ -181,6 +186,27 @@ async function fetchResultById(
   }
 
   return (data as AnalysisResultRow | null) ?? null;
+}
+
+async function fetchModuleResults(
+  supabase: SupabaseClient,
+  userId: string,
+  snapshotId: string
+): Promise<ModuleResultsMap> {
+  const { data, error } = await supabase
+    .from("analysis_module_results")
+    .select("module_key, result")
+    .eq("snapshot_id", snapshotId)
+    .eq("user_id", userId)
+    .eq("status", "completed");
+
+  if (error || !data) return {};
+
+  const map: ModuleResultsMap = {};
+  for (const row of data as Array<{ module_key: string; result: Record<string, unknown> }>) {
+    if (row.module_key) map[row.module_key] = row.result;
+  }
+  return map;
 }
 
 /** 동일 Supabase 클라이언트로 채널 목록만 조회 (추가 `getUser` 없음). */
@@ -356,6 +382,7 @@ export async function getAnalysisPageData(
       recentAnalysisResults: [],
       analysisRuns: [],
       youtubeFeatureAccess,
+      moduleResults: {},
     };
   }
 
@@ -376,12 +403,13 @@ export async function getAnalysisPageData(
     }
 
     const cid = selectedChannel?.id;
-    const [recentAnalysisResults, runsRaw] = cid
+    const [recentAnalysisResults, runsRaw, moduleResults] = cid
       ? await Promise.all([
           fetchRecentResultsForChannel(supabase, userId, cid, 20),
           fetchAnalysisRunsForUserChannel(supabase, userId, cid),
+          snapshotResult?.id ? fetchModuleResults(supabase, userId, snapshotResult.id) : Promise.resolve({}),
         ])
-      : [[], null];
+      : [[], null, {}];
 
     return {
       userId,
@@ -391,6 +419,7 @@ export async function getAnalysisPageData(
       recentAnalysisResults,
       analysisRuns: runsRaw === null ? null : [...runsRaw],
       youtubeFeatureAccess,
+      moduleResults: moduleResults ?? {},
     };
   }
 
@@ -414,6 +443,7 @@ export async function getAnalysisPageData(
       recentAnalysisResults: [],
       analysisRuns: [],
       youtubeFeatureAccess,
+      moduleResults: {},
     };
   }
 
@@ -445,6 +475,10 @@ export async function getAnalysisPageData(
     console.log("[getAnalysisPageData] recentAnalysisResults count:", recentAnalysisResults.length, "runs:", analysisRuns?.length ?? null);
   }
 
+  const moduleResults = latestResult?.id
+    ? await fetchModuleResults(supabase, userId, latestResult.id)
+    : {};
+
   return {
     userId,
     channels,
@@ -453,5 +487,6 @@ export async function getAnalysisPageData(
     recentAnalysisResults,
     analysisRuns,
     youtubeFeatureAccess,
+    moduleResults,
   };
 }

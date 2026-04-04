@@ -1,6 +1,8 @@
 import {
   getGeminiConfig,
   type TubeWatchAnalysisResult,
+  type NextTrendAIPlan,
+  type ActionExecutionHint,
 } from "@/lib/ai/getGeminiConfig";
 import type { AnalysisContext } from "@/lib/analysis/engine/types";
 
@@ -74,6 +76,9 @@ const ARRAY_SOFT_LIMITS: Record<string, number> = {
   content_patterns: 4,
   target_audience: 4,
   recommended_topics: 4,
+  title_candidates: 3,
+  recommended_tags: 8,
+  action_execution_hints: 5,
 };
 
 // ── Text sanitization ──
@@ -283,6 +288,46 @@ function normalizeConfidence(
   return null;
 }
 
+function normalizeNextTrendPlan(raw: unknown): NextTrendAIPlan | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const obj = raw as Record<string, unknown>;
+  const topic = normalizeString(obj.topic);
+  const why = normalizeString(obj.why_this_topic);
+  const pain = normalizeString(obj.pain_point);
+  if (!topic || !why || !pain) return null;
+  const titles = cleanInsightArray(normalizeStringArray(obj.title_candidates), 3);
+  const tags = cleanInsightArray(normalizeStringArray(obj.recommended_tags), 8);
+  return {
+    topic: truncateToLimit(topic, 40),
+    why_this_topic: truncateToLimit(why, 300),
+    pain_point: truncateToLimit(pain, 200),
+    content_angle: truncateToLimit(normalizeString(obj.content_angle) ?? "", 150),
+    opening_hook: truncateToLimit(normalizeString(obj.opening_hook) ?? "", 150),
+    title_candidates: titles.length > 0 ? titles : [],
+    recommended_tags: tags,
+  };
+}
+
+function normalizeActionExecutionHints(raw: unknown): ActionExecutionHint[] | null {
+  if (!Array.isArray(raw)) return null;
+  const hints: ActionExecutionHint[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+    const obj = item as Record<string, unknown>;
+    const action = normalizeString(obj.action);
+    const hint = normalizeString(obj.execution_hint);
+    const effect = normalizeString(obj.expected_effect);
+    if (action && hint && effect) {
+      hints.push({
+        action: truncateToLimit(action, 120),
+        execution_hint: truncateToLimit(hint, 200),
+        expected_effect: truncateToLimit(effect, 120),
+      });
+    }
+  }
+  return hints.length > 0 ? hints.slice(0, 5) : null;
+}
+
 function normalizeParsedObject(input: JsonObject): TubeWatchAnalysisResult {
   const rawContentPatterns = pickFirstNonEmptyArray(
     input.content_patterns,
@@ -343,6 +388,9 @@ function normalizeParsedObject(input: JsonObject): TubeWatchAnalysisResult {
       pickFirstNonEmptyString(input.interpretation_mode) ??
       "early_stage_signal_based",
     sample_size_note: pickFirstNonEmptyString(input.sample_size_note) ?? "",
+    next_trend_plan: normalizeNextTrendPlan(input.next_trend_plan),
+    channel_dna_narrative: pickFirstNonEmptyString(input.channel_dna_narrative),
+    action_execution_hints: normalizeActionExecutionHints(input.action_execution_hints),
   };
 }
 
@@ -642,6 +690,26 @@ ${videoLines.join("\n\n")}
 "1. 최근 30일 동안 영상 업로드가 전혀 없는 상태입니다."
 "- 시청자와의 소통이 부족합니다."
 "콘텐츠 전략을 재검토할 필요가 있습니다."
+
+[next_trend_plan 작성 규칙]
+- topic: 채널 콘텐츠 맥락에 맞는 다음 영상 주제를 20자 이내 짧은 구로 작성 (예: "홈카페 레시피", "주식 초보 가이드"). 긴 문장·설명문 절대 금지.
+- why_this_topic: 채널 메트릭·패턴 데이터를 인용해 왜 이 주제가 지금 이 채널에 맞는지 2~3문장으로 설명
+- pain_point: 이 영상이 해소할 시청자의 핵심 불편·궁금증을 1~2문장으로
+- content_angle: 같은 주제를 다루는 다른 영상과 차별화되는 접근 방식 1문장
+- opening_hook: 시청자가 처음 15초 안에 "계속 봐야겠다"고 느낄 오프닝 방향 1문장. 실제 대사체 권장.
+- title_candidates: 클릭률을 높일 제목 후보 3개. 각 30자 이내. 번호·기호 없이 제목만.
+- recommended_tags: SEO에 적합한 태그 5~8개. 단어 또는 짧은 구.
+
+[channel_dna_narrative 작성 규칙]
+- content_patterns, target_audience, strengths를 종합해 채널의 핵심 성격·포지션을 3~4문장으로 자연스럽게 서술
+- 번호·기호 목록 절대 금지. 자연스러운 문단 형태
+- 메트릭 수치 최소 1개 인용
+
+[action_execution_hints 작성 규칙]
+- growth_action_plan의 각 항목에 1:1 대응하는 실행 가이드를 작성
+- action: growth_action_plan 항목 원문을 그대로 복사
+- execution_hint: 실제로 어떻게 실행할지 1~2문장. "~하세요" 형태의 구체적 행동 지시
+- expected_effect: 이 액션 실행 시 기대할 수 있는 효과 1문장. 가능하면 메트릭 예상값 포함
 `.trim();
 }
 
