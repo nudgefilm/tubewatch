@@ -66,6 +66,8 @@ export type NextTrendActionsVm = {
   exitPrevention: string;
   expectedReaction: string;
   viewingPoints: ViewingPointGauge[];
+  /** AI가 생성한 전략 리포트 전문 (마크다운). 있으면 개별 필드 대신 이걸 렌더링. */
+  videoPlanDocument?: string;
 };
 
 export type NextTrendExtensionVm = {
@@ -911,6 +913,7 @@ export function buildNextTrendInternalSpec(
               { label: "팬서비스", score: aiPlan.viewing_points.fan_service },
             ]
           : actions.viewingPoints,
+        videoPlanDocument: aiPlan.video_plan_document || undefined,
       }
     : actions;
 

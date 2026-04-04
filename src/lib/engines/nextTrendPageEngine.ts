@@ -127,6 +127,7 @@ function toExecutionActions(vm: NextTrendActionsVm) {
       expectedReaction: vm.expectedReaction,
       viewingPoints: vm.viewingPoints,
       experimentPriority: 1,
+      videoPlanDocument: vm.videoPlanDocument,
     },
   ]
 }

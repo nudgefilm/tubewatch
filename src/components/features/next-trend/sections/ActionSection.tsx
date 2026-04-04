@@ -10,6 +10,109 @@ interface NextTrendActionSectionProps {
   topCandidate?: { topic: string; reason: string } | null
 }
 
+/**
+ * video_plan_document (마크다운) 렌더러
+ * 지원: ## 헤더, **bold**, - 리스트, 1. 번호 리스트, 빈 줄 단락 구분
+ */
+function PlanDocument({ markdown }: { markdown: string }) {
+  const lines = markdown.split("\n")
+  const elements: React.ReactNode[] = []
+  let i = 0
+
+  function renderInline(text: string): React.ReactNode[] {
+    const parts = text.split(/(\*\*[^*]+\*\*)/)
+    return parts.map((part, idx) =>
+      part.startsWith("**") && part.endsWith("**")
+        ? <strong key={idx} className="font-semibold text-foreground">{part.slice(2, -2)}</strong>
+        : <span key={idx}>{part}</span>
+    )
+  }
+
+  while (i < lines.length) {
+    const line = lines[i]
+
+    // ## 섹션 헤더
+    if (line.startsWith("## ")) {
+      const text = line.replace(/^##\s*/, "")
+      // "1. 기획 의도 (The Logic)" 형태에서 영문 부제 추출
+      const match = text.match(/^(.*?)\s*(\([^)]+\))?$/)
+      const mainTitle = match?.[1]?.trim() ?? text
+      const subTitle = match?.[2] ?? ""
+      elements.push(
+        <div key={i} className={`${elements.length > 0 ? "mt-6" : ""} mb-2`}>
+          <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+            {mainTitle}
+            {subTitle && (
+              <span className="text-xs font-normal text-muted-foreground/70">{subTitle}</span>
+            )}
+          </h3>
+          <div className="mt-1 h-px bg-border/60" />
+        </div>
+      )
+      i++
+      continue
+    }
+
+    // - 불릿 리스트 항목 (연속된 항목 묶기)
+    if (line.startsWith("- ") || line.startsWith("* ")) {
+      const items: string[] = []
+      while (i < lines.length && (lines[i].startsWith("- ") || lines[i].startsWith("* "))) {
+        items.push(lines[i].replace(/^[-*]\s+/, ""))
+        i++
+      }
+      elements.push(
+        <ul key={`ul-${i}`} className="space-y-1 mb-1">
+          {items.map((item, idx) => (
+            <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground leading-relaxed">
+              <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-primary/50 shrink-0" />
+              <span>{renderInline(item)}</span>
+            </li>
+          ))}
+        </ul>
+      )
+      continue
+    }
+
+    // 번호 리스트 (1. 2. 3.)
+    if (/^\d+\.\s/.test(line)) {
+      const items: string[] = []
+      let num = 1
+      while (i < lines.length && new RegExp(`^${num}\\. `).test(lines[i])) {
+        items.push(lines[i].replace(/^\d+\.\s+/, ""))
+        i++
+        num++
+      }
+      elements.push(
+        <ol key={`ol-${i}`} className="space-y-1.5 mb-1">
+          {items.map((item, idx) => (
+            <li key={idx} className="flex items-start gap-2.5 text-sm text-muted-foreground leading-relaxed">
+              <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">{idx + 1}</span>
+              <span>{renderInline(item)}</span>
+            </li>
+          ))}
+        </ol>
+      )
+      continue
+    }
+
+    // 빈 줄 → 단락 구분 (skip)
+    if (line.trim() === "") {
+      i++
+      continue
+    }
+
+    // 일반 단락
+    elements.push(
+      <p key={i} className="text-sm text-muted-foreground leading-relaxed mb-2">
+        {renderInline(line)}
+      </p>
+    )
+    i++
+  }
+
+  return <div className="space-y-0.5">{elements}</div>
+}
+
 /** **bold** 마크업과 들여쓰기 줄을 처리하는 리치 텍스트 렌더러 */
 function RichText({ text }: { text: string }) {
   function parseLine(line: string, key: number, isLast: boolean) {
@@ -149,113 +252,103 @@ function ActionCard({ action, topCandidate }: { action: ExecutionAction; topCand
 
       <div className="divide-y">
 
-        {/* 기획 의도 */}
-        {action.whyThisTopic && action.whyThisTopic !== "—" && (
-          <SectionRow icon={<Lightbulb className="h-4 w-4" />} label="기획 의도">
-            <p className="text-sm leading-relaxed break-words">
-              <RichText text={action.whyThisTopic} />
-            </p>
-          </SectionRow>
-        )}
-
-        {/* 문제 진단 & 해결 방향 */}
-        {action.painPoint && action.painPoint !== "—" && (
-          <SectionRow icon={<AlertCircle className="h-4 w-4" />} label="문제 진단 & 해결 방향">
-            <p className="text-sm leading-relaxed break-words">
-              <RichText text={action.painPoint} />
-            </p>
-          </SectionRow>
-        )}
-
-        {/* 영상 기획안 (촬영 기준) */}
-        <SectionRow icon={<Video className="h-4 w-4" />} label="영상 기획안 (촬영 기준)">
-          <p className="text-sm leading-relaxed break-words">
-            <RichText text={action.videoTitle} />
-          </p>
-        </SectionRow>
-
-        {/* 제목 후보 (3개) */}
-        {action.titleCandidates && action.titleCandidates.length > 0 && (
-          <SectionRow icon={<Type className="h-4 w-4" />} label="제목 후보 (3개)">
-            <ol className="space-y-2">
-              {action.titleCandidates.map((title, i) => (
-                <li key={i} className="text-sm leading-relaxed break-words">
-                  <span className="font-semibold text-primary mr-1.5">{["①", "②", "③"][i]}</span>
-                  <RichText text={title} />
-                </li>
-              ))}
-            </ol>
-          </SectionRow>
-        )}
-
-        {/* 썸네일 방향 */}
-        <SectionRow icon={<ImageIcon className="h-4 w-4" />} label="썸네일 방향">
-          <p className="text-sm leading-relaxed break-words">
-            <RichText text={action.thumbnailDirection} />
-          </p>
-        </SectionRow>
-
-        {/* 오프닝 훅 */}
-        {action.openingHook && action.openingHook !== "—" && (
-          <SectionRow icon={<Zap className="h-4 w-4" />} label="오프닝 훅">
-            <p className="text-sm leading-relaxed break-words">
-              <RichText text={action.openingHook} />
-            </p>
-          </SectionRow>
-        )}
-
-        {/* 대본 구조 */}
-        {action.scriptOutline && action.scriptOutline !== "—" && (
-          <SectionRow icon={<AlignLeft className="h-4 w-4" />} label="대본 구조">
-            <p className="text-sm leading-relaxed break-words">
-              <RichText text={action.scriptOutline} />
-            </p>
-          </SectionRow>
-        )}
-
-        {/* 이탈 방지 포인트 */}
-        {action.exitPrevention && action.exitPrevention !== "—" && (
-          <SectionRow icon={<Shield className="h-4 w-4" />} label="이탈 방지 포인트">
-            <p className="text-sm leading-relaxed break-words">
-              <RichText text={action.exitPrevention} />
-            </p>
-          </SectionRow>
-        )}
-
-        {/* 제작 팁 */}
-        <SectionRow icon={<FileText className="h-4 w-4" />} label="제작 팁">
-          <p className="text-sm leading-relaxed break-words">
-            <RichText text={action.contentPlan} />
-          </p>
-        </SectionRow>
-
-        {/* 시청 포인트 게이지 */}
-        {action.viewingPoints && action.viewingPoints.length > 0 && (
-          <SectionRow icon={<BarChart2 className="h-4 w-4" />} label="시청 포인트">
-            <ViewingGauge points={action.viewingPoints} />
-          </SectionRow>
-        )}
-
-        {/* 추천 태그 */}
-        {action.recommendedTags && action.recommendedTags.length > 0 && (
-          <SectionRow icon={<Tag className="h-4 w-4" />} label="추천 태그">
-            <div className="flex flex-wrap gap-1.5">
-              {action.recommendedTags.map((tag) => (
-                <Badge key={tag} variant="secondary" className="text-xs font-normal">
-                  #{tag}
-                </Badge>
-              ))}
+        {action.videoPlanDocument ? (
+          /* ── AI 전략 리포트 모드 ─────────────────────────────────── */
+          <>
+            {/* 전략 리포트 본문 */}
+            <div className="px-5 py-5">
+              <PlanDocument markdown={action.videoPlanDocument} />
             </div>
-          </SectionRow>
-        )}
 
-        {/* 업로드 후 점검 포인트 */}
-        {action.expectedReaction && action.expectedReaction !== "—" && (
-          <SectionRow icon={<Users className="h-4 w-4" />} label="업로드 후 점검 포인트">
-            <p className="text-sm leading-relaxed break-words">
-              <RichText text={action.expectedReaction} />
-            </p>
-          </SectionRow>
+            {/* 시청 포인트 게이지 — 시각 위젯은 항상 표시 */}
+            {action.viewingPoints && action.viewingPoints.length > 0 && (
+              <SectionRow icon={<BarChart2 className="h-4 w-4" />} label="시청 포인트 게이지">
+                <ViewingGauge points={action.viewingPoints} />
+              </SectionRow>
+            )}
+
+            {/* 추천 태그 — 클릭·복사용 */}
+            {action.recommendedTags && action.recommendedTags.length > 0 && (
+              <SectionRow icon={<Tag className="h-4 w-4" />} label="추천 태그">
+                <div className="flex flex-wrap gap-1.5">
+                  {action.recommendedTags.map((tag) => (
+                    <Badge key={tag} variant="secondary" className="text-xs font-normal">
+                      #{tag}
+                    </Badge>
+                  ))}
+                </div>
+              </SectionRow>
+            )}
+          </>
+        ) : (
+          /* ── 폴백: 개별 섹션 렌더링 (AI 데이터 없는 구버전) ──── */
+          <>
+            {action.whyThisTopic && action.whyThisTopic !== "—" && (
+              <SectionRow icon={<Lightbulb className="h-4 w-4" />} label="기획 의도">
+                <p className="text-sm leading-relaxed break-words"><RichText text={action.whyThisTopic} /></p>
+              </SectionRow>
+            )}
+            {action.painPoint && action.painPoint !== "—" && (
+              <SectionRow icon={<AlertCircle className="h-4 w-4" />} label="문제 진단 & 해결 방향">
+                <p className="text-sm leading-relaxed break-words"><RichText text={action.painPoint} /></p>
+              </SectionRow>
+            )}
+            <SectionRow icon={<Video className="h-4 w-4" />} label="영상 기획안 (촬영 기준)">
+              <p className="text-sm leading-relaxed break-words"><RichText text={action.videoTitle} /></p>
+            </SectionRow>
+            {action.titleCandidates && action.titleCandidates.length > 0 && (
+              <SectionRow icon={<Type className="h-4 w-4" />} label="제목 후보 (3개)">
+                <ol className="space-y-2">
+                  {action.titleCandidates.map((title, i) => (
+                    <li key={i} className="text-sm leading-relaxed break-words">
+                      <span className="font-semibold text-primary mr-1.5">{["①", "②", "③"][i]}</span>
+                      <RichText text={title} />
+                    </li>
+                  ))}
+                </ol>
+              </SectionRow>
+            )}
+            <SectionRow icon={<ImageIcon className="h-4 w-4" />} label="썸네일 방향">
+              <p className="text-sm leading-relaxed break-words"><RichText text={action.thumbnailDirection} /></p>
+            </SectionRow>
+            {action.openingHook && action.openingHook !== "—" && (
+              <SectionRow icon={<Zap className="h-4 w-4" />} label="오프닝 훅">
+                <p className="text-sm leading-relaxed break-words"><RichText text={action.openingHook} /></p>
+              </SectionRow>
+            )}
+            {action.scriptOutline && action.scriptOutline !== "—" && (
+              <SectionRow icon={<AlignLeft className="h-4 w-4" />} label="대본 구조">
+                <p className="text-sm leading-relaxed break-words"><RichText text={action.scriptOutline} /></p>
+              </SectionRow>
+            )}
+            {action.exitPrevention && action.exitPrevention !== "—" && (
+              <SectionRow icon={<Shield className="h-4 w-4" />} label="이탈 방지 포인트">
+                <p className="text-sm leading-relaxed break-words"><RichText text={action.exitPrevention} /></p>
+              </SectionRow>
+            )}
+            <SectionRow icon={<FileText className="h-4 w-4" />} label="제작 팁">
+              <p className="text-sm leading-relaxed break-words"><RichText text={action.contentPlan} /></p>
+            </SectionRow>
+            {action.viewingPoints && action.viewingPoints.length > 0 && (
+              <SectionRow icon={<BarChart2 className="h-4 w-4" />} label="시청 포인트">
+                <ViewingGauge points={action.viewingPoints} />
+              </SectionRow>
+            )}
+            {action.recommendedTags && action.recommendedTags.length > 0 && (
+              <SectionRow icon={<Tag className="h-4 w-4" />} label="추천 태그">
+                <div className="flex flex-wrap gap-1.5">
+                  {action.recommendedTags.map((tag) => (
+                    <Badge key={tag} variant="secondary" className="text-xs font-normal">#{tag}</Badge>
+                  ))}
+                </div>
+              </SectionRow>
+            )}
+            {action.expectedReaction && action.expectedReaction !== "—" && (
+              <SectionRow icon={<Users className="h-4 w-4" />} label="업로드 후 점검 포인트">
+                <p className="text-sm leading-relaxed break-words"><RichText text={action.expectedReaction} /></p>
+              </SectionRow>
+            )}
+          </>
         )}
 
       </div>

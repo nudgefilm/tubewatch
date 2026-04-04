@@ -63,6 +63,8 @@ export interface ExecutionAction {
   expectedReaction: string
   viewingPoints: ViewingPointGauge[]
   experimentPriority: number
+  /** AI 전략 리포트 전문 (마크다운). 있으면 개별 섹션 대신 이 문서를 렌더링. */
+  videoPlanDocument?: string
 }
 
 export interface SourceSplit {

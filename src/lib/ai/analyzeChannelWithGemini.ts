@@ -327,6 +327,7 @@ function normalizeNextTrendPlan(raw: unknown): NextTrendAIPlan | null {
       informativeness: clampScore(vpRaw?.informativeness),
       fan_service:     clampScore(vpRaw?.fan_service),
     },
+    video_plan_document: normalizeString(obj.video_plan_document) ?? "",
   };
 }
 
@@ -729,6 +730,26 @@ ${videoLines.join("\n\n")}
 - exit_prevention: 이 영상에서 이탈을 막는 방법 2~3가지. 각 방법은 한 문장. 오프닝 훅·중간 전환·예고 포인트 중 주제에 맞는 것 선택.
 - expected_reaction: 업로드 후 48시간 체크포인트 3항목. CTR 기준·시청 유지율 목표·댓글 반응 예상 각 한 문장.
 - viewing_points: 이 영상 주제 기준 5개 지표를 1~5 정수로 평가. 채널 특성과 주제 성격을 반영해 차별화된 점수 부여. 모두 3점 금지.
+- video_plan_document: 아래 구조로 전략 리포트 전문을 작성. 반드시 위 [채널 정보]와 [최근 영상 샘플]의 실제 수치·영상 제목·패턴을 직접 인용할 것. 수치 없이 일반론만 쓰는 것 금지.
+
+  형식:
+  ## 1. 기획 의도 (The Logic)
+  채널 메트릭 수치를 인용하며 왜 이 주제인지 설명. 실제 영상 성과 데이터 언급. 콘텐츠 전략 방향을 2~3문단으로.
+
+  ## 2. 킬러 타이틀 & 썸네일 (The Hook)
+  제목 후보 3개를 유형 레이블(숫자형/감성형/결과형 등)과 함께 제시. 이 채널의 기존 영상 패턴을 반영한 썸네일 전략 2~3문장.
+
+  ## 3. 인트로 30초 설계 (The Retention)
+  00:00-00:10 / 00:10-00:30 타임스탬프별 구체적 장면·대사 지시. 채널 특유의 스타일 반영.
+
+  ## 4. 메인 콘텐츠 구성 (The Body)
+  Chapter 2~3개. 각 Chapter 소제목 + 핵심 내용 한 문단. 이 주제의 실제 콘텐츠 흐름.
+
+  ## 5. 시청자 결핍 & SEO (The Value)
+  시청자가 이 영상에서 얻고자 하는 심리적 니즈 서술. 핵심 키워드 5~8개를 #태그 형식으로.
+
+  ## 6. 예상 시청자 반응 (The Outcome)
+  예상 댓글 시나리오 2개 (실제 댓글 형태로). 채널 평균 대비 조회수 예상 범위. 48시간 성과 체크포인트.
 
 [channel_dna_narrative 작성 규칙]
 - content_patterns, target_audience, strengths를 종합해 채널의 핵심 성격·포지션을 3~4문장으로 자연스럽게 서술

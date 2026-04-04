@@ -20,6 +20,7 @@ export type NextTrendAIPlan = {
     informativeness: number;   // 정보성
     fan_service: number;       // 팬서비스
   };
+  video_plan_document: string; // 전략 리포트 전문 (마크다운, 채널 데이터 인용 필수)
 };
 
 export type ActionExecutionHint = {
@@ -231,8 +232,12 @@ export type TubeWatchAnalysisResult = {
               },
               required: ["popularity", "expertise", "stimulation", "informativeness", "fan_service"],
             },
+            video_plan_document: {
+              type: "string",
+              description: "채널 실제 데이터(수치·영상 제목·패턴)를 인용한 전략 리포트 전문. 마크다운 형식. 7개 섹션 구성. 각 섹션 헤더: ## 숫자. 제목 (영문 부제). 길이 제한 없음 — 풍부하게 작성.",
+            },
           },
-          required: ["topic", "why_this_topic", "pain_point", "content_angle", "opening_hook", "title_candidates", "recommended_tags", "script_outline", "thumbnail_direction", "content_plan", "exit_prevention", "expected_reaction", "viewing_points"],
+          required: ["topic", "why_this_topic", "pain_point", "content_angle", "opening_hook", "title_candidates", "recommended_tags", "script_outline", "thumbnail_direction", "content_plan", "exit_prevention", "expected_reaction", "viewing_points", "video_plan_document"],
         },
         channel_dna_narrative: {
           type: "string",
