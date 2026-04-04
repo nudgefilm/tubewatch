@@ -528,6 +528,7 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
               <AnalysisViewTrendChart
                 data={trendData}
                 interpretation={trendInterpretation}
+                channelId={viewModel.selectedChannelId ?? undefined}
               />
             ) : (
               <AnalysisEmptyState

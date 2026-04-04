@@ -12,6 +12,7 @@ import { Menu, X, LogOut, User } from "lucide-react";
 import { getSafeOAuthReturnPath } from "@/lib/auth/safe-return-path";
 import { AuthModal } from "./auth-modal";
 import { createClient } from "@/lib/supabase/client";
+import { readSelectedChannelIdFromStorage } from "@/lib/channels/selectedChannelStorage";
 
 const navLinks = [
   { name: "Channel Analysis", href: "/analysis", description: "내 채널, 지금 몇점일까?" },
@@ -21,6 +22,7 @@ const navLinks = [
 ];
 
 export function Navigation() {
+  const [storedChannelId, setStoredChannelId] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -35,6 +37,7 @@ export function Navigation() {
 
   useEffect(() => {
     setIconsMounted(true);
+    setStoredChannelId(readSelectedChannelIdFromStorage());
   }, []);
 
   useEffect(() => {
@@ -100,6 +103,10 @@ export function Navigation() {
     }
   }, []);
 
+  function getNavHref(href: string) {
+    return storedChannelId ? `${href}?channel=${storedChannelId}` : href;
+  }
+
   return (
     <header
       className={`fixed z-50 transition-all duration-500 ${
@@ -136,7 +143,7 @@ export function Navigation() {
             {navLinks.map((link) => (
               <a
                 key={link.name}
-                href={link.href}
+                href={getNavHref(link.href)}
                 className="text-sm text-foreground/70 hover:text-foreground transition-colors duration-300 relative group cursor-pointer"
               >
                 {link.name}
@@ -262,7 +269,7 @@ export function Navigation() {
             {navLinks.map((link, i) => (
               <a
                 key={link.name}
-                href={link.href}
+                href={getNavHref(link.href)}
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={`text-5xl font-sans text-foreground hover:text-muted-foreground transition-all duration-500 cursor-pointer ${
                   isMobileMenuOpen 

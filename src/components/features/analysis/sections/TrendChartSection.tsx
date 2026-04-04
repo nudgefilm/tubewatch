@@ -21,6 +21,7 @@ interface ViewTrendDataPoint {
 interface AnalysisViewTrendChartProps {
   data: ViewTrendDataPoint[]
   interpretation?: string
+  channelId?: string
 }
 
 const chartConfig = {
@@ -55,7 +56,7 @@ function deriveSummaryLine(
   return `최근 ${n}편 기준 조회 흐름이 정체 또는 하락세를 나타내고 있습니다`
 }
 
-export function AnalysisViewTrendChart({ data, interpretation }: AnalysisViewTrendChartProps) {
+export function AnalysisViewTrendChart({ data, interpretation, channelId }: AnalysisViewTrendChartProps) {
   // Fallback 1: 표본 2개 미만 — 추세 그래프를 그릴 수 없음
   if (data.length < 2) {
     return (
@@ -180,7 +181,7 @@ export function AnalysisViewTrendChart({ data, interpretation }: AnalysisViewTre
           if (peak.views === 0) return null
           return (
             <a
-              href="/channel-dna"
+              href={channelId ? `/channel-dna?channel=${channelId}` : "/channel-dna"}
               className="mt-3 flex items-center gap-1.5 rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-primary hover:bg-primary/10 transition-colors"
             >
               <span className="font-medium">{peak.date} 영상이 조회수 정점을 기록했습니다.</span>
