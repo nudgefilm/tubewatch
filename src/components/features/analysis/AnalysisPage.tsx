@@ -468,12 +468,12 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
           </div>
         )}
 
-        {/* 분석 완료 → Action Plan 유도 */}
+        {/* 분석 완료 → Channel DNA 유도 */}
         {viewModel.hasAnalysisResult && (
           <PageFlowConnector
-            message="분석이 완료되었습니다. 이제 실행 전략을 확인하세요."
-            ctaLabel="Action Plan 보기"
-            href="/action-plan"
+            message="분석이 완료되었습니다. 채널의 DNA를 확인하세요."
+            ctaLabel="Channel DNA 보기"
+            href="/channel-dna"
           />
         )}
       </div>
