@@ -43,6 +43,12 @@ function topReasonText(strength: "clear" | "medium" | "low"): string {
   return "초기 신호가 감지된 단계로, 탐색 목적의 1편 테스트가 적합한 주제입니다."
 }
 
+function feasibilityFromSignal(strength: "clear" | "medium" | "low"): number {
+  if (strength === "clear") return 85
+  if (strength === "medium") return 65
+  return 45
+}
+
 function toCandidates(vms: NextTrendCandidateVm[]) {
   return vms.map((vm, i) => ({
     id: `candidate-${i}`,
@@ -50,7 +56,7 @@ function toCandidates(vms: NextTrendCandidateVm[]) {
     reason: vm.reason,
     signal: vm.signal,
     priority: i === 0 ? ("high" as const) : i < 3 ? ("medium" as const) : ("low" as const),
-    feasibility: Math.max(40, 80 - i * 8),
+    feasibility: feasibilityFromSignal(vm.signalStrength),
     source: "dna" as const,
     status: "executable" as const,
     signalStrength: vm.signalStrength,

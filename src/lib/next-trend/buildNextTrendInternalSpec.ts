@@ -537,7 +537,7 @@ function buildGeminiTopicCandidates(
     reason:
       "튜브워치가 채널 데이터를 분석해 다음 영상으로 추천한 주제입니다. 채널의 강점·패턴·시청자층을 종합해 도출했습니다.",
     signal: "튜브워치 추천",
-    signalStrength: i === 0 ? ("clear" as const) : ("medium" as const),
+    signalStrength: "medium" as const,
     evidence: [{ label: "출처", value: "튜브워치 채널 분석 추천" }],
     expectedEffect:
       "채널 특성에 맞는 주제로 시작해 초반 클릭율과 시청 지속시간을 함께 테스트할 수 있습니다.",
