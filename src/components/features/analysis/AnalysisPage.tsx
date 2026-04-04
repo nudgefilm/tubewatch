@@ -124,7 +124,29 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
   const [isRequesting, setIsRequesting] = useState(false)
   const [requestError, setRequestError] = useState<string | null>(null)
   const [isDownloading, setIsDownloading] = useState(false)
+  const [showShareMenu, setShowShareMenu] = useState(false)
   const diagnosisCaptureRef = useRef<HTMLDivElement>(null)
+  const shareLeaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  function onShareEnter() {
+    if (shareLeaveTimer.current) clearTimeout(shareLeaveTimer.current)
+    setShowShareMenu(true)
+  }
+
+  function onShareLeave() {
+    shareLeaveTimer.current = setTimeout(() => setShowShareMenu(false), 1000)
+  }
+
+  function handleSharePlatform(platform: "kakao" | "twitter" | "telegram") {
+    const url = encodeURIComponent(window.location.href)
+    const text = encodeURIComponent("채널 진단 분석 결과 | TubeWatch")
+    if (platform === "kakao")
+      window.open(`https://story.kakao.com/share?url=${url}`, "_blank", "noopener,noreferrer")
+    if (platform === "twitter")
+      window.open(`https://x.com/intent/tweet?text=${text}&url=${url}`, "_blank", "noopener,noreferrer")
+    if (platform === "telegram")
+      window.open(`https://t.me/share/url?url=${url}&text=${text}`, "_blank", "noopener,noreferrer")
+  }
 
   async function handleDiagnosisDownload() {
     if (!diagnosisCaptureRef.current || isDownloading) return
@@ -356,7 +378,38 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
                   <ArrowDownToLine className="size-6" strokeWidth={2.5} />
                   {isDownloading && <span className="text-xs">저장 중…</span>}
                 </button>
-                <span className="text-lg leading-none select-none">🔗</span>
+                <div
+                  className="relative"
+                  onMouseEnter={onShareEnter}
+                  onMouseLeave={onShareLeave}
+                >
+                  <span className="text-lg leading-none select-none cursor-pointer" title="공유하기">🔗</span>
+                  {showShareMenu && (
+                    <div className="absolute right-0 top-full mt-1.5 z-50 min-w-[148px] rounded-lg border bg-popover shadow-md overflow-hidden">
+                      <button
+                        onClick={() => handleSharePlatform("kakao")}
+                        className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-muted transition-colors"
+                      >
+                        <span className="text-base">💬</span>
+                        <span>카카오톡</span>
+                      </button>
+                      <button
+                        onClick={() => handleSharePlatform("twitter")}
+                        className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-muted transition-colors"
+                      >
+                        <span className="text-base font-bold">𝕏</span>
+                        <span>트위터(X)</span>
+                      </button>
+                      <button
+                        onClick={() => handleSharePlatform("telegram")}
+                        className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-muted transition-colors"
+                      >
+                        <span className="text-base">✈️</span>
+                        <span>텔레그램</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
                 <span className="text-base font-heading font-medium tracking-[-0.02em] leading-none">TubeWatch™</span>
               </div>
             </div>
