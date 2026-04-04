@@ -182,18 +182,15 @@ export default function ChannelsPageClient({
         maxCount={maxCount}
         isAdmin={isAdmin}
         onRegistered={async (newChannelId) => {
-          // 목록을 먼저 갱신한 뒤 선택 상태를 설정해야 cleanup effect가 신규 채널을 찾을 수 있다.
-          // loadChannels 전에 setSelectedChannelId를 하면 채널 목록에 없다고 판단해 null로 초기화되는 race condition 발생.
+          // localStorage를 먼저 쓴 뒤 broadcast — 사이드바 이벤트 핸들러가 읽을 때 새 ID가 이미 저장되어 있어야 함
           console.log("[Channels/register] onRegistered called. newChannelId:", newChannelId ?? "(none)");
-          broadcastChannelsUpdated();
-          await loadChannels();
-          console.log("[Channels/register] loadChannels done. channels.length after:", channels.length);
           if (newChannelId) {
             writeSelectedChannelIdToStorage(newChannelId);
+          }
+          broadcastChannelsUpdated();
+          await loadChannels();
+          if (newChannelId) {
             setSelectedChannelId(newChannelId);
-            console.log("[Channels/register] selectedChannelId set to:", newChannelId);
-          } else {
-            console.warn("[Channels/register] newChannelId is null/undefined — selected channel NOT set");
           }
         }}
       />

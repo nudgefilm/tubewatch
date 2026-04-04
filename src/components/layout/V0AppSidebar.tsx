@@ -170,6 +170,20 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
     return () => window.removeEventListener("tubewatch-channels-updated", onUpdate)
   }, [loadChannels])
 
+  // 페이지 이동 시 URL ?channel= 파라미터와 사이드바 선택 채널 동기화
+  // Next.js SPA 내비게이션은 sidebar를 언마운트하지 않으므로 pathname 변경을 감지해 URL을 직접 읽는다
+  React.useEffect(() => {
+    if (typeof window === "undefined") return
+    const urlChannelId = new URLSearchParams(window.location.search).get("channel")
+    if (!urlChannelId || channels.length === 0) return
+    if (urlChannelId === selectedChannelId) return
+    if (channels.some((c) => c.id === urlChannelId)) {
+      setSelectedChannelId(urlChannelId)
+      writeSelectedChannelIdToStorage(urlChannelId)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname, channels])
+
   React.useEffect(() => {
     const supabase = createClient()
 
