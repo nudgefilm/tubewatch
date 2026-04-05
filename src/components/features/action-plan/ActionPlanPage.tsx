@@ -1,12 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Target, ClipboardList, Search, Wrench, FileText } from "lucide-react"
+import { Target, ClipboardList, Search, Wrench, FileText, Sparkles } from "lucide-react"
 import { ActionPlanCardsSection } from "./sections/CardsSection"
 import { ActionPlanChecklistSection } from "./sections/ChecklistSection"
 import { ActionPlanKeywordSection } from "./sections/KeywordSection"
 import { ActionPlanDeficitSection } from "./sections/DeficitSection"
 import { ActionPlanEmptyState } from "./sections/EmptyState"
+import { StrategyPlanSection } from "./sections/StrategyPlanSection"
 import { ChannelContextHeader, type ChannelContext } from "@/components/features/shared/ChannelContextHeader"
 import { FeaturePaywallBlock } from "@/components/features/shared/FeaturePaywallBlock"
 import { PageFlowConnector } from "@/components/features/shared/PageFlowConnector"
@@ -133,6 +134,20 @@ export function ActionPlanPage({ channelId = "", channelContext, viewModel, isSt
                 <p className="text-xs text-muted-foreground mt-0.5">유튜브 스튜디오에서 즉시 적용 가능한 결손 항목</p>
               </div>
               <ActionPlanDeficitSection seoDeficit={seoDeficitData} engagementGap={engagementGapData} linguisticInsight={linguisticInsightData} />
+            </section>
+          )}
+
+          {/* [5] 성장 전략 실행 플랜 — Starter 차단, 분석 데이터 있을 때만 */}
+          {!isStarterPlan && viewModel.hasAnalysis && viewModel.selectedChannelId && (
+            <section className="space-y-4">
+              <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
+                <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight">
+                  <Sparkles className="size-5 shrink-0 text-primary" />
+                  성장 전략 실행 플랜
+                </h2>
+                <p className="text-xs text-muted-foreground mt-0.5">채널 데이터 기반 AI 생성 원페이퍼</p>
+              </div>
+              <StrategyPlanSection channelId={viewModel.selectedChannelId} />
             </section>
           )}
 
