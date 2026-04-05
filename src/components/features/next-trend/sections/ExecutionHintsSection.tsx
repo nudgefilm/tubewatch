@@ -87,13 +87,7 @@ function PlanDocument({ markdown }: { markdown: string }) {
 }
 
 export function ExecutionHintDocument({ markdown }: ExecutionHintDocumentProps) {
-  if (!markdown) {
-    return (
-      <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-        분석 후 실행 힌트가 자동으로 생성됩니다.
-      </div>
-    )
-  }
+  if (!markdown) return null
 
   return (
     <div className="rounded-xl border bg-card overflow-hidden">
