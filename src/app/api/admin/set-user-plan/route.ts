@@ -67,7 +67,6 @@ export async function POST(request: Request) {
   }
 
   const now = new Date().toISOString();
-  const oneYearLater = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
   const manualSubId = `manual_admin_${targetUserId}_${planId}_${Date.now()}`;
 
   // 1) 기존 row 삭제 (없어도 에러 없음)
@@ -90,7 +89,6 @@ export async function POST(request: Request) {
       stripe_subscription_id: manualSubId,
       plan_id: planId,
       subscription_status: "active",
-      current_period_end: oneYearLater,
       updated_at: now,
     });
 
