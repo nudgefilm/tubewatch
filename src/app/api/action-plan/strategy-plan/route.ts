@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminUser } from "@/lib/server/isAdminUser";
 
+// Vercel 서버리스 함수 최대 실행 시간 (Gemini 자유형 생성은 시간이 걸림)
+export const maxDuration = 60;
+
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
 const GEMINI_MODEL = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
 
@@ -150,7 +153,11 @@ export async function POST(req: NextRequest) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ role: "user", parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 8192 },
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 4096,
+            thinkingConfig: { thinkingBudget: 0 },
+          },
           systemInstruction: {
             parts: [{
               text: "당신은 유튜브 채널 성장 전략가입니다. 마크다운 형식의 원페이퍼 전략 문서를 작성합니다. JSON을 반환하지 않습니다.",
@@ -161,8 +168,13 @@ export async function POST(req: NextRequest) {
     );
 
     const geminiData = await geminiRes.json();
+    if (!geminiRes.ok) {
+      console.error("[strategy-plan] Gemini HTTP error:", geminiRes.status, JSON.stringify(geminiData));
+      return NextResponse.json({ error: "Gemini 호출 실패" }, { status: 502 });
+    }
     const markdown = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!markdown) {
+      console.error("[strategy-plan] Gemini empty response:", JSON.stringify(geminiData).slice(0, 300));
       return NextResponse.json({ error: "Gemini 응답 오류" }, { status: 500 });
     }
 
