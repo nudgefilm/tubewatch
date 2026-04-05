@@ -186,13 +186,27 @@ export async function POST(request: Request) {
       reservationId = reservation.reservationId;
       isFreePlan = reservation.isFreePlan;
     } catch (e) {
-      if (e instanceof CreditReservationError && e.code === "CREDITS_EXHAUSTED") {
+      if (e instanceof CreditReservationError) {
+        if (e.code === "CREDITS_EXHAUSTED") {
+          return NextResponse.json(
+            { ok: false, code: "CREDITS_EXHAUSTED", error: e.message },
+            { status: 402 }
+          );
+        }
+        // RPC 오류 등 — 500이지만 JSON으로 반환해 프론트에서 메시지 표시
+        console.error("[Analysis Start API] credit reservation error:", e.code, e.message);
         return NextResponse.json(
-          { ok: false, code: "CREDITS_EXHAUSTED", error: e.message },
-          { status: 402 }
+          { ok: false, code: e.code, error: `크레딧 예약 중 오류가 발생했습니다. (${e.message})` },
+          { status: 500 }
         );
       }
-      throw e;
+      // CreditReservationError가 아닌 예외 (user_credits DB 오류 등)
+      const msg = e instanceof Error ? e.message : String(e);
+      console.error("[Analysis Start API] unexpected credit error:", msg);
+      return NextResponse.json(
+        { ok: false, error: `크레딧 처리 중 오류가 발생했습니다. (${msg})` },
+        { status: 500 }
+      );
     }
   }
 
