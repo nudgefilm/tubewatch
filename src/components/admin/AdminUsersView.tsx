@@ -5,6 +5,78 @@ import type { AdminUsersData } from "./types";
 import { formatDateTime } from "@/lib/format/formatDateTime";
 import { FREE_LIFETIME_ANALYSIS_LIMIT } from "@/components/billing/types";
 
+type PlanOption = "free" | "creator" | "pro";
+
+const PLAN_OPTIONS: { id: PlanOption; label: string; className: string }[] = [
+  { id: "free",    label: "Free",    className: "bg-foreground/10 text-foreground/60" },
+  { id: "creator", label: "Creator", className: "bg-blue-100 text-blue-700" },
+  { id: "pro",     label: "Pro",     className: "bg-violet-100 text-violet-700" },
+];
+
+function SetPlanButton({ userId, currentPlan }: { userId: string; currentPlan: PlanOption }) {
+  const [open, setOpen] = useState(false);
+  const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [applied, setApplied] = useState<PlanOption>(currentPlan);
+
+  async function handleSelect(planId: PlanOption) {
+    if (planId === applied || status === "loading") return;
+    setOpen(false);
+    setStatus("loading");
+    try {
+      const res = await fetch("/api/admin/set-user-plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, planId }),
+      });
+      if (res.ok) {
+        setApplied(planId);
+        setStatus("done");
+        setTimeout(() => setStatus("idle"), 2000);
+      } else {
+        setStatus("error");
+        setTimeout(() => setStatus("idle"), 3000);
+      }
+    } catch {
+      setStatus("error");
+      setTimeout(() => setStatus("idle"), 3000);
+    }
+  }
+
+  const current = PLAN_OPTIONS.find((p) => p.id === applied) ?? PLAN_OPTIONS[0];
+
+  return (
+    <div className="relative inline-block">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        disabled={status === "loading"}
+        className={`rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase transition-colors disabled:opacity-50 ${current.className}`}
+      >
+        {status === "loading" ? "..." : status === "done" ? "✓ " + current.label : current.label}
+      </button>
+      {open && (
+        <div className="absolute left-0 top-full z-10 mt-1 w-24 rounded-lg border border-foreground/10 bg-background shadow-lg">
+          {PLAN_OPTIONS.map((opt) => (
+            <button
+              key={opt.id}
+              type="button"
+              onClick={() => handleSelect(opt.id)}
+              className={`w-full px-2.5 py-1.5 text-left text-[11px] font-medium hover:bg-foreground/5 transition-colors first:rounded-t-lg last:rounded-b-lg ${
+                opt.id === applied ? "opacity-40 cursor-default" : ""
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      )}
+      {status === "error" && (
+        <span className="ml-1 text-[10px] text-red-500">실패</span>
+      )}
+    </div>
+  );
+}
+
 function formatNum(n: number) {
   return n.toLocaleString("ko-KR");
 }
@@ -101,20 +173,13 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
                       <td className="px-4 py-2.5">
                         {(() => {
                           const plan = row.plan_id;
-                          const status = row.subscription_status;
-                          const isActive = status === "active" || status === "trialing";
-                          if (plan && isActive) {
-                            return (
-                              <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase ${
-                                plan === "pro"
-                                  ? "bg-violet-100 text-violet-700"
-                                  : "bg-blue-100 text-blue-700"
-                              }`}>
-                                {plan}
-                              </span>
-                            );
-                          }
-                          return <span className="text-muted-foreground/50 text-[10px]">free</span>;
+                          const subStatus = row.subscription_status;
+                          const isActive = subStatus === "active" || subStatus === "trialing";
+                          const currentPlan: PlanOption =
+                            plan && isActive && (plan === "creator" || plan === "pro")
+                              ? plan
+                              : "free";
+                          return <SetPlanButton userId={row.id} currentPlan={currentPlan} />;
                         })()}
                       </td>
                       <td className="px-4 py-2.5 tabular-nums text-foreground/70">
