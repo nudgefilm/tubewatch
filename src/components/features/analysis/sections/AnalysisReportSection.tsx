@@ -76,7 +76,7 @@ export function AnalysisReportSection({ channelId }: AnalysisReportSectionProps)
     }
 
     fetchNow()
-    intervalId = setInterval(fetchNow, 3000)
+    intervalId = setInterval(fetchNow, 8000)
 
     return () => {
       controller.abort()

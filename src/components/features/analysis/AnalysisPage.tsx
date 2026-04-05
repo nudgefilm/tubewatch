@@ -175,7 +175,7 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
     try {
       const { toPng } = await import("html-to-image")
       const dataUrl = await toPng(diagnosisCaptureRef.current, {
-        pixelRatio: 2,
+        pixelRatio: 1,
         backgroundColor: "#ffffff",
       })
       const link = document.createElement("a")

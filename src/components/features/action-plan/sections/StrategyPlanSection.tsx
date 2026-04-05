@@ -92,7 +92,7 @@ export function StrategyPlanSection({ channelId }: StrategyPlanSectionProps) {
     }
 
     fetchNow()
-    intervalId = setInterval(fetchNow, 3000)
+    intervalId = setInterval(fetchNow, 8000)
 
     return () => {
       controller.abort()

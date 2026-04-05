@@ -204,15 +204,9 @@ export function OnePagerCard({
         </div>
       )}
 
-      {/* 펼침 — 슬라이드 애니메이션 */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateRows: expanded ? "1fr" : "0fr",
-          transition: "grid-template-rows 0.35s ease",
-        }}
-      >
-        <div style={{ overflow: "hidden" }}>
+      {/* 펼침 — expanded일 때만 PlanDocument 마운트 (메모리 최적화) */}
+      {expanded && (
+        <div>
           <div className="px-6 pt-6 pb-3">
             <PlanDocument markdown={markdown} />
           </div>
@@ -237,7 +231,7 @@ export function OnePagerCard({
             </button>
           </div>
         </div>
-      </div>
+      )}
 
     </div>
   )
