@@ -46,6 +46,7 @@ export type NextTrendHintsVm = {
   hook: string;
   thumbnail: string;
   contentAngle: string;
+  executionHintDocument?: string;
 };
 
 export type ViewingPointGauge = {
@@ -917,9 +918,13 @@ export function buildNextTrendInternalSpec(
       }
     : actions;
 
-  // AI plan이 있으면 hints.contentAngle도 업데이트
+  // AI plan이 있으면 hints.contentAngle + executionHintDocument도 업데이트
   const finalHints = aiPlan
-    ? { ...hints, contentAngle: aiPlan.content_angle }
+    ? {
+        ...hints,
+        contentAngle: aiPlan.content_angle,
+        executionHintDocument: aiPlan.execution_hint_document || undefined,
+      }
     : hints;
 
   return {

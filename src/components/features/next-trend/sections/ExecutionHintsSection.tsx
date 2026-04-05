@@ -1,45 +1,105 @@
 "use client"
 
-import { Badge } from "@/components/ui/badge"
-import { Type, Zap, Image, Compass, Play } from "lucide-react"
-import type { ExecutionHint } from "@/mocks/next-trend"
-
-interface NextTrendExecutionHintsProps {
-  data: ExecutionHint[]
+interface ExecutionHintDocumentProps {
+  markdown: string | null
 }
 
-const typeConfig = {
-  title: { icon: Type, label: "제목", color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" },
-  hook: { icon: Zap, label: "훅", color: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400" },
-  thumbnail: { icon: Image, label: "썸네일", color: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
-  angle: { icon: Compass, label: "각도", color: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400" },
-  start: { icon: Play, label: "시작", color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" },
+function renderInline(text: string): React.ReactNode[] {
+  const parts = text.split(/(\*\*[^*]+\*\*)/)
+  return parts.map((part, idx) =>
+    part.startsWith("**") && part.endsWith("**")
+      ? <strong key={idx} className="font-semibold text-foreground">{part.slice(2, -2)}</strong>
+      : <span key={idx}>{part}</span>
+  )
 }
 
-export function NextTrendExecutionHints({ data }: NextTrendExecutionHintsProps) {
+function PlanDocument({ markdown }: { markdown: string }) {
+  const lines = markdown.split("\n")
+  const elements: React.ReactNode[] = []
+  let i = 0
+
+  while (i < lines.length) {
+    const line = lines[i]
+
+    if (line.startsWith("## ") || line.startsWith("# ")) {
+      const text = line.replace(/^#{1,2}\s*/, "")
+      elements.push(
+        <div key={i} className={`${elements.length > 0 ? "mt-5" : ""} mb-2`}>
+          <h3 className="text-sm font-bold text-foreground">{text}</h3>
+          <div className="mt-1 h-px bg-border/60" />
+        </div>
+      )
+      i++
+      continue
+    }
+
+    if (line.startsWith("- ") || line.startsWith("* ")) {
+      const items: string[] = []
+      while (i < lines.length && (lines[i].startsWith("- ") || lines[i].startsWith("* "))) {
+        items.push(lines[i].replace(/^[-*]\s+/, ""))
+        i++
+      }
+      elements.push(
+        <ul key={`ul-${i}`} className="space-y-1 mb-1">
+          {items.map((item, idx) => (
+            <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground leading-relaxed">
+              <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-primary/50 shrink-0" />
+              <span>{renderInline(item)}</span>
+            </li>
+          ))}
+        </ul>
+      )
+      continue
+    }
+
+    if (/^\d+\.\s/.test(line)) {
+      const items: string[] = []
+      let num = 1
+      while (i < lines.length && new RegExp(`^${num}\\. `).test(lines[i])) {
+        items.push(lines[i].replace(/^\d+\.\s+/, ""))
+        i++
+        num++
+      }
+      elements.push(
+        <ol key={`ol-${i}`} className="space-y-1.5 mb-1">
+          {items.map((item, idx) => (
+            <li key={idx} className="flex items-start gap-2.5 text-sm text-muted-foreground leading-relaxed">
+              <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">{idx + 1}</span>
+              <span>{renderInline(item)}</span>
+            </li>
+          ))}
+        </ol>
+      )
+      continue
+    }
+
+    if (line.trim() === "") { i++; continue }
+
+    elements.push(
+      <p key={i} className="text-sm text-muted-foreground leading-relaxed mb-2">
+        {renderInline(line)}
+      </p>
+    )
+    i++
+  }
+
+  return <div className="space-y-0.5">{elements}</div>
+}
+
+export function ExecutionHintDocument({ markdown }: ExecutionHintDocumentProps) {
+  if (!markdown) {
+    return (
+      <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+        분석 후 실행 힌트가 자동으로 생성됩니다.
+      </div>
+    )
+  }
+
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
-      {data.map((hint) => {
-        const config = typeConfig[hint.type]
-        const Icon = config.icon
-        return (
-          <div
-            key={hint.id}
-            className="rounded-xl border bg-card p-4 space-y-3"
-          >
-            <div className="flex items-center gap-2">
-              <div className={`rounded-md p-1.5 ${config.color}`}>
-                <Icon className="h-4 w-4" />
-              </div>
-              <span className="text-sm font-medium">{hint.label}</span>
-            </div>
-            <p className="text-sm break-words">{hint.content}</p>
-            <Badge variant="outline" className="text-xs">
-              {hint.linkedTo}
-            </Badge>
-          </div>
-        )
-      })}
+    <div className="rounded-xl border bg-card overflow-hidden">
+      <div className="px-5 py-5">
+        <PlanDocument markdown={markdown} />
+      </div>
     </div>
   )
 }

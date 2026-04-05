@@ -1,7 +1,7 @@
 "use client"
 
 import { NextTrendFormatSection } from "./sections/FormatSection"
-import { NextTrendExecutionHints } from "./sections/ExecutionHintsSection"
+import { ExecutionHintDocument } from "./sections/ExecutionHintsSection"
 import { NextTrendActionSection } from "./sections/ActionSection"
 import { NextTrendDataInsightsSection } from "./sections/DataInsightsSection"
 import { NextTrendEmptyState } from "./sections/EmptyState"
@@ -27,7 +27,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
   if (viewModel) {
     const {
       topCandidates, visibleCandidates: candidates, hasLockedCandidates,
-      formats, hints, actions, riskSignal,
+      formats, executionHintDocument, actions, riskSignal,
     } = buildNextTrendPageSections(viewModel, isStarterPlan)
 
     return (
@@ -268,15 +268,9 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                   <section className="space-y-4">
                     <div className="border-l-4 border-primary pl-3">
                       <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><Zap className="size-5 shrink-0 text-primary" />실행 힌트</h2>
-                      <p className="text-xs text-muted-foreground mt-0.5">제목·훅·썸네일에 바로 적용할 방향</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">제목·훅·썸네일 통합 원페이퍼</p>
                     </div>
-                    {hints.length > 0 ? (
-                      <NextTrendExecutionHints data={hints} />
-                    ) : (
-                      <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-                        실행 힌트 데이터가 아직 없습니다. 분석 후 자동으로 채워집니다.
-                      </div>
-                    )}
+                    <ExecutionHintDocument markdown={executionHintDocument} />
                   </section>
 
                   {/* [4] 영상 기획안 */}

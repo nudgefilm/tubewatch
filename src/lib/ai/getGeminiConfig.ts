@@ -21,6 +21,7 @@ export type NextTrendAIPlan = {
     fan_service: number;       // 팬서비스
   };
   video_plan_document: string; // 전략 리포트 전문 (마크다운, 채널 데이터 인용 필수)
+  execution_hint_document: string; // 제목·훅·썸네일 통합 원페이퍼 (마크다운, 300자 내외)
 };
 
 export type ActionExecutionHint = {

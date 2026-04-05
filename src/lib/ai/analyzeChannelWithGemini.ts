@@ -328,6 +328,7 @@ function normalizeNextTrendPlan(raw: unknown): NextTrendAIPlan | null {
       fan_service:     clampScore(vpRaw?.fan_service),
     },
     video_plan_document: normalizeString(obj.video_plan_document) ?? "",
+    execution_hint_document: normalizeString(obj.execution_hint_document) ?? "",
   };
 }
 
@@ -760,6 +761,17 @@ ${videoLines.join("\n\n")}
 
   ## 6. 예상 시청자 반응 (The Outcome)
   예상 댓글 2개 (실제 댓글 형태). 채널 평균 대비 조회수 예상 범위. 48시간 체크포인트.
+
+- execution_hint_document: [필수 — 빈 문자열 절대 금지.] 제목·훅·썸네일 실행 힌트를 하나로 묶은 간결한 원페이퍼. 아래 3개 섹션 구조로 작성. 전체 300자 내외(video_plan_document의 절반 분량). 채널 데이터에 근거한 구체적 표현만 사용.
+
+  ## 제목 후보 (Title)
+  title_candidates 3개를 각각 유형 레이블(감성형/희소성형/결과형 등)과 함께 제시. 왜 이 제목이 이 채널에 맞는지 한 줄 근거.
+
+  ## 훅 설계 (Hook)
+  첫 15초 오프닝 구성. 실제 대사체 또는 장면 지시로 구체적으로.
+
+  ## 썸네일 방향 (Thumbnail)
+  이 채널의 기존 패턴을 기반으로 색·구도·텍스트 방향 2~3문장.
 
 [channel_dna_narrative 작성 규칙]
 - content_patterns, target_audience, strengths를 종합해 채널의 핵심 성격·포지션을 3~4문장으로 자연스럽게 서술

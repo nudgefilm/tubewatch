@@ -149,6 +149,7 @@ export function buildNextTrendPageSections(vm: NextTrendPageViewModel, isStarter
     formats: toFormatRecommendations(internal.format),
     risks: toRiskMemos(internal.risk),
     hints: toExecutionHints(internal.hints),
+    executionHintDocument: internal.hints.executionHintDocument ?? null,
     actions: toExecutionActions(internal.actions),
     riskSignal: {
       topic: internal.risk.riskyTopic,
