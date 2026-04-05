@@ -35,7 +35,12 @@ export async function GET(req: NextRequest) {
     if (mod.status === "failed") return NextResponse.json({ markdown: null, pending: false, reason: "failed" });
     if (mod.status === "pending") {
       const startedAt = mod.started_at ? new Date(mod.started_at as string).getTime() : null;
-      const isTimeout = startedAt !== null && Date.now() - startedAt > 10 * 60 * 1000;
+      if (startedAt === null) {
+        // started_at 없는 pending = legacy/edge case → 무한 폴링 차단
+        console.warn("[onepager-api] timeout-fallback: started_at missing", { snapshot_id: snap.id, module_key: "analysis_report" });
+        return NextResponse.json({ markdown: null, pending: false, reason: "timeout" });
+      }
+      const isTimeout = Date.now() - startedAt > 10 * 60 * 1000;
       if (isTimeout) return NextResponse.json({ markdown: null, pending: false, reason: "timeout" });
       return NextResponse.json({ markdown: null, pending: true });
     }
