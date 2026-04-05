@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { isAdminUser } from "@/lib/server/isAdminUser";
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
 const GEMINI_MODEL = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
@@ -121,10 +122,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "분석 데이터가 없습니다." }, { status: 404 });
     }
 
-    // 쿨다운 체크 — 마지막 분석 후 72시간 이내 차단
+    // 쿨다운 체크 — 마지막 분석 후 12시간 이내 차단 (어드민 bypass)
+    const isAdmin = await isAdminUser(user.id);
     const ONDEMAND_COOLDOWN_HOURS = 12;
     const lastCreatedAt: string | null = (rows[0] as Record<string, unknown>).created_at as string | null;
-    if (lastCreatedAt) {
+    if (!isAdmin && lastCreatedAt) {
       const diffMs = Date.now() - new Date(lastCreatedAt).getTime();
       const diffHours = diffMs / (1000 * 60 * 60);
       if (diffHours < ONDEMAND_COOLDOWN_HOURS) {
