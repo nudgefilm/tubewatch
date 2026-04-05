@@ -217,8 +217,12 @@ export type TubeWatchAnalysisResult = {
               type: "string",
               description: "채널 실제 데이터(수치·영상 제목·패턴)를 인용한 전략 리포트 전문. 마크다운 형식. 6개 섹션(## 1~## 6). 필수 항목 — 빈 문자열 절대 금지. 500자 이상 실제 내용으로 작성.",
             },
+            execution_hint_document: {
+              type: "string",
+              description: "제목·훅·썸네일 실행 힌트 통합 원페이퍼. 마크다운 형식. 3개 섹션(## 제목 후보 / ## 훅 설계 / ## 썸네일 방향). 전체 300자 내외. 채널 데이터 기반 구체적 표현. 빈 문자열 금지.",
+            },
           },
-          required: ["topic", "why_this_topic", "pain_point", "content_angle", "opening_hook", "title_candidates", "recommended_tags", "viewing_points", "video_plan_document"],
+          required: ["topic", "why_this_topic", "pain_point", "content_angle", "opening_hook", "title_candidates", "recommended_tags", "viewing_points", "video_plan_document", "execution_hint_document"],
         },
         channel_dna_narrative: {
           type: "string",
