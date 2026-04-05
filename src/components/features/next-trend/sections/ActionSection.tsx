@@ -7,7 +7,6 @@ import type { ExecutionAction, ViewingPointGauge } from "@/mocks/next-trend"
 
 interface NextTrendActionSectionProps {
   data: ExecutionAction[]
-  topCandidate?: { topic: string; reason: string } | null
 }
 
 /**
@@ -158,7 +157,7 @@ function SectionRow({
 }
 
 /** 기획안 카드 1장 (다운로드 기능 포함) */
-function ActionCard({ action, topCandidate }: { action: ExecutionAction; topCandidate?: { topic: string; reason: string } | null }) {
+function ActionCard({ action }: { action: ExecutionAction }) {
   const cardRef = useRef<HTMLDivElement>(null)
 
   async function handleDownload() {
@@ -182,13 +181,6 @@ function ActionCard({ action, topCandidate }: { action: ExecutionAction; topCand
     }
   }
 
-  const priorityBadgeClass =
-    action.experimentPriority === 1
-      ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-      : action.experimentPriority === 2
-      ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-      : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400"
-
   return (
     <div ref={cardRef} className="rounded-xl border bg-card overflow-hidden">
 
@@ -198,9 +190,6 @@ function ActionCard({ action, topCandidate }: { action: ExecutionAction; topCand
           <span className="font-heading font-medium text-sm leading-none tracking-[-0.01em]">TubeWatch™</span>
           <span className="text-muted-foreground/40 text-sm">|</span>
           <span className="text-sm font-semibold text-foreground">영상 기획안</span>
-          <Badge variant="outline" className={priorityBadgeClass}>
-            실험 우선순위 #{action.experimentPriority}
-          </Badge>
         </div>
         <button
           onClick={handleDownload}
@@ -211,17 +200,6 @@ function ActionCard({ action, topCandidate }: { action: ExecutionAction; topCand
           <span>이미지 저장</span>
         </button>
       </div>
-
-      {/* 1순위 주제 요약 배너 */}
-      {action.experimentPriority === 1 && topCandidate && (
-        <div className="px-5 py-4 border-b bg-primary/5">
-          <p className="text-[11px] font-medium text-primary/70 uppercase tracking-wide mb-1.5">다음 영상 주제 · 1순위</p>
-          <p className="text-xl font-bold leading-snug break-words text-foreground">{topCandidate.topic}</p>
-          {topCandidate.reason && (
-            <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">{topCandidate.reason}</p>
-          )}
-        </div>
-      )}
 
       <div className="divide-y">
 
@@ -263,11 +241,11 @@ function ActionCard({ action, topCandidate }: { action: ExecutionAction; topCand
   )
 }
 
-export function NextTrendActionSection({ data, topCandidate }: NextTrendActionSectionProps) {
+export function NextTrendActionSection({ data }: NextTrendActionSectionProps) {
   return (
     <div className="space-y-4">
       {data.map((action) => (
-        <ActionCard key={action.id} action={action} topCandidate={topCandidate} />
+        <ActionCard key={action.id} action={action} />
       ))}
     </div>
   )
