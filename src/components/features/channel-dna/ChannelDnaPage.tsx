@@ -13,6 +13,7 @@ import { FeaturePaywallBlock } from "@/components/features/shared/FeaturePaywall
 import { buildChannelDnaPageSections } from "@/lib/engines/channelDnaPageEngine"
 import type { ChannelDnaPageViewModel } from "@/lib/channel-dna/channelDnaPageViewModel"
 import type { FanbaseLoyaltyVm } from "@/lib/channel-dna/internalChannelDnaSummary"
+import { ChannelDnaReportSection } from "./sections/ChannelDnaReportSection"
 
 function fanbaseLoyaltyDisplay(fl: FanbaseLoyaltyVm) {
   const gradeLabel =
@@ -236,6 +237,13 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
                 <p className="text-xs text-muted-foreground mt-0.5">영상 길이 구간과 카테고리 비중으로 채널 정체성을 확인하세요</p>
               </div>
               <DnaFormatDistributionSection data={formatDistribution} analysisDate={viewModel.lastRunAt} />
+            </section>
+          )}
+
+          {/* [5] 채널 DNA 진단 리포트 원페이퍼 */}
+          {channelId && (
+            <section>
+              <ChannelDnaReportSection channelId={channelId} />
             </section>
           )}
 

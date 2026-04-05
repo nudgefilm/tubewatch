@@ -4,23 +4,12 @@ import { useState, useEffect, useRef } from "react"
 import { Download, Loader2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 
-interface StrategyPlanSectionProps {
+interface ChannelDnaReportSectionProps {
   channelId: string
 }
 
-const COOLDOWN_MS = 12 * 60 * 60 * 1000
-const storageKey = (id: string) => `tw_strategy_sat:${id}`
-
-function getRemainingLabel(savedAt: number): string | null {
-  const remaining = COOLDOWN_MS - (Date.now() - savedAt)
-  if (remaining <= 0) return null
-  const h = Math.floor(remaining / (1000 * 60 * 60))
-  const m = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60))
-  return h > 0 ? `${h}시간 ${m}분` : `${m}분`
-}
-
 /** 마크다운 렌더러 */
-function PlanDocument({ markdown }: { markdown: string }) {
+function ReportDocument({ markdown }: { markdown: string }) {
   const lines = markdown.split("\n")
   const elements: React.ReactNode[] = []
   let i = 0
@@ -105,27 +94,20 @@ function PlanDocument({ markdown }: { markdown: string }) {
   return <div className="space-y-0.5">{elements}</div>
 }
 
-export function StrategyPlanSection({ channelId }: StrategyPlanSectionProps) {
+export function ChannelDnaReportSection({ channelId }: ChannelDnaReportSectionProps) {
   const [markdown, setMarkdown] = useState<string | null>(null)
   const [pending, setPending] = useState(true)   // 마운트 직후에는 loading으로 시작
   const [initialFetchDone, setInitialFetchDone] = useState(false)
-  const [remainLabel, setRemainLabel] = useState<string | null>(null)
   const cardRef = useRef<HTMLDivElement>(null)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   async function fetchFromDB() {
     try {
-      const res = await fetch(`/api/action-plan/strategy-plan?channelId=${channelId}`)
+      const res = await fetch(`/api/channel-dna/report?channelId=${channelId}`)
       const data = await res.json() as { markdown: string | null; pending?: boolean }
       if (data.markdown) {
         setMarkdown(data.markdown)
         setPending(false)
-        try {
-          const existing = localStorage.getItem(storageKey(channelId))
-          if (!existing) {
-            localStorage.setItem(storageKey(channelId), String(Date.now()))
-          }
-        } catch { /* ignore */ }
         stopPolling()
       } else if (data.pending) {
         setPending(true)
@@ -156,19 +138,6 @@ export function StrategyPlanSection({ channelId }: StrategyPlanSectionProps) {
     if (!pending && markdown) stopPolling()
   }, [pending, markdown])
 
-  // 남은 쿨다운 라벨 — 1분마다 갱신
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(storageKey(channelId))
-      if (!raw) return
-      const savedAt = Number(raw)
-      const update = () => setRemainLabel(getRemainingLabel(savedAt))
-      update()
-      const timer = setInterval(update, 60_000)
-      return () => clearInterval(timer)
-    } catch { /* ignore */ }
-  }, [channelId, markdown])
-
   async function handleDownload() {
     if (!cardRef.current) return
     try {
@@ -176,7 +145,7 @@ export function StrategyPlanSection({ channelId }: StrategyPlanSectionProps) {
       const dataUrl = await toPng(cardRef.current, { pixelRatio: 2, backgroundColor: "#ffffff" })
       const link = document.createElement("a")
       link.href = dataUrl
-      link.download = "성장전략실행플랜.png"
+      link.download = "채널DNA진단리포트.png"
       link.style.position = "fixed"
       link.style.opacity = "0"
       document.body.appendChild(link)
@@ -188,12 +157,12 @@ export function StrategyPlanSection({ channelId }: StrategyPlanSectionProps) {
   }
 
   // 섹션 헤더는 항상 표시
-  const SectionHeader = () => (
+  const CardHeader = () => (
     <div className="flex items-center justify-between px-5 py-3 border-b bg-muted/30">
       <div className="flex items-center gap-2">
         <span className="font-heading font-medium text-sm leading-none tracking-[-0.01em]">TubeWatch™</span>
         <span className="text-muted-foreground/40 text-sm">|</span>
-        <span className="text-sm font-semibold text-foreground">성장 전략 실행 플랜</span>
+        <span className="text-sm font-semibold text-foreground">채널 DNA 진단 리포트</span>
         <Badge variant="outline" className="text-xs text-emerald-600 border-emerald-200">튜브워치 엔진</Badge>
       </div>
       {markdown && (
@@ -213,15 +182,10 @@ export function StrategyPlanSection({ channelId }: StrategyPlanSectionProps) {
   if (markdown) {
     return (
       <div ref={cardRef} className="rounded-xl border bg-card overflow-hidden">
-        <SectionHeader />
+        <CardHeader />
         <div className="px-5 py-5">
-          <PlanDocument markdown={markdown} />
+          <ReportDocument markdown={markdown} />
         </div>
-        {remainLabel && (
-          <div className="px-5 py-3 border-t bg-muted/20 flex justify-end">
-            <span className="text-xs text-muted-foreground">{remainLabel} 후 재분석 시 갱신됩니다</span>
-          </div>
-        )}
       </div>
     )
   }
@@ -230,11 +194,11 @@ export function StrategyPlanSection({ channelId }: StrategyPlanSectionProps) {
   if (pending || !initialFetchDone) {
     return (
       <div className="rounded-xl border bg-card overflow-hidden">
-        <SectionHeader />
+        <CardHeader />
         <div className="px-5 py-5 space-y-3">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Loader2 className="size-4 animate-spin text-primary shrink-0" />
-            <span>전략 플랜을 생성하고 있습니다. 잠시만 기다려주세요…</span>
+            <span>채널 DNA 진단 리포트를 생성하고 있습니다. 잠시만 기다려주세요…</span>
           </div>
           <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
             <div className="h-full bg-primary/60 rounded-full animate-[loading_2s_ease-in-out_infinite]" style={{ width: "60%" }} />
@@ -247,7 +211,7 @@ export function StrategyPlanSection({ channelId }: StrategyPlanSectionProps) {
   // 분석 전 (스냅샷 없음)
   return (
     <div className="rounded-xl border bg-card overflow-hidden">
-      <SectionHeader />
+      <CardHeader />
       <div className="px-5 py-5">
         <p className="text-sm text-muted-foreground">채널 분석 후 자동으로 생성됩니다.</p>
       </div>

@@ -9,6 +9,7 @@ import { NextResponse } from "next/server";
 import { waitUntil } from "@vercel/functions";
 import { createClient } from "@/lib/supabase/server";
 import { buildStrategyPlanPrompt, callGeminiForStrategyPlan } from "@/lib/server/onepager/generateStrategyPlan";
+import { buildChannelDnaReportPrompt, callGeminiForChannelDnaReport } from "@/lib/server/onepager/generateChannelDnaReport";
 import { getRecentVideos } from "@/lib/youtube";
 import { normalizeVideoMetrics } from "@/lib/analysis/engine/normalizeVideoMetrics";
 import { buildChannelFeatures } from "@/lib/analysis/engine/buildChannelFeatures";
@@ -581,22 +582,50 @@ export async function POST(request: Request) {
 
     waitUntil(
       (async () => {
-        // 1. 성장 전략 실행 플랜 (메인 분석 완료 후 2초 대기)
+        // 메뉴 순서대로 생성: Channel DNA → Action Plan
+        // 각 단계 사이에 충분한 간격을 두어 품질 저하 방지
+
+        // 1. Channel DNA 진단 리포트 (메인 분석 완료 후 3초 대기)
         try {
-          await new Promise((r) => setTimeout(r, 2000));
-          const prompt = buildStrategyPlanPrompt({
+          await new Promise((r) => setTimeout(r, 3000));
+          const dnaPrompt = buildChannelDnaReportPrompt({
             gemini_raw_json: geminiSuccess.rawJson,
             feature_snapshot: featureSnapshot,
             channel_title: channelRow.channel_title,
           });
-          const markdown = await callGeminiForStrategyPlan(prompt);
-          if (markdown) {
+          const dnaMarkdown = await callGeminiForChannelDnaReport(dnaPrompt);
+          if (dnaMarkdown) {
+            await supabaseAdmin.from("analysis_module_results").upsert({
+              user_id: user.id,
+              channel_id: userChannelId,
+              snapshot_id: snapshotId,
+              module_key: "channel_dna_report",
+              result: { markdown: dnaMarkdown },
+              status: "completed",
+              analyzed_at: new Date().toISOString(),
+            }, { onConflict: "snapshot_id,module_key" });
+            console.log("[onepager] channel_dna_report saved for snapshot:", snapshotId);
+          }
+        } catch (e) {
+          console.error("[onepager] channel_dna_report failed (non-fatal):", e);
+        }
+
+        // 2. 성장 전략 실행 플랜 (Channel DNA 리포트 완료 후 4초 대기)
+        try {
+          await new Promise((r) => setTimeout(r, 4000));
+          const strategyPrompt = buildStrategyPlanPrompt({
+            gemini_raw_json: geminiSuccess.rawJson,
+            feature_snapshot: featureSnapshot,
+            channel_title: channelRow.channel_title,
+          });
+          const strategyMarkdown = await callGeminiForStrategyPlan(strategyPrompt);
+          if (strategyMarkdown) {
             await supabaseAdmin.from("analysis_module_results").upsert({
               user_id: user.id,
               channel_id: userChannelId,
               snapshot_id: snapshotId,
               module_key: "strategy_plan",
-              result: { markdown },
+              result: { markdown: strategyMarkdown },
               status: "completed",
               analyzed_at: new Date().toISOString(),
             }, { onConflict: "snapshot_id,module_key" });
@@ -606,9 +635,7 @@ export async function POST(request: Request) {
           console.error("[onepager] strategy_plan failed (non-fatal):", e);
         }
 
-        // 2. 이후 추가될 원페이퍼 섹션은 여기에 순차 추가 (3초 간격)
-        // await new Promise((r) => setTimeout(r, 3000));
-        // channel_dna_report, analysis_report 등
+        // 3. 이후 추가될 원페이퍼 섹션은 여기에 순차 추가 (4초 간격)
       })()
     );
   }

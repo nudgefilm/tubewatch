@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useRef } from "react"
 import { Badge } from "@/components/ui/badge"
 import { BarChart2, Tag, Download, FileText } from "lucide-react"
 import type { ExecutionAction, ViewingPointGauge } from "@/mocks/next-trend"
@@ -149,7 +149,6 @@ function SectionRow({
 
 /** 기획안 카드 1장 */
 function ActionCard({ action }: { action: ExecutionAction }) {
-  const [revealed, setRevealed] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
 
   async function handleDownload() {
@@ -173,91 +172,61 @@ function ActionCard({ action }: { action: ExecutionAction }) {
     }
   }
 
-  // ── 버튼 상태 (열람 전) ──────────────────────────────────────
-  if (!revealed) {
-    return (
-      <div className="rounded-xl border border-dashed border-primary/30 bg-primary/5 p-8 flex flex-col items-center gap-4 text-center">
-        <div className="flex size-10 items-center justify-center rounded-full bg-primary/10">
-          <FileText className="size-5 text-primary" />
-        </div>
-        <div className="space-y-1">
-          <p className="text-sm font-semibold">영상 기획안 열람</p>
-          <p className="text-xs text-muted-foreground">
-            {action.videoPlanDocument
-              ? "채널 데이터 기반으로 생성된 영상 기획안을 확인하세요"
-              : "분석을 실행하면 영상 기획안이 자동으로 생성됩니다"}
-          </p>
-        </div>
-        {action.videoPlanDocument && (
-          <button
-            onClick={() => setRevealed(true)}
-            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-          >
-            <FileText className="h-4 w-4" />
-            기획안 보기
-          </button>
-        )}
-      </div>
-    )
-  }
-
-  // ── 열람 후 — 원페이퍼 렌더링 ──────────────────────────────
   return (
     <div ref={cardRef} className="rounded-xl border bg-card overflow-hidden">
 
-      {/* 헤더 */}
+      {/* 헤더 — 항상 표시 */}
       <div className="flex items-center justify-between px-5 py-3 border-b bg-muted/30">
         <div className="flex items-center gap-2">
           <span className="font-heading font-medium text-sm leading-none tracking-[-0.01em]">TubeWatch™</span>
           <span className="text-muted-foreground/40 text-sm">|</span>
           <span className="text-sm font-semibold text-foreground">영상 기획안</span>
+          <Badge variant="outline" className="text-xs text-emerald-600 border-emerald-200">튜브워치 엔진</Badge>
         </div>
-        <button
-          onClick={handleDownload}
-          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-          title="이미지로 저장"
-        >
-          <Download className="h-3.5 w-3.5" />
-          <span>이미지 저장</span>
-        </button>
+        {action.videoPlanDocument && (
+          <button
+            onClick={handleDownload}
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            title="이미지로 저장"
+          >
+            <Download className="h-3.5 w-3.5" />
+            <span>이미지 저장</span>
+          </button>
+        )}
       </div>
 
-      <div className="divide-y">
-        {/* 원페이퍼 기획안 본문 */}
+      {action.videoPlanDocument ? (
+        <div className="divide-y">
+          {/* 원페이퍼 기획안 본문 */}
+          <div className="px-5 py-5">
+            <PlanDocument markdown={action.videoPlanDocument} />
+          </div>
+
+          {/* 시청 포인트 게이지 */}
+          {action.viewingPoints && action.viewingPoints.length > 0 && (
+            <SectionRow icon={<BarChart2 className="h-4 w-4" />} label="시청 포인트 게이지">
+              <ViewingGauge points={action.viewingPoints} />
+            </SectionRow>
+          )}
+
+          {/* 추천 태그 */}
+          {action.recommendedTags && action.recommendedTags.length > 0 && (
+            <SectionRow icon={<Tag className="h-4 w-4" />} label="추천 태그">
+              <div className="flex flex-wrap gap-1.5">
+                {action.recommendedTags.map((tag) => (
+                  <Badge key={tag} variant="secondary" className="text-xs font-normal">
+                    #{tag}
+                  </Badge>
+                ))}
+              </div>
+            </SectionRow>
+          )}
+        </div>
+      ) : (
         <div className="px-5 py-5">
-          <PlanDocument markdown={action.videoPlanDocument!} />
+          <p className="text-sm text-muted-foreground">채널 분석 후 자동으로 생성됩니다.</p>
         </div>
-
-        {/* 시청 포인트 게이지 */}
-        {action.viewingPoints && action.viewingPoints.length > 0 && (
-          <SectionRow icon={<BarChart2 className="h-4 w-4" />} label="시청 포인트 게이지">
-            <ViewingGauge points={action.viewingPoints} />
-          </SectionRow>
-        )}
-
-        {/* 추천 태그 */}
-        {action.recommendedTags && action.recommendedTags.length > 0 && (
-          <SectionRow icon={<Tag className="h-4 w-4" />} label="추천 태그">
-            <div className="flex flex-wrap gap-1.5">
-              {action.recommendedTags.map((tag) => (
-                <Badge key={tag} variant="secondary" className="text-xs font-normal">
-                  #{tag}
-                </Badge>
-              ))}
-            </div>
-          </SectionRow>
-        )}
-      </div>
-
-      {/* 닫기 */}
-      <div className="px-5 py-3 border-t bg-muted/20 flex justify-end">
-        <button
-          onClick={() => setRevealed(false)}
-          className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-        >
-          닫기
-        </button>
-      </div>
+      )}
     </div>
   )
 }
