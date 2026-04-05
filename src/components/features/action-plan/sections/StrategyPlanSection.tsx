@@ -54,48 +54,51 @@ export function StrategyPlanSection({ channelId }: StrategyPlanSectionProps) {
   const [pending, setPending] = useState(true)
   const [initialFetchDone, setInitialFetchDone] = useState(false)
   const [remainLabel, setRemainLabel] = useState<string | null>(null)
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const isGenerating = (pending || !initialFetchDone) && !markdown
   const pendingMsg = usePendingMessage(isGenerating)
 
-  async function fetchFromDB() {
-    try {
-      const res = await fetch(`/api/action-plan/strategy-plan?channelId=${channelId}`)
-      const data = await res.json() as { markdown: string | null; pending?: boolean }
-      if (data.markdown) {
-        setMarkdown(data.markdown)
+  useEffect(() => {
+    const controller = new AbortController()
+    let intervalId: ReturnType<typeof setInterval> | null = null
+
+    setMarkdown(null)
+    setPending(true)
+    setInitialFetchDone(false)
+
+    async function fetchNow() {
+      try {
+        const res = await fetch(`/api/action-plan/strategy-plan?channelId=${channelId}`, { signal: controller.signal })
+        const data = await res.json() as { markdown: string | null; pending?: boolean }
+        if (data.markdown) {
+          setMarkdown(data.markdown)
+          setPending(false)
+          try {
+            const existing = localStorage.getItem(storageKey(channelId))
+            if (!existing) localStorage.setItem(storageKey(channelId), String(Date.now()))
+          } catch { /* ignore */ }
+          if (intervalId) { clearInterval(intervalId); intervalId = null }
+        } else if (data.pending) {
+          setPending(true)
+        } else {
+          setPending(false)
+          if (intervalId) { clearInterval(intervalId); intervalId = null }
+        }
+      } catch (err) {
+        if ((err as Error).name === "AbortError") return
         setPending(false)
-        try {
-          const existing = localStorage.getItem(storageKey(channelId))
-          if (!existing) localStorage.setItem(storageKey(channelId), String(Date.now()))
-        } catch { /* ignore */ }
-        stopPolling()
-      } else if (data.pending) {
-        setPending(true)
-      } else {
-        setPending(false)
+      } finally {
+        if (!controller.signal.aborted) setInitialFetchDone(true)
       }
-    } catch {
-      setPending(false)
-    } finally {
-      setInitialFetchDone(true)
     }
-  }
 
-  function stopPolling() {
-    if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null }
-  }
+    fetchNow()
+    intervalId = setInterval(fetchNow, 3000)
 
-  useEffect(() => {
-    fetchFromDB()
-    pollRef.current = setInterval(() => { fetchFromDB() }, 3000)
-    return () => stopPolling()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      controller.abort()
+      if (intervalId) { clearInterval(intervalId); intervalId = null }
+    }
   }, [channelId])
-
-  useEffect(() => {
-    if (!pending && markdown) stopPolling()
-  }, [pending, markdown])
 
   useEffect(() => {
     try {

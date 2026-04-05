@@ -42,44 +42,47 @@ export function ChannelDnaReportSection({ channelId }: ChannelDnaReportSectionPr
   const [markdown, setMarkdown] = useState<string | null>(null)
   const [pending, setPending] = useState(true)
   const [initialFetchDone, setInitialFetchDone] = useState(false)
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const isGenerating = (pending || !initialFetchDone) && !markdown
   const pendingMsg = usePendingMessage(isGenerating)
 
-  async function fetchFromDB() {
-    try {
-      const res = await fetch(`/api/channel-dna/report?channelId=${channelId}`)
-      const data = await res.json() as { markdown: string | null; pending?: boolean }
-      if (data.markdown) {
-        setMarkdown(data.markdown)
+  useEffect(() => {
+    const controller = new AbortController()
+    let intervalId: ReturnType<typeof setInterval> | null = null
+
+    setMarkdown(null)
+    setPending(true)
+    setInitialFetchDone(false)
+
+    async function fetchNow() {
+      try {
+        const res = await fetch(`/api/channel-dna/report?channelId=${channelId}`, { signal: controller.signal })
+        const data = await res.json() as { markdown: string | null; pending?: boolean }
+        if (data.markdown) {
+          setMarkdown(data.markdown)
+          setPending(false)
+          if (intervalId) { clearInterval(intervalId); intervalId = null }
+        } else if (data.pending) {
+          setPending(true)
+        } else {
+          setPending(false)
+          if (intervalId) { clearInterval(intervalId); intervalId = null }
+        }
+      } catch (err) {
+        if ((err as Error).name === "AbortError") return
         setPending(false)
-        stopPolling()
-      } else if (data.pending) {
-        setPending(true)
-      } else {
-        setPending(false)
+      } finally {
+        if (!controller.signal.aborted) setInitialFetchDone(true)
       }
-    } catch {
-      setPending(false)
-    } finally {
-      setInitialFetchDone(true)
     }
-  }
 
-  function stopPolling() {
-    if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null }
-  }
+    fetchNow()
+    intervalId = setInterval(fetchNow, 3000)
 
-  useEffect(() => {
-    fetchFromDB()
-    pollRef.current = setInterval(() => { fetchFromDB() }, 3000)
-    return () => stopPolling()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      controller.abort()
+      if (intervalId) { clearInterval(intervalId); intervalId = null }
+    }
   }, [channelId])
-
-  useEffect(() => {
-    if (!pending && markdown) stopPolling()
-  }, [pending, markdown])
 
   if (markdown) {
     return (
