@@ -129,18 +129,18 @@ async function fetchLatestResultForChannel(
   const { data, error } = await supabase
     .from("analysis_results")
     .select([
+      // saveAnalysisResult.ts select 기준 — gemini_raw_json만 제외 (OOM 원인)
       "id", "user_id", "user_channel_id", "job_id",
       "channel_id", "channel_url", "channel_title", "thumbnail_url",
       "sample_video_count", "analysis_confidence", "status",
       "gemini_model", "gemini_status", "gemini_analyzed_at", "gemini_attempt_count",
       "channel_summary", "content_pattern_summary", "content_patterns",
       "strengths", "weaknesses", "bottlenecks", "recommended_topics",
-      "growth_action_plan", "target_audience", "sample_size_note", "interpretation_mode",
+      "growth_action_plan", "target_audience", "sample_size_note",
       "feature_snapshot",
       "feature_total_score", "feature_section_scores",
       "total_score", "overall_score", "section_scores",
-      "engine_version", "created_at", "updated_at",
-      // gemini_raw_json 제외 — OOM 원인 (~50-100KB). Next Trend는 moduleResults fallback 사용
+      "engine_version", "created_at",
     ].join(", "))
     .eq("user_id", userId)
     .eq("user_channel_id", userChannelId)
