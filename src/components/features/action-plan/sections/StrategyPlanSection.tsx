@@ -33,8 +33,8 @@ function usePendingMessage(isActive: boolean) {
     return () => clearInterval(timer)
   }, [isActive])
 
-  if (elapsed < 30) return { label: "약 1~2분 내 자동 완성됩니다", sub: "다른 메뉴를 먼저 둘러보셔도 됩니다." }
-  if (elapsed < 120) return { label: "거의 완성되고 있습니다", sub: "잠시 후 이 화면으로 돌아오시면 확인할 수 있습니다." }
+  if (elapsed < 60) return { label: "약 3~5분 내 자동 완성됩니다", sub: "다른 메뉴를 먼저 둘러보셔도 됩니다." }
+  if (elapsed < 270) return { label: "거의 완성되고 있습니다", sub: "잠시 후 이 화면으로 돌아오시면 확인할 수 있습니다." }
   return { label: "조금 더 걸리고 있습니다", sub: "페이지를 새로고침하거나 잠시 후 다시 확인해 주세요." }
 }
 
