@@ -133,7 +133,7 @@ export async function POST(request: Request) {
   const { data: existingSnapshot } = await supabase
     .from("analysis_results")
     .select(
-      "id, created_at, feature_snapshot, gemini_raw_json, gemini_model, channel_summary, content_pattern_summary, content_patterns, target_audience, strengths, weaknesses, bottlenecks, recommended_topics, growth_action_plan, sample_size_note, analysis_confidence, engine_version"
+      "id, created_at, feature_snapshot, gemini_raw_json, gemini_model, channel_summary, content_pattern_summary, content_patterns, target_audience, strengths, weaknesses, bottlenecks, recommended_topics, growth_action_plan, sample_size_note, analysis_confidence, engine_version, feature_total_score, feature_section_scores"
     )
     .eq("user_channel_id", userChannelId)
     .eq("user_id", user.id)
@@ -503,35 +503,74 @@ export async function POST(request: Request) {
   console.log("[Analysis Start API] created run:", savedRow.id);
 
   // 페이지별 AI 콘텐츠를 analysis_module_results에 저장 (non-fatal)
-  if (isDeltaRun && existingSnapshot?.id) {
-    // Delta run: 신규 Gemini 호출 없음 → 이전 snapshot의 모듈 결과를 새 snapshot으로 복사
-    const { data: prevModules, error: prevModErr } = await supabaseAdmin
-      .from("analysis_module_results")
-      .select("module_key, result")
-      .eq("snapshot_id", existingSnapshot.id)
-      .eq("user_id", user.id)
-      .eq("status", "completed");
+  // needsOnepagerGeneration: waitUntil one-pager 생성 필요 여부
+  // - full run: 항상 true
+  // - delta + 점수 동일 + copy 성공: false (기존 one-pager 재사용)
+  // - delta + 점수 변화 또는 copy 실패: true (재생성)
+  let needsOnepagerGeneration = true;
 
-    if (prevModErr) {
-      console.error("[Analysis Start API] delta: prev module_results fetch failed (non-fatal):", prevModErr.message);
-    } else if (prevModules && prevModules.length > 0) {
-      const copyRows = (prevModules as Array<{ module_key: string; result: Record<string, unknown> }>).map((m) => ({
-        user_id: user.id,
-        channel_id: userChannelId,
-        snapshot_id: savedRow.id,
-        module_key: m.module_key,
-        result: m.result,
-        status: "completed",
-        analyzed_at: now,
-      }));
-      const { error: copyErr } = await supabaseAdmin.from("analysis_module_results").insert(copyRows);
-      if (copyErr) {
-        console.error("[Analysis Start API] delta: module_results copy failed (non-fatal):", copyErr.message);
+  if (isDeltaRun && existingSnapshot?.id) {
+    // Delta run: 총점 + 구성 점수 비교 → 메트릭 변화 없으면 이전 one-pager 복사
+    // key 순서 무관한 안전한 비교 (Object.entries().sort())
+    const isSectionScoresEqual = (
+      a: Record<string, unknown> | null | undefined,
+      b: Record<string, unknown> | null | undefined
+    ): boolean =>
+      JSON.stringify(Object.entries(a ?? {}).sort()) ===
+      JSON.stringify(Object.entries(b ?? {}).sort());
+
+    const prevTotalScore = (existingSnapshot as Record<string, unknown>).feature_total_score as number | null ?? null;
+    const prevSectionScores = (existingSnapshot as Record<string, unknown>).feature_section_scores as Record<string, unknown> | null ?? null;
+    const metricsChanged =
+      prevTotalScore !== scoreResult.totalScore ||
+      !isSectionScoresEqual(prevSectionScores, scoreResult.sectionScores as Record<string, unknown>);
+
+    console.log("[delta-run]", {
+      snapshot_id: savedRow.id,
+      prevScore: prevTotalScore,
+      currentScore: scoreResult.totalScore,
+      sectionScoresChanged: !isSectionScoresEqual(prevSectionScores, scoreResult.sectionScores as Record<string, unknown>),
+      metricsChanged,
+      willCopyModules: !metricsChanged,
+    });
+
+    if (!metricsChanged) {
+      // 점수 동일 → 이전 snapshot one-pager 복사 (Gemini 비용 절약)
+      const { data: prevModules, error: prevModErr } = await supabaseAdmin
+        .from("analysis_module_results")
+        .select("module_key, result")
+        .eq("snapshot_id", existingSnapshot.id)
+        .eq("user_id", user.id)
+        .eq("status", "completed");
+
+      if (prevModErr) {
+        console.error("[Analysis Start API] delta: prev module_results fetch failed (non-fatal):", prevModErr.message);
+        // 복사 실패 → waitUntil에서 재생성
+      } else if (prevModules && prevModules.length > 0) {
+        const copyRows = (prevModules as Array<{ module_key: string; result: Record<string, unknown> }>).map((m) => ({
+          user_id: user.id,
+          channel_id: userChannelId,
+          snapshot_id: savedRow.id,
+          module_key: m.module_key,
+          result: m.result,
+          status: "completed",
+          analyzed_at: now,
+        }));
+        const { error: copyErr } = await supabaseAdmin.from("analysis_module_results").insert(copyRows);
+        if (copyErr) {
+          console.error("[Analysis Start API] delta: module_results copy failed (non-fatal):", copyErr.message);
+          // 복사 실패 → waitUntil에서 재생성
+        } else {
+          console.log("[Analysis Start API] delta: module_results copied from", existingSnapshot.id, "→", savedRow.id, "keys:", prevModules.map((m) => m.module_key));
+          needsOnepagerGeneration = false; // copy 성공 → waitUntil 불필요
+        }
       } else {
-        console.log("[Analysis Start API] delta: module_results copied from", existingSnapshot.id, "→", savedRow.id, "keys:", prevModules.map((m) => m.module_key));
+        console.log("[Analysis Start API] delta: no previous module_results to copy (snapshot:", existingSnapshot.id, ") — will trigger waitUntil generation");
+        // 복사할 게 없으면 waitUntil에서 새로 생성
       }
     } else {
-      console.log("[Analysis Start API] delta: no previous module_results to copy (snapshot:", existingSnapshot.id, ")");
+      // 메트릭 변화 있음 → one-pager 재생성 필요 (waitUntil 블록에서 처리)
+      console.log("[Analysis Start API] delta: metrics changed — skipping module copy, will regenerate via waitUntil");
     }
   } else {
     // Full run: Gemini 신규 호출 결과를 저장
@@ -580,7 +619,8 @@ export async function POST(request: Request) {
 
   // 원페이퍼 3개를 메인 분석 응답 반환 후 백그라운드에서 순차 생성
   // Vercel Pro maxDuration=300 — waitUntil로 응답 차단 없이 실행
-  {
+  // delta + 점수 동일 + copy 성공이면 needsOnepagerGeneration=false → 건너뜀
+  if (needsOnepagerGeneration) {
     const snapshotId = savedRow.id;
     const rawJson = geminiSuccess.rawJson;
     const ONEPAGER_KEYS = ["analysis_report", "channel_dna_report", "strategy_plan"] as const;
