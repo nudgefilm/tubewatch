@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef } from "react"
-import { Download, ChevronDown, ChevronUp } from "lucide-react"
+import { Download, ChevronDown, ChevronUp, FileText } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 
 interface OnePagerCardProps {
@@ -28,8 +28,14 @@ function extractPreview(markdown: string, maxChars = 180): string {
   return plain.length > maxChars ? plain.slice(0, maxChars) + "…" : plain
 }
 
+// ── 이모지 제거 ────────────────────────────────────────────────────
+function stripEmoji(text: string): string {
+  return text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, "").trim()
+}
+
 // ── 인라인 렌더러 ──────────────────────────────────────────────────
 function renderInline(text: string): React.ReactNode[] {
+  text = stripEmoji(text)
   return text.split(/(\*\*[^*]+\*\*)/).map((part, idx) =>
     part.startsWith("**") && part.endsWith("**")
       ? <strong key={idx} className="font-semibold text-foreground">{part.slice(2, -2)}</strong>
@@ -48,7 +54,7 @@ export function PlanDocument({ markdown }: { markdown: string }) {
 
     // H1 / H2 — 섹션 제목
     if (line.startsWith("## ") || line.startsWith("# ")) {
-      const text = line.replace(/^#{1,2}\s*/, "")
+      const text = stripEmoji(line.replace(/^#{1,2}\s*/, ""))
       const match = text.match(/^(.*?)\s*(\([^)]+\))?$/)
       const mainTitle = match?.[1]?.trim() ?? text
       const subTitle = match?.[2] ?? ""
@@ -71,7 +77,7 @@ export function PlanDocument({ markdown }: { markdown: string }) {
     if (line.startsWith("### ")) {
       elements.push(
         <p key={i} className="text-[12.5px] font-semibold text-foreground/60 mt-5 mb-2 tracking-wide">
-          {line.replace(/^###\s*/, "")}
+          {stripEmoji(line.replace(/^###\s*/, ""))}
         </p>
       )
       i++; continue
@@ -198,6 +204,7 @@ export function OnePagerCard({
             onClick={() => setExpanded(true)}
             className="mt-5 flex w-full items-center justify-center gap-1.5 rounded-lg border border-primary/25 bg-primary/5 px-4 py-2.5 text-[13px] font-semibold text-primary hover:bg-primary/10 active:scale-[0.99] transition-all"
           >
+            <FileText className="size-3.5 shrink-0" />
             <span>리포트 전문 보기</span>
             <ChevronDown className="size-3.5" />
           </button>
