@@ -5,8 +5,14 @@
  * YouTube API + Gemini AI 호출 후 analysis_results에 저장.
  * 쿨다운: last_analyzed_at 기준 12시간.
  */
+export const maxDuration = 300; // Vercel Pro — waitUntil 원페이퍼 생성 포함
+
 import { NextResponse } from "next/server";
+import { waitUntil } from "@vercel/functions";
 import { createClient } from "@/lib/supabase/server";
+import { buildAnalysisReportPrompt, callGeminiForAnalysisReport } from "@/lib/server/onepager/generateAnalysisReport";
+import { buildChannelDnaReportPrompt, callGeminiForChannelDnaReport } from "@/lib/server/onepager/generateChannelDnaReport";
+import { buildStrategyPlanPrompt, callGeminiForStrategyPlan } from "@/lib/server/onepager/generateStrategyPlan";
 import { getRecentVideos } from "@/lib/youtube";
 import { normalizeVideoMetrics } from "@/lib/analysis/engine/normalizeVideoMetrics";
 import { buildChannelFeatures } from "@/lib/analysis/engine/buildChannelFeatures";
@@ -572,9 +578,75 @@ export async function POST(request: Request) {
     .eq("id", userChannelId)
     .eq("user_id", user.id);
 
-  // 원페이퍼(analysis_report / channel_dna_report / strategy_plan)는
-  // 각 페이지의 GET API에서 on-demand로 생성됩니다.
-  // (메인 분석 route에서 waitUntil로 생성하면 Vercel maxDuration 60초를 초과함)
+  // 원페이퍼 3개를 메인 분석 응답 반환 후 백그라운드에서 시간차 순차 생성
+  // Vercel Pro maxDuration=300 — waitUntil로 응답 차단 없이 실행
+  {
+    const snapshotId = savedRow.id;
+    const rawJson = geminiSuccess.rawJson;
+
+    waitUntil((async () => {
+      // 1. 채널 종합 진단서 — Analysis 페이지 (3초 후)
+      try {
+        await new Promise((r) => setTimeout(r, 3000));
+        const markdown = await callGeminiForAnalysisReport(
+          buildAnalysisReportPrompt({
+            gemini_raw_json: rawJson,
+            feature_snapshot: featureSnapshot,
+            channel_title: channelRow.channel_title,
+            feature_total_score: scoreResult.totalScore,
+          })
+        );
+        if (markdown) {
+          await supabaseAdmin.from("analysis_module_results").upsert({
+            user_id: user.id, channel_id: userChannelId, snapshot_id: snapshotId,
+            module_key: "analysis_report", result: { markdown }, status: "completed",
+            analyzed_at: new Date().toISOString(),
+          }, { onConflict: "snapshot_id,module_key" });
+          console.log("[onepager] analysis_report saved:", snapshotId);
+        }
+      } catch (e) { console.error("[onepager] analysis_report failed:", e); }
+
+      // 2. 채널 DNA 진단 리포트 — Channel DNA 페이지 (4초 후)
+      try {
+        await new Promise((r) => setTimeout(r, 4000));
+        const markdown = await callGeminiForChannelDnaReport(
+          buildChannelDnaReportPrompt({
+            gemini_raw_json: rawJson,
+            feature_snapshot: featureSnapshot,
+            channel_title: channelRow.channel_title,
+          })
+        );
+        if (markdown) {
+          await supabaseAdmin.from("analysis_module_results").upsert({
+            user_id: user.id, channel_id: userChannelId, snapshot_id: snapshotId,
+            module_key: "channel_dna_report", result: { markdown }, status: "completed",
+            analyzed_at: new Date().toISOString(),
+          }, { onConflict: "snapshot_id,module_key" });
+          console.log("[onepager] channel_dna_report saved:", snapshotId);
+        }
+      } catch (e) { console.error("[onepager] channel_dna_report failed:", e); }
+
+      // 3. 성장 전략 실행 플랜 — Action Plan 페이지 (4초 후)
+      try {
+        await new Promise((r) => setTimeout(r, 4000));
+        const markdown = await callGeminiForStrategyPlan(
+          buildStrategyPlanPrompt({
+            gemini_raw_json: rawJson,
+            feature_snapshot: featureSnapshot,
+            channel_title: channelRow.channel_title,
+          })
+        );
+        if (markdown) {
+          await supabaseAdmin.from("analysis_module_results").upsert({
+            user_id: user.id, channel_id: userChannelId, snapshot_id: snapshotId,
+            module_key: "strategy_plan", result: { markdown }, status: "completed",
+            analyzed_at: new Date().toISOString(),
+          }, { onConflict: "snapshot_id,module_key" });
+          console.log("[onepager] strategy_plan saved:", snapshotId);
+        }
+      } catch (e) { console.error("[onepager] strategy_plan failed:", e); }
+    })());
+  }
 
   return NextResponse.json({
     ok: true,
