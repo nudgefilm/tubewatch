@@ -8,34 +8,36 @@ interface OnePagerCardProps {
   title: string
   markdown: string
   downloadFilename: string
-  /** 헤더 우측 뱃지 텍스트 (기본: "튜브워치 엔진") */
   badgeLabel?: string
-  /** 접힘 상태 미리보기 줄 수 (기본: 3) */
-  previewLines?: number
-  /** 카드 하단 추가 콘텐츠 (태그·게이지 등) */
   extra?: React.ReactNode
 }
 
 // ── 마크다운 → 평문 변환 (미리보기용) ──────────────────────────────
-function extractPreview(markdown: string, maxChars = 160): string {
+function extractPreview(markdown: string, maxChars = 180): string {
   const plain = markdown
     .split("\n")
     .filter((l) => l.trim() && !l.startsWith("#") && !l.startsWith("---"))
-    .map((l) => l.replace(/\*\*([^*]+)\*\*/g, "$1").replace(/^[-*]\s+/, "").replace(/^\d+\.\s+/, "").trim())
+    .map((l) =>
+      l.replace(/\*\*([^*]+)\*\*/g, "$1")
+       .replace(/^[-*]\s+/, "")
+       .replace(/^\d+\.\s+/, "")
+       .trim()
+    )
     .filter(Boolean)
     .join(" ")
   return plain.length > maxChars ? plain.slice(0, maxChars) + "…" : plain
 }
 
-// ── 마크다운 렌더러 ──────────────────────────────────────────────
+// ── 인라인 렌더러 ──────────────────────────────────────────────────
 function renderInline(text: string): React.ReactNode[] {
   return text.split(/(\*\*[^*]+\*\*)/).map((part, idx) =>
     part.startsWith("**") && part.endsWith("**")
-      ? <strong key={idx} className="font-semibold text-foreground">{part.slice(2, -2)}</strong>
+      ? <strong key={idx} className="font-semibold text-foreground/90">{part.slice(2, -2)}</strong>
       : <span key={idx}>{part}</span>
   )
 }
 
+// ── 마크다운 렌더러 ────────────────────────────────────────────────
 export function PlanDocument({ markdown }: { markdown: string }) {
   const lines = markdown.split("\n")
   const elements: React.ReactNode[] = []
@@ -44,42 +46,48 @@ export function PlanDocument({ markdown }: { markdown: string }) {
   while (i < lines.length) {
     const line = lines[i]
 
+    // H1 / H2 — 섹션 제목
     if (line.startsWith("## ") || line.startsWith("# ")) {
       const text = line.replace(/^#{1,2}\s*/, "")
       const match = text.match(/^(.*?)\s*(\([^)]+\))?$/)
       const mainTitle = match?.[1]?.trim() ?? text
       const subTitle = match?.[2] ?? ""
+      const isFirst = elements.length === 0
       elements.push(
-        <div key={i} className={`${elements.length > 0 ? "mt-7" : ""} mb-3`}>
-          <h3 className="text-sm font-bold text-foreground tracking-tight flex items-center gap-2">
+        <div key={i} className={`${isFirst ? "" : "mt-8"} mb-3`}>
+          <h3 className="text-[13.5px] font-bold text-foreground tracking-tight flex items-center gap-2">
             {mainTitle}
-            {subTitle && <span className="text-xs font-normal text-muted-foreground/70">{subTitle}</span>}
+            {subTitle && (
+              <span className="text-xs font-normal text-muted-foreground/60">{subTitle}</span>
+            )}
           </h3>
-          <div className="mt-1.5 h-px bg-border/50" />
+          <div className="mt-2 h-px bg-border/40" />
         </div>
       )
       i++; continue
     }
 
+    // H3 — 소제목 (uppercase 없음)
     if (line.startsWith("### ")) {
       elements.push(
-        <p key={i} className="text-xs font-semibold text-foreground/80 mt-5 mb-1.5 tracking-wide uppercase">
+        <p key={i} className="text-xs font-semibold text-foreground/60 mt-5 mb-2 tracking-wide">
           {line.replace(/^###\s*/, "")}
         </p>
       )
       i++; continue
     }
 
+    // 불릿 리스트
     if (line.startsWith("- ") || line.startsWith("* ")) {
       const items: string[] = []
       while (i < lines.length && (lines[i].startsWith("- ") || lines[i].startsWith("* "))) {
         items.push(lines[i].replace(/^[-*]\s+/, "")); i++
       }
       elements.push(
-        <ul key={`ul-${i}`} className="space-y-1.5 mb-2 mt-1">
+        <ul key={`ul-${i}`} className="space-y-2 mb-2.5 mt-1">
           {items.map((item, idx) => (
-            <li key={idx} className="flex items-start gap-2.5 text-[13px] text-muted-foreground leading-relaxed">
-              <span className="mt-2 w-1.5 h-1.5 rounded-full bg-primary/40 shrink-0" />
+            <li key={idx} className="flex items-start gap-2.5 text-[13.5px] text-muted-foreground leading-[1.65]">
+              <span className="mt-[6px] w-1.5 h-1.5 rounded-full bg-primary/40 shrink-0" />
               <span>{renderInline(item)}</span>
             </li>
           ))}
@@ -88,6 +96,7 @@ export function PlanDocument({ markdown }: { markdown: string }) {
       continue
     }
 
+    // 번호 리스트
     if (/^\d+\.\s/.test(line)) {
       const items: string[] = []
       let num = 1
@@ -95,10 +104,12 @@ export function PlanDocument({ markdown }: { markdown: string }) {
         items.push(lines[i].replace(/^\d+\.\s+/, "")); i++; num++
       }
       elements.push(
-        <ol key={`ol-${i}`} className="space-y-2 mb-2 mt-1">
+        <ol key={`ol-${i}`} className="space-y-2.5 mb-2.5 mt-1">
           {items.map((item, idx) => (
-            <li key={idx} className="flex items-start gap-3 text-[13px] text-muted-foreground leading-relaxed">
-              <span className="mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">{idx + 1}</span>
+            <li key={idx} className="flex items-start gap-3 text-[13.5px] text-muted-foreground leading-[1.65]">
+              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
+                {idx + 1}
+              </span>
               <span>{renderInline(item)}</span>
             </li>
           ))}
@@ -109,15 +120,16 @@ export function PlanDocument({ markdown }: { markdown: string }) {
 
     if (line.trim() === "") { i++; continue }
 
+    // 일반 단락
     elements.push(
-      <p key={i} className="text-[13px] text-muted-foreground leading-relaxed mb-2.5">
+      <p key={i} className="text-[13.5px] text-muted-foreground leading-[1.7] mb-3">
         {renderInline(line)}
       </p>
     )
     i++
   }
 
-  return <div className="space-y-0">{elements}</div>
+  return <div>{elements}</div>
 }
 
 // ── 메인 카드 컴포넌트 ────────────────────────────────────────────
@@ -175,14 +187,19 @@ export function OnePagerCard({
 
       {/* 접힘 — 미리보기 */}
       {!expanded && (
-        <div className="px-5 pt-4 pb-5">
-          <p className="text-[13px] text-muted-foreground leading-relaxed line-clamp-3">{preview}</p>
+        <div className="px-5 pt-5 pb-6">
+          {/* 미리보기 레이블 */}
+          <p className="text-[10px] font-semibold text-muted-foreground/50 tracking-widest uppercase mb-2">Preview</p>
+          {/* 좌측 강조선 + 미리보기 텍스트 */}
+          <div className="border-l-2 border-primary/20 pl-3">
+            <p className="text-[13px] text-muted-foreground/80 leading-[1.65] line-clamp-3">{preview}</p>
+          </div>
           <button
             onClick={() => setExpanded(true)}
-            className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-lg border border-primary/20 bg-primary/5 px-4 py-2.5 text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
+            className="mt-5 flex w-full items-center justify-center gap-1.5 rounded-lg border border-primary/25 bg-primary/5 px-4 py-2.5 text-[13px] font-semibold text-primary hover:bg-primary/10 active:scale-[0.99] transition-all"
           >
             <span>리포트 전문 보기</span>
-            <ChevronDown className="size-4" />
+            <ChevronDown className="size-3.5" />
           </button>
         </div>
       )}
@@ -196,24 +213,24 @@ export function OnePagerCard({
         }}
       >
         <div style={{ overflow: "hidden" }}>
-          <div className="px-5 pt-5 pb-2">
+          <div className="px-6 pt-6 pb-3">
             <PlanDocument markdown={markdown} />
           </div>
 
-          {extra && <div className="border-t">{extra}</div>}
+          {extra && <div className="border-t mx-0">{extra}</div>}
 
-          {/* 접기 + 다운로드 */}
-          <div className="px-5 py-3 border-t bg-muted/20 flex items-center justify-between">
+          {/* 하단 바 — 접기 + 다운로드 */}
+          <div className="px-5 py-3 mt-2 border-t bg-muted/20 flex items-center justify-between">
             <button
               onClick={handleDownload}
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               <Download className="h-3.5 w-3.5" />
               <span>이미지 저장</span>
             </button>
             <button
               onClick={() => setExpanded(false)}
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               <ChevronUp className="size-3.5" />
               <span>접기</span>
