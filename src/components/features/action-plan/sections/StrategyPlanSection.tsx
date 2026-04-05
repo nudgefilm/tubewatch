@@ -194,7 +194,7 @@ export function StrategyPlanSection({ channelId }: StrategyPlanSectionProps) {
         </div>
         <div className="space-y-1">
           <p className="text-sm font-semibold">성장 전략 실행 플랜 생성</p>
-          <p className="text-xs text-muted-foreground">채널 분석 데이터를 기반으로 AI가 맞춤 전략 원페이퍼를 작성합니다</p>
+          <p className="text-xs text-muted-foreground">채널 분석 데이터를 기반으로 튜브워치 엔진이 맞춤 전략 원페이퍼를 작성합니다</p>
         </div>
         {errorMsg && (
           <p className="text-xs text-destructive">{errorMsg}</p>
@@ -229,7 +229,7 @@ export function StrategyPlanSection({ channelId }: StrategyPlanSectionProps) {
           <span className="font-heading font-medium text-sm leading-none tracking-[-0.01em]">TubeWatch™</span>
           <span className="text-muted-foreground/40 text-sm">|</span>
           <span className="text-sm font-semibold text-foreground">성장 전략 실행 플랜</span>
-          <Badge variant="outline" className="text-xs text-emerald-600 border-emerald-200">AI 생성</Badge>
+          <Badge variant="outline" className="text-xs text-emerald-600 border-emerald-200">튜브워치 엔진</Badge>
         </div>
         <button
           onClick={handleDownload}

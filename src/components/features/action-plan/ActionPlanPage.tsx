@@ -145,7 +145,7 @@ export function ActionPlanPage({ channelId = "", channelContext, viewModel, isSt
                   <Sparkles className="size-5 shrink-0 text-primary" />
                   성장 전략 실행 플랜
                 </h2>
-                <p className="text-xs text-muted-foreground mt-0.5">채널 데이터 기반 AI 생성 원페이퍼</p>
+                <p className="text-xs text-muted-foreground mt-0.5">채널 데이터 기반 튜브워치 엔진 원페이퍼</p>
               </div>
               <StrategyPlanSection channelId={viewModel.selectedChannelId} />
             </section>
