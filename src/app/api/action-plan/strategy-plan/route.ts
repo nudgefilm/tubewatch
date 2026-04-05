@@ -6,8 +6,12 @@ import { isAdminUser } from "@/lib/server/isAdminUser";
 export const maxDuration = 60;
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
-// thinking 모드 없는 빠른 모델 고정 (2.5-flash는 thinking으로 타임아웃 위험)
-const STRATEGY_MODEL = "gemini-2.5-flash-lite";
+// fallback 체인 — 앞 모델이 404/5xx면 다음 모델로 자동 재시도
+const STRATEGY_MODELS = [
+  "gemini-2.5-flash-lite",
+  "gemini-2.5-flash",
+  "gemini-1.5-flash-latest",
+];
 
 function fmt(n: unknown): string {
   if (n == null) return "N/A";
@@ -146,44 +150,58 @@ export async function POST(req: NextRequest) {
 
     const prompt = buildPrompt(rows[0] as Record<string, unknown>);
 
-    // Gemini 호출 (50초 타임아웃)
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 50_000);
-    let geminiRes: Response;
-    try {
-      geminiRes = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${STRATEGY_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          signal: controller.signal,
-          body: JSON.stringify({
-            contents: [{ role: "user", parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.7, maxOutputTokens: 4096 },
-            systemInstruction: {
-              parts: [{
-                text: "당신은 유튜브 채널 성장 전략가입니다. 마크다운 형식의 원페이퍼 전략 문서를 작성합니다. JSON을 반환하지 않습니다.",
-              }],
-            },
-          }),
-        }
-      );
-    } catch (fetchErr) {
-      console.error("[strategy-plan] Gemini fetch error:", fetchErr);
-      return NextResponse.json({ error: "AI 응답 시간이 초과되었습니다. 잠시 후 다시 시도해주세요." }, { status: 504 });
-    } finally {
-      clearTimeout(timeout);
+    // Gemini 호출 — fallback 체인 (앞 모델 404/5xx 시 다음 모델로 자동 재시도)
+    const requestBody = JSON.stringify({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.7, maxOutputTokens: 4096 },
+      systemInstruction: {
+        parts: [{ text: "당신은 유튜브 채널 성장 전략가입니다. 마크다운 형식의 원페이퍼 전략 문서를 작성합니다. JSON을 반환하지 않습니다." }],
+      },
+    });
+
+    let markdown: string | null = null;
+    let lastError = "";
+
+    for (const model of STRATEGY_MODELS) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 50_000);
+      let res: Response;
+      try {
+        res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
+          { method: "POST", headers: { "Content-Type": "application/json" }, signal: controller.signal, body: requestBody }
+        );
+      } catch (fetchErr) {
+        clearTimeout(timeout);
+        lastError = `fetch error on ${model}: ${fetchErr}`;
+        console.warn(`[strategy-plan] ${lastError}`);
+        continue; // 다음 모델 시도
+      } finally {
+        clearTimeout(timeout);
+      }
+
+      const data = await res.json();
+      if (!res.ok) {
+        lastError = `HTTP ${res.status} on ${model}: ${JSON.stringify(data).slice(0, 200)}`;
+        console.warn(`[strategy-plan] ${lastError} — trying next model`);
+        continue; // 404/5xx → 다음 모델
+      }
+
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!text) {
+        lastError = `empty response on ${model}`;
+        console.warn(`[strategy-plan] ${lastError} — trying next model`);
+        continue;
+      }
+
+      markdown = text;
+      console.log(`[strategy-plan] success with model: ${model}`);
+      break;
     }
 
-    const geminiData = await geminiRes.json();
-    if (!geminiRes.ok) {
-      console.error("[strategy-plan] Gemini HTTP error:", geminiRes.status, JSON.stringify(geminiData));
-      return NextResponse.json({ error: "Gemini 호출 실패" }, { status: 502 });
-    }
-    const markdown = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!markdown) {
-      console.error("[strategy-plan] Gemini empty response:", JSON.stringify(geminiData).slice(0, 300));
-      return NextResponse.json({ error: "Gemini 응답 오류" }, { status: 500 });
+      console.error("[strategy-plan] all models failed:", lastError);
+      return NextResponse.json({ error: "AI 생성에 실패했습니다. 잠시 후 다시 시도해주세요." }, { status: 502 });
     }
 
     return NextResponse.json({ markdown });
