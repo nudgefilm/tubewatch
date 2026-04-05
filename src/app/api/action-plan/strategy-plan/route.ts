@@ -4,8 +4,6 @@ import { isAdminUser } from "@/lib/server/isAdminUser";
 import { buildStrategyPlanPrompt, callGeminiForStrategyPlan } from "@/lib/server/onepager/generateStrategyPlan";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
-export const maxDuration = 60;
-
 /** GET — DB에서 저장된 strategy_plan 읽기 */
 export async function GET(req: NextRequest) {
   try {

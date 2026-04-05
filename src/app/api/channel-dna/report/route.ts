@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
-export const maxDuration = 60;
-
 /** GET — DB에서 저장된 channel_dna_report 읽기 */
 export async function GET(req: NextRequest) {
   try {
