@@ -108,7 +108,7 @@ function PlanDocument({ markdown }: { markdown: string }) {
 }
 
 export function StrategyPlanSection({ channelId }: StrategyPlanSectionProps) {
-  const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle")
+  const [status, setStatus] = useState<"idle" | "loading" | "done" | "error" | "cooldown">("idle")
   const [markdown, setMarkdown] = useState<string | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const cardRef = useRef<HTMLDivElement>(null)
@@ -123,6 +123,11 @@ export function StrategyPlanSection({ channelId }: StrategyPlanSectionProps) {
         body: JSON.stringify({ channelId }),
       })
       const data = await res.json()
+      if (res.status === 429 || data.code === "COOLDOWN_ACTIVE") {
+        setErrorMsg(data.error ?? "쿨다운 중입니다.")
+        setStatus("cooldown")
+        return
+      }
       if (!res.ok || data.error) {
         setErrorMsg(data.error ?? "생성에 실패했습니다.")
         setStatus("error")
@@ -152,6 +157,21 @@ export function StrategyPlanSection({ channelId }: StrategyPlanSectionProps) {
     } catch (e) {
       console.error("[download]", e)
     }
+  }
+
+  // 쿨다운 — 버튼 비활성, 안내 메시지
+  if (status === "cooldown") {
+    return (
+      <div className="rounded-xl border border-dashed border-amber-300/60 bg-amber-50/40 dark:bg-amber-950/10 p-8 flex flex-col items-center gap-4 text-center">
+        <div className="flex size-10 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30">
+          <Sparkles className="size-5 text-amber-600 dark:text-amber-400" />
+        </div>
+        <div className="space-y-1">
+          <p className="text-sm font-semibold">생성 제한 중</p>
+          <p className="text-xs text-muted-foreground">{errorMsg}</p>
+        </div>
+      </div>
+    )
   }
 
   // 생성 전 — 버튼만 표시

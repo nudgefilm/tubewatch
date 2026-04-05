@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
     // 최신 분석 결과 조회
     const { data: rows, error } = await supabase
       .from("analysis_results")
-      .select("channel_title, gemini_raw_json, feature_snapshot")
+      .select("channel_title, gemini_raw_json, feature_snapshot, created_at")
       .eq("user_id", user.id)
       .eq("user_channel_id", channelId)
       .order("created_at", { ascending: false })
@@ -119,6 +119,19 @@ export async function POST(req: NextRequest) {
 
     if (error || !rows || rows.length === 0) {
       return NextResponse.json({ error: "분석 데이터가 없습니다." }, { status: 404 });
+    }
+
+    // 쿨다운 체크 — 마지막 분석 후 72시간 이내 차단
+    const lastCreatedAt: string | null = (rows[0] as Record<string, unknown>).created_at as string | null;
+    if (lastCreatedAt) {
+      const diffHours = (Date.now() - new Date(lastCreatedAt).getTime()) / (1000 * 60 * 60);
+      if (diffHours < 72) {
+        const remainHours = Math.ceil(72 - diffHours);
+        return NextResponse.json(
+          { error: `마지막 분석 후 72시간 이내에는 생성할 수 없습니다. 약 ${remainHours}시간 후 다시 시도해주세요.`, code: "COOLDOWN_ACTIVE" },
+          { status: 429 }
+        );
+      }
     }
 
     const prompt = buildPrompt(rows[0] as Record<string, unknown>);
