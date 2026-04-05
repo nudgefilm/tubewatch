@@ -128,7 +128,20 @@ async function fetchLatestResultForChannel(
 ): Promise<AnalysisResultRow | null> {
   const { data, error } = await supabase
     .from("analysis_results")
-    .select("*")
+    .select([
+      "id", "user_id", "user_channel_id", "job_id",
+      "channel_id", "channel_url", "channel_title", "thumbnail_url",
+      "sample_video_count", "analysis_confidence", "status",
+      "gemini_model", "gemini_status", "gemini_analyzed_at", "gemini_attempt_count",
+      "channel_summary", "content_pattern_summary", "content_patterns",
+      "strengths", "weaknesses", "bottlenecks", "recommended_topics",
+      "growth_action_plan", "target_audience", "sample_size_note", "interpretation_mode",
+      "feature_snapshot",
+      "feature_total_score", "feature_section_scores",
+      "total_score", "overall_score", "section_scores",
+      "engine_version", "created_at", "updated_at",
+      // gemini_raw_json 제외 — OOM 원인 (~50-100KB). Next Trend는 moduleResults fallback 사용
+    ].join(", "))
     .eq("user_id", userId)
     .eq("user_channel_id", userChannelId)
     .order("created_at", { ascending: false })

@@ -347,8 +347,9 @@ export function buildNextTrendPageViewModel(
   const signalBundle = buildTrendSignals(snapshot);
   const insights = buildTrendInsights(signalBundle);
 
-  // AI 생성 plan: moduleResults → gemini_raw_json 순으로 fallback
-  // gemini_raw_json은 text 컬럼으로 저장되어 있어 문자열일 수 있음 → 파싱 필요
+  // AI 생성 plan: moduleResults 우선, gemini_raw_json fallback (구버전 호환)
+  // gemini_raw_json은 getAnalysisPageData select에서 제외됨 → null이 정상
+  // 구버전 분석(moduleResults 없음)에서만 fallback 필요 — 10% 샘플링 로그로 감지
   const nextTrendModule = (data.moduleResults?.["next_trend"] ?? null) as { plan?: NextTrendAIPlan } | null;
   const rawJsonRaw = data.latestResult.gemini_raw_json;
   let parsedRawJson: Record<string, unknown> | null = null;
@@ -356,6 +357,9 @@ export function buildNextTrendPageViewModel(
     try { parsedRawJson = JSON.parse(rawJsonRaw); } catch { parsedRawJson = null; }
   } else if (rawJsonRaw && typeof rawJsonRaw === "object") {
     parsedRawJson = rawJsonRaw as Record<string, unknown>;
+  }
+  if (!nextTrendModule?.plan && !parsedRawJson?.next_trend_plan && Math.random() < 0.1) {
+    console.warn("[next-trend-vm] no plan source available", { snapshot_id: data.latestResult.id });
   }
   const aiPlan: NextTrendAIPlan | null =
     nextTrendModule?.plan ??
