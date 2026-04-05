@@ -2,7 +2,7 @@
 
 import { useRef } from "react"
 import { Badge } from "@/components/ui/badge"
-import { Video, Image as ImageIcon, FileText, Zap, AlignLeft, Lightbulb, AlertCircle, BarChart2, Type, Tag, Shield, Users, Download } from "lucide-react"
+import { BarChart2, Tag, Download } from "lucide-react"
 import type { ExecutionAction, ViewingPointGauge } from "@/mocks/next-trend"
 
 interface NextTrendActionSectionProps {
@@ -111,33 +111,6 @@ function PlanDocument({ markdown }: { markdown: string }) {
   }
 
   return <div className="space-y-0.5">{elements}</div>
-}
-
-/** **bold** 마크업과 들여쓰기 줄을 처리하는 리치 텍스트 렌더러 */
-function RichText({ text }: { text: string }) {
-  function parseLine(line: string, key: number, isLast: boolean) {
-    const isIndented = line.startsWith("  ")
-    const trimmed = isIndented ? line.trimStart() : line
-    const parts = trimmed.split(/(\*\*[^*]+\*\*)/)
-    const rendered = parts.map((part, i) => {
-      if (part.startsWith("**") && part.endsWith("**")) {
-        return (
-          <strong key={i} className="font-semibold text-foreground">
-            {part.slice(2, -2)}
-          </strong>
-        )
-      }
-      return <span key={i}>{part}</span>
-    })
-    return (
-      <span key={key} className={isIndented ? "text-xs text-muted-foreground" : ""}>
-        {rendered}
-        {!isLast && <br />}
-      </span>
-    )
-  }
-  const lines = text.split("\n")
-  return <span>{lines.map((line, i) => parseLine(line, i, i === lines.length - 1))}</span>
 }
 
 /** 1–5 점수 게이지 (●●●●○) */
@@ -253,21 +226,20 @@ function ActionCard({ action, topCandidate }: { action: ExecutionAction; topCand
       <div className="divide-y">
 
         {action.videoPlanDocument ? (
-          /* ── AI 전략 리포트 모드 ─────────────────────────────────── */
           <>
-            {/* 전략 리포트 본문 */}
+            {/* 원페이퍼 기획안 본문 */}
             <div className="px-5 py-5">
               <PlanDocument markdown={action.videoPlanDocument} />
             </div>
 
-            {/* 시청 포인트 게이지 — 시각 위젯은 항상 표시 */}
+            {/* 시청 포인트 게이지 */}
             {action.viewingPoints && action.viewingPoints.length > 0 && (
               <SectionRow icon={<BarChart2 className="h-4 w-4" />} label="시청 포인트 게이지">
                 <ViewingGauge points={action.viewingPoints} />
               </SectionRow>
             )}
 
-            {/* 추천 태그 — 클릭·복사용 */}
+            {/* 추천 태그 */}
             {action.recommendedTags && action.recommendedTags.length > 0 && (
               <SectionRow icon={<Tag className="h-4 w-4" />} label="추천 태그">
                 <div className="flex flex-wrap gap-1.5">
@@ -281,74 +253,9 @@ function ActionCard({ action, topCandidate }: { action: ExecutionAction; topCand
             )}
           </>
         ) : (
-          /* ── 폴백: 개별 섹션 렌더링 (AI 데이터 없는 구버전) ──── */
-          <>
-            {action.whyThisTopic && action.whyThisTopic !== "—" && (
-              <SectionRow icon={<Lightbulb className="h-4 w-4" />} label="기획 의도">
-                <p className="text-sm leading-relaxed break-words"><RichText text={action.whyThisTopic} /></p>
-              </SectionRow>
-            )}
-            {action.painPoint && action.painPoint !== "—" && (
-              <SectionRow icon={<AlertCircle className="h-4 w-4" />} label="문제 진단 & 해결 방향">
-                <p className="text-sm leading-relaxed break-words"><RichText text={action.painPoint} /></p>
-              </SectionRow>
-            )}
-            <SectionRow icon={<Video className="h-4 w-4" />} label="영상 기획안 (촬영 기준)">
-              <p className="text-sm leading-relaxed break-words"><RichText text={action.videoTitle} /></p>
-            </SectionRow>
-            {action.titleCandidates && action.titleCandidates.length > 0 && (
-              <SectionRow icon={<Type className="h-4 w-4" />} label="제목 후보 (3개)">
-                <ol className="space-y-2">
-                  {action.titleCandidates.map((title, i) => (
-                    <li key={i} className="text-sm leading-relaxed break-words">
-                      <span className="font-semibold text-primary mr-1.5">{["①", "②", "③"][i]}</span>
-                      <RichText text={title} />
-                    </li>
-                  ))}
-                </ol>
-              </SectionRow>
-            )}
-            <SectionRow icon={<ImageIcon className="h-4 w-4" />} label="썸네일 방향">
-              <p className="text-sm leading-relaxed break-words"><RichText text={action.thumbnailDirection} /></p>
-            </SectionRow>
-            {action.openingHook && action.openingHook !== "—" && (
-              <SectionRow icon={<Zap className="h-4 w-4" />} label="오프닝 훅">
-                <p className="text-sm leading-relaxed break-words"><RichText text={action.openingHook} /></p>
-              </SectionRow>
-            )}
-            {action.scriptOutline && action.scriptOutline !== "—" && (
-              <SectionRow icon={<AlignLeft className="h-4 w-4" />} label="대본 구조">
-                <p className="text-sm leading-relaxed break-words"><RichText text={action.scriptOutline} /></p>
-              </SectionRow>
-            )}
-            {action.exitPrevention && action.exitPrevention !== "—" && (
-              <SectionRow icon={<Shield className="h-4 w-4" />} label="이탈 방지 포인트">
-                <p className="text-sm leading-relaxed break-words"><RichText text={action.exitPrevention} /></p>
-              </SectionRow>
-            )}
-            <SectionRow icon={<FileText className="h-4 w-4" />} label="제작 팁">
-              <p className="text-sm leading-relaxed break-words"><RichText text={action.contentPlan} /></p>
-            </SectionRow>
-            {action.viewingPoints && action.viewingPoints.length > 0 && (
-              <SectionRow icon={<BarChart2 className="h-4 w-4" />} label="시청 포인트">
-                <ViewingGauge points={action.viewingPoints} />
-              </SectionRow>
-            )}
-            {action.recommendedTags && action.recommendedTags.length > 0 && (
-              <SectionRow icon={<Tag className="h-4 w-4" />} label="추천 태그">
-                <div className="flex flex-wrap gap-1.5">
-                  {action.recommendedTags.map((tag) => (
-                    <Badge key={tag} variant="secondary" className="text-xs font-normal">#{tag}</Badge>
-                  ))}
-                </div>
-              </SectionRow>
-            )}
-            {action.expectedReaction && action.expectedReaction !== "—" && (
-              <SectionRow icon={<Users className="h-4 w-4" />} label="업로드 후 점검 포인트">
-                <p className="text-sm leading-relaxed break-words"><RichText text={action.expectedReaction} /></p>
-              </SectionRow>
-            )}
-          </>
+          <div className="px-5 py-8 text-center text-sm text-muted-foreground">
+            분석을 실행하면 영상 기획안이 자동으로 생성됩니다.
+          </div>
         )}
 
       </div>
