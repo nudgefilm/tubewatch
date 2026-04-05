@@ -25,15 +25,25 @@ export async function GET(req: NextRequest) {
 
     const { data: mod } = await supabaseAdmin
       .from("analysis_module_results")
-      .select("result, status")
+      .select("result, status, started_at")
       .eq("snapshot_id", snap.id)
       .eq("module_key", "channel_dna_report")
       .maybeSingle();
 
-    if (!mod) return NextResponse.json({ markdown: null, pending: true });
-    if (mod.status !== "completed") return NextResponse.json({ markdown: null, pending: true });
+    if (!mod) return NextResponse.json({ markdown: null, pending: false, reason: "no_record" });
+    if (mod.status === "failed") return NextResponse.json({ markdown: null, pending: false, reason: "failed" });
+    if (mod.status === "pending") {
+      const startedAt = mod.started_at ? new Date(mod.started_at as string).getTime() : null;
+      const isTimeout = startedAt !== null && Date.now() - startedAt > 10 * 60 * 1000;
+      if (isTimeout) return NextResponse.json({ markdown: null, pending: false, reason: "timeout" });
+      return NextResponse.json({ markdown: null, pending: true });
+    }
 
     const markdown = (mod.result as Record<string, unknown>)?.markdown as string | null;
+    console.log("[onepager-api]", {
+      snapshot_id: snap.id, module_key: "channel_dna_report",
+      status: mod.status, started_at: mod.started_at, hasMarkdown: !!markdown,
+    });
     return NextResponse.json({ markdown: markdown ?? null, pending: false });
   } catch (e) {
     console.error("[channel-dna-report GET]", e);

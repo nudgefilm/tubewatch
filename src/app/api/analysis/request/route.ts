@@ -578,73 +578,114 @@ export async function POST(request: Request) {
     .eq("id", userChannelId)
     .eq("user_id", user.id);
 
-  // 원페이퍼 3개를 메인 분석 응답 반환 후 백그라운드에서 시간차 순차 생성
+  // 원페이퍼 3개를 메인 분석 응답 반환 후 백그라운드에서 순차 생성
   // Vercel Pro maxDuration=300 — waitUntil로 응답 차단 없이 실행
   {
     const snapshotId = savedRow.id;
     const rawJson = geminiSuccess.rawJson;
+    const ONEPAGER_KEYS = ["analysis_report", "channel_dna_report", "strategy_plan"] as const;
+
+    // pending pre-insert: waitUntil 실행 전 3개 모듈을 pending으로 선점
+    // completed 상태는 절대 덮어쓰지 않음 (재요청 / race condition 보호)
+    const { data: existingMods } = await supabaseAdmin
+      .from("analysis_module_results")
+      .select("module_key, status")
+      .eq("snapshot_id", snapshotId)
+      .in("module_key", ONEPAGER_KEYS);
+
+    const existingMap = Object.fromEntries(
+      (existingMods ?? []).map((m: { module_key: string; status: string }) => [m.module_key, m.status])
+    );
+
+    const pendingRows = ONEPAGER_KEYS
+      .filter((key) => existingMap[key] !== "completed")
+      .map((key) => ({
+        user_id: user.id, channel_id: userChannelId, snapshot_id: snapshotId,
+        module_key: key, status: "pending", started_at: now,
+        result: {}, analyzed_at: now,
+      }));
+
+    if (pendingRows.length > 0) {
+      await supabaseAdmin.from("analysis_module_results")
+        .upsert(pendingRows, { onConflict: "snapshot_id,module_key" });
+    }
+
+    console.log("[onepager-preinsert]", {
+      snapshot_id: snapshotId,
+      skipped_completed: ONEPAGER_KEYS.filter((k) => existingMap[k] === "completed"),
+      pending_inserted: pendingRows.map((r) => r.module_key),
+    });
+
+    // runModule: 성공/실패 모두 completed 역전 차단
+    // - 성공: .neq("status","completed") → 이미 완료된 row는 불필요 write 없음
+    // - 실패: .neq("status","completed") → 늦게 도착한 실패가 completed를 failed로 되돌리지 않음
+    const runModule = async (
+      fn: () => Promise<string | null>,
+      moduleKey: string
+    ): Promise<void> => {
+      const start = Date.now();
+      try {
+        const markdown = await fn();
+        if (!markdown) throw new Error("empty markdown");
+
+        await supabaseAdmin.from("analysis_module_results")
+          .update({
+            status: "completed",
+            result: { markdown },
+            analyzed_at: new Date().toISOString(),
+          })
+          .eq("snapshot_id", snapshotId)
+          .eq("module_key", moduleKey)
+          .neq("status", "completed");
+
+        console.log("[onepager-latency]", {
+          module: moduleKey, duration: Date.now() - start, status: "completed"
+        });
+      } catch (e) {
+        await supabaseAdmin.from("analysis_module_results")
+          .update({
+            status: "failed",
+            error_message: String(e).slice(0, 500),
+          })
+          .eq("snapshot_id", snapshotId)
+          .eq("module_key", moduleKey)
+          .neq("status", "completed");
+
+        console.error("[onepager-latency]", {
+          module: moduleKey, duration: Date.now() - start,
+          status: "failed", error: String(e).slice(0, 200)
+        });
+        throw e;
+      }
+    };
 
     waitUntil((async () => {
-      // 1. 채널 종합 진단서 — Analysis 페이지 (3초 후)
-      try {
-        await new Promise((r) => setTimeout(r, 3000));
-        const markdown = await callGeminiForAnalysisReport(
-          buildAnalysisReportPrompt({
-            gemini_raw_json: rawJson,
-            feature_snapshot: featureSnapshot,
-            channel_title: channelRow.channel_title,
-            feature_total_score: scoreResult.totalScore,
-          })
-        );
-        if (markdown) {
-          await supabaseAdmin.from("analysis_module_results").upsert({
-            user_id: user.id, channel_id: userChannelId, snapshot_id: snapshotId,
-            module_key: "analysis_report", result: { markdown }, status: "completed",
-            analyzed_at: new Date().toISOString(),
-          }, { onConflict: "snapshot_id,module_key" });
-          console.log("[onepager] analysis_report saved:", snapshotId);
-        }
-      } catch (e) { console.error("[onepager] analysis_report failed:", e); }
-
-      // 2. 채널 DNA 진단 리포트 — Channel DNA 페이지 (4초 후)
-      try {
-        await new Promise((r) => setTimeout(r, 4000));
-        const markdown = await callGeminiForChannelDnaReport(
-          buildChannelDnaReportPrompt({
-            gemini_raw_json: rawJson,
-            feature_snapshot: featureSnapshot,
-            channel_title: channelRow.channel_title,
-          })
-        );
-        if (markdown) {
-          await supabaseAdmin.from("analysis_module_results").upsert({
-            user_id: user.id, channel_id: userChannelId, snapshot_id: snapshotId,
-            module_key: "channel_dna_report", result: { markdown }, status: "completed",
-            analyzed_at: new Date().toISOString(),
-          }, { onConflict: "snapshot_id,module_key" });
-          console.log("[onepager] channel_dna_report saved:", snapshotId);
-        }
-      } catch (e) { console.error("[onepager] channel_dna_report failed:", e); }
-
-      // 3. 성장 전략 실행 플랜 — Action Plan 페이지 (4초 후)
-      try {
-        await new Promise((r) => setTimeout(r, 4000));
-        const markdown = await callGeminiForStrategyPlan(
-          buildStrategyPlanPrompt({
-            gemini_raw_json: rawJson,
-            feature_snapshot: featureSnapshot,
-            channel_title: channelRow.channel_title,
-          })
-        );
-        if (markdown) {
-          await supabaseAdmin.from("analysis_module_results").upsert({
-            user_id: user.id, channel_id: userChannelId, snapshot_id: snapshotId,
-            module_key: "strategy_plan", result: { markdown }, status: "completed",
-            analyzed_at: new Date().toISOString(),
-          }, { onConflict: "snapshot_id,module_key" });
-          console.log("[onepager] strategy_plan saved:", snapshotId);
-        }
-      } catch (e) { console.error("[onepager] strategy_plan failed:", e); }
+      // Phase 1: 순차 실행 (Phase 2-B에서 Promise.allSettled 병렬화 예정)
+      await runModule(
+        () => callGeminiForAnalysisReport(buildAnalysisReportPrompt({
+          gemini_raw_json: rawJson,
+          feature_snapshot: featureSnapshot,
+          channel_title: channelRow.channel_title,
+          feature_total_score: scoreResult.totalScore,
+        })),
+        "analysis_report"
+      );
+      await runModule(
+        () => callGeminiForChannelDnaReport(buildChannelDnaReportPrompt({
+          gemini_raw_json: rawJson,
+          feature_snapshot: featureSnapshot,
+          channel_title: channelRow.channel_title,
+        })),
+        "channel_dna_report"
+      );
+      await runModule(
+        () => callGeminiForStrategyPlan(buildStrategyPlanPrompt({
+          gemini_raw_json: rawJson,
+          feature_snapshot: featureSnapshot,
+          channel_title: channelRow.channel_title,
+        })),
+        "strategy_plan"
+      );
     })());
   }
 
