@@ -5,14 +5,8 @@
  * YouTube API + Gemini AI 호출 후 analysis_results에 저장.
  * 쿨다운: last_analyzed_at 기준 12시간.
  */
-export const maxDuration = 60; // Vercel 함수 실행 시간 상한 (waitUntil 포함)
-
 import { NextResponse } from "next/server";
-import { waitUntil } from "@vercel/functions";
 import { createClient } from "@/lib/supabase/server";
-import { buildStrategyPlanPrompt, callGeminiForStrategyPlan } from "@/lib/server/onepager/generateStrategyPlan";
-import { buildChannelDnaReportPrompt, callGeminiForChannelDnaReport } from "@/lib/server/onepager/generateChannelDnaReport";
-import { buildAnalysisReportPrompt, callGeminiForAnalysisReport } from "@/lib/server/onepager/generateAnalysisReport";
 import { getRecentVideos } from "@/lib/youtube";
 import { normalizeVideoMetrics } from "@/lib/analysis/engine/normalizeVideoMetrics";
 import { buildChannelFeatures } from "@/lib/analysis/engine/buildChannelFeatures";
@@ -578,125 +572,9 @@ export async function POST(request: Request) {
     .eq("id", userChannelId)
     .eq("user_id", user.id);
 
-  // 원페이퍼 순차 생성 — 응답 반환 후 백그라운드 실행 (non-fatal)
-  // full run: 3개 모두 생성 / delta run: 복사된 모듈에서 누락된 것만 생성
-  {
-    const ONE_PAGER_KEYS = ["analysis_report", "channel_dna_report", "strategy_plan"] as const;
-
-    // delta run에서 복사된 키 목록 수집 (이미 위에서 복사 완료된 상태)
-    let copiedKeys: Set<string> = new Set();
-    if (isDeltaRun && existingSnapshot?.id) {
-      const { data: copiedModules } = await supabaseAdmin
-        .from("analysis_module_results")
-        .select("module_key")
-        .eq("snapshot_id", savedRow.id)
-        .eq("user_id", user.id)
-        .in("module_key", [...ONE_PAGER_KEYS]);
-      copiedKeys = new Set((copiedModules ?? []).map((m: { module_key: string }) => m.module_key));
-    }
-
-    const missingKeys = isDeltaRun
-      ? ONE_PAGER_KEYS.filter((k) => !copiedKeys.has(k))
-      : [...ONE_PAGER_KEYS];
-
-    if (missingKeys.length > 0) {
-      const snapshotId = savedRow.id;
-      console.log("[onepager] will generate:", missingKeys, isDeltaRun ? "(delta-보완)" : "(full run)");
-
-      // 3개 동시 병렬 실행 — 순차 실행 시 Vercel maxDuration 60초 초과 방지
-      // stagger 0 / 1 / 2초로 Gemini API burst 완화
-      waitUntil(
-        Promise.allSettled([
-          // 1. 채널 종합 진단서 — Analysis 페이지
-          ...(missingKeys.includes("analysis_report") ? [
-            (async () => {
-              try {
-                const analysisPrompt = buildAnalysisReportPrompt({
-                  gemini_raw_json: geminiSuccess.rawJson,
-                  feature_snapshot: featureSnapshot,
-                  channel_title: channelRow.channel_title,
-                  feature_total_score: scoreResult.totalScore,
-                });
-                const analysisMarkdown = await callGeminiForAnalysisReport(analysisPrompt);
-                if (analysisMarkdown) {
-                  await supabaseAdmin.from("analysis_module_results").upsert({
-                    user_id: user.id,
-                    channel_id: userChannelId,
-                    snapshot_id: snapshotId,
-                    module_key: "analysis_report",
-                    result: { markdown: analysisMarkdown },
-                    status: "completed",
-                    analyzed_at: new Date().toISOString(),
-                  }, { onConflict: "snapshot_id,module_key" });
-                  console.log("[onepager] analysis_report saved:", snapshotId);
-                }
-              } catch (e) {
-                console.error("[onepager] analysis_report failed (non-fatal):", e);
-              }
-            })()
-          ] : []),
-
-          // 2. Channel DNA 진단 리포트 (1초 후 시작)
-          ...(missingKeys.includes("channel_dna_report") ? [
-            (async () => {
-              try {
-                await new Promise((r) => setTimeout(r, 1000));
-                const dnaPrompt = buildChannelDnaReportPrompt({
-                  gemini_raw_json: geminiSuccess.rawJson,
-                  feature_snapshot: featureSnapshot,
-                  channel_title: channelRow.channel_title,
-                });
-                const dnaMarkdown = await callGeminiForChannelDnaReport(dnaPrompt);
-                if (dnaMarkdown) {
-                  await supabaseAdmin.from("analysis_module_results").upsert({
-                    user_id: user.id,
-                    channel_id: userChannelId,
-                    snapshot_id: snapshotId,
-                    module_key: "channel_dna_report",
-                    result: { markdown: dnaMarkdown },
-                    status: "completed",
-                    analyzed_at: new Date().toISOString(),
-                  }, { onConflict: "snapshot_id,module_key" });
-                  console.log("[onepager] channel_dna_report saved:", snapshotId);
-                }
-              } catch (e) {
-                console.error("[onepager] channel_dna_report failed (non-fatal):", e);
-              }
-            })()
-          ] : []),
-
-          // 3. 성장 전략 실행 플랜 — Action Plan 페이지 (2초 후 시작)
-          ...(missingKeys.includes("strategy_plan") ? [
-            (async () => {
-              try {
-                await new Promise((r) => setTimeout(r, 2000));
-                const strategyPrompt = buildStrategyPlanPrompt({
-                  gemini_raw_json: geminiSuccess.rawJson,
-                  feature_snapshot: featureSnapshot,
-                  channel_title: channelRow.channel_title,
-                });
-                const strategyMarkdown = await callGeminiForStrategyPlan(strategyPrompt);
-                if (strategyMarkdown) {
-                  await supabaseAdmin.from("analysis_module_results").upsert({
-                    user_id: user.id,
-                    channel_id: userChannelId,
-                    snapshot_id: snapshotId,
-                    module_key: "strategy_plan",
-                    result: { markdown: strategyMarkdown },
-                    status: "completed",
-                    analyzed_at: new Date().toISOString(),
-                  }, { onConflict: "snapshot_id,module_key" });
-                  console.log("[onepager] strategy_plan saved:", snapshotId);
-                }
-              } catch (e) {
-                console.error("[onepager] strategy_plan failed (non-fatal):", e);
-              }
-            })()
-          ] : []),
-        ])
-      );
-    }
-  }
+  // 원페이퍼(analysis_report / channel_dna_report / strategy_plan)는
+  // 각 페이지의 GET API에서 on-demand로 생성됩니다.
+  // (메인 분석 route에서 waitUntil로 생성하면 Vercel maxDuration 60초를 초과함)
 
   return NextResponse.json({
     ok: true,
