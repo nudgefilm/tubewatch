@@ -15,6 +15,7 @@ const VALID_PLAN_IDS = ["creator", "pro", "free"] as const;
 type PlanId = typeof VALID_PLAN_IDS[number];
 
 export async function POST(request: Request) {
+  try {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
@@ -100,4 +101,10 @@ export async function POST(request: Request) {
 
   console.log(`[set-user-plan] set ${planId} for user=${targetUserId} by admin=${user.id}`);
   return NextResponse.json({ ok: true, planId });
+
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("[set-user-plan] uncaught exception:", msg);
+    return NextResponse.json({ error: `서버 오류: ${msg}` }, { status: 500 });
+  }
 }

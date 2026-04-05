@@ -17,28 +17,33 @@ function SetPlanButton({ userId, currentPlan }: { userId: string; currentPlan: P
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [applied, setApplied] = useState<PlanOption>(currentPlan);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   async function handleSelect(planId: PlanOption) {
     if (planId === applied || status === "loading") return;
     setOpen(false);
     setStatus("loading");
+    setErrorMsg(null);
     try {
       const res = await fetch("/api/admin/set-user-plan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, planId }),
       });
-      if (res.ok) {
+      const body = await res.json().catch(() => ({})) as { ok?: boolean; error?: string };
+      if (res.ok && body.ok) {
         setApplied(planId);
         setStatus("done");
         setTimeout(() => setStatus("idle"), 2000);
       } else {
+        setErrorMsg(body.error ?? `HTTP ${res.status}`);
         setStatus("error");
-        setTimeout(() => setStatus("idle"), 3000);
+        setTimeout(() => { setStatus("idle"); setErrorMsg(null); }, 5000);
       }
-    } catch {
+    } catch (e) {
+      setErrorMsg(e instanceof Error ? e.message : "네트워크 오류");
       setStatus("error");
-      setTimeout(() => setStatus("idle"), 3000);
+      setTimeout(() => { setStatus("idle"); setErrorMsg(null); }, 5000);
     }
   }
 
@@ -71,7 +76,9 @@ function SetPlanButton({ userId, currentPlan }: { userId: string; currentPlan: P
         </div>
       )}
       {status === "error" && (
-        <span className="ml-1 text-[10px] text-red-500">실패</span>
+        <span className="ml-1 text-[10px] text-red-500" title={errorMsg ?? ""}>
+          실패{errorMsg ? `: ${errorMsg}` : ""}
+        </span>
       )}
     </div>
   );
