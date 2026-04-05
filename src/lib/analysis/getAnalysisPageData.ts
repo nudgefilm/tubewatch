@@ -91,7 +91,7 @@ async function getLatestAnalysisResultMapWithClient(
 
   const { data, error } = await supabase
     .from("analysis_results")
-    .select("*")
+    .select("id, user_channel_id, created_at")
     .eq("user_id", userId)
     .in("user_channel_id", userChannelIds)
     .order("created_at", { ascending: false })
