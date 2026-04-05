@@ -7,10 +7,11 @@ export const maxDuration = 60;
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
 // fallback 체인 — 앞 모델이 404/5xx면 다음 모델로 자동 재시도
-const STRATEGY_MODELS = [
-  "gemini-1.5-flash-latest",   // 안정적, thinking 없음
-  "gemini-2.5-flash",           // 2순위
-  "gemini-2.5-flash-lite",      // 3순위
+// gemini-2.5-flash는 thinking 비활성화(thinkingBudget:0) 필수 — 미적용 시 타임아웃
+const STRATEGY_MODELS: Array<{ model: string; generationConfig: Record<string, unknown> }> = [
+  { model: "gemini-2.5-flash-lite",   generationConfig: { temperature: 0.7, maxOutputTokens: 4096 } },
+  { model: "gemini-2.5-flash",         generationConfig: { temperature: 0.7, maxOutputTokens: 4096, thinkingConfig: { thinkingBudget: 0 } } },
+  { model: "gemini-1.5-flash-latest",  generationConfig: { temperature: 0.7, maxOutputTokens: 4096 } },
 ];
 
 function fmt(n: unknown): string {
@@ -151,18 +152,17 @@ export async function POST(req: NextRequest) {
     const prompt = buildPrompt(rows[0] as Record<string, unknown>);
 
     // Gemini 호출 — fallback 체인 (앞 모델 404/5xx 시 다음 모델로 자동 재시도)
-    const requestBody = JSON.stringify({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.7, maxOutputTokens: 4096 },
-      systemInstruction: {
-        parts: [{ text: "당신은 유튜브 채널 성장 전략가입니다. 마크다운 형식의 원페이퍼 전략 문서를 작성합니다. JSON을 반환하지 않습니다. 인사말·서문·서명(예: '안녕하세요', '드림', '[이름]' 등)은 절대 포함하지 마세요. 바로 본문 내용으로 시작하세요." }],
-      },
-    });
+    const systemText = "당신은 유튜브 채널 성장 전략가입니다. 마크다운 형식의 원페이퍼 전략 문서를 작성합니다. JSON을 반환하지 않습니다. 인사말·서문·서명(예: '안녕하세요', '드림', '[이름]' 등)은 절대 포함하지 마세요. 바로 본문 내용으로 시작하세요.";
 
     let markdown: string | null = null;
     let lastError = "";
 
-    for (const model of STRATEGY_MODELS) {
+    for (const { model, generationConfig } of STRATEGY_MODELS) {
+      const requestBody = JSON.stringify({
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig,
+        systemInstruction: { parts: [{ text: systemText }] },
+      });
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 50_000);
       let res: Response;
