@@ -7,7 +7,7 @@ export const maxDuration = 60;
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
 // thinking 모드 없는 빠른 모델 고정 (2.5-flash는 thinking으로 타임아웃 위험)
-const STRATEGY_MODEL = "gemini-2.0-flash";
+const STRATEGY_MODEL = "gemini-2.5-flash-lite";
 
 function fmt(n: unknown): string {
   if (n == null) return "N/A";
