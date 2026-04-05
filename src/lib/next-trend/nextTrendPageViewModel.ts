@@ -348,11 +348,18 @@ export function buildNextTrendPageViewModel(
   const insights = buildTrendInsights(signalBundle);
 
   // AI 생성 plan: moduleResults → gemini_raw_json 순으로 fallback
+  // gemini_raw_json은 text 컬럼으로 저장되어 있어 문자열일 수 있음 → 파싱 필요
   const nextTrendModule = (data.moduleResults?.["next_trend"] ?? null) as { plan?: NextTrendAIPlan } | null;
-  const rawJson = data.latestResult.gemini_raw_json as Record<string, unknown> | null;
+  const rawJsonRaw = data.latestResult.gemini_raw_json;
+  let parsedRawJson: Record<string, unknown> | null = null;
+  if (rawJsonRaw && typeof rawJsonRaw === "string") {
+    try { parsedRawJson = JSON.parse(rawJsonRaw); } catch { parsedRawJson = null; }
+  } else if (rawJsonRaw && typeof rawJsonRaw === "object") {
+    parsedRawJson = rawJsonRaw as Record<string, unknown>;
+  }
   const aiPlan: NextTrendAIPlan | null =
     nextTrendModule?.plan ??
-    (rawJson?.next_trend_plan as NextTrendAIPlan | null) ??
+    (parsedRawJson?.next_trend_plan as NextTrendAIPlan | null) ??
     null;
 
   const internal = buildNextTrendInternalSpec(
