@@ -244,12 +244,11 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
     setSelectedChannelId(id)
     writeSelectedChannelIdToStorage(id)
     // URL 동기화: channel만 반영 (snapshot은 URL에 포함하지 않는 정책)
+    // router.replace() 자체가 서버 컴포넌트 재렌더를 발생시키므로 router.refresh() 불필요
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href)
       url.searchParams.set("channel", id)
       router.replace(url.pathname + url.search, { scroll: false })
-      // 서버 컴포넌트 데이터 강제 갱신 (채널 변경 시 캐시 무효화)
-      router.refresh()
     }
   }
 
