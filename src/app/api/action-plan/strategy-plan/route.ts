@@ -122,13 +122,17 @@ export async function POST(req: NextRequest) {
     }
 
     // 쿨다운 체크 — 마지막 분석 후 72시간 이내 차단
+    const ONDEMAND_COOLDOWN_HOURS = 72;
     const lastCreatedAt: string | null = (rows[0] as Record<string, unknown>).created_at as string | null;
     if (lastCreatedAt) {
-      const diffHours = (Date.now() - new Date(lastCreatedAt).getTime()) / (1000 * 60 * 60);
-      if (diffHours < 72) {
-        const remainHours = Math.ceil(72 - diffHours);
+      const diffMs = Date.now() - new Date(lastCreatedAt).getTime();
+      const diffHours = diffMs / (1000 * 60 * 60);
+      if (diffHours < ONDEMAND_COOLDOWN_HOURS) {
+        const remainMs = ONDEMAND_COOLDOWN_HOURS * 60 * 60 * 1000 - diffMs;
+        const remainHours = Math.floor(remainMs / (1000 * 60 * 60));
+        const remainMins = Math.floor((remainMs % (1000 * 60 * 60)) / (1000 * 60));
         return NextResponse.json(
-          { error: `마지막 분석 후 72시간 이내에는 생성할 수 없습니다. 약 ${remainHours}시간 후 다시 시도해주세요.`, code: "COOLDOWN_ACTIVE" },
+          { error: `채널 분석 후 일정 시간이 지나야 생성할 수 있습니다.`, remainHours, remainMins, code: "COOLDOWN_ACTIVE" },
           { status: 429 }
         );
       }

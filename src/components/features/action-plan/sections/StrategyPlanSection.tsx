@@ -111,11 +111,13 @@ export function StrategyPlanSection({ channelId }: StrategyPlanSectionProps) {
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error" | "cooldown">("idle")
   const [markdown, setMarkdown] = useState<string | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [cooldownLabel, setCooldownLabel] = useState<string | null>(null)
   const cardRef = useRef<HTMLDivElement>(null)
 
   async function handleGenerate() {
     setStatus("loading")
     setErrorMsg(null)
+    setCooldownLabel(null)
     try {
       const res = await fetch("/api/action-plan/strategy-plan", {
         method: "POST",
@@ -124,7 +126,10 @@ export function StrategyPlanSection({ channelId }: StrategyPlanSectionProps) {
       })
       const data = await res.json()
       if (res.status === 429 || data.code === "COOLDOWN_ACTIVE") {
-        setErrorMsg(data.error ?? "쿨다운 중입니다.")
+        const h: number = data.remainHours ?? 0
+        const m: number = data.remainMins ?? 0
+        const label = h > 0 ? `${h}시간 ${m}분` : `${m}분`
+        setCooldownLabel(label)
         setStatus("cooldown")
         return
       }
@@ -167,8 +172,14 @@ export function StrategyPlanSection({ channelId }: StrategyPlanSectionProps) {
           <Sparkles className="size-5 text-amber-600 dark:text-amber-400" />
         </div>
         <div className="space-y-1">
-          <p className="text-sm font-semibold">생성 제한 중</p>
-          <p className="text-xs text-muted-foreground">{errorMsg}</p>
+          <p className="text-sm font-semibold">생성 대기 중</p>
+          {cooldownLabel ? (
+            <p className="text-xs text-muted-foreground">
+              <span className="font-medium text-amber-600 dark:text-amber-400">{cooldownLabel} 후</span> 생성 가능합니다
+            </p>
+          ) : (
+            <p className="text-xs text-muted-foreground">채널 분석 후 일정 시간이 지나야 생성할 수 있습니다</p>
+          )}
         </div>
       </div>
     )
