@@ -224,10 +224,16 @@ export async function POST(request: Request) {
     await supabaseAdmin.from("analysis_jobs").update(patch).eq("id", jobId);
   }
 
-  // YouTube API: 최근 영상 수집
+  // YouTube API: 영상 수집
+  // - 첫 분석(스냅샷 없음): 50개 전체 수집
+  // - 재분석: 최근 15개만 수집해 신규 감지 → 신규 + 기존 스냅샷 영상 합산
+  const FULL_FETCH = 50;
+  const DELTA_FETCH = 15;
+  const fetchCount = existingSnapshot ? DELTA_FETCH : FULL_FETCH;
+
   let youtubeVideos: VideoInfo[];
   try {
-    youtubeVideos = await getRecentVideos(youtubeChannelId, 50);
+    youtubeVideos = await getRecentVideos(youtubeChannelId, fetchCount);
   } catch (e) {
     const msg = e instanceof Error ? e.message : "unknown";
     console.error("[Analysis Start API] error: getRecentVideos failed:", msg);
@@ -240,7 +246,7 @@ export async function POST(request: Request) {
   }
 
   // [pipe/1] 원본 수집 직후 영상 개수
-  console.log(`[Analysis/pipe-1/collect] youtubeVideos: ${youtubeVideos.length}`);
+  console.log(`[Analysis/pipe-1/collect] youtubeVideos: ${youtubeVideos.length} (fetchCount=${fetchCount})`);
   if (youtubeVideos.length === 0) {
     console.warn("[Analysis/pipe-1/collect] WARNING: YouTube API returned 0 videos — featureSnapshot.videos will be empty");
   }
@@ -253,6 +259,37 @@ export async function POST(request: Request) {
   );
   const isDeltaRun = _isDeltaRunRaw && !(isAdmin && forceFullRun);
   console.log(`[Analysis/delta] prev_known=${prevKnownCount} new=${newVideoCount} skip_gemini=${isDeltaRun}${isAdmin && forceFullRun ? " (force-bypassed by admin)" : ""}`);
+
+  // 재분석 시 기존 스냅샷 영상과 합산 (description은 스냅샷에 미저장 → 빈 문자열)
+  if (existingSnapshot) {
+    type SnapVideo = {
+      videoId: string; title: string; publishedAt: string | null;
+      viewCount: number | null; likeCount: number | null; commentCount: number | null;
+      thumbnail: string | null; duration: string | null; tags: string[]; categoryId: string | null;
+    };
+    const snapVideos: SnapVideo[] = (
+      (existingSnapshot.feature_snapshot as Record<string, unknown>)?.videos as SnapVideo[] | undefined
+    ) ?? [];
+    const fetchedIds = new Set(youtubeVideos.map((v) => v.video_id));
+    const reusable: VideoInfo[] = snapVideos
+      .filter((v) => !fetchedIds.has(v.videoId))
+      .map((v) => ({
+        video_id: v.videoId,
+        title: v.title,
+        description: "",
+        published_at: v.publishedAt,
+        view_count: v.viewCount,
+        like_count: v.likeCount,
+        comment_count: v.commentCount,
+        thumbnail_url: v.thumbnail,
+        duration: v.duration,
+        tags: v.tags ?? [],
+        category_id: v.categoryId,
+      }));
+    // 신규 영상 앞에, 기존 영상 이어서 — 최대 50개
+    youtubeVideos = [...youtubeVideos, ...reusable].slice(0, FULL_FETCH);
+    console.log(`[Analysis/pipe-1/merge] merged total=${youtubeVideos.length} (new=${youtubeVideos.length - reusable.length} reused=${reusable.length})`);
+  };
 
   void updateJobStep("processing_data");
 
