@@ -59,7 +59,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, planId: "free" });
   }
 
-  // creator / pro → upsert
+  // creator / pro → 기존 row 삭제 후 신규 INSERT (upsert 충돌 회피)
   const plan = BILLING_PLANS.find((p) => p.id === planId);
   if (!plan) {
     return NextResponse.json({ error: "알 수 없는 플랜입니다." }, { status: 400 });
@@ -67,11 +67,23 @@ export async function POST(request: Request) {
 
   const now = new Date().toISOString();
   const oneYearLater = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
-  const manualSubId = `manual_admin_${targetUserId}_${planId}`;
+  const manualSubId = `manual_admin_${targetUserId}_${planId}_${Date.now()}`;
 
-  const { error } = await supabaseAdmin
+  // 1) 기존 row 삭제 (없어도 에러 없음)
+  const { error: delError } = await supabaseAdmin
     .from("user_subscriptions")
-    .upsert({
+    .delete()
+    .eq("user_id", targetUserId);
+
+  if (delError) {
+    console.error("[set-user-plan] delete error:", delError.message);
+    return NextResponse.json({ error: `기존 플랜 삭제 실패: ${delError.message}` }, { status: 500 });
+  }
+
+  // 2) 신규 INSERT
+  const { error: insertError } = await supabaseAdmin
+    .from("user_subscriptions")
+    .insert({
       user_id: targetUserId,
       stripe_customer_id: null,
       stripe_subscription_id: manualSubId,
@@ -79,11 +91,11 @@ export async function POST(request: Request) {
       subscription_status: "active",
       current_period_end: oneYearLater,
       updated_at: now,
-    }, { onConflict: "user_id" });
+    });
 
-  if (error) {
-    console.error("[set-user-plan] upsert error:", error.message);
-    return NextResponse.json({ error: "플랜 설정에 실패했습니다." }, { status: 500 });
+  if (insertError) {
+    console.error("[set-user-plan] insert error:", insertError.message);
+    return NextResponse.json({ error: `플랜 설정 실패: ${insertError.message}` }, { status: 500 });
   }
 
   console.log(`[set-user-plan] set ${planId} for user=${targetUserId} by admin=${user.id}`);
