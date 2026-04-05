@@ -10,6 +10,7 @@ import { waitUntil } from "@vercel/functions";
 import { createClient } from "@/lib/supabase/server";
 import { buildStrategyPlanPrompt, callGeminiForStrategyPlan } from "@/lib/server/onepager/generateStrategyPlan";
 import { buildChannelDnaReportPrompt, callGeminiForChannelDnaReport } from "@/lib/server/onepager/generateChannelDnaReport";
+import { buildAnalysisReportPrompt, callGeminiForAnalysisReport } from "@/lib/server/onepager/generateAnalysisReport";
 import { getRecentVideos } from "@/lib/youtube";
 import { normalizeVideoMetrics } from "@/lib/analysis/engine/normalizeVideoMetrics";
 import { buildChannelFeatures } from "@/lib/analysis/engine/buildChannelFeatures";
@@ -635,7 +636,31 @@ export async function POST(request: Request) {
           console.error("[onepager] strategy_plan failed (non-fatal):", e);
         }
 
-        // 3. 이후 추가될 원페이퍼 섹션은 여기에 순차 추가 (4초 간격)
+        // 3. 채널 종합 진단서 (성장 전략 플랜 완료 후 4초 대기)
+        try {
+          await new Promise((r) => setTimeout(r, 4000));
+          const analysisPrompt = buildAnalysisReportPrompt({
+            gemini_raw_json: geminiSuccess.rawJson,
+            feature_snapshot: featureSnapshot,
+            channel_title: channelRow.channel_title,
+            feature_total_score: scoreResult.totalScore,
+          });
+          const analysisMarkdown = await callGeminiForAnalysisReport(analysisPrompt);
+          if (analysisMarkdown) {
+            await supabaseAdmin.from("analysis_module_results").upsert({
+              user_id: user.id,
+              channel_id: userChannelId,
+              snapshot_id: snapshotId,
+              module_key: "analysis_report",
+              result: { markdown: analysisMarkdown },
+              status: "completed",
+              analyzed_at: new Date().toISOString(),
+            }, { onConflict: "snapshot_id,module_key" });
+            console.log("[onepager] analysis_report saved for snapshot:", snapshotId);
+          }
+        } catch (e) {
+          console.error("[onepager] analysis_report failed (non-fatal):", e);
+        }
       })()
     );
   }

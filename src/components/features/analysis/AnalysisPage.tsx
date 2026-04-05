@@ -10,6 +10,7 @@ import { AnalysisViewTrendChart } from "./sections/TrendChartSection"
 import { AnalysisRecentVideosSection } from "./sections/RecentVideosSection"
 import { AnalysisTopBottomCompare } from "./sections/TopBottomCompareSection"
 import { AnalysisSummarySection } from "./sections/SummarySection"
+import { AnalysisReportSection } from "./sections/AnalysisReportSection"
 import { AnalysisEmptyState } from "./sections/EmptyState"
 import { PageFlowConnector } from "@/components/features/shared/PageFlowConnector"
 import { FeaturePaywallBlock } from "@/components/features/shared/FeaturePaywallBlock"
@@ -583,6 +584,13 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
             </p>
             <p className="text-xs text-muted-foreground">새 영상이 들어오면 가장 오래된 일부 영상은 이번 분석 기준에서 빠질 수 있습니다.</p>
           </div>
+        )}
+
+        {/* 채널 종합 진단서 원페이퍼 */}
+        {viewModel.selectedChannelId && (
+          <section>
+            <AnalysisReportSection channelId={viewModel.selectedChannelId} />
+          </section>
         )}
 
         {/* 분석 완료 → Channel DNA 유도 */}
