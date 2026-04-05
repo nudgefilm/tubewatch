@@ -1,212 +1,93 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminUser } from "@/lib/server/isAdminUser";
+import { buildStrategyPlanPrompt, callGeminiForStrategyPlan } from "@/lib/server/onepager/generateStrategyPlan";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
-// Vercel 서버리스 함수 최대 실행 시간 (Gemini 자유형 생성은 시간이 걸림)
 export const maxDuration = 60;
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
-// fallback 체인 — 앞 모델이 404/5xx면 다음 모델로 자동 재시도
-// gemini-2.5-flash는 thinking 비활성화(thinkingBudget:0) 필수 — 미적용 시 타임아웃
-const STRATEGY_MODELS: Array<{ model: string; generationConfig: Record<string, unknown> }> = [
-  { model: "gemini-2.5-flash-lite",   generationConfig: { temperature: 0.7, maxOutputTokens: 4096 } },
-  { model: "gemini-2.5-flash",         generationConfig: { temperature: 0.7, maxOutputTokens: 4096, thinkingConfig: { thinkingBudget: 0 } } },
-  { model: "gemini-1.5-flash-latest",  generationConfig: { temperature: 0.7, maxOutputTokens: 4096 } },
-];
-
-function fmt(n: unknown): string {
-  if (n == null) return "N/A";
-  return Number(n).toLocaleString("ko-KR");
-}
-
-function safeArr(v: unknown): string[] {
-  if (Array.isArray(v)) return v.filter((x) => typeof x === "string");
-  return [];
-}
-
-function buildPrompt(row: Record<string, unknown>): string {
-  const title = String(row.channel_title ?? "알 수 없는 채널");
-
-  // gemini_raw_json 파싱
-  let rawJson: Record<string, unknown> = {};
+/** GET — DB에서 저장된 strategy_plan 읽기 */
+export async function GET(req: NextRequest) {
   try {
-    const raw = row.gemini_raw_json;
-    rawJson = typeof raw === "string" ? JSON.parse(raw) : (raw as Record<string, unknown>) ?? {};
-  } catch { rawJson = {}; }
+    const channelId = req.nextUrl.searchParams.get("channelId");
+    if (!channelId) return NextResponse.json({ error: "channelId required" }, { status: 400 });
 
-  const actionPlan = safeArr(rawJson.growth_action_plan);
-  const strengths = safeArr(rawJson.strengths);
-  const weaknesses = safeArr(rawJson.weaknesses);
-  const bottlenecks = safeArr(rawJson.bottlenecks);
-  const channelSummary = String(rawJson.channel_summary ?? "");
-
-  // 힌트 (action_execution_hints)
-  const hints = Array.isArray(rawJson.action_execution_hints)
-    ? (rawJson.action_execution_hints as Array<Record<string, string>>)
-        .map((h) => `- ${h.action ?? ""}\n  → ${h.execution_hint ?? ""} (기대 효과: ${h.expected_effect ?? ""})`)
-        .join("\n")
-    : "";
-
-  // feature_snapshot 메트릭
-  let metricsBlock = "";
-  try {
-    const snap = row.feature_snapshot as Record<string, unknown> | null;
-    const metrics = snap?.metrics as Record<string, unknown> | null;
-    if (metrics) {
-      metricsBlock = [
-        `- 평균 조회수: ${fmt(metrics.avgViewCount)}`,
-        `- 중앙값 조회수: ${fmt(metrics.medianViewCount)}`,
-        `- 평균 좋아요 비율: ${metrics.avgLikeRatio != null ? (Number(metrics.avgLikeRatio) * 100).toFixed(2) + "%" : "N/A"}`,
-        `- 평균 댓글 비율: ${metrics.avgCommentRatio != null ? (Number(metrics.avgCommentRatio) * 100).toFixed(2) + "%" : "N/A"}`,
-        `- 평균 업로드 간격: ${metrics.avgUploadIntervalDays != null ? Number(metrics.avgUploadIntervalDays).toFixed(1) + "일" : "N/A"}`,
-        `- 최근 30일 업로드: ${metrics.recent30dUploadCount ?? "N/A"}개`,
-      ].join("\n");
-    }
-  } catch { metricsBlock = ""; }
-
-  return `당신은 10년 경력의 유튜브 채널 성장 전략가입니다.
-아래 채널 분석 데이터를 바탕으로 **성장 전략 실행 플랜 원페이퍼(One-Pager)**를 작성하세요.
-
-방식: 컨설턴트가 채널 운영자에게 건네는 실전 전략 문서처럼, 자유로운 서술형 마크다운으로 작성합니다.
-핵심: 읽고 나서 내일 당장 무엇을 해야 할지 명확히 알 수 있을 것.
-
----
-
-[채널 기본 정보]
-채널명: ${title}
-채널 요약: ${channelSummary || "정보 없음"}
-
-[채널 메트릭]
-${metricsBlock || "정보 없음"}
-
-[채널 강점]
-${strengths.join(" / ") || "정보 없음"}
-
-[채널 약점]
-${weaknesses.join(" / ") || "정보 없음"}
-
-[병목 요인]
-${bottlenecks.join(" / ") || "정보 없음"}
-
-[AI 생성 실행 계획 (우선순위순)]
-${actionPlan.map((a, i) => `${i + 1}. ${a}`).join("\n") || "정보 없음"}
-
-[실행 힌트]
-${hints || "정보 없음"}
-
----
-
-[작성 가이드]
-1. **채널 현황 진단** — 위 메트릭과 강약점 수치를 직접 인용해 지금 이 채널의 핵심 문제를 1~2문단으로 짚어주세요.
-2. **지금 당장 해야 할 것 (이번 주)** — 위 실행 계획 중 가장 임팩트가 큰 2~3개를 골라 구체적 행동 지시로 서술하세요.
-3. **30일 로드맵** — 주차별(1주차/2주차/3~4주차)로 실행 순서와 핵심 체크포인트를 제시하세요.
-4. **성공 기준** — 30일 후 어떤 수치가 어떻게 바뀌면 전략이 작동한 것인지 구체적으로 명시하세요.
-5. **주의할 함정** — 이 채널이 빠지기 쉬운 실수나 리스크를 1~2가지 짚어주세요.
-
-길이 제한 없이 충분히 상세하게 작성하세요.`.trim();
-}
-
-export async function POST(req: NextRequest) {
-  try {
-    const { channelId } = await req.json();
-    if (!channelId) {
-      return NextResponse.json({ error: "channelId required" }, { status: 400 });
-    }
-
-    // 인증
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    // 최신 분석 결과 조회
-    const { data: rows, error } = await supabase
+    // 최신 snapshot id 조회
+    const { data: snap } = await supabase
       .from("analysis_results")
-      .select("channel_title, gemini_raw_json, feature_snapshot, created_at")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("user_channel_id", channelId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!snap) return NextResponse.json({ markdown: null, pending: false });
+
+    // analysis_module_results에서 strategy_plan 읽기
+    const { data: mod } = await supabaseAdmin
+      .from("analysis_module_results")
+      .select("result, status")
+      .eq("snapshot_id", snap.id)
+      .eq("module_key", "strategy_plan")
+      .maybeSingle();
+
+    if (!mod) return NextResponse.json({ markdown: null, pending: true });
+    if (mod.status !== "completed") return NextResponse.json({ markdown: null, pending: true });
+
+    const markdown = (mod.result as Record<string, unknown>)?.markdown as string | null;
+    return NextResponse.json({ markdown: markdown ?? null, pending: false });
+  } catch (e) {
+    console.error("[strategy-plan GET]", e);
+    return NextResponse.json({ error: "서버 오류" }, { status: 500 });
+  }
+}
+
+/** POST — 어드민 전용 강제 재생성 */
+export async function POST(req: NextRequest) {
+  try {
+    const { channelId } = await req.json();
+    if (!channelId) return NextResponse.json({ error: "channelId required" }, { status: 400 });
+
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const isAdmin = await isAdminUser(user.id);
+    if (!isAdmin) return NextResponse.json({ error: "Admin only" }, { status: 403 });
+
+    const { data: rows } = await supabase
+      .from("analysis_results")
+      .select("id, channel_title, gemini_raw_json, feature_snapshot")
       .eq("user_id", user.id)
       .eq("user_channel_id", channelId)
       .order("created_at", { ascending: false })
       .limit(1);
 
-    if (error || !rows || rows.length === 0) {
-      return NextResponse.json({ error: "분석 데이터가 없습니다." }, { status: 404 });
-    }
+    if (!rows || rows.length === 0) return NextResponse.json({ error: "분석 데이터 없음" }, { status: 404 });
 
-    // 쿨다운 체크 — 마지막 분석 후 12시간 이내 차단 (어드민 bypass)
-    const isAdmin = await isAdminUser(user.id);
-    const ONDEMAND_COOLDOWN_HOURS = 12;
-    const lastCreatedAt: string | null = (rows[0] as Record<string, unknown>).created_at as string | null;
-    if (!isAdmin && lastCreatedAt) {
-      const diffMs = Date.now() - new Date(lastCreatedAt).getTime();
-      const diffHours = diffMs / (1000 * 60 * 60);
-      if (diffHours < ONDEMAND_COOLDOWN_HOURS) {
-        const remainMs = ONDEMAND_COOLDOWN_HOURS * 60 * 60 * 1000 - diffMs;
-        const remainHours = Math.floor(remainMs / (1000 * 60 * 60));
-        const remainMins = Math.floor((remainMs % (1000 * 60 * 60)) / (1000 * 60));
-        return NextResponse.json(
-          { error: `채널 분석 후 일정 시간이 지나야 생성할 수 있습니다.`, remainHours, remainMins, code: "COOLDOWN_ACTIVE" },
-          { status: 429 }
-        );
-      }
-    }
+    const row = rows[0] as Record<string, unknown>;
+    const prompt = buildStrategyPlanPrompt(row);
+    const markdown = await callGeminiForStrategyPlan(prompt);
+    if (!markdown) return NextResponse.json({ error: "생성 실패" }, { status: 502 });
 
-    const prompt = buildPrompt(rows[0] as Record<string, unknown>);
-
-    // Gemini 호출 — fallback 체인 (앞 모델 404/5xx 시 다음 모델로 자동 재시도)
-    const systemText = "당신은 유튜브 채널 성장 전략가입니다. 마크다운 형식의 원페이퍼 전략 문서를 작성합니다. JSON을 반환하지 않습니다. 인사말·서문·서명(예: '안녕하세요', '드림', '[이름]' 등)은 절대 포함하지 마세요. 바로 본문 내용으로 시작하세요.";
-
-    let markdown: string | null = null;
-    let lastError = "";
-
-    for (const { model, generationConfig } of STRATEGY_MODELS) {
-      const requestBody = JSON.stringify({
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig,
-        systemInstruction: { parts: [{ text: systemText }] },
-      });
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 50_000);
-      let res: Response;
-      try {
-        res = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
-          { method: "POST", headers: { "Content-Type": "application/json" }, signal: controller.signal, body: requestBody }
-        );
-      } catch (fetchErr) {
-        clearTimeout(timeout);
-        lastError = `fetch error on ${model}: ${fetchErr}`;
-        console.warn(`[strategy-plan] ${lastError}`);
-        continue; // 다음 모델 시도
-      } finally {
-        clearTimeout(timeout);
-      }
-
-      const data = await res.json();
-      if (!res.ok) {
-        lastError = `HTTP ${res.status} on ${model}: ${JSON.stringify(data).slice(0, 200)}`;
-        console.warn(`[strategy-plan] ${lastError} — trying next model`);
-        continue; // 404/5xx → 다음 모델
-      }
-
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!text) {
-        lastError = `empty response on ${model}`;
-        console.warn(`[strategy-plan] ${lastError} — trying next model`);
-        continue;
-      }
-
-      markdown = text;
-      console.log(`[strategy-plan] success with model: ${model}`);
-      break;
-    }
-
-    if (!markdown) {
-      console.error("[strategy-plan] all models failed:", lastError);
-      return NextResponse.json({ error: "AI 생성에 실패했습니다. 잠시 후 다시 시도해주세요." }, { status: 502 });
-    }
+    await supabaseAdmin.from("analysis_module_results").upsert({
+      user_id: user.id,
+      channel_id: channelId,
+      snapshot_id: row.id,
+      module_key: "strategy_plan",
+      result: { markdown },
+      status: "completed",
+      analyzed_at: new Date().toISOString(),
+    }, { onConflict: "snapshot_id,module_key" });
 
     return NextResponse.json({ markdown });
   } catch (e) {
-    console.error("[strategy-plan]", e);
+    console.error("[strategy-plan POST]", e);
     return NextResponse.json({ error: "서버 오류" }, { status: 500 });
   }
 }

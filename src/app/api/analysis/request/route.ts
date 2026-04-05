@@ -6,7 +6,9 @@
  * 쿨다운: last_analyzed_at 기준 12시간.
  */
 import { NextResponse } from "next/server";
+import { waitUntil } from "@vercel/functions";
 import { createClient } from "@/lib/supabase/server";
+import { buildStrategyPlanPrompt, callGeminiForStrategyPlan } from "@/lib/server/onepager/generateStrategyPlan";
 import { getRecentVideos } from "@/lib/youtube";
 import { normalizeVideoMetrics } from "@/lib/analysis/engine/normalizeVideoMetrics";
 import { buildChannelFeatures } from "@/lib/analysis/engine/buildChannelFeatures";
@@ -571,6 +573,45 @@ export async function POST(request: Request) {
     .update({ last_analyzed_at: now })
     .eq("id", userChannelId)
     .eq("user_id", user.id);
+
+  // 원페이퍼 순차 생성 — 응답 반환 후 백그라운드 실행 (non-fatal)
+  // full run 시에만 새로 생성 (delta run은 이전 module_results 복사로 충분)
+  if (!isDeltaRun) {
+    const snapshotId = savedRow.id;
+
+    waitUntil(
+      (async () => {
+        // 1. 성장 전략 실행 플랜 (메인 분석 완료 후 2초 대기)
+        try {
+          await new Promise((r) => setTimeout(r, 2000));
+          const prompt = buildStrategyPlanPrompt({
+            gemini_raw_json: geminiSuccess.rawJson,
+            feature_snapshot: featureSnapshot,
+            channel_title: channelRow.channel_title,
+          });
+          const markdown = await callGeminiForStrategyPlan(prompt);
+          if (markdown) {
+            await supabaseAdmin.from("analysis_module_results").upsert({
+              user_id: user.id,
+              channel_id: userChannelId,
+              snapshot_id: snapshotId,
+              module_key: "strategy_plan",
+              result: { markdown },
+              status: "completed",
+              analyzed_at: new Date().toISOString(),
+            }, { onConflict: "snapshot_id,module_key" });
+            console.log("[onepager] strategy_plan saved for snapshot:", snapshotId);
+          }
+        } catch (e) {
+          console.error("[onepager] strategy_plan failed (non-fatal):", e);
+        }
+
+        // 2. 이후 추가될 원페이퍼 섹션은 여기에 순차 추가 (3초 간격)
+        // await new Promise((r) => setTimeout(r, 3000));
+        // channel_dna_report, analysis_report 등
+      })()
+    );
+  }
 
   return NextResponse.json({
     ok: true,

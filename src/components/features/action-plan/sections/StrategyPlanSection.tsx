@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Sparkles, Download, Loader2 } from "lucide-react"
+import { Download, Loader2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 
 interface StrategyPlanSectionProps {
@@ -9,7 +9,7 @@ interface StrategyPlanSectionProps {
 }
 
 const COOLDOWN_MS = 12 * 60 * 60 * 1000
-const storageKey = (id: string) => `tw_strategy:${id}`
+const storageKey = (id: string) => `tw_strategy_sat:${id}` // savedAt 캐시
 
 function getRemainingLabel(savedAt: number): string | null {
   const remaining = COOLDOWN_MS - (Date.now() - savedAt)
@@ -55,9 +55,7 @@ function PlanDocument({ markdown }: { markdown: string }) {
     }
 
     if (line.startsWith("### ")) {
-      elements.push(
-        <p key={i} className="text-xs font-semibold text-foreground/80 mt-4 mb-1">{line.replace(/^###\s*/, "")}</p>
-      )
+      elements.push(<p key={i} className="text-xs font-semibold text-foreground/80 mt-4 mb-1">{line.replace(/^###\s*/, "")}</p>)
       i++; continue
     }
 
@@ -100,9 +98,7 @@ function PlanDocument({ markdown }: { markdown: string }) {
 
     if (line.trim() === "") { i++; continue }
 
-    elements.push(
-      <p key={i} className="text-sm text-muted-foreground leading-relaxed mb-2">{renderInline(line)}</p>
-    )
+    elements.push(<p key={i} className="text-sm text-muted-foreground leading-relaxed mb-2">{renderInline(line)}</p>)
     i++
   }
 
@@ -110,81 +106,67 @@ function PlanDocument({ markdown }: { markdown: string }) {
 }
 
 export function StrategyPlanSection({ channelId }: StrategyPlanSectionProps) {
-  const [status, setStatus] = useState<"idle" | "loading" | "done" | "error" | "cooldown">("idle")
   const [markdown, setMarkdown] = useState<string | null>(null)
-  const [savedAt, setSavedAt] = useState<number | null>(null)
+  const [pending, setPending] = useState(false)   // 분석 후 생성 대기 중
   const [remainLabel, setRemainLabel] = useState<string | null>(null)
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
-  const [cooldownLabel, setCooldownLabel] = useState<string | null>(null)
   const cardRef = useRef<HTMLDivElement>(null)
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  // 1. 마운트 시 localStorage에서 캐시 복원
+  // DB에서 읽기 (마운트 시 + 폴링)
+  async function fetchFromDB() {
+    try {
+      const res = await fetch(`/api/action-plan/strategy-plan?channelId=${channelId}`)
+      const data = await res.json() as { markdown: string | null; pending?: boolean }
+      if (data.markdown) {
+        setMarkdown(data.markdown)
+        setPending(false)
+        // 생성 시각을 localStorage에 저장 (쿨다운 계산용)
+        try {
+          const existing = localStorage.getItem(storageKey(channelId))
+          if (!existing) {
+            localStorage.setItem(storageKey(channelId), String(Date.now()))
+          }
+        } catch { /* ignore */ }
+        stopPolling()
+      } else if (data.pending) {
+        setPending(true) // 아직 생성 중 — 폴링 유지
+      } else {
+        setPending(false) // 분석 데이터 없음
+      }
+    } catch { /* ignore */ }
+  }
+
+  function stopPolling() {
+    if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null }
+  }
+
+  useEffect(() => {
+    fetchFromDB()
+    // pending 상태면 3초마다 재확인
+    pollRef.current = setInterval(() => {
+      fetchFromDB()
+    }, 3000)
+    return () => stopPolling()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [channelId])
+
+  // pending이 해소되면 폴링 중단
+  useEffect(() => {
+    if (!pending && markdown) stopPolling()
+  }, [pending, markdown])
+
+  // 남은 쿨다운 라벨 — 1분마다 갱신
   useEffect(() => {
     try {
       const raw = localStorage.getItem(storageKey(channelId))
-      if (raw) {
-        const parsed = JSON.parse(raw) as { markdown: string; savedAt: number }
-        if (parsed.markdown) {
-          setMarkdown(parsed.markdown)
-          setSavedAt(parsed.savedAt)
-          setStatus("done")
-        }
-      }
+      if (!raw) return
+      const savedAt = Number(raw)
+      const update = () => setRemainLabel(getRemainingLabel(savedAt))
+      update()
+      const timer = setInterval(update, 60_000)
+      return () => clearInterval(timer)
     } catch { /* ignore */ }
-  }, [channelId])
-
-  // 2. 남은 쿨다운 라벨 — 1분마다 갱신
-  useEffect(() => {
-    if (!savedAt) { setRemainLabel(null); return }
-    const update = () => setRemainLabel(getRemainingLabel(savedAt))
-    update()
-    const timer = setInterval(update, 60_000)
-    return () => clearInterval(timer)
-  }, [savedAt])
-
-  async function handleGenerate() {
-    setStatus("loading")
-    setErrorMsg(null)
-    setCooldownLabel(null)
-    try {
-      const res = await fetch("/api/action-plan/strategy-plan", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ channelId }),
-      })
-      const data = await res.json()
-      if (res.status === 429 || data.code === "COOLDOWN_ACTIVE") {
-        const h: number = data.remainHours ?? 0
-        const m: number = data.remainMins ?? 0
-        setCooldownLabel(h > 0 ? `${h}시간 ${m}분` : `${m}분`)
-        setStatus("cooldown")
-        return
-      }
-      if (!res.ok || data.error) {
-        setErrorMsg(data.error ?? "생성에 실패했습니다.")
-        setStatus("error")
-        return
-      }
-      const now = Date.now()
-      setMarkdown(data.markdown)
-      setSavedAt(now)
-      setStatus("done")
-      try {
-        localStorage.setItem(storageKey(channelId), JSON.stringify({ markdown: data.markdown, savedAt: now }))
-      } catch { /* storage quota 초과 무시 */ }
-    } catch {
-      setErrorMsg("네트워크 오류가 발생했습니다.")
-      setStatus("error")
-    }
-  }
-
-  async function handleRegenerate() {
-    try { localStorage.removeItem(storageKey(channelId)) } catch { /* ignore */ }
-    setMarkdown(null)
-    setSavedAt(null)
-    setRemainLabel(null)
-    await handleGenerate()
-  }
+  }, [channelId, markdown])
 
   async function handleDownload() {
     if (!cardRef.current) return
@@ -204,57 +186,25 @@ export function StrategyPlanSection({ channelId }: StrategyPlanSectionProps) {
     }
   }
 
-  // 쿨다운 상태 (생성 시도 후 제한 걸린 경우)
-  if (status === "cooldown") {
+  // 생성 대기 중 (분석은 완료, 원페이퍼 백그라운드 생성 중)
+  if (pending) {
     return (
-      <div className="rounded-xl border border-dashed border-amber-300/60 bg-amber-50/40 dark:bg-amber-950/10 p-8 flex flex-col items-center gap-4 text-center">
-        <div className="flex size-10 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30">
-          <Sparkles className="size-5 text-amber-600 dark:text-amber-400" />
+      <div className="rounded-xl border bg-card p-6 space-y-3">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="size-4 animate-spin text-primary shrink-0" />
+          <span>전략 플랜을 생성하고 있습니다. 잠시만 기다려주세요…</span>
         </div>
-        <div className="space-y-1">
-          <p className="text-sm font-semibold">생성 대기 중</p>
-          <p className="text-xs text-muted-foreground">
-            <span className="font-medium text-amber-600 dark:text-amber-400">{cooldownLabel} 후</span> 생성 가능합니다
-          </p>
+        <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+          <div className="h-full bg-primary/60 rounded-full animate-[loading_2s_ease-in-out_infinite]" style={{ width: "60%" }} />
         </div>
       </div>
     )
   }
 
-  // 생성 전 (idle / error)
-  if (status === "idle" || status === "error") {
-    return (
-      <div className="rounded-xl border border-dashed border-primary/30 bg-primary/5 p-8 flex flex-col items-center gap-4 text-center">
-        <div className="flex size-10 items-center justify-center rounded-full bg-primary/10">
-          <Sparkles className="size-5 text-primary" />
-        </div>
-        <div className="space-y-1">
-          <p className="text-sm font-semibold">성장 전략 실행 플랜 생성</p>
-          <p className="text-xs text-muted-foreground">채널 분석 데이터를 기반으로 튜브워치 엔진이 맞춤 전략 원페이퍼를 작성합니다</p>
-        </div>
-        {errorMsg && <p className="text-xs text-destructive">{errorMsg}</p>}
-        <button
-          onClick={handleGenerate}
-          className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-        >
-          <Sparkles className="h-4 w-4" />
-          원페이퍼 생성하기
-        </button>
-      </div>
-    )
-  }
+  // 데이터 없음 (아직 분석 전)
+  if (!markdown) return null
 
-  // 로딩
-  if (status === "loading") {
-    return (
-      <div className="rounded-xl border bg-card p-8 flex flex-col items-center gap-3 text-center">
-        <Loader2 className="size-6 text-primary animate-spin" />
-        <p className="text-sm text-muted-foreground">채널 데이터를 분석해 전략 플랜을 작성 중입니다…</p>
-      </div>
-    )
-  }
-
-  // 완료 — 캐시 또는 신규 생성 데이터 렌더링
+  // 완료 — 렌더링
   return (
     <div ref={cardRef} className="rounded-xl border bg-card overflow-hidden">
       {/* 헤더 */}
@@ -277,21 +227,15 @@ export function StrategyPlanSection({ channelId }: StrategyPlanSectionProps) {
 
       {/* 본문 */}
       <div className="px-5 py-5">
-        {markdown && <PlanDocument markdown={markdown} />}
+        <PlanDocument markdown={markdown} />
       </div>
 
-      {/* 하단 — 남은 쿨다운 + 다시 생성 */}
-      <div className="px-5 py-3 border-t bg-muted/20 flex items-center justify-end gap-3">
-        {remainLabel && (
-          <span className="text-xs text-muted-foreground">{remainLabel} 후 재생성 가능</span>
-        )}
-        <button
-          onClick={handleRegenerate}
-          className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-        >
-          다시 생성
-        </button>
-      </div>
+      {/* 하단 — 남은 쿨다운 표시 */}
+      {remainLabel && (
+        <div className="px-5 py-3 border-t bg-muted/20 flex justify-end">
+          <span className="text-xs text-muted-foreground">{remainLabel} 후 재분석 시 갱신됩니다</span>
+        </div>
+      )}
     </div>
   )
 }
