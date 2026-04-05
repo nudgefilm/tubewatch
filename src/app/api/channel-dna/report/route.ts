@@ -27,6 +27,7 @@ export async function GET(req: NextRequest) {
       .from("analysis_module_results")
       .select("result, status, started_at")
       .eq("snapshot_id", snap.id)
+      .eq("user_id", user.id)
       .eq("module_key", "channel_dna_report")
       .maybeSingle();
 
