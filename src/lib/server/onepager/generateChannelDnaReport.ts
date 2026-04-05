@@ -62,6 +62,7 @@ export function buildChannelDnaReportPrompt(row: Record<string, unknown>): strin
 
 방식: 컨설턴트가 채널 운영자에게 건네는 채널 정체성 진단 문서처럼, 자유로운 서술형 마크다운으로 작성합니다.
 핵심: 이 채널이 무엇으로 성장해왔고, 무엇이 발목을 잡는지 명확히 알 수 있을 것.
+서식: 각 ## 섹션 제목 앞에 내용에 어울리는 이모지를 하나씩 붙여주세요. (예: ## 🧬 채널 DNA 핵심 정체성)
 
 ---
 

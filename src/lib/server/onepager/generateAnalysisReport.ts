@@ -70,6 +70,7 @@ export function buildAnalysisReportPrompt(row: Record<string, unknown>): string 
 
 방식: 채널 운영자가 현재 채널의 전반적 상태를 한눈에 파악할 수 있는 진단 문서.
 핵심: 지금 이 채널이 어디에 서 있고, 무엇이 성장을 막으며, 무엇부터 해야 하는지.
+서식: 각 ## 섹션 제목 앞에 내용에 어울리는 이모지를 하나씩 붙여주세요. (예: ## 📍 채널 현재 위치)
 
 ---
 

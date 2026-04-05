@@ -32,7 +32,7 @@ function extractPreview(markdown: string, maxChars = 180): string {
 function renderInline(text: string): React.ReactNode[] {
   return text.split(/(\*\*[^*]+\*\*)/).map((part, idx) =>
     part.startsWith("**") && part.endsWith("**")
-      ? <strong key={idx} className="font-semibold text-foreground/90">{part.slice(2, -2)}</strong>
+      ? <strong key={idx} className="font-semibold text-foreground">{part.slice(2, -2)}</strong>
       : <span key={idx}>{part}</span>
   )
 }
@@ -55,7 +55,7 @@ export function PlanDocument({ markdown }: { markdown: string }) {
       const isFirst = elements.length === 0
       elements.push(
         <div key={i} className={`${isFirst ? "" : "mt-8"} mb-3`}>
-          <h3 className="text-[13.5px] font-bold text-foreground tracking-tight flex items-center gap-2">
+          <h3 className="text-sm font-bold text-foreground tracking-tight flex items-center gap-2">
             {mainTitle}
             {subTitle && (
               <span className="text-xs font-normal text-muted-foreground/60">{subTitle}</span>
@@ -67,10 +67,10 @@ export function PlanDocument({ markdown }: { markdown: string }) {
       i++; continue
     }
 
-    // H3 — 소제목 (uppercase 없음)
+    // H3 — 소제목
     if (line.startsWith("### ")) {
       elements.push(
-        <p key={i} className="text-xs font-semibold text-foreground/60 mt-5 mb-2 tracking-wide">
+        <p key={i} className="text-[12.5px] font-semibold text-foreground/60 mt-5 mb-2 tracking-wide">
           {line.replace(/^###\s*/, "")}
         </p>
       )
@@ -84,10 +84,10 @@ export function PlanDocument({ markdown }: { markdown: string }) {
         items.push(lines[i].replace(/^[-*]\s+/, "")); i++
       }
       elements.push(
-        <ul key={`ul-${i}`} className="space-y-2 mb-2.5 mt-1">
+        <ul key={`ul-${i}`} className="space-y-2.5 mb-3 mt-1.5">
           {items.map((item, idx) => (
-            <li key={idx} className="flex items-start gap-2.5 text-[13.5px] text-muted-foreground leading-[1.65]">
-              <span className="mt-[6px] w-1.5 h-1.5 rounded-full bg-primary/40 shrink-0" />
+            <li key={idx} className="flex items-start gap-2.5 text-sm text-muted-foreground leading-[1.7]">
+              <span className="mt-[7px] w-1.5 h-1.5 rounded-full bg-primary/50 shrink-0" />
               <span>{renderInline(item)}</span>
             </li>
           ))}
@@ -104,10 +104,10 @@ export function PlanDocument({ markdown }: { markdown: string }) {
         items.push(lines[i].replace(/^\d+\.\s+/, "")); i++; num++
       }
       elements.push(
-        <ol key={`ol-${i}`} className="space-y-2.5 mb-2.5 mt-1">
+        <ol key={`ol-${i}`} className="space-y-3 mb-3 mt-1.5">
           {items.map((item, idx) => (
-            <li key={idx} className="flex items-start gap-3 text-[13.5px] text-muted-foreground leading-[1.65]">
-              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
+            <li key={idx} className="flex items-start gap-3 text-sm text-muted-foreground leading-[1.7]">
+              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">
                 {idx + 1}
               </span>
               <span>{renderInline(item)}</span>
@@ -122,7 +122,7 @@ export function PlanDocument({ markdown }: { markdown: string }) {
 
     // 일반 단락
     elements.push(
-      <p key={i} className="text-[13.5px] text-muted-foreground leading-[1.7] mb-3">
+      <p key={i} className="text-sm text-muted-foreground leading-[1.75] mb-3.5">
         {renderInline(line)}
       </p>
     )
@@ -192,7 +192,7 @@ export function OnePagerCard({
           <p className="text-[10px] font-semibold text-muted-foreground/50 tracking-widest uppercase mb-2">Preview</p>
           {/* 좌측 강조선 + 미리보기 텍스트 */}
           <div className="border-l-2 border-primary/20 pl-3">
-            <p className="text-[13px] text-muted-foreground/80 leading-[1.65] line-clamp-3">{preview}</p>
+            <p className="text-[13.5px] text-muted-foreground/80 leading-[1.7] line-clamp-3">{preview}</p>
           </div>
           <button
             onClick={() => setExpanded(true)}

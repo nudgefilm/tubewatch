@@ -5,6 +5,8 @@
  * YouTube API + Gemini AI 호출 후 analysis_results에 저장.
  * 쿨다운: last_analyzed_at 기준 12시간.
  */
+export const maxDuration = 60; // Vercel 함수 실행 시간 상한 (waitUntil 포함)
+
 import { NextResponse } from "next/server";
 import { waitUntil } from "@vercel/functions";
 import { createClient } from "@/lib/supabase/server";
@@ -599,94 +601,99 @@ export async function POST(request: Request) {
 
     if (missingKeys.length > 0) {
       const snapshotId = savedRow.id;
-      console.log("[onepager] will generate:", missingKeys, isDeltaRun ? "(delta-补完)" : "(full run)");
+      console.log("[onepager] will generate:", missingKeys, isDeltaRun ? "(delta-보완)" : "(full run)");
 
+      // 3개 동시 병렬 실행 — 순차 실행 시 Vercel maxDuration 60초 초과 방지
+      // stagger 0 / 1 / 2초로 Gemini API burst 완화
       waitUntil(
-        (async () => {
-          // 생성 순서: 사용자 이용 패턴 기준 (Analysis → Channel DNA → Action Plan)
-
-          // 1. 채널 종합 진단서 — Analysis 페이지 (3초 대기)
-          if (missingKeys.includes("analysis_report")) {
-            try {
-              await new Promise((r) => setTimeout(r, 3000));
-              const analysisPrompt = buildAnalysisReportPrompt({
-                gemini_raw_json: geminiSuccess.rawJson,
-                feature_snapshot: featureSnapshot,
-                channel_title: channelRow.channel_title,
-                feature_total_score: scoreResult.totalScore,
-              });
-              const analysisMarkdown = await callGeminiForAnalysisReport(analysisPrompt);
-              if (analysisMarkdown) {
-                await supabaseAdmin.from("analysis_module_results").upsert({
-                  user_id: user.id,
-                  channel_id: userChannelId,
-                  snapshot_id: snapshotId,
-                  module_key: "analysis_report",
-                  result: { markdown: analysisMarkdown },
-                  status: "completed",
-                  analyzed_at: new Date().toISOString(),
-                }, { onConflict: "snapshot_id,module_key" });
-                console.log("[onepager] analysis_report saved for snapshot:", snapshotId);
+        Promise.allSettled([
+          // 1. 채널 종합 진단서 — Analysis 페이지
+          ...(missingKeys.includes("analysis_report") ? [
+            (async () => {
+              try {
+                const analysisPrompt = buildAnalysisReportPrompt({
+                  gemini_raw_json: geminiSuccess.rawJson,
+                  feature_snapshot: featureSnapshot,
+                  channel_title: channelRow.channel_title,
+                  feature_total_score: scoreResult.totalScore,
+                });
+                const analysisMarkdown = await callGeminiForAnalysisReport(analysisPrompt);
+                if (analysisMarkdown) {
+                  await supabaseAdmin.from("analysis_module_results").upsert({
+                    user_id: user.id,
+                    channel_id: userChannelId,
+                    snapshot_id: snapshotId,
+                    module_key: "analysis_report",
+                    result: { markdown: analysisMarkdown },
+                    status: "completed",
+                    analyzed_at: new Date().toISOString(),
+                  }, { onConflict: "snapshot_id,module_key" });
+                  console.log("[onepager] analysis_report saved:", snapshotId);
+                }
+              } catch (e) {
+                console.error("[onepager] analysis_report failed (non-fatal):", e);
               }
-            } catch (e) {
-              console.error("[onepager] analysis_report failed (non-fatal):", e);
-            }
-          }
+            })()
+          ] : []),
 
-          // 2. Channel DNA 진단 리포트 (이전 단계 완료 후 4초 대기)
-          if (missingKeys.includes("channel_dna_report")) {
-            try {
-              await new Promise((r) => setTimeout(r, 4000));
-              const dnaPrompt = buildChannelDnaReportPrompt({
-                gemini_raw_json: geminiSuccess.rawJson,
-                feature_snapshot: featureSnapshot,
-                channel_title: channelRow.channel_title,
-              });
-              const dnaMarkdown = await callGeminiForChannelDnaReport(dnaPrompt);
-              if (dnaMarkdown) {
-                await supabaseAdmin.from("analysis_module_results").upsert({
-                  user_id: user.id,
-                  channel_id: userChannelId,
-                  snapshot_id: snapshotId,
-                  module_key: "channel_dna_report",
-                  result: { markdown: dnaMarkdown },
-                  status: "completed",
-                  analyzed_at: new Date().toISOString(),
-                }, { onConflict: "snapshot_id,module_key" });
-                console.log("[onepager] channel_dna_report saved for snapshot:", snapshotId);
+          // 2. Channel DNA 진단 리포트 (1초 후 시작)
+          ...(missingKeys.includes("channel_dna_report") ? [
+            (async () => {
+              try {
+                await new Promise((r) => setTimeout(r, 1000));
+                const dnaPrompt = buildChannelDnaReportPrompt({
+                  gemini_raw_json: geminiSuccess.rawJson,
+                  feature_snapshot: featureSnapshot,
+                  channel_title: channelRow.channel_title,
+                });
+                const dnaMarkdown = await callGeminiForChannelDnaReport(dnaPrompt);
+                if (dnaMarkdown) {
+                  await supabaseAdmin.from("analysis_module_results").upsert({
+                    user_id: user.id,
+                    channel_id: userChannelId,
+                    snapshot_id: snapshotId,
+                    module_key: "channel_dna_report",
+                    result: { markdown: dnaMarkdown },
+                    status: "completed",
+                    analyzed_at: new Date().toISOString(),
+                  }, { onConflict: "snapshot_id,module_key" });
+                  console.log("[onepager] channel_dna_report saved:", snapshotId);
+                }
+              } catch (e) {
+                console.error("[onepager] channel_dna_report failed (non-fatal):", e);
               }
-            } catch (e) {
-              console.error("[onepager] channel_dna_report failed (non-fatal):", e);
-            }
-          }
+            })()
+          ] : []),
 
-          // 3. 성장 전략 실행 플랜 — Action Plan 페이지 (이전 단계 완료 후 4초 대기)
-          if (missingKeys.includes("strategy_plan")) {
-            try {
-              await new Promise((r) => setTimeout(r, 4000));
-              const strategyPrompt = buildStrategyPlanPrompt({
-                gemini_raw_json: geminiSuccess.rawJson,
-                feature_snapshot: featureSnapshot,
-                channel_title: channelRow.channel_title,
-              });
-              const strategyMarkdown = await callGeminiForStrategyPlan(strategyPrompt);
-              if (strategyMarkdown) {
-                await supabaseAdmin.from("analysis_module_results").upsert({
-                  user_id: user.id,
-                  channel_id: userChannelId,
-                  snapshot_id: snapshotId,
-                  module_key: "strategy_plan",
-                  result: { markdown: strategyMarkdown },
-                  status: "completed",
-                  analyzed_at: new Date().toISOString(),
-                }, { onConflict: "snapshot_id,module_key" });
-                console.log("[onepager] strategy_plan saved for snapshot:", snapshotId);
+          // 3. 성장 전략 실행 플랜 — Action Plan 페이지 (2초 후 시작)
+          ...(missingKeys.includes("strategy_plan") ? [
+            (async () => {
+              try {
+                await new Promise((r) => setTimeout(r, 2000));
+                const strategyPrompt = buildStrategyPlanPrompt({
+                  gemini_raw_json: geminiSuccess.rawJson,
+                  feature_snapshot: featureSnapshot,
+                  channel_title: channelRow.channel_title,
+                });
+                const strategyMarkdown = await callGeminiForStrategyPlan(strategyPrompt);
+                if (strategyMarkdown) {
+                  await supabaseAdmin.from("analysis_module_results").upsert({
+                    user_id: user.id,
+                    channel_id: userChannelId,
+                    snapshot_id: snapshotId,
+                    module_key: "strategy_plan",
+                    result: { markdown: strategyMarkdown },
+                    status: "completed",
+                    analyzed_at: new Date().toISOString(),
+                  }, { onConflict: "snapshot_id,module_key" });
+                  console.log("[onepager] strategy_plan saved:", snapshotId);
+                }
+              } catch (e) {
+                console.error("[onepager] strategy_plan failed (non-fatal):", e);
               }
-            } catch (e) {
-              console.error("[onepager] strategy_plan failed (non-fatal):", e);
-            }
-          }
-        })()
+            })()
+          ] : []),
+        ])
       );
     }
   }
