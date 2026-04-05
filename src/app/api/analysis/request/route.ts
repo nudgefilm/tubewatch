@@ -561,8 +561,11 @@ export async function POST(request: Request) {
           console.error("[Analysis Start API] delta: module_results copy failed (non-fatal):", copyErr.message);
           // 복사 실패 → waitUntil에서 재생성
         } else {
-          console.log("[Analysis Start API] delta: module_results copied from", existingSnapshot.id, "→", savedRow.id, "keys:", prevModules.map((m) => m.module_key));
-          needsOnepagerGeneration = false; // copy 성공 → waitUntil 불필요
+          const copiedKeys = (prevModules as Array<{ module_key: string; result: Record<string, unknown> }>).map((m) => m.module_key);
+          const nextTrendCopied = copiedKeys.includes("next_trend");
+          console.log("[Analysis Start API] delta: module_results copied from", existingSnapshot.id, "→", savedRow.id, "keys:", copiedKeys, "nextTrendCopied:", nextTrendCopied);
+          // next_trend까지 복사된 경우에만 waitUntil 건너뜀 — 누락 시 재생성 필요
+          needsOnepagerGeneration = !nextTrendCopied;
         }
       } else {
         console.log("[Analysis Start API] delta: no previous module_results to copy (snapshot:", existingSnapshot.id, ") — will trigger waitUntil generation");
@@ -575,9 +578,8 @@ export async function POST(request: Request) {
   } else {
     // Full run: Gemini 신규 호출 결과를 저장
     const modulesToSave: Array<{ module_key: string; result: Record<string, unknown> }> = [];
-    if (geminiSuccess.result.next_trend_plan) {
-      modulesToSave.push({ module_key: "next_trend", result: { plan: geminiSuccess.result.next_trend_plan } });
-    }
+    // next_trend: plan이 null이어도 row는 항상 저장 (빈 화면 대신 '준비 중' 상태 유도)
+    modulesToSave.push({ module_key: "next_trend", result: { plan: geminiSuccess.result.next_trend_plan ?? null } });
     if (geminiSuccess.result.channel_dna_narrative) {
       modulesToSave.push({ module_key: "channel_dna", result: { narrative: geminiSuccess.result.channel_dna_narrative } });
     }
@@ -623,9 +625,9 @@ export async function POST(request: Request) {
   if (needsOnepagerGeneration) {
     const snapshotId = savedRow.id;
     const rawJson = geminiSuccess.rawJson;
-    const ONEPAGER_KEYS = ["analysis_report", "channel_dna_report", "strategy_plan"] as const;
+    const ONEPAGER_KEYS = ["analysis_report", "channel_dna_report", "strategy_plan", "next_trend"] as const;
 
-    // pending pre-insert: waitUntil 실행 전 3개 모듈을 pending으로 선점
+    // pending pre-insert: waitUntil 실행 전 모듈을 pending으로 선점
     // completed 상태는 절대 덮어쓰지 않음 (재요청 / race condition 보호)
     const { data: existingMods } = await supabaseAdmin
       .from("analysis_module_results")
@@ -656,9 +658,9 @@ export async function POST(request: Request) {
       pending_inserted: pendingRows.map((r) => r.module_key),
     });
 
-    // runModule: 성공/실패 모두 completed 역전 차단
-    // - 성공: .neq("status","completed") → 이미 완료된 row는 불필요 write 없음
-    // - 실패: .neq("status","completed") → 늦게 도착한 실패가 completed를 failed로 되돌리지 않음
+    // runModule: markdown 결과를 { markdown } 형태로 저장
+    // runModulePlan: 임의 result 객체를 저장 (next_trend 등 구조화 데이터용)
+    // 공통 원칙: .neq("status","completed") → completed row 역전 차단
     const runModule = async (
       fn: () => Promise<string | null>,
       moduleKey: string
@@ -699,41 +701,100 @@ export async function POST(request: Request) {
       }
     };
 
+    const runModulePlan = async (
+      fn: () => Promise<Record<string, unknown>>,
+      moduleKey: string
+    ): Promise<void> => {
+      const start = Date.now();
+      try {
+        const result = await fn();
+        await supabaseAdmin.from("analysis_module_results")
+          .update({
+            status: "completed",
+            result,
+            analyzed_at: new Date().toISOString(),
+          })
+          .eq("snapshot_id", snapshotId)
+          .eq("module_key", moduleKey)
+          .neq("status", "completed");
+
+        console.log("[onepager-latency]", {
+          module: moduleKey, duration: Date.now() - start, status: "completed"
+        });
+      } catch (e) {
+        await supabaseAdmin.from("analysis_module_results")
+          .update({
+            status: "failed",
+            error_message: String(e).slice(0, 500),
+          })
+          .eq("snapshot_id", snapshotId)
+          .eq("module_key", moduleKey)
+          .neq("status", "completed");
+
+        console.error("[onepager-latency]", {
+          module: moduleKey, duration: Date.now() - start,
+          status: "failed", error: String(e).slice(0, 200)
+        });
+        throw e;
+      }
+    };
+
+    // 이미 completed인 모듈은 Gemini 재호출 없이 건너뜀 (비용 절약)
+    const modulesToRun = ONEPAGER_KEYS.filter((k) => existingMap[k] !== "completed");
+
     waitUntil((async () => {
-      // Phase 2-B: Promise.allSettled 병렬 실행
-      // runModule 내부에서 성공/실패 모두 DB 기록 + throw → allSettled가 정확한 상태 반영
-      const results = await Promise.allSettled([
-        runModule(
-          () => callGeminiForAnalysisReport(buildAnalysisReportPrompt({
-            gemini_raw_json: rawJson,
-            feature_snapshot: featureSnapshot,
-            channel_title: channelRow.channel_title,
-            feature_total_score: scoreResult.totalScore,
-          })),
-          "analysis_report"
-        ),
-        runModule(
-          () => callGeminiForChannelDnaReport(buildChannelDnaReportPrompt({
-            gemini_raw_json: rawJson,
-            feature_snapshot: featureSnapshot,
-            channel_title: channelRow.channel_title,
-          })),
-          "channel_dna_report"
-        ),
-        runModule(
-          () => callGeminiForStrategyPlan(buildStrategyPlanPrompt({
-            gemini_raw_json: rawJson,
-            feature_snapshot: featureSnapshot,
-            channel_title: channelRow.channel_title,
-          })),
-          "strategy_plan"
-        ),
-      ]);
+      // Promise.allSettled 병렬 실행 — 각 모듈 성공/실패 독립 처리
+      const results = await Promise.allSettled(
+        modulesToRun.map((key) => {
+          switch (key) {
+            case "analysis_report":
+              return runModule(
+                () => callGeminiForAnalysisReport(buildAnalysisReportPrompt({
+                  gemini_raw_json: rawJson,
+                  feature_snapshot: featureSnapshot,
+                  channel_title: channelRow.channel_title,
+                  feature_total_score: scoreResult.totalScore,
+                })),
+                key
+              );
+            case "channel_dna_report":
+              return runModule(
+                () => callGeminiForChannelDnaReport(buildChannelDnaReportPrompt({
+                  gemini_raw_json: rawJson,
+                  feature_snapshot: featureSnapshot,
+                  channel_title: channelRow.channel_title,
+                })),
+                key
+              );
+            case "strategy_plan":
+              return runModule(
+                () => callGeminiForStrategyPlan(buildStrategyPlanPrompt({
+                  gemini_raw_json: rawJson,
+                  feature_snapshot: featureSnapshot,
+                  channel_title: channelRow.channel_title,
+                })),
+                key
+              );
+            case "next_trend":
+              return runModulePlan(async () => {
+                // rawJson에서 next_trend_plan 추출 (Gemini 재호출 없음)
+                let plan: unknown = null;
+                try {
+                  const parsed = typeof rawJson === "string" ? JSON.parse(rawJson) : (rawJson ?? {});
+                  plan = (parsed as Record<string, unknown>)?.next_trend_plan ?? null;
+                } catch {
+                  plan = null;
+                }
+                return { plan };
+              }, key);
+          }
+        })
+      );
 
       console.log("[onepager-allsettled]", {
         snapshot_id: snapshotId,
         results: results.map((r, i) => ({
-          module: ONEPAGER_KEYS[i],
+          module: modulesToRun[i],
           outcome: r.status,
           reason: r.status === "rejected" ? String(r.reason).slice(0, 200) : undefined,
         })),
