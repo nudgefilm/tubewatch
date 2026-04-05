@@ -7,10 +7,10 @@
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
 
 const MODELS: Array<{ model: string; generationConfig: Record<string, unknown> }> = [
-  { model: "gemini-2.5-flash-lite",  generationConfig: { temperature: 0.7, maxOutputTokens: 4096 } },
-  { model: "gemini-2.5-flash",        generationConfig: { temperature: 0.7, maxOutputTokens: 4096, thinkingConfig: { thinkingBudget: 0 } } },
-  { model: "gemini-1.5-flash-latest", generationConfig: { temperature: 0.7, maxOutputTokens: 4096 } },
+  { model: "gemini-2.5-flash-lite", generationConfig: { temperature: 0.7, maxOutputTokens: 4096 } },
+  { model: "gemini-2.5-flash",      generationConfig: { temperature: 0.7, maxOutputTokens: 4096, thinkingConfig: { thinkingBudget: 0 } } },
 ];
+const MAX_RETRIES = 2; // 모델당 최대 재시도 횟수
 
 const SYSTEM_TEXT =
   "당신은 유튜브 채널 성장 전략가입니다. 마크다운 형식의 원페이퍼 전략 문서를 작성합니다. JSON을 반환하지 않습니다. 인사말·서문·서명(예: '안녕하세요', '드림', '[이름]' 등)은 절대 포함하지 마세요. 바로 본문 내용으로 시작하세요.";
@@ -104,46 +104,60 @@ ${hints || "정보 없음"}
 길이 제한 없이 충분히 상세하게 작성하세요.`.trim();
 }
 
-/** Gemini fallback 체인으로 마크다운 생성. 실패 시 null 반환. */
+/** Gemini 모델 + 재시도 체인으로 마크다운 생성. 전부 실패 시 null 반환. */
 export async function callGeminiForStrategyPlan(prompt: string): Promise<string | null> {
   for (const { model, generationConfig } of MODELS) {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 50_000);
-    let res: Response;
-    try {
-      res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          signal: controller.signal,
-          body: JSON.stringify({
-            contents: [{ role: "user", parts: [{ text: prompt }] }],
-            generationConfig,
-            systemInstruction: { parts: [{ text: SYSTEM_TEXT }] },
-          }),
-        }
-      );
-    } catch (e) {
-      clearTimeout(timeout);
-      console.warn(`[strategy-plan] fetch error on ${model}:`, e);
-      continue;
-    } finally {
-      clearTimeout(timeout);
-    }
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 50_000);
+      let res: Response;
+      try {
+        res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            signal: controller.signal,
+            body: JSON.stringify({
+              contents: [{ role: "user", parts: [{ text: prompt }] }],
+              generationConfig,
+              systemInstruction: { parts: [{ text: SYSTEM_TEXT }] },
+            }),
+          }
+        );
+      } catch (e) {
+        clearTimeout(timeout);
+        console.warn(`[strategy-plan] fetch error on ${model} attempt ${attempt}:`, e);
+        if (attempt < MAX_RETRIES) await new Promise((r) => setTimeout(r, 1000));
+        continue;
+      } finally {
+        clearTimeout(timeout);
+      }
 
-    const data = await res.json();
-    if (!res.ok) {
-      console.warn(`[strategy-plan] HTTP ${res.status} on ${model} — trying next`);
-      continue;
+      const data = await res.json();
+
+      // 404 등 영구 오류 → 재시도 없이 다음 모델로
+      if (res.status === 404) {
+        console.warn(`[strategy-plan] ${model} not found — skipping to next model`);
+        break;
+      }
+
+      if (!res.ok) {
+        console.warn(`[strategy-plan] HTTP ${res.status} on ${model} attempt ${attempt}`);
+        if (attempt < MAX_RETRIES) await new Promise((r) => setTimeout(r, 1000));
+        continue;
+      }
+
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!text) {
+        console.warn(`[strategy-plan] empty response on ${model} attempt ${attempt}`);
+        if (attempt < MAX_RETRIES) await new Promise((r) => setTimeout(r, 1000));
+        continue;
+      }
+
+      console.log(`[strategy-plan] success — model: ${model}, attempt: ${attempt}`);
+      return text;
     }
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) {
-      console.warn(`[strategy-plan] empty response on ${model} — trying next`);
-      continue;
-    }
-    console.log(`[strategy-plan] success with model: ${model}`);
-    return text;
   }
   return null;
 }
