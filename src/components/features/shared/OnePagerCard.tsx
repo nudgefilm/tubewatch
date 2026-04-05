@@ -1,7 +1,11 @@
 "use client"
 
 import { useState, useRef } from "react"
-import { Download, ChevronDown, ChevronUp, FileText } from "lucide-react"
+import {
+  Download, ChevronDown, ChevronUp, FileText,
+  MapPin, TrendingUp, AlertTriangle, Target, BarChart2,
+  Fingerprint, Compass, Users, Layers, BookOpen,
+} from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 
 interface OnePagerCardProps {
@@ -33,6 +37,31 @@ function stripEmoji(text: string): string {
   return text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, "").trim()
 }
 
+// ── 섹션 제목 아이콘 매핑 ─────────────────────────────────────────
+function getSectionIcon(title: string): React.ReactNode {
+  const t = title.toLowerCase()
+  const cls = "size-3.5 shrink-0"
+  if (t.includes("위치") || t.includes("현황") || t.includes("진단"))
+    return <MapPin className={`${cls} text-primary/60`} />
+  if (t.includes("강점"))
+    return <TrendingUp className={`${cls} text-emerald-500/70`} />
+  if (t.includes("병목") || t.includes("약점") || t.includes("개선") || t.includes("막는"))
+    return <AlertTriangle className={`${cls} text-amber-500/70`} />
+  if (t.includes("집중") || t.includes("실행") || t.includes("당장"))
+    return <Target className={`${cls} text-primary/60`} />
+  if (t.includes("종합") || t.includes("전망") || t.includes("의견"))
+    return <BarChart2 className={`${cls} text-primary/60`} />
+  if (t.includes("dna") || t.includes("아이덴티티") || t.includes("정체성"))
+    return <Fingerprint className={`${cls} text-primary/60`} />
+  if (t.includes("전략") || t.includes("방향"))
+    return <Compass className={`${cls} text-primary/60`} />
+  if (t.includes("오디언스") || t.includes("타겟") || t.includes("구독자"))
+    return <Users className={`${cls} text-primary/60`} />
+  if (t.includes("콘텐츠") || t.includes("패턴"))
+    return <Layers className={`${cls} text-primary/60`} />
+  return <BookOpen className={`${cls} text-primary/60`} />
+}
+
 // ── 인라인 렌더러 ──────────────────────────────────────────────────
 function renderInline(text: string): React.ReactNode[] {
   text = stripEmoji(text)
@@ -62,6 +91,7 @@ export function PlanDocument({ markdown }: { markdown: string }) {
       elements.push(
         <div key={i} className={`${isFirst ? "" : "mt-8"} mb-3`}>
           <h3 className="text-sm font-bold text-foreground tracking-tight flex items-center gap-2">
+            {getSectionIcon(mainTitle)}
             {mainTitle}
             {subTitle && (
               <span className="text-xs font-normal text-muted-foreground/60">{subTitle}</span>
@@ -92,7 +122,7 @@ export function PlanDocument({ markdown }: { markdown: string }) {
       elements.push(
         <ul key={`ul-${i}`} className="space-y-2.5 mb-3 mt-1.5">
           {items.map((item, idx) => (
-            <li key={idx} className="flex items-start gap-2.5 text-sm text-muted-foreground leading-[1.7]">
+            <li key={idx} className="flex items-start gap-2.5 text-sm text-muted-foreground leading-relaxed">
               <span className="mt-[7px] w-1.5 h-1.5 rounded-full bg-primary/50 shrink-0" />
               <span>{renderInline(item)}</span>
             </li>
@@ -112,7 +142,7 @@ export function PlanDocument({ markdown }: { markdown: string }) {
       elements.push(
         <ol key={`ol-${i}`} className="space-y-3 mb-3 mt-1.5">
           {items.map((item, idx) => (
-            <li key={idx} className="flex items-start gap-3 text-sm text-muted-foreground leading-[1.7]">
+            <li key={idx} className="flex items-start gap-3 text-sm text-muted-foreground leading-relaxed">
               <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">
                 {idx + 1}
               </span>
@@ -128,7 +158,7 @@ export function PlanDocument({ markdown }: { markdown: string }) {
 
     // 일반 단락
     elements.push(
-      <p key={i} className="text-sm text-muted-foreground leading-[1.75] mb-3.5">
+      <p key={i} className="text-sm text-muted-foreground leading-relaxed mb-3.5">
         {renderInline(line)}
       </p>
     )
@@ -198,7 +228,7 @@ export function OnePagerCard({
           <p className="text-[10px] font-semibold text-muted-foreground/50 tracking-widest uppercase mb-2">Preview</p>
           {/* 좌측 강조선 + 미리보기 텍스트 */}
           <div className="border-l-2 border-primary/20 pl-3">
-            <p className="text-[13.5px] text-muted-foreground/80 leading-[1.7] line-clamp-3">{preview}</p>
+            <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">{preview}</p>
           </div>
           <button
             onClick={() => setExpanded(true)}
