@@ -284,7 +284,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                     <section className="space-y-4">
                       <div className="border-l-4 border-primary pl-3">
                         <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><FileText className="size-5 shrink-0 text-primary" />영상 기획안</h2>
-                        <p className="text-xs text-muted-foreground mt-0.5">1순위 주제를 기반으로 한 초안</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">채널 데이터 기반 AI 생성 원페이퍼</p>
                       </div>
                       <NextTrendActionSection data={actions} />
                     </section>

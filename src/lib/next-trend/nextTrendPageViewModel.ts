@@ -347,9 +347,13 @@ export function buildNextTrendPageViewModel(
   const signalBundle = buildTrendSignals(snapshot);
   const insights = buildTrendInsights(signalBundle);
 
-  // AI 생성 plan 우선 사용 (없으면 null → 기존 템플릿 폴백)
+  // AI 생성 plan: moduleResults → gemini_raw_json 순으로 fallback
   const nextTrendModule = (data.moduleResults?.["next_trend"] ?? null) as { plan?: NextTrendAIPlan } | null;
-  const aiPlan = nextTrendModule?.plan ?? null;
+  const rawJson = data.latestResult.gemini_raw_json as Record<string, unknown> | null;
+  const aiPlan: NextTrendAIPlan | null =
+    nextTrendModule?.plan ??
+    (rawJson?.next_trend_plan as NextTrendAIPlan | null) ??
+    null;
 
   const internal = buildNextTrendInternalSpec(
     insights,
