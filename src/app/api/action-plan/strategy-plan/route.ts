@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 쿨다운 체크 — 마지막 분석 후 72시간 이내 차단
-    const ONDEMAND_COOLDOWN_HOURS = 72;
+    const ONDEMAND_COOLDOWN_HOURS = 12;
     const lastCreatedAt: string | null = (rows[0] as Record<string, unknown>).created_at as string | null;
     if (lastCreatedAt) {
       const diffMs = Date.now() - new Date(lastCreatedAt).getTime();
