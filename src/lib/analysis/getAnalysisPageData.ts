@@ -139,7 +139,6 @@ async function fetchLatestResultForChannel(
       "growth_action_plan", "target_audience", "sample_size_note",
       "feature_snapshot",
       "feature_total_score", "feature_section_scores",
-      "total_score", "overall_score", "section_scores",
       "engine_version", "created_at",
     ].join(", "))
     .eq("user_id", userId)
@@ -167,7 +166,7 @@ async function fetchRecentResultsForChannel(
   const { data, error } = await supabase
     .from("analysis_results")
     .select(
-      "id, user_channel_id, user_id, created_at, updated_at, gemini_analyzed_at, feature_total_score, total_score, overall_score, feature_section_scores, section_scores, status, gemini_status, job_id"
+      "id, user_channel_id, user_id, created_at, gemini_analyzed_at, feature_total_score, feature_section_scores, status, gemini_status, job_id"
     )
     .eq("user_id", userId)
     .eq("user_channel_id", userChannelId)

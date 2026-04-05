@@ -1,12 +1,16 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import dynamic from "next/dynamic"
 import { useRouter } from "next/navigation"
 import { RefreshCw, Clock, Activity, Gauge, TrendingUp, History as HistoryIcon, BarChart3, ArrowDownToLine } from "lucide-react"
 import { AnalysisHeaderSection } from "./sections/HeaderSection"
 import { AnalysisScoreOverview, type SectionScores } from "./sections/ScoreOverviewSection"
 import { AnalysisKpiCards } from "./sections/KpiCardsSection"
-import { AnalysisViewTrendChart } from "./sections/TrendChartSection"
+const AnalysisViewTrendChart = dynamic(
+  () => import("./sections/TrendChartSection").then((m) => ({ default: m.AnalysisViewTrendChart })),
+  { ssr: false, loading: () => null }
+)
 import { AnalysisRecentVideosSection } from "./sections/RecentVideosSection"
 import { AnalysisTopBottomCompare } from "./sections/TopBottomCompareSection"
 import { AnalysisSummarySection } from "./sections/SummarySection"

@@ -45,7 +45,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ markdown: null, pending: true });
     }
 
-    const markdown = (mod.result as Record<string, unknown>)?.markdown as string | null;
+    const raw = (mod.result as Record<string, unknown>)?.markdown as string | null;
+    const markdown = raw && raw.length <= 60000 ? raw : null;
+    if (raw && raw.length > 60000) {
+      console.warn("[onepager-api] markdown too large, suppressed", { snapshot_id: snap.id, bytes: raw.length });
+    }
     console.log("[onepager-api]", {
       snapshot_id: snap.id, module_key: "analysis_report",
       status: mod.status, started_at: mod.started_at, hasMarkdown: !!markdown,

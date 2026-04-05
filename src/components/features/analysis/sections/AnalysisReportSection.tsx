@@ -57,7 +57,7 @@ export function AnalysisReportSection({ channelId }: AnalysisReportSectionProps)
       try {
         const res = await fetch(`/api/analysis/report?channelId=${channelId}`, { signal: controller.signal })
         const data = await res.json() as { markdown: string | null; pending?: boolean }
-        if (data.markdown) {
+        if (data.markdown && data.markdown.length <= 60000) {
           setMarkdown(data.markdown)
           setPending(false)
           if (intervalId) { clearInterval(intervalId); intervalId = null }
