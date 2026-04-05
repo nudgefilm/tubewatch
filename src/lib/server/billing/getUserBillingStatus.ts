@@ -16,7 +16,7 @@ export async function getUserBillingStatus(
   const [subRes, creditsRes] = await Promise.all([
     supabase
       .from("user_subscriptions")
-      .select("plan_id, subscription_status, current_period_end")
+      .select("plan_id, status")
       .eq("user_id", userId)
       .limit(1)
       .maybeSingle(),
@@ -31,8 +31,7 @@ export async function getUserBillingStatus(
 
   const sub = subRes.data as {
     plan_id: string | null;
-    subscription_status: string | null;
-    current_period_end: string | null;
+    status: string | null;
   } | null;
 
   const credits = creditsRes.data as {
@@ -42,8 +41,8 @@ export async function getUserBillingStatus(
   } | null;
 
   const status =
-    typeof sub?.subscription_status === "string"
-      ? sub.subscription_status.trim().toLowerCase()
+    typeof sub?.status === "string"
+      ? sub.status.trim().toLowerCase()
       : null;
   const isActive = status === "active" || status === "trialing";
   const planIdRaw =
@@ -55,8 +54,8 @@ export async function getUserBillingStatus(
 
   return {
     planId,
-    subscriptionStatus: sub?.subscription_status ?? null,
-    currentPeriodEnd: sub?.current_period_end ?? null,
+    subscriptionStatus: sub?.status ?? null,
+    currentPeriodEnd: null,
     lifetimeAnalysesUsed: credits?.lifetime_analyses_used ?? 0,
     purchasedCredits: credits?.purchased_credits ?? 0,
     monthlyCreditsUsed: credits?.credits_used ?? 0,

@@ -38,7 +38,7 @@ export async function getEffectiveLimits(
 ): Promise<EffectiveLimitsResult> {
   const { data: row, error } = await supabase
     .from("user_subscriptions")
-    .select("plan_id, subscription_status")
+    .select("plan_id, status")
     .eq("user_id", userId)
     .limit(1)
     .maybeSingle();
@@ -62,8 +62,8 @@ export async function getEffectiveLimits(
   }
 
   const status =
-    typeof row.subscription_status === "string"
-      ? row.subscription_status.trim().toLowerCase()
+    typeof (row as Record<string, unknown>).status === "string"
+      ? ((row as Record<string, unknown>).status as string).trim().toLowerCase()
       : "";
   const isValidStatus = (
     VALID_SUBSCRIPTION_STATUSES as readonly string[]
@@ -72,7 +72,7 @@ export async function getEffectiveLimits(
   if (!isValidStatus) {
     return {
       planId: "free",
-      subscriptionStatus: row.subscription_status,
+      subscriptionStatus: status || null,
       channelLimit: FREE_CHANNEL_LIMIT,
       monthlyAnalysisLimit: FREE_LIFETIME_ANALYSIS_LIMIT,
     };
@@ -83,7 +83,7 @@ export async function getEffectiveLimits(
   if (!planIdRaw || !isValidPlanId(planIdRaw)) {
     return {
       planId: "free",
-      subscriptionStatus: row.subscription_status,
+      subscriptionStatus: status || null,
       channelLimit: FREE_CHANNEL_LIMIT,
       monthlyAnalysisLimit: FREE_LIFETIME_ANALYSIS_LIMIT,
     };
@@ -93,7 +93,7 @@ export async function getEffectiveLimits(
   if (!plan) {
     return {
       planId: "free",
-      subscriptionStatus: row.subscription_status,
+      subscriptionStatus: status || null,
       channelLimit: FREE_CHANNEL_LIMIT,
       monthlyAnalysisLimit: FREE_LIFETIME_ANALYSIS_LIMIT,
     };
@@ -101,7 +101,7 @@ export async function getEffectiveLimits(
 
   return {
     planId: plan.id,
-    subscriptionStatus: row.subscription_status,
+    subscriptionStatus: status,
     channelLimit: plan.channels,
     monthlyAnalysisLimit: plan.monthlyAnalyses,
   };

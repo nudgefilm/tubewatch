@@ -214,13 +214,14 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
         void (async () => {
           const { data } = await supabase
             .from("user_subscriptions")
-            .select("plan_id, subscription_status")
+            .select("plan_id, status")
             .eq("user_id", session.user.id)
             .limit(1)
             .maybeSingle()
           const validStatuses = ["active", "trialing"]
-          const status = typeof data?.subscription_status === "string"
-            ? data.subscription_status.trim().toLowerCase()
+          const rawStatus = data as { plan_id?: string; status?: string } | null
+          const status = typeof rawStatus?.status === "string"
+            ? rawStatus.status.trim().toLowerCase()
             : ""
           if (!data || !validStatuses.includes(status)) {
             setPlanLabel("Free Plan")

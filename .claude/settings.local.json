@@ -12,7 +12,8 @@
       "Bash(npx vitest:*)",
       "Bash(xargs grep:*)",
       "Bash(rm:*)",
-      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")"
+      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
+      "Bash(find:*)"
     ]
   }
 }

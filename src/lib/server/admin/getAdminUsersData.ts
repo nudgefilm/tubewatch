@@ -11,7 +11,7 @@ export async function getAdminUsersData(): Promise<AdminUsersData> {
       .select("user_id, lifetime_analyses_used, purchased_credits"),
     supabaseAdmin
       .from("user_subscriptions")
-      .select("user_id, plan_id, subscription_status"),
+      .select("user_id, plan_id, status"),
   ]);
 
   const authUsers = authRes.data?.users ?? [];
@@ -33,7 +33,7 @@ export async function getAdminUsersData(): Promise<AdminUsersData> {
     creditsMap.set(row.user_id, row);
   }
 
-  type SubRow = { user_id: string; plan_id: string | null; subscription_status: string | null };
+  type SubRow = { user_id: string; plan_id: string | null; status: string | null };
   const subsMap = new Map<string, SubRow>();
   for (const row of (subscriptionsRes.data ?? []) as SubRow[]) {
     subsMap.set(row.user_id, row);
@@ -57,7 +57,7 @@ export async function getAdminUsersData(): Promise<AdminUsersData> {
       lifetime_analyses_used: credits?.lifetime_analyses_used ?? null,
       purchased_credits: credits?.purchased_credits ?? null,
       plan_id: sub?.plan_id ?? null,
-      subscription_status: sub?.subscription_status ?? null,
+      subscription_status: sub?.status ?? null,
     };
   });
 
