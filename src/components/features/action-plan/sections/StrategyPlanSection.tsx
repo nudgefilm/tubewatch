@@ -105,6 +105,24 @@ function PlanDocument({ markdown }: { markdown: string }) {
   return <div className="space-y-0.5">{elements}</div>
 }
 
+function usePendingMessage(isActive: boolean) {
+  const [elapsed, setElapsed] = useState(0)
+  const startRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    if (!isActive) { startRef.current = null; setElapsed(0); return }
+    if (!startRef.current) startRef.current = Date.now()
+    const timer = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - startRef.current!) / 1000))
+    }, 5000)
+    return () => clearInterval(timer)
+  }, [isActive])
+
+  if (elapsed < 30) return { label: "약 1~2분 내 자동 완성됩니다", sub: "다른 메뉴를 먼저 둘러보셔도 됩니다." }
+  if (elapsed < 120) return { label: "거의 완성되고 있습니다", sub: "잠시 후 이 화면으로 돌아오시면 확인할 수 있습니다." }
+  return { label: "조금 더 걸리고 있습니다", sub: "페이지를 새로고침하거나 잠시 후 다시 확인해 주세요." }
+}
+
 export function StrategyPlanSection({ channelId }: StrategyPlanSectionProps) {
   const [markdown, setMarkdown] = useState<string | null>(null)
   const [pending, setPending] = useState(true)   // 마운트 직후에는 loading으로 시작
@@ -112,6 +130,8 @@ export function StrategyPlanSection({ channelId }: StrategyPlanSectionProps) {
   const [remainLabel, setRemainLabel] = useState<string | null>(null)
   const cardRef = useRef<HTMLDivElement>(null)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const isGenerating = (pending || !initialFetchDone) && !markdown
+  const pendingMsg = usePendingMessage(isGenerating)
 
   async function fetchFromDB() {
     try {
@@ -227,18 +247,16 @@ export function StrategyPlanSection({ channelId }: StrategyPlanSectionProps) {
   }
 
   // 생성 중 (pending) 또는 초기 로딩 전
-  if (pending || !initialFetchDone) {
+  if (isGenerating) {
     return (
       <div className="rounded-xl border bg-card overflow-hidden">
         <SectionHeader />
-        <div className="px-5 py-5 space-y-3">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="size-4 animate-spin text-primary shrink-0" />
-            <span>전략 플랜을 생성하고 있습니다. 잠시만 기다려주세요…</span>
+        <div className="px-5 py-5 space-y-2">
+          <div className="flex items-center gap-2">
+            <Loader2 className="size-3.5 animate-spin text-primary shrink-0" />
+            <span className="text-sm font-medium text-foreground">{pendingMsg.label}</span>
           </div>
-          <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
-            <div className="h-full bg-primary/60 rounded-full animate-[loading_2s_ease-in-out_infinite]" style={{ width: "60%" }} />
-          </div>
+          <p className="text-xs text-muted-foreground pl-[22px]">{pendingMsg.sub}</p>
         </div>
       </div>
     )
