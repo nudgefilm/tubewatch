@@ -700,32 +700,44 @@ export async function POST(request: Request) {
     };
 
     waitUntil((async () => {
-      // Phase 1: 순차 실행 (Phase 2-B에서 Promise.allSettled 병렬화 예정)
-      await runModule(
-        () => callGeminiForAnalysisReport(buildAnalysisReportPrompt({
-          gemini_raw_json: rawJson,
-          feature_snapshot: featureSnapshot,
-          channel_title: channelRow.channel_title,
-          feature_total_score: scoreResult.totalScore,
+      // Phase 2-B: Promise.allSettled 병렬 실행
+      // runModule 내부에서 성공/실패 모두 DB 기록 + throw → allSettled가 정확한 상태 반영
+      const results = await Promise.allSettled([
+        runModule(
+          () => callGeminiForAnalysisReport(buildAnalysisReportPrompt({
+            gemini_raw_json: rawJson,
+            feature_snapshot: featureSnapshot,
+            channel_title: channelRow.channel_title,
+            feature_total_score: scoreResult.totalScore,
+          })),
+          "analysis_report"
+        ),
+        runModule(
+          () => callGeminiForChannelDnaReport(buildChannelDnaReportPrompt({
+            gemini_raw_json: rawJson,
+            feature_snapshot: featureSnapshot,
+            channel_title: channelRow.channel_title,
+          })),
+          "channel_dna_report"
+        ),
+        runModule(
+          () => callGeminiForStrategyPlan(buildStrategyPlanPrompt({
+            gemini_raw_json: rawJson,
+            feature_snapshot: featureSnapshot,
+            channel_title: channelRow.channel_title,
+          })),
+          "strategy_plan"
+        ),
+      ]);
+
+      console.log("[onepager-allsettled]", {
+        snapshot_id: snapshotId,
+        results: results.map((r, i) => ({
+          module: ONEPAGER_KEYS[i],
+          outcome: r.status,
+          reason: r.status === "rejected" ? String(r.reason).slice(0, 200) : undefined,
         })),
-        "analysis_report"
-      );
-      await runModule(
-        () => callGeminiForChannelDnaReport(buildChannelDnaReportPrompt({
-          gemini_raw_json: rawJson,
-          feature_snapshot: featureSnapshot,
-          channel_title: channelRow.channel_title,
-        })),
-        "channel_dna_report"
-      );
-      await runModule(
-        () => callGeminiForStrategyPlan(buildStrategyPlanPrompt({
-          gemini_raw_json: rawJson,
-          feature_snapshot: featureSnapshot,
-          channel_title: channelRow.channel_title,
-        })),
-        "strategy_plan"
-      );
+      });
     })());
   }
 
