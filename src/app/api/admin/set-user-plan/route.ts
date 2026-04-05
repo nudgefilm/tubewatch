@@ -85,11 +85,9 @@ export async function POST(request: Request) {
     .from("user_subscriptions")
     .insert({
       user_id: targetUserId,
-      stripe_customer_id: null,
       stripe_subscription_id: manualSubId,
       plan_id: planId,
       subscription_status: "active",
-      updated_at: now,
     });
 
   if (insertError) {
