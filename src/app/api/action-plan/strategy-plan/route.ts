@@ -8,9 +8,9 @@ export const maxDuration = 60;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
 // fallback 체인 — 앞 모델이 404/5xx면 다음 모델로 자동 재시도
 const STRATEGY_MODELS = [
-  "gemini-2.5-flash-lite",
-  "gemini-2.5-flash",
-  "gemini-1.5-flash-latest",
+  "gemini-1.5-flash-latest",   // 안정적, thinking 없음
+  "gemini-2.5-flash",           // 2순위
+  "gemini-2.5-flash-lite",      // 3순위
 ];
 
 function fmt(n: unknown): string {
@@ -155,7 +155,7 @@ export async function POST(req: NextRequest) {
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: { temperature: 0.7, maxOutputTokens: 4096 },
       systemInstruction: {
-        parts: [{ text: "당신은 유튜브 채널 성장 전략가입니다. 마크다운 형식의 원페이퍼 전략 문서를 작성합니다. JSON을 반환하지 않습니다." }],
+        parts: [{ text: "당신은 유튜브 채널 성장 전략가입니다. 마크다운 형식의 원페이퍼 전략 문서를 작성합니다. JSON을 반환하지 않습니다. 인사말·서문·서명(예: '안녕하세요', '드림', '[이름]' 등)은 절대 포함하지 마세요. 바로 본문 내용으로 시작하세요." }],
       },
     });
 
