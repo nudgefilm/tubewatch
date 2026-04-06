@@ -293,6 +293,9 @@ export default function BillingView({ initialData }: { initialData: UserBillingS
             <Crown className="h-5 w-5 text-primary" />
             <h2 className="text-xl font-bold">구독 플랜</h2>
           </div>
+          <p className="mb-6 text-sm text-muted-foreground">
+            튜브워치의 구독 플랜은 해당 기간 만료 시 종료되며 자동 갱신되지 않습니다. 이는 자동 갱신으로 인한 미사용에 따른 부담을 해소하기 위해 반영된 <strong>안심 구독</strong> 정책입니다.
+          </p>
           <div className="grid gap-6 sm:grid-cols-2">
             {BILLING_PLANS.map((plan, i) => (
               <SubscriptionPlanCard key={plan.id} plan={plan} isPopular={i === 1} />
