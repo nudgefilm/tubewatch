@@ -124,7 +124,7 @@ function PainPointsSection() {
           {painPoints.map(({ situation, solution }, i) => (
             <div key={i} className="bg-background p-6 lg:p-8 flex flex-col gap-3">
               <p className="text-base font-medium text-foreground/60 leading-snug">
-                "{situation}"
+                &ldquo;{situation}&rdquo;
               </p>
               <div className="flex items-start gap-2.5">
                 <ArrowRight className="w-4 h-4 mt-0.5 shrink-0 text-foreground" />
