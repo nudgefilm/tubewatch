@@ -1,53 +1,72 @@
 "use client"
 
-import { AlertCircle, BarChart3, FileQuestion } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { BarChart3, TrendingUp, Star, Clock, ImageIcon } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 
 interface AnalysisEmptyStateProps {
-  type: "no-data" | "insufficient-samples" | "limited-analysis"
+  channelId?: string
+  type?: "no-data" | "insufficient-samples" | "limited-analysis"
   title?: string
   description?: string
 }
 
-const defaultContent = {
-  "no-data": {
-    icon: FileQuestion,
-    title: "최근 데이터 부족",
-    description: "분석에 필요한 최근 업로드 데이터가 충분하지 않습니다. 영상이 업로드되면 자동으로 분석이 시작됩니다.",
-  },
-  "insufficient-samples": {
-    icon: BarChart3,
-    title: "비교 가능한 표본이 부족합니다",
-    description: "상위/하위 성과 비교를 위해 최소 10개 이상의 영상이 필요합니다.",
-  },
-  "limited-analysis": {
-    icon: AlertCircle,
-    title: "일부 해석이 제한됩니다",
-    description: "최근 업로드 수가 적어 일부 지표의 신뢰도가 낮을 수 있습니다.",
-  },
-}
+const previewItems = [
+  { icon: BarChart3, label: "채널 종합 성과 점수", desc: "조회수·구독·참여율을 하나의 점수로" },
+  { icon: TrendingUp, label: "상위 vs 하위 영상 비교", desc: "잘된 영상과 아닌 영상의 차이 분석" },
+  { icon: Clock, label: "업로드 패턴 분석", desc: "최적 업로드 요일·시간대 파악" },
+  { icon: ImageIcon, label: "썸네일·제목 효과 분석", desc: "클릭률에 영향을 주는 요소 확인" },
+]
 
-export function AnalysisEmptyState({
-  type,
-  title,
-  description,
-}: AnalysisEmptyStateProps) {
-  const content = defaultContent[type]
-  const Icon = content.icon
+export function AnalysisEmptyState({ channelId, title, description }: AnalysisEmptyStateProps) {
+  const router = useRouter()
+
+  const handleNavigate = () => {
+    if (channelId) {
+      router.push(`/analysis?channel=${channelId}`)
+    } else {
+      router.push("/channels")
+    }
+  }
 
   return (
-    <Card className="border-dashed">
-      <CardContent className="flex flex-col items-center justify-center py-8 text-center">
-        <div className="mb-3 flex size-10 items-center justify-center rounded-full bg-muted">
-          <Icon className="size-5 text-muted-foreground" />
-        </div>
-        <h3 className="mb-1.5 text-sm font-medium text-foreground">
-          {title || content.title}
-        </h3>
-        <p className="max-w-sm text-xs text-muted-foreground leading-relaxed">
-          {description || content.description}
+    <div className="space-y-6">
+      <Card className="border-dashed">
+        <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="rounded-full bg-muted p-4 mb-4">
+            <BarChart3 className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-semibold mb-2">
+            {title ?? "채널 분석 결과가 없습니다"}
+          </h3>
+          <p className="text-muted-foreground max-w-md mb-6">
+            {description ?? "채널을 등록하고 분석을 실행하면 채널 성과 리포트를 확인할 수 있습니다."}
+          </p>
+          <Button variant="outline" onClick={handleNavigate}>
+            {channelId ? "채널 분석 시작" : "채널 등록하기"}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <div>
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3 px-1">
+          분석 후 확인할 수 있는 내용
         </p>
-      </CardContent>
-    </Card>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {previewItems.map(({ icon: Icon, label, desc }) => (
+            <div key={label} className="flex items-start gap-3 rounded-lg border bg-muted/30 px-4 py-3">
+              <div className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-background border">
+                <Icon className="size-3.5 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">{label}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   )
 }
