@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation"
 import { TrendingUp, Lightbulb, Compass, Flame } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 
 interface NextTrendEmptyStateProps {
@@ -29,17 +28,15 @@ export function NextTrendEmptyState({ channelId }: NextTrendEmptyStateProps) {
 
   return (
     <div className="space-y-6">
-      <Card className="border-dashed">
-        <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-          <h3 className="text-lg font-semibold mb-2">Next Trend 분석 결과가 없습니다</h3>
-          <p className="text-muted-foreground max-w-md mb-6">
-            채널 분석을 실행하면 내부 신호 기반 다음 시도 방향을 확인할 수 있습니다.
-          </p>
-          <Button variant="outline" onClick={handleNavigate}>
-            채널 분석으로 이동
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="flex min-h-[260px] flex-col items-center justify-center rounded-lg border border-dashed p-10 text-center">
+        <h3 className="text-lg font-semibold mb-2">Next Trend 분석 결과가 없습니다</h3>
+        <p className="text-muted-foreground max-w-md mb-6">
+          채널 분석을 실행하면 내부 신호 기반 다음 시도 방향을 확인할 수 있습니다.
+        </p>
+        <Button variant="outline" onClick={handleNavigate}>
+          채널 분석으로 이동
+        </Button>
+      </div>
 
       <div>
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3 px-1">

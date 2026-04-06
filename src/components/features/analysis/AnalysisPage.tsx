@@ -270,14 +270,8 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
     (viewModel.reportPresentation?.sampleVideoCount ?? null) ??
     (viewModel.recentVideos.length > 0 ? viewModel.recentVideos.length : null)
 
-  // No-channel guard — 온보딩형 안내
+  // No-channel guard
   if (!viewModel.hasChannel) {
-    const previewItems = [
-      { icon: BarChart3, label: "채널 종합 성과 점수", desc: "조회수·구독·참여율을 하나의 점수로" },
-      { icon: TrendingUp, label: "상위 vs 하위 영상 비교", desc: "잘된 영상과 아닌 영상의 차이 분석" },
-      { icon: Activity, label: "업로드 패턴 분석", desc: "최적 업로드 요일·시간대 파악" },
-      { icon: Gauge, label: "썸네일·제목 효과 분석", desc: "클릭률에 영향을 주는 요소 확인" },
-    ]
     return (
       <div className="min-h-screen bg-background">
         <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
@@ -290,34 +284,35 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
               <p className="mt-1 text-sm text-muted-foreground">채널 건강검진 리포트</p>
             </div>
           </div>
-          <div className="flex min-h-[280px] flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-            <h3 className="mb-2 text-lg font-semibold">먼저 분석할 채널을 추가하세요</h3>
-            <p className="mb-6 text-sm text-muted-foreground">채널을 등록하면 바로 분석을 시작할 수 있습니다</p>
-            <a
-              href="/channels"
-              className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 transition-colors"
-            >
-              채널 추가하기
-            </a>
-          </div>
-          <div>
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3 px-1">
-              분석 후 확인할 수 있는 내용
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {previewItems.map(({ icon: Icon, label, desc }) => (
-                <div key={label} className="flex items-start gap-3 rounded-lg border bg-muted/30 px-4 py-3">
-                  <div className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-background border">
-                    <Icon className="size-3.5 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">{label}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>
-                  </div>
-                </div>
-              ))}
+          <AnalysisEmptyState
+            title="먼저 분석할 채널을 추가하세요"
+            description="채널을 등록하면 바로 분석을 시작할 수 있습니다."
+          />
+        </div>
+      </div>
+    )
+  }
+
+  // 채널 등록 완료 but 분석 미실행 (queued·running 제외)
+  const isRunningEarly = viewModel.menuStatus === "queued" || viewModel.menuStatus === "running"
+  if (viewModel.hasChannel && !viewModel.hasAnalysisResult && !isRunningEarly) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
+              <BarChart3 className="size-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight lg:text-3xl">Channel Analysis</h1>
+              <p className="mt-1 text-sm text-muted-foreground">채널 건강검진 리포트</p>
             </div>
           </div>
+          <AnalysisEmptyState
+            channelId={viewModel.selectedChannelId ?? undefined}
+            title="채널 분석을 시작하세요"
+            description="채널이 등록되었습니다. 분석을 실행하면 성과 리포트를 확인할 수 있습니다."
+          />
         </div>
       </div>
     )

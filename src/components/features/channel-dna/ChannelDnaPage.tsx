@@ -37,8 +37,8 @@ interface ChannelDnaPageProps {
 }
 
 export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isStarterPlan = false }: ChannelDnaPageProps) {
-  // Real data path
-  if (viewModel?.hasChannel) {
+  // Real data path — 채널 등록 + 분석 완료 상태만 진입
+  if (viewModel?.hasChannel && viewModel.menuStatus !== "not_started") {
     const vm = viewModel.internalChannelDnaSummary
     const { structureSummary, dnaCards, formatDistribution } = buildChannelDnaPageSections(vm)
 
