@@ -7,11 +7,24 @@ import { updateSession } from "@/lib/supabase/middleware"
  *
  * `matcher`의 `auth/` 제외로 `/auth/callback` 등은 미들웨어 미실행.
  * `/auth` 단독 경로는 matcher가 잡을 수 있어 `startsWith("/auth")`로 동일하게 통과 처리.
+ *
+ * 검색 엔진·SNS 봇(facebookexternalhit, Googlebot 등)은 세션 쿠키가 없어
+ * updateSession에서 불필요한 Supabase 호출이 발생하거나 503/403을 유발할 수 있다.
+ * User-Agent에 봇 키워드가 포함된 요청은 세션 처리 없이 바로 통과시킨다.
  */
+const BOT_UA_PATTERN =
+  /bot|crawl|spider|facebookexternalhit|Twitterbot|LinkedInBot|Slackbot|WhatsApp|TelegramBot|Discordbot|Googlebot|Bingbot|Yandex|Baidu|DuckDuck/i;
+
 export async function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith("/auth")) {
     return NextResponse.next()
   }
+
+  const ua = request.headers.get("user-agent") ?? ""
+  if (BOT_UA_PATTERN.test(ua)) {
+    return NextResponse.next()
+  }
+
   return updateSession(request)
 }
 
