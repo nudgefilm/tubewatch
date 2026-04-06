@@ -40,14 +40,14 @@ function HeroSection() {
   useEffect(() => { setVisible(true); }, []);
 
   return (
-    <section className="relative min-h-[92vh] flex flex-col justify-center py-24 overflow-hidden">
+    <section className="relative min-h-[80vh] flex flex-col justify-center py-16 overflow-hidden">
       {/* Background grid */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{ backgroundImage: "radial-gradient(circle, hsl(var(--foreground)/0.04) 1px, transparent 1px)", backgroundSize: "32px 32px" }}
       />
 
-      <div className="relative z-10 max-w-[1400px] mx-auto px-6 lg:px-12">
+      <div className="relative z-10 max-w-[1200px] mx-auto px-8 lg:px-20">
         <div className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
           <SectionLabel>TubeWatch™ Platform Introduction</SectionLabel>
         </div>
@@ -61,12 +61,12 @@ function HeroSection() {
           </span>
         </h1>
 
-        <p className={`mt-10 text-lg lg:text-xl text-foreground/70 max-w-2xl leading-relaxed transition-all duration-700 delay-200 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+        <p className={`mt-6 text-lg lg:text-xl text-foreground/70 max-w-2xl leading-relaxed transition-all duration-700 delay-200 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
           TubeWatch™는 내 채널 데이터를 분석해 <strong className="text-foreground">성장 패턴을 찾아내고,</strong><br />
           다음 콘텐츠까지 설계해주는 유튜버 전용 성장 플랫폼입니다.
         </p>
 
-        <div className={`mt-12 flex flex-col sm:flex-row items-start gap-4 transition-all duration-700 delay-300 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+        <div className={`mt-8 flex flex-col sm:flex-row items-start gap-4 transition-all duration-700 delay-300 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
           <Button size="lg" className="bg-black hover:bg-neutral-800 text-white px-8 h-12 text-base rounded-lg shadow-lg group" asChild>
             <a href="/channels">
               무료로 내 채널 분석하기
@@ -83,7 +83,7 @@ function HeroSection() {
         </p>
 
         {/* Stats row */}
-        <div className={`mt-16 flex flex-wrap gap-x-12 gap-y-6 border-t border-foreground/10 pt-10 transition-all duration-700 delay-500 ${visible ? "opacity-100" : "opacity-0"}`}>
+        <div className={`mt-10 flex flex-wrap gap-x-10 gap-y-5 border-t border-foreground/10 pt-8 transition-all duration-700 delay-500 ${visible ? "opacity-100" : "opacity-0"}`}>
           {[
             { value: "4개", label: "핵심 분석 모듈" },
             { value: "50개+", label: "영상 심층 분석" },
@@ -130,9 +130,9 @@ function PainPointsSection() {
   const { ref, visible } = useFadeIn();
 
   return (
-    <section ref={ref} className="relative py-16 lg:py-24 border-t border-foreground/10">
-      <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
-        <div className={`mb-12 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+    <section ref={ref} className="relative py-10 lg:py-16 border-t border-foreground/10">
+      <div className="max-w-[1200px] mx-auto px-8 lg:px-20">
+        <div className={`mb-8 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
           <SectionLabel>For Creators</SectionLabel>
           <h2 className="font-heading text-4xl lg:text-5xl font-medium tracking-[-0.03em] leading-[1.1]">
             이런 분께<br />
@@ -142,7 +142,7 @@ function PainPointsSection() {
 
         <div className={`grid grid-cols-1 md:grid-cols-2 gap-px border border-foreground/10 bg-foreground/10 transition-all duration-700 delay-150 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
           {painPoints.map(({ situation, solution }, i) => (
-            <div key={i} className="bg-background p-8 lg:p-10 flex flex-col gap-4">
+            <div key={i} className="bg-background p-6 lg:p-8 flex flex-col gap-4">
               <p className="text-base text-foreground/50 leading-snug">
                 &ldquo;{situation}&rdquo;
               </p>
@@ -231,7 +231,7 @@ function FeatureBlock({ feature, index }: { feature: typeof features[0]; index: 
       style={{ transitionDelay: `${index * 80}ms` }}
     >
       {/* Text block */}
-      <div className={`p-8 lg:p-12 flex flex-col justify-between ${isEven ? "lg:order-1" : "lg:order-2"}`}>
+      <div className={`p-6 lg:p-10 flex flex-col justify-between ${isEven ? "lg:order-1" : "lg:order-2"}`}>
         <div>
           <div className="flex items-center gap-4 mb-6">
             <span className="font-mono text-xs text-muted-foreground">{feature.number}</span>
@@ -260,7 +260,7 @@ function FeatureBlock({ feature, index }: { feature: typeof features[0]; index: 
       </div>
 
       {/* Result quote block */}
-      <div className={`flex items-center justify-center bg-foreground/[0.02] border-t lg:border-t-0 ${isEven ? "lg:border-l lg:order-2" : "lg:border-r lg:order-1"} border-foreground/10 p-8 lg:p-12 min-h-[220px]`}>
+      <div className={`flex items-center justify-center bg-foreground/[0.02] border-t lg:border-t-0 ${isEven ? "lg:border-l lg:order-2" : "lg:border-r lg:order-1"} border-foreground/10 p-6 lg:p-10 min-h-[220px]`}>
         <div className="space-y-3">
           <p className="font-mono text-[10px] tracking-[0.12em] uppercase text-muted-foreground/50">실제 결과 예시</p>
           <blockquote className="font-heading text-xl lg:text-2xl font-medium tracking-[-0.02em] leading-snug whitespace-pre-line">
@@ -276,9 +276,9 @@ function FeaturesSection() {
   const { ref, visible } = useFadeIn();
 
   return (
-    <section id="features" className="relative py-16 lg:py-24 border-t border-foreground/10">
-      <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
-        <div ref={ref} className={`mb-12 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+    <section id="features" className="relative py-10 lg:py-16 border-t border-foreground/10">
+      <div className="max-w-[1200px] mx-auto px-8 lg:px-20">
+        <div ref={ref} className={`mb-8 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
           <SectionLabel>Core Features</SectionLabel>
           <h2 className="font-heading text-4xl lg:text-5xl font-medium tracking-[-0.03em] leading-[1.1]">
             읽는 순간 이해되는
@@ -310,9 +310,9 @@ function HowItWorksSection() {
   const { ref, visible } = useFadeIn();
 
   return (
-    <section className="relative py-16 lg:py-24 border-t border-foreground/10">
-      <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
-        <div ref={ref} className={`mb-12 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+    <section className="relative py-10 lg:py-16 border-t border-foreground/10">
+      <div className="max-w-[1200px] mx-auto px-8 lg:px-20">
+        <div ref={ref} className={`mb-8 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
           <SectionLabel>How It Works</SectionLabel>
           <h2 className="font-heading text-4xl lg:text-5xl font-medium tracking-[-0.03em] leading-[1.1]">
             4단계,
@@ -376,9 +376,9 @@ function WhySection() {
   const { ref, visible } = useFadeIn();
 
   return (
-    <section className="relative py-16 lg:py-24 border-t border-foreground/10">
-      <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
-        <div ref={ref} className={`mb-12 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+    <section className="relative py-10 lg:py-16 border-t border-foreground/10">
+      <div className="max-w-[1200px] mx-auto px-8 lg:px-20">
+        <div ref={ref} className={`mb-8 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
           <SectionLabel>Why TubeWatch</SectionLabel>
           <h2 className="font-heading text-4xl lg:text-5xl font-medium tracking-[-0.03em] leading-[1.1]">
             다른 분석 도구와
@@ -402,7 +402,7 @@ function WhyCard({ title, desc, index }: { title: string; desc: string; index: n
   return (
     <div
       ref={ref}
-      className={`bg-background p-8 lg:p-10 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
+      className={`bg-background p-6 lg:p-8 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
       style={{ transitionDelay: `${index * 100}ms` }}
     >
       <div className="flex items-start gap-3 mb-3">
@@ -450,9 +450,9 @@ function PricingPreviewSection() {
   const { ref, visible } = useFadeIn();
 
   return (
-    <section className="relative py-16 lg:py-24 border-t border-foreground/10">
-      <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
-        <div ref={ref} className={`mb-12 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+    <section className="relative py-10 lg:py-16 border-t border-foreground/10">
+      <div className="max-w-[1200px] mx-auto px-8 lg:px-20">
+        <div ref={ref} className={`mb-8 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
           <SectionLabel>Pricing</SectionLabel>
           <h2 className="font-heading text-4xl lg:text-5xl font-medium tracking-[-0.03em] leading-[1.1]">
             필요한 만큼만
@@ -466,7 +466,7 @@ function PricingPreviewSection() {
 
         <div className={`grid grid-cols-1 md:grid-cols-3 gap-px border border-foreground/10 bg-foreground/10 transition-all duration-700 delay-150 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
           {plans.map(({ name, price, note, features, cta, href, highlight }) => (
-            <div key={name} className={`p-8 lg:p-10 flex flex-col ${highlight ? "bg-foreground text-background" : "bg-background"}`}>
+            <div key={name} className={`p-6 lg:p-8 flex flex-col ${highlight ? "bg-foreground text-background" : "bg-background"}`}>
               <div className="mb-6">
                 {highlight && (
                   <span className="inline-block font-mono text-[10px] tracking-[0.1em] uppercase bg-background/10 px-2 py-0.5 mb-3">추천</span>
@@ -507,11 +507,11 @@ function FinalCtaSection() {
   const { ref, visible } = useFadeIn(0.2);
 
   return (
-    <section className="relative py-16 lg:py-24 border-t border-foreground/10">
-      <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
+    <section className="relative py-10 lg:py-16 border-t border-foreground/10">
+      <div className="max-w-[1200px] mx-auto px-8 lg:px-20">
         <div
           ref={ref}
-          className={`relative border border-foreground px-8 lg:px-16 py-16 lg:py-24 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+          className={`relative border border-foreground px-8 lg:px-14 py-10 lg:py-16 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
         >
           {/* Corner decorations */}
           <div className="absolute top-0 right-0 w-24 h-24 border-b border-l border-foreground/10" />
