@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import {
   User,
@@ -7,6 +8,7 @@ import {
   Youtube,
   Plus,
   LogOut,
+  UserX,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -28,12 +30,36 @@ type Props = {
 
 export default function SettingsView({ email, channels }: Props) {
   const router = useRouter()
+  const [deleteConfirm, setDeleteConfirm] = useState(false)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const handleLogout = async () => {
     const supabase = createClient()
     await supabase.auth.signOut()
     router.push("/")
     router.refresh()
+  }
+
+  const handleDeleteAccount = async () => {
+    setDeleteLoading(true)
+    setDeleteError(null)
+    try {
+      const res = await fetch("/api/auth/delete-account", { method: "DELETE" })
+      if (!res.ok) {
+        const data = await res.json() as { error?: string }
+        setDeleteError(data.error ?? "계정 삭제에 실패했습니다.")
+        return
+      }
+      const supabase = createClient()
+      await supabase.auth.signOut()
+      router.push("/")
+      router.refresh()
+    } catch {
+      setDeleteError("네트워크 오류가 발생했습니다.")
+    } finally {
+      setDeleteLoading(false)
+    }
   }
 
   return (
@@ -171,6 +197,64 @@ export default function SettingsView({ email, channels }: Props) {
                   로그아웃
                 </Button>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* 회원탈퇴 */}
+          <Card className="border-destructive/40">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-destructive/10">
+                  <UserX className="w-5 h-5 text-destructive" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg text-destructive">회원탈퇴</CardTitle>
+                  <CardDescription>계정을 영구적으로 삭제합니다.</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                탈퇴 시 모든 분석 데이터, 채널 연결 정보, 구독 내역이 영구 삭제되며 복구할 수 없습니다.
+              </p>
+
+              {!deleteConfirm ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  onClick={() => setDeleteConfirm(true)}
+                >
+                  회원탈퇴
+                </Button>
+              ) : (
+                <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 space-y-3">
+                  <p className="text-sm font-medium text-destructive">
+                    정말 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.
+                  </p>
+                  {deleteError && (
+                    <p className="text-sm text-destructive">{deleteError}</p>
+                  )}
+                  <div className="flex gap-2">
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      disabled={deleteLoading}
+                      onClick={() => void handleDeleteAccount()}
+                    >
+                      {deleteLoading ? "처리 중..." : "탈퇴 확인"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={deleteLoading}
+                      onClick={() => { setDeleteConfirm(false); setDeleteError(null) }}
+                    >
+                      취소
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
