@@ -330,7 +330,7 @@ export default function BillingView({ initialData }: { initialData: UserBillingS
                 onClick={() => setPeriod("monthly")}
                 className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
                   period === "monthly"
-                    ? "bg-background shadow-sm text-foreground"
+                    ? "bg-primary text-primary-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -341,7 +341,7 @@ export default function BillingView({ initialData }: { initialData: UserBillingS
                 onClick={() => setPeriod("semiannual")}
                 className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
                   period === "semiannual"
-                    ? "bg-background shadow-sm text-foreground"
+                    ? "bg-primary text-primary-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
