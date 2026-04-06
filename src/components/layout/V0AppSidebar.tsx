@@ -187,9 +187,10 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
   React.useEffect(() => {
     const supabase = createClient()
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    const applySession = (
+      session: import("@supabase/supabase-js").Session | null,
+      triggerDataLoad: boolean,
+    ) => {
       setUserEmail(session?.user?.email ?? null)
       const meta = session?.user?.user_metadata ?? {}
       setUserDisplayName(
@@ -208,32 +209,44 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
         writeSelectedChannelIdToStorage(null)
         return
       }
-      if (event === "INITIAL_SESSION" || event === "SIGNED_IN") {
-        void loadChannels()
-        // 플랜 조회
-        void (async () => {
-          const { data } = await supabase
-            .from("user_subscriptions")
-            .select("plan_id, status")
-            .eq("user_id", session.user.id)
-            .limit(1)
-            .maybeSingle()
-          const validStatuses = ["active", "trialing"]
-          const rawStatus = data as { plan_id?: string; status?: string } | null
-          const status = typeof rawStatus?.status === "string"
-            ? rawStatus.status.trim().toLowerCase()
-            : ""
-          if (!data || !validStatuses.includes(status)) {
-            setPlanLabel("Free Plan")
-            return
-          }
-          const planMap: Record<string, string> = {
-            creator: "Creator Plan",
-            pro: "Pro Plan",
-          }
-          setPlanLabel(planMap[data.plan_id as string] ?? "Free Plan")
-        })()
-      }
+      if (!triggerDataLoad) return
+      void loadChannels()
+      void (async () => {
+        const { data } = await supabase
+          .from("user_subscriptions")
+          .select("plan_id, status")
+          .eq("user_id", session.user.id)
+          .limit(1)
+          .maybeSingle()
+        const validStatuses = ["active", "trialing"]
+        const rawStatus = data as { plan_id?: string; status?: string } | null
+        const status = typeof rawStatus?.status === "string"
+          ? rawStatus.status.trim().toLowerCase()
+          : ""
+        if (!data || !validStatuses.includes(status)) {
+          setPlanLabel("Free Plan")
+          return
+        }
+        const planMap: Record<string, string> = {
+          creator: "Creator Plan",
+          pro: "Pro Plan",
+        }
+        setPlanLabel(planMap[data.plan_id as string] ?? "Free Plan")
+      })()
+    }
+
+    // OAuth 리다이렉트 후 INITIAL_SESSION 이벤트가 비동기로 발화되기 전에
+    // getSession()으로 세션을 즉시 읽어 프로필 영역을 바로 반영한다.
+    void supabase.auth.getSession().then(({ data: { session } }) => {
+      applySession(session, true)
+    })
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      // INITIAL_SESSION은 getSession()으로 이미 처리했으므로 데이터 재로드는 SIGNED_IN만
+      const triggerDataLoad = event === "SIGNED_IN"
+      applySession(session, triggerDataLoad)
       // TOKEN_REFRESHED: 채널/세션 재요청 불필요
     })
     return () => {
