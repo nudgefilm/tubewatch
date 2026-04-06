@@ -79,19 +79,21 @@ export function ActionPlanPage({ channelId = "", channelContext, viewModel, isSt
           )}
 
           {/* [1] 우선순위별 실행 계획 */}
-          <section className="space-y-4">
-            <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-              <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><Target className="size-5 shrink-0 text-primary" />우선순위별 실행 계획</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">P1부터 순서대로 실행하세요. 각 카드에 실행 근거와 기대 변화가 포함됩니다</p>
-            </div>
-            {cardsData.length > 0 ? (
-              <ActionPlanCardsSection data={cardsData} />
-            ) : (
-              <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-                분석이 완료되면 실행 계획이 자동으로 생성됩니다.
+          {viewModel.hasAnalysis && (
+            <section className="space-y-4">
+              <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
+                <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><Target className="size-5 shrink-0 text-primary" />우선순위별 실행 계획</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">P1부터 순서대로 실행하세요. 각 카드에 실행 근거와 기대 변화가 포함됩니다</p>
               </div>
-            )}
-          </section>
+              {cardsData.length > 0 ? (
+                <ActionPlanCardsSection data={cardsData} />
+              ) : (
+                <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                  분석이 완료되면 실행 계획이 자동으로 생성됩니다.
+                </div>
+              )}
+            </section>
+          )}
 
           {/* Paywall — Starter 전용 */}
           {isStarterPlan && viewModel.hasAnalysis && (
