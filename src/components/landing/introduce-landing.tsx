@@ -61,10 +61,14 @@ function HeroSection() {
           </span>
         </h1>
 
-        <p className={`mt-6 text-lg lg:text-xl text-foreground/70 max-w-2xl leading-relaxed transition-all duration-700 delay-200 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-          TubeWatch™는 내 채널 데이터를 분석해 <strong className="text-foreground">성장 패턴을 찾아내고,</strong><br />
-          다음 콘텐츠까지 설계해주는 유튜버 전용 성장 플랫폼입니다.
-        </p>
+        <div className={`mt-8 transition-all duration-700 delay-200 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+          <p className="font-heading text-xl lg:text-2xl font-medium tracking-[-0.02em] text-foreground leading-snug">
+            당신의 데이터는 이미 다음 전략을 말하고 있습니다.
+          </p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            유튜브 스튜디오가 보여주지 않는 1%의 시그널, 튜브워치가 설계합니다.
+          </p>
+        </div>
 
         <div className={`mt-8 flex flex-col sm:flex-row items-start gap-4 transition-all duration-700 delay-300 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
           <Button size="lg" className="bg-black hover:bg-neutral-800 text-white px-8 h-12 text-base rounded-lg shadow-lg group" asChild>
