@@ -17,7 +17,9 @@ export async function DELETE() {
       return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
     }
 
-    const { error } = await supabaseAdmin.auth.admin.deleteUser(user.id);
+    // shouldSoftDelete: false → hard delete, auth.identities까지 완전 제거
+    // 소프트 딜리트 시 동일 Google 계정으로 재가입 불가
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(user.id, false);
 
     if (error) {
       console.error("[delete-account] deleteUser error:", error.message);
