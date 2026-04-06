@@ -1,18 +1,17 @@
 /**
  * POST /api/stripe/subscription-checkout
  * Creator / Pro 구독 Stripe Checkout 세션 생성.
- * 클라이언트에서 { planId: "creator" | "pro" } 전송.
+ * 클라이언트에서 { planId: "creator" | "pro" | "creator_6m" | "pro_6m" } 전송.
  */
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getStripe } from "@/lib/stripe/server";
 import {
-  BILLING_PLANS,
   SUBSCRIPTION_PRICE_ID_ENV_KEYS,
   type BillingPlanId,
 } from "@/components/billing/types";
 
-const VALID_PLAN_IDS: BillingPlanId[] = ["creator", "pro"];
+const VALID_PLAN_IDS: BillingPlanId[] = ["creator", "pro", "creator_6m", "pro_6m"];
 
 export async function POST(request: Request) {
   let body: unknown;
@@ -32,11 +31,6 @@ export async function POST(request: Request) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
     return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
-  }
-
-  const plan = BILLING_PLANS.find((p) => p.id === planId);
-  if (!plan) {
-    return NextResponse.json({ error: "플랜을 찾을 수 없습니다." }, { status: 400 });
   }
 
   const priceIdEnvKey = SUBSCRIPTION_PRICE_ID_ENV_KEYS[planId as BillingPlanId];

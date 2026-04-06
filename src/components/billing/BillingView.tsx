@@ -9,6 +9,7 @@ import {
   BILLING_PLANS,
   CREDIT_PRODUCTS,
   FREE_LIFETIME_ANALYSIS_LIMIT,
+  type BillingPeriod,
 } from "./types";
 import type { UserBillingStatus } from "@/lib/server/billing/getUserBillingStatus";
 
@@ -17,12 +18,17 @@ import type { UserBillingStatus } from "@/lib/server/billing/getUserBillingStatu
 function SubscriptionPlanCard({
   plan,
   isPopular,
+  period,
 }: {
   plan: (typeof BILLING_PLANS)[number];
   isPopular?: boolean;
+  period: BillingPeriod;
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const isSemiannual = period === "semiannual";
+  const planId = isSemiannual ? plan.semiannualPlanId : plan.id;
 
   async function handleSubscribe() {
     if (loading) return;
@@ -32,7 +38,7 @@ function SubscriptionPlanCard({
       const res = await fetch("/api/stripe/subscription-checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planId: plan.id }),
+        body: JSON.stringify({ planId }),
       });
       const json = (await res.json()) as { url?: string; error?: string };
       if (!res.ok) {
@@ -67,10 +73,28 @@ function SubscriptionPlanCard({
       <CardHeader className="pb-2 text-center">
         <CardTitle className="text-lg">{plan.name}</CardTitle>
         <div className="mt-2">
-          <span className="text-3xl font-bold">${plan.priceUsd}</span>
-          <span className="text-sm text-muted-foreground">/월</span>
+          {isSemiannual ? (
+            <>
+              <span className="text-3xl font-bold">${plan.semiannualPriceUsd}</span>
+              <span className="text-sm text-muted-foreground"> / 6개월</span>
+            </>
+          ) : (
+            <>
+              <span className="text-3xl font-bold">${plan.priceUsd}</span>
+              <span className="text-sm text-muted-foreground">/월</span>
+            </>
+          )}
         </div>
-        <CardDescription className="mt-1">{plan.targetAudience}</CardDescription>
+        {isSemiannual && (
+          <div className="mt-1">
+            <Badge variant="secondary" className="text-xs text-emerald-600 bg-emerald-50">
+              {plan.semiannualBadge}
+            </Badge>
+          </div>
+        )}
+        <CardDescription className="mt-1">
+          {isSemiannual ? plan.targetAudienceSemiannual : plan.targetAudience}
+        </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col pt-4">
         <div className="mb-6 space-y-2.5">
@@ -269,6 +293,8 @@ function CurrentPlanCard({ status }: { status: UserBillingStatus }) {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function BillingView({ initialData }: { initialData: UserBillingStatus }) {
+  const [period, setPeriod] = useState<BillingPeriod>("monthly");
+
   return (
     <div className="min-h-screen bg-background">
       <section className="border-b bg-gradient-to-b from-muted/30 to-background px-6 py-12 lg:px-12">
@@ -296,9 +322,36 @@ export default function BillingView({ initialData }: { initialData: UserBillingS
           <p className="mb-6 text-sm text-muted-foreground">
             튜브워치의 구독 플랜은 해당 기간 만료 시 종료되며 자동 갱신되지 않습니다. 이는 자동 갱신으로 인한 미사용에 따른 부담을 해소하기 위해 반영된 <strong>안심 구독</strong> 정책입니다.
           </p>
+          {/* Billing period toggle */}
+          <div className="mb-6 flex justify-center">
+            <div className="inline-flex rounded-lg border p-1 bg-muted/40">
+              <button
+                type="button"
+                onClick={() => setPeriod("monthly")}
+                className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
+                  period === "monthly"
+                    ? "bg-background shadow-sm text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                월간
+              </button>
+              <button
+                type="button"
+                onClick={() => setPeriod("semiannual")}
+                className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
+                  period === "semiannual"
+                    ? "bg-background shadow-sm text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                6개월
+              </button>
+            </div>
+          </div>
           <div className="grid gap-6 sm:grid-cols-2">
             {BILLING_PLANS.map((plan, i) => (
-              <SubscriptionPlanCard key={plan.id} plan={plan} isPopular={i === 1} />
+              <SubscriptionPlanCard key={plan.id} plan={plan} isPopular={i === 1} period={period} />
             ))}
           </div>
         </section>

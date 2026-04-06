@@ -4,18 +4,28 @@
 
 // ─── Subscription plans ───────────────────────────────────────────────────────
 
-export type BillingPlanId = "creator" | "pro";
+export type BillingPlanId = "creator" | "pro" | "creator_6m" | "pro_6m";
+
+export type BillingPeriod = "monthly" | "semiannual";
 
 export interface BillingPlan {
-  id: BillingPlanId;
+  id: Extract<BillingPlanId, "creator" | "pro">;
   name: string;
   priceUsd: number;
+  /** 6개월 결제 총액 */
+  semiannualPriceUsd: number;
+  /** 6개월 플랜 ID (Stripe용) */
+  semiannualPlanId: Extract<BillingPlanId, "creator_6m" | "pro_6m">;
+  /** 6개월 절약 문구 */
+  semiannualBadge: string;
   /** 채널 수 */
   channels: number;
   /** 월 분석 횟수 */
   monthlyAnalyses: number;
-  /** 추천 대상 */
+  /** 추천 대상 (월간) */
   targetAudience: string;
+  /** 추천 대상 (6개월) */
+  targetAudienceSemiannual: string;
   /** Stripe subscription price ID (env-based, null until resolved on server) */
   stripePriceId: string | null;
 }
@@ -24,6 +34,8 @@ export interface BillingPlan {
 export const SUBSCRIPTION_PRICE_ID_ENV_KEYS: Record<BillingPlanId, string> = {
   creator: "STRIPE_SUBSCRIPTION_CREATOR_PRICE_ID",
   pro: "STRIPE_SUBSCRIPTION_PRO_PRICE_ID",
+  creator_6m: "STRIPE_SUBSCRIPTION_CREATOR_6M_PRICE_ID",
+  pro_6m: "STRIPE_SUBSCRIPTION_PRO_6M_PRICE_ID",
 };
 
 export const BILLING_PLANS: BillingPlan[] = [
@@ -31,18 +43,26 @@ export const BILLING_PLANS: BillingPlan[] = [
     id: "creator",
     name: "Creator",
     priceUsd: 9,
+    semiannualPriceUsd: 49,
+    semiannualPlanId: "creator_6m",
+    semiannualBadge: "한 달이 공짜",
     channels: 3,
     monthlyAnalyses: 90,
-    targetAudience: "1인 크리에이터",
+    targetAudience: "1인 크리에이터 전용",
+    targetAudienceSemiannual: "꾸준한 성장을 원하는 크리에이터",
     stripePriceId: null,
   },
   {
     id: "pro",
     name: "Pro",
     priceUsd: 29,
+    semiannualPriceUsd: 149,
+    semiannualPlanId: "pro_6m",
+    semiannualBadge: "약 15% 할인",
     channels: 10,
     monthlyAnalyses: 300,
-    targetAudience: "성장 중인 채널 운영자",
+    targetAudience: "성장 채널 전용",
+    targetAudienceSemiannual: "성과 집중 채널 전용",
     stripePriceId: null,
   },
 ];
