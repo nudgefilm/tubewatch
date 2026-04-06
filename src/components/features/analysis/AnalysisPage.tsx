@@ -272,6 +272,12 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
 
   // No-channel guard — 온보딩형 안내
   if (!viewModel.hasChannel) {
+    const previewItems = [
+      { icon: BarChart3, label: "채널 종합 성과 점수", desc: "조회수·구독·참여율을 하나의 점수로" },
+      { icon: TrendingUp, label: "상위 vs 하위 영상 비교", desc: "잘된 영상과 아닌 영상의 차이 분석" },
+      { icon: Activity, label: "업로드 패턴 분석", desc: "최적 업로드 요일·시간대 파악" },
+      { icon: Gauge, label: "썸네일·제목 효과 분석", desc: "클릭률에 영향을 주는 요소 확인" },
+    ]
     return (
       <div className="min-h-screen bg-background">
         <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
@@ -293,6 +299,24 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
             >
               채널 추가하기
             </a>
+          </div>
+          <div>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3 px-1">
+              분석 후 확인할 수 있는 내용
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {previewItems.map(({ icon: Icon, label, desc }) => (
+                <div key={label} className="flex items-start gap-3 rounded-lg border bg-muted/30 px-4 py-3">
+                  <div className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-background border">
+                    <Icon className="size-3.5 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">{label}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
