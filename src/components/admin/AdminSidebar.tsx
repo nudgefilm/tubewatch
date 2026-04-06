@@ -7,6 +7,7 @@ import {
   Users,
   Youtube,
   Briefcase,
+  Activity,
   ArrowLeft,
 } from "lucide-react";
 
@@ -21,6 +22,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin/users",    label: "Users",    icon: <Users className="h-4 w-4" /> },
   { href: "/admin/channels", label: "Channels", icon: <Youtube className="h-4 w-4" /> },
   { href: "/admin/jobs",     label: "Jobs",     icon: <Briefcase className="h-4 w-4" /> },
+  { href: "/admin/monitor",  label: "Monitor",  icon: <Activity className="h-4 w-4" /> },
 ];
 
 function isActive(pathname: string, href: string): boolean {
