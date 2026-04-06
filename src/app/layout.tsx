@@ -15,32 +15,47 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://tubewatch.kr"),
-  title: "TubeWatch™ - 데이터로 설계하는 유튜브 성장전략 플랫폼",
+  metadataBase: new URL("https://tubewatch.kr"),
+
+  title: "TubeWatch - 유튜브 채널 성장 전략 플랫폼",
   description:
-    "채널 데이터를 기반으로 당신의 성장 전략을 찾아갑니다. 채널 분석, Action Plan, SEO 최적화, 채널 DNA 비교까지.",
-  generator: "TubeWatch",
+    "데이터로 분석하고 전략으로 성장하는 유튜버 전용 대시보드. 알고리즘 분석부터 영상 기획안 생성까지 한 번에.",
+  keywords: ["유튜브 분석", "채널 성장", "영상 기획", "튜브워치", "유튜버 도구"],
+
+  alternates: {
+    canonical: "https://tubewatch.kr",
+  },
+
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon-16x16.png",
+    apple: "/apple-touch-icon.png",
+  },
+
   openGraph: {
-    title: "TubeWatch™ - 데이터로 설계하는 유튜브 성장전략 플랫폼",
-    description: "채널 데이터를 기반으로 당신의 성장 전략을 찾아갑니다.",
-    url: "https://tubewatch.app",
+    type: "website",
+    url: "https://tubewatch.kr",
     siteName: "TubeWatch",
+    locale: "ko_KR",
+    title: "TubeWatch - 유튜브 채널 성장 전략 플랫폼",
+    description:
+      "데이터로 분석하고 전략으로 성장하는 유튜버 전용 대시보드. 알고리즘 분석부터 영상 기획안 생성까지 한 번에.",
     images: [
       {
-        url: "/og-image.jpg",
-        width: 1200,
-        height: 630,
-        alt: "TubeWatch - YouTube Growth Platform",
+        url: "/OG_Tube.jpg",
+        width: 600,
+        height: 315,
+        alt: "TubeWatch - 유튜브 채널 성장 전략 플랫폼",
       },
     ],
-    locale: "ko_KR",
-    type: "website",
   },
+
   twitter: {
     card: "summary_large_image",
-    title: "TubeWatch™ - 데이터로 설계하는 유튜브 성장전략 플랫폼",
-    description: "채널 데이터를 기반으로 당신의 성장 전략을 찾아갑니다.",
-    images: ["/og-image.jpg"],
+    title: "TubeWatch - 유튜브 채널 성장 전략 플랫폼",
+    description:
+      "데이터로 분석하고 전략으로 성장하는 유튜버 전용 대시보드. 알고리즘 분석부터 영상 기획안 생성까지 한 번에.",
+    images: ["/OG_Tube.jpg"],
   },
 }
 
