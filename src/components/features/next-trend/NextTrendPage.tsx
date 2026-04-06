@@ -46,9 +46,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
           <ChannelContextHeader channelContext={channelContext} />
 
           {!viewModel.hasAnalysisEffective && (
-            <div className="rounded-lg border border-muted px-4 py-3 text-sm text-muted-foreground">
-              {viewModel.trendSummary}
-            </div>
+            <NextTrendEmptyState channelId={viewModel.selectedChannelId ?? undefined} />
           )}
 
           {viewModel.hasAnalysisEffective && (
