@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { isAdmin } from "@/lib/config/admin";
 import { ACTIVE_QUEUE_STATUSES } from "./status";
 
-const COOLDOWN_HOURS = 72;
+const COOLDOWN_HOURS = 12;
 const USER_DAILY_LIMIT = 5;
 const SYSTEM_DAILY_LIMIT = 200;
 const QUEUE_ACTIVE_LIMIT = 20;
@@ -56,7 +56,7 @@ export async function assertAnalysisCostGuard(
 
   if (isWithinCooldown(lastAnalysisRequestedAt)) {
     throw new AnalysisCostGuardError(
-      "현재 쿨다운이 적용 중입니다. 약 72시간 후 다시 요청할 수 있습니다.",
+      "현재 쿨다운이 적용 중입니다. 약 12시간 후 다시 요청할 수 있습니다.",
       "COOLDOWN_ACTIVE"
     );
   }
