@@ -5,6 +5,7 @@ import {
   getSafeOAuthReturnPath,
 } from "@/lib/auth/safe-return-path";
 import { createClient } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -20,19 +21,30 @@ export async function GET(request: Request) {
     return NextResponse.redirect(new URL(`/?authModal=1&authError=1`, url.origin));
   }
 
-  if (code) {
-    const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-
-    if (!error) {
-      return NextResponse.redirect(new URL(safeNext, url.origin));
-    }
-
-    console.error("[auth/callback] exchangeCodeForSession failed:", error.message, "| code:", error.code, "| status:", error.status);
-  } else {
+  if (!code) {
     console.error("[auth/callback] No code in callback URL. params:", url.searchParams.toString());
+    return NextResponse.redirect(new URL(`/?authModal=1&authError=1`, url.origin));
   }
 
-  // 콜백 실패 시 로그인 모달을 다시 열어 사용자가 재시도할 수 있게 한다
-  return NextResponse.redirect(new URL(`/?authModal=1&authError=1`, url.origin));
+  const supabase = await createClient();
+  const { data: sessionData, error: sessionError } = await supabase.auth.exchangeCodeForSession(code);
+
+  if (sessionError || !sessionData.user) {
+    console.error("[auth/callback] exchangeCodeForSession failed:", sessionError?.message, "| code:", sessionError?.code);
+    return NextResponse.redirect(new URL(`/?authModal=1&authError=1`, url.origin));
+  }
+
+  // 트리거 의존 없이 앱 레벨에서 직접 프로필 보장
+  // service role로 upsert하므로 RLS·트리거 실패에 관계없이 항상 동작
+  const userId = sessionData.user.id;
+  const { error: profileError } = await supabaseAdmin
+    .from("profiles")
+    .upsert({ id: userId, role: "user" }, { onConflict: "id", ignoreDuplicates: true });
+
+  if (profileError) {
+    // 프로필 생성 실패는 로그로 남기되 로그인은 계속 진행
+    console.error("[auth/callback] profile upsert failed:", profileError.message);
+  }
+
+  return NextResponse.redirect(new URL(safeNext, url.origin));
 }
