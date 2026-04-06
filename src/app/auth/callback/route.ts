@@ -21,7 +21,8 @@ export async function GET(request: Request) {
     }
   }
 
+  // 콜백 실패 시 로그인 모달을 다시 열어 사용자가 재시도할 수 있게 한다
   return NextResponse.redirect(
-    new URL(`/?error=${encodeURIComponent("auth")}`, url.origin)
+    new URL(`/?authModal=1&authError=1`, url.origin)
   );
 }

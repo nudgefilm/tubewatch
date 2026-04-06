@@ -10,9 +10,11 @@ interface AuthModalProps {
   onClose: () => void;
   /** OAuth 완료 후 이동할 경로 (`next` 쿼리 등에서 전달, 없으면 기본 `/analysis`). */
   returnToPath?: string | null;
+  /** 이전 OAuth 시도 실패 여부 — 콜백 오류 후 모달을 다시 열 때 true */
+  hasError?: boolean;
 }
 
-export function AuthModal({ isOpen, onClose, returnToPath = null }: AuthModalProps) {
+export function AuthModal({ isOpen, onClose, returnToPath = null, hasError = false }: AuthModalProps) {
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -73,6 +75,7 @@ export function AuthModal({ isOpen, onClose, returnToPath = null }: AuthModalPro
           <GoogleLoginButton
             returnToPath={returnToPath}
             label="Google로 계속하기"
+            hasError={hasError}
             className="w-full flex items-center justify-center gap-3 bg-foreground text-background font-medium py-4 px-6 rounded-xl hover:bg-foreground/90 transition-all duration-300 cursor-pointer group disabled:opacity-70 disabled:pointer-events-none"
           />
 

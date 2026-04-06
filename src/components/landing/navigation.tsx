@@ -27,6 +27,7 @@ export function Navigation() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [oauthReturnPath, setOauthReturnPath] = useState<string | null>(null);
+  const [authModalHasError, setAuthModalHasError] = useState(false);
   /** lucide SVG는 SSR/클라이언트 DOM 차이로 hydration 불일치가 날 수 있어 마운트 후에만 렌더 */
   const [iconsMounted, setIconsMounted] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -81,19 +82,24 @@ export function Navigation() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  /** 보호 라우트 등에서 `/?authModal=1&next=...` 로 진입 시 모달 오픈 및 `next` 반영 */
+  /** 보호 라우트 등에서 `/?authModal=1&next=...` 로 진입 시 모달 오픈 및 `next` 반영.
+   *  콜백 실패 시 `/?authModal=1&authError=1` 로 진입 → 에러 상태로 모달 오픈. */
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const nextParam = params.get("next");
+    const isAuthError = params.get("authError") === "1";
+
     if (nextParam) {
       setOauthReturnPath(getSafeOAuthReturnPath(nextParam));
     }
 
     if (params.get("authModal") === "1") {
+      setAuthModalHasError(isAuthError);
       setIsAuthModalOpen(true);
       const url = new URL(window.location.href);
       url.searchParams.delete("authModal");
       url.searchParams.delete("next");
+      url.searchParams.delete("authError");
       const qs = url.searchParams.toString();
       window.history.replaceState(
         null,
@@ -317,8 +323,9 @@ export function Navigation() {
       {/* Auth Modal */}
       <AuthModal
         isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
+        onClose={() => { setIsAuthModalOpen(false); setAuthModalHasError(false); }}
         returnToPath={oauthReturnPath}
+        hasError={authModalHasError}
       />
     </header>
   );
