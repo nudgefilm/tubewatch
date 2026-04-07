@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useRef, startTransition } from "react"
+import { useState, useRef, useTransition } from "react"
 import {
-  Download, ChevronDown, ChevronUp, FileText,
+  Download, ChevronDown, ChevronUp, FileText, Loader2,
   MapPin, TrendingUp, AlertTriangle, Target, BarChart2,
   Fingerprint, Compass, Users, Layers, BookOpen,
 } from "lucide-react"
@@ -187,6 +187,7 @@ export function OnePagerCard({
   extra,
 }: OnePagerCardProps) {
   const [expanded, setExpanded] = useState(false)
+  const [isPending, startTransition] = useTransition()
   const cardRef = useRef<HTMLDivElement>(null)
   const preview = extractPreview(markdown)
 
@@ -242,11 +243,21 @@ export function OnePagerCard({
           </div>
           <button
             onClick={() => startTransition(() => setExpanded(true))}
-            className="mt-5 flex w-full items-center justify-center gap-1.5 rounded-lg border border-primary/25 bg-primary/5 px-4 py-2.5 text-[13px] font-semibold text-primary hover:bg-primary/10 active:scale-[0.99] transition-all"
+            disabled={isPending}
+            className="mt-5 flex w-full items-center justify-center gap-1.5 rounded-lg border border-primary/25 bg-primary/5 px-4 py-2.5 text-[13px] font-semibold text-primary hover:bg-primary/10 active:scale-[0.99] transition-all disabled:opacity-60 disabled:pointer-events-none"
           >
-            <FileText className="size-3.5 shrink-0" />
-            <span>리포트 전문 보기</span>
-            <ChevronDown className="size-3.5" />
+            {isPending ? (
+              <>
+                <Loader2 className="size-3.5 shrink-0 animate-spin" />
+                <span>불러오는 중...</span>
+              </>
+            ) : (
+              <>
+                <FileText className="size-3.5 shrink-0" />
+                <span>리포트 전문 보기</span>
+                <ChevronDown className="size-3.5" />
+              </>
+            )}
           </button>
         </div>
       )}
