@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from "react"
 import dynamic from "next/dynamic"
 import { useRouter } from "next/navigation"
-import { RefreshCw, Clock, Activity, Gauge, TrendingUp, History as HistoryIcon, BarChart3, ArrowDownToLine, AlertCircle } from "lucide-react"
+import { RefreshCw, Clock, Activity, Gauge, TrendingUp, History as HistoryIcon, BarChart3, ArrowDownToLine } from "lucide-react"
+import { OverloadRetryBanner, isOverloadError } from "@/components/features/shared/OverloadRetryBanner"
 import { AnalysisHeaderSection } from "./sections/HeaderSection"
 import { AnalysisScoreOverview, type SectionScores } from "./sections/ScoreOverviewSection"
 import { AnalysisKpiCards } from "./sections/KpiCardsSection"
@@ -17,7 +18,6 @@ import { AnalysisSummarySection } from "./sections/SummarySection"
 import { AnalysisReportSection } from "./sections/AnalysisReportSection"
 import { AnalysisEmptyState } from "./sections/EmptyState"
 import { PageFlowConnector } from "@/components/features/shared/PageFlowConnector"
-import { FeaturePaywallBlock } from "@/components/features/shared/FeaturePaywallBlock"
 import { buildAnalysisPageSections } from "@/lib/engines/analysisPageEngine"
 import type { AnalysisPageViewModel } from "@/lib/analysis/analysisPageViewModel"
 import { SegmentGauge } from "@/components/ui/SegmentGauge"
@@ -28,71 +28,6 @@ function pastelGaugeClass(score: number): string {
   return "bg-rose-300/70 border-rose-300/70"
 }
 
-// ─── LLM 과부하 에러 감지 + 자동 재시도 배너 ────────────────────────────────
-
-const OVERLOAD_KEYWORDS = ["high demand", "폭주", "UNAVAILABLE", "503", "overloaded"]
-const AUTO_RETRY_SEC = 60
-
-function isOverloadError(msg: string): boolean {
-  return OVERLOAD_KEYWORDS.some((k) => msg.includes(k))
-}
-
-function OverloadRetryBanner({
-  message,
-  isRequesting,
-  onRetry,
-}: {
-  message: string
-  isRequesting: boolean
-  onRetry: () => void
-}) {
-  const overload = isOverloadError(message)
-  const [sec, setSec] = useState(overload ? AUTO_RETRY_SEC : 0)
-  const firedRef = useRef(false)
-
-  useEffect(() => {
-    if (!overload) return
-    firedRef.current = false
-    setSec(AUTO_RETRY_SEC)
-    const id = setInterval(() => {
-      setSec((prev) => {
-        if (prev <= 1) {
-          clearInterval(id)
-          if (!firedRef.current) { firedRef.current = true; onRetry() }
-          return 0
-        }
-        return prev - 1
-      })
-    }, 1000)
-    return () => clearInterval(id)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [message])
-
-  if (!overload) {
-    return <p className="text-xs text-destructive">{message}</p>
-  }
-
-  return (
-    <div className="rounded-md border border-amber-300/60 bg-amber-50/60 px-3 py-2.5 space-y-1.5 dark:bg-amber-950/20 dark:border-amber-700/40">
-      <div className="flex items-start gap-2">
-        <AlertCircle className="size-3.5 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
-        <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">{message}</p>
-      </div>
-      <div className="flex items-center gap-2 pl-5">
-        <span className="text-xs text-amber-700 dark:text-amber-400 tabular-nums">
-          {sec > 0 ? `${sec}초 후 자동 재시도` : "재시도 중…"}
-        </span>
-        <button
-          onClick={() => { firedRef.current = true; onRetry() }}
-          disabled={isRequesting || sec === 0}
-          className="text-xs font-semibold text-amber-700 underline underline-offset-2 hover:text-amber-900 disabled:opacity-50 dark:text-amber-400"
-        >
-          지금 재시도
-        </button>
-      </div>
-    </div>
-  )
-}
 
 // ─── 재분석 쿨다운 타이머 박스 ───────────────────────────────────────────────
 
@@ -589,62 +524,47 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
           })()}
         </section>
 
-        {/* Paywall — Starter 전용 */}
-        {isStarterPlan && viewModel.hasAnalysisResult && (
-          <FeaturePaywallBlock
-            title="조회 흐름, 영상 성과 히스토리, 진단 요약을 확인하세요."
-            description="채널 데이터 전체를 읽어야 다음 영상 방향이 보입니다."
-            ctaLabel="전체 분석 리포트 열기"
-            planLabel="Growth"
-            previewHint="조회 흐름 추세와 상위·하위 영상 비교가 이어집니다"
-          />
-        )}
-
         {/* 조회수 흐름 시그널 */}
-        {!isStarterPlan && (
-          <section className="space-y-4">
-            <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-              <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><TrendingUp className="size-5 shrink-0 text-primary" />조회수 흐름 시그널</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">최근 표본 영상의 조회수 변화 흐름을 시각화합니다</p>
-            </div>
-            {trendData.length >= 1 ? (
-              <AnalysisViewTrendChart
-                data={trendData}
-                interpretation={trendInterpretation}
-                channelId={viewModel.selectedChannelId ?? undefined}
-              />
-            ) : (
-              <AnalysisEmptyState
-                type="insufficient-samples"
-                title="조회 흐름 데이터 부족"
-                description="영상 데이터가 있으면 조회 추세 차트가 표시됩니다."
-              />
-            )}
-          </section>
-        )}
+        <section className="space-y-4">
+          <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
+            <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><TrendingUp className="size-5 shrink-0 text-primary" />조회수 흐름 시그널</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">최근 표본 영상의 조회수 변화 흐름을 시각화합니다</p>
+          </div>
+          {trendData.length >= 1 ? (
+            <AnalysisViewTrendChart
+              data={trendData}
+              interpretation={trendInterpretation}
+              channelId={viewModel.selectedChannelId ?? undefined}
+            />
+          ) : (
+            <AnalysisEmptyState
+              type="insufficient-samples"
+              title="조회 흐름 데이터 부족"
+              description="영상 데이터가 있으면 조회 추세 차트가 표시됩니다."
+            />
+          )}
+        </section>
 
         {/* 최근 성과 히스토리 */}
-        {!isStarterPlan && (
-          <section className="space-y-4">
-            <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
-              <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><HistoryIcon className="size-5 shrink-0 text-primary" />최근 성과 히스토리</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">스냅샷에 포함된 최근 영상과 상위·하위 성과 비교를 확인합니다</p>
-            </div>
-            {videosData.length > 0 ? (
-              <AnalysisRecentVideosSection videos={videosData} />
-            ) : (
-              <AnalysisEmptyState
-                type="no-data"
-                title="최근 영상 없음"
-                description="분석 대상 영상이 없습니다."
-              />
-            )}
-            <AnalysisTopBottomCompare data={comparisonData} sampleCount={videosData.length} videos={videosData} />
-          </section>
-        )}
+        <section className="space-y-4">
+          <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
+            <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><HistoryIcon className="size-5 shrink-0 text-primary" />최근 성과 히스토리</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">스냅샷에 포함된 최근 영상과 상위·하위 성과 비교를 확인합니다</p>
+          </div>
+          {videosData.length > 0 ? (
+            <AnalysisRecentVideosSection videos={videosData} />
+          ) : (
+            <AnalysisEmptyState
+              type="no-data"
+              title="최근 영상 없음"
+              description="분석 대상 영상이 없습니다."
+            />
+          )}
+          <AnalysisTopBottomCompare data={comparisonData} sampleCount={videosData.length} videos={videosData} />
+        </section>
 
         {/* 튜브워치 진단 요약 */}
-        {!isStarterPlan && <AnalysisSummarySection data={summaryData} />}
+        <AnalysisSummarySection data={summaryData} />
 
         {/* STEP 4 — 슬라이딩 윈도우 안내 */}
         {viewModel.hasAnalysisResult && (
