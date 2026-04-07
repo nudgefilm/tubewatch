@@ -9,7 +9,7 @@ import { ChannelContextHeader, type ChannelContext } from "@/components/features
 import { FeaturePaywallBlock } from "@/components/features/shared/FeaturePaywallBlock"
 import { Badge } from "@/components/ui/badge"
 import { SegmentGauge } from "@/components/ui/SegmentGauge"
-import { AlertCircle, ArrowRight, TrendingUp, Lightbulb, Video, FlaskConical, Zap, FileText } from "lucide-react"
+import { AlertCircle, ArrowRight, TrendingUp, Lightbulb, Video, FlaskConical, Zap, FileText, Antenna } from "lucide-react"
 import { EvidenceBlock } from "@/components/common/EvidenceBlock"
 import type { NextTrendPageViewModel } from "@/lib/next-trend/nextTrendPageViewModel"
 import { buildNextTrendPageSections, SIGNAL_STRENGTH_BADGE } from "@/lib/engines/nextTrendPageEngine"
@@ -145,6 +145,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                         </p>
                         <div className="flex flex-wrap items-center gap-2">
                           <Badge variant="outline" className={`text-xs ${top1.badge.className}`}>
+                            {top1.badge.icon && <Antenna className="mr-1 h-3 w-3 shrink-0" />}
                             {top1.badge.label}
                           </Badge>
                           <span className="text-xs text-muted-foreground">→</span>
@@ -190,6 +191,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                                   신규
                                 </Badge>
                                 <Badge variant="outline" className={`text-xs ${c.badge.className}`}>
+                                  {c.badge.icon && <Antenna className="mr-1 h-3 w-3 shrink-0" />}
                                   {c.badge.label}
                                 </Badge>
                               </div>
