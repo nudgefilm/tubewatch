@@ -67,10 +67,22 @@ function renderInline(text: string): React.ReactNode[] {
   text = stripEmoji(text)
   return text.split(/(\*\*[^*]+\*\*)/).map((part, idx) =>
     part.startsWith("**") && part.endsWith("**")
-      ? <strong key={idx} className="font-medium text-foreground/80">{part.slice(2, -2)}</strong>
+      ? <strong key={idx} className={S.inlineBold}>{part.slice(2, -2)}</strong>
       : <span key={idx}>{part}</span>
   )
 }
+
+// ── PlanDocument 스타일 상수 (수정 금지 — CLAUDE.md 참고) ────────
+const S = {
+  sectionHeading:  "text-sm font-bold text-foreground tracking-tight flex items-center gap-2",
+  sectionSubtitle: "text-xs font-normal text-muted-foreground/60",
+  subHeading:      "text-[13px] font-semibold text-foreground/60 mt-5 mb-2 tracking-wide",
+  boldLineHeading: "text-xs font-semibold text-foreground/60 mt-5 mb-1.5 tracking-wide",
+  paragraph:       "text-sm text-muted-foreground leading-relaxed mb-3.5",
+  listItem:        "text-sm text-muted-foreground leading-relaxed",
+  listBadge:       "text-xs font-bold text-primary",
+  inlineBold:      "font-medium text-foreground/80",
+} as const
 
 // ── 마크다운 렌더러 ────────────────────────────────────────────────
 export function PlanDocument({ markdown }: { markdown: string }) {
@@ -90,11 +102,11 @@ export function PlanDocument({ markdown }: { markdown: string }) {
       const isFirst = elements.length === 0
       elements.push(
         <div key={i} className={`${isFirst ? "" : "mt-8"} mb-3`}>
-          <h3 className="text-sm font-bold text-foreground tracking-tight flex items-center gap-2">
+          <h3 className={S.sectionHeading}>
             {getSectionIcon(mainTitle)}
             {mainTitle}
             {subTitle && (
-              <span className="text-xs font-normal text-muted-foreground/60">{subTitle}</span>
+              <span className={S.sectionSubtitle}>{subTitle}</span>
             )}
           </h3>
           <div className="mt-2 h-px bg-border/40" />
@@ -106,7 +118,7 @@ export function PlanDocument({ markdown }: { markdown: string }) {
     // H3 — 소제목
     if (line.startsWith("### ")) {
       elements.push(
-        <p key={i} className="text-[12.5px] font-semibold text-foreground/60 mt-5 mb-2 tracking-wide">
+        <p key={i} className={S.subHeading}>
           {stripEmoji(line.replace(/^###\s*/, ""))}
         </p>
       )
@@ -122,7 +134,7 @@ export function PlanDocument({ markdown }: { markdown: string }) {
       elements.push(
         <ul key={`ul-${i}`} className="space-y-2.5 mb-3 mt-1.5">
           {items.map((item, idx) => (
-            <li key={idx} className="flex items-start gap-2.5 text-sm text-muted-foreground leading-relaxed">
+            <li key={idx} className={`flex items-start gap-2.5 ${S.listItem}`}>
               <span className="mt-[7px] w-1.5 h-1.5 rounded-full bg-primary/50 shrink-0" />
               <span>{renderInline(item)}</span>
             </li>
@@ -142,8 +154,8 @@ export function PlanDocument({ markdown }: { markdown: string }) {
       elements.push(
         <ol key={`ol-${i}`} className="space-y-3 mb-3 mt-1.5">
           {items.map((item, idx) => (
-            <li key={idx} className="flex items-start gap-3 text-sm text-muted-foreground leading-relaxed">
-              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">
+            <li key={idx} className={`flex items-start gap-3 ${S.listItem}`}>
+              <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 ${S.listBadge}`}>
                 {idx + 1}
               </span>
               <span>{renderInline(item)}</span>
@@ -159,7 +171,7 @@ export function PlanDocument({ markdown }: { markdown: string }) {
     // 전체 볼드 라인 (**text**) → 소제목으로 처리
     if (/^\*\*[^*]+\*\*[：:：]?\s*$/.test(line.trim())) {
       elements.push(
-        <p key={i} className="text-[12px] font-semibold text-foreground/60 mt-5 mb-1.5 tracking-wide uppercase">
+        <p key={i} className={`${S.boldLineHeading} uppercase`}>
           {stripEmoji(line.trim().replace(/^\*\*/, "").replace(/\*\*[：:：]?\s*$/, ""))}
         </p>
       )
@@ -168,7 +180,7 @@ export function PlanDocument({ markdown }: { markdown: string }) {
 
     // 일반 단락
     elements.push(
-      <p key={i} className="text-sm text-muted-foreground leading-relaxed mb-3.5">
+      <p key={i} className={S.paragraph}>
         {renderInline(line)}
       </p>
     )
