@@ -4,6 +4,7 @@ import {
   type ActionExecutionHint,
 } from "@/lib/ai/getGeminiConfig";
 import type { AnalysisContext } from "@/lib/analysis/engine/types";
+import { validateGeminiResult } from "@/lib/ai/validateGeminiResult";
 import {
   normalizeNextTrendPlan,
   normalizeString,
@@ -763,22 +764,41 @@ export async function analyzeChannelWithGemini(
 
   const parsed = tryParseGeminiResponse(first.rawText);
 
-  if (parsed.parsed) {
+  if (!parsed.parsed) {
+    console.error("Gemini JSON parse failed", parsed.error);
     return {
-      ok: true,
+      ok: false,
       model,
-      result: parsed.parsed,
+      error: parsed.error ?? "JSON parse 실패",
       rawJson: first.rawText,
       usage: first.usage,
     };
   }
 
-  console.error("Gemini JSON parse failed", parsed.error);
+  // 의미론적 유효성 검증 — 품질 미달 시 1회 재시도
+  const validation = validateGeminiResult(parsed.parsed);
+  if (!validation.valid) {
+    console.warn(
+      "[Gemini] 결과 품질 미달 — 재시도:",
+      validation.issues.map((i) => `${i.field}: ${i.reason}`).join(", ")
+    );
+
+    const retry = await callGemini(endpoint, apiKey, generationConfig, prompt, SYSTEM_INSTRUCTION);
+    if (retry.ok) {
+      const retryParsed = tryParseGeminiResponse(retry.rawText);
+      if (retryParsed.parsed) {
+        console.log("[Gemini] 재시도 성공");
+        return { ok: true, model, result: retryParsed.parsed, rawJson: retry.rawText, usage: retry.usage };
+      }
+    }
+    // 재시도 실패 → 원본 결과라도 반환 (빈 화면보다 낫다)
+    console.warn("[Gemini] 재시도 실패 — 원본 결과 반환");
+  }
 
   return {
-    ok: false,
+    ok: true,
     model,
-    error: parsed.error ?? "JSON parse 실패",
+    result: parsed.parsed,
     rawJson: first.rawText,
     usage: first.usage,
   };
