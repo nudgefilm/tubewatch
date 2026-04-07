@@ -156,6 +156,16 @@ export function PlanDocument({ markdown }: { markdown: string }) {
 
     if (line.trim() === "") { i++; continue }
 
+    // 전체 볼드 라인 (**text**) → 소제목으로 처리
+    if (/^\*\*[^*]+\*\*[：:：]?\s*$/.test(line.trim())) {
+      elements.push(
+        <p key={i} className="text-[12px] font-semibold text-foreground/60 mt-5 mb-1.5 tracking-wide uppercase">
+          {stripEmoji(line.trim().replace(/^\*\*/, "").replace(/\*\*[：:：]?\s*$/, ""))}
+        </p>
+      )
+      i++; continue
+    }
+
     // 일반 단락
     elements.push(
       <p key={i} className="text-sm text-muted-foreground leading-relaxed mb-3.5">
