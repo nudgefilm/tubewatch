@@ -112,7 +112,7 @@ export function AnalysisReportSection({ channelId }: AnalysisReportSectionProps)
     <div className="rounded-xl border bg-card overflow-hidden">
       <ShellHeader />
       <div className="px-5 py-5">
-        <p className="text-sm text-muted-foreground">채널 분석 후 자동으로 생성됩니다.</p>
+        <p className="text-sm text-muted-foreground">튜브워치 엔진이 채널의 잠재력 분석을 통해 6가지 핵심 섹션을 설계하고 있습니다. 작업이 완료되면 전략 리포트가 자동 노출되니 잠시 후 확인 바랍니다.</p>
       </div>
     </div>
   )
