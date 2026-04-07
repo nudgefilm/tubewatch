@@ -263,7 +263,7 @@ export type TubeWatchAnalysisResult = {
         temperature: 0.2,
         topK: 24,
         topP: 0.8,
-        maxOutputTokens: 16384,
+        maxOutputTokens: 32768,
         responseMimeType: "application/json",
         responseSchema,
       },
