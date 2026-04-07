@@ -77,8 +77,8 @@ export default function AdminMonitorView({ data }: { data: AdminMonitorData }) {
               <StatusIcon status={item.status} />
             </div>
             <p className={`mt-3 font-heading text-3xl font-medium tabular-nums tracking-[-0.03em] ${valueColor(item.status)}`}>
-              {item.value.toLocaleString("ko-KR")}
-              {item.unit && (
+              {item.displayValue ?? item.value.toLocaleString("ko-KR")}
+              {!item.displayValue && item.unit && (
                 <span className="ml-1 text-base font-normal text-muted-foreground">
                   {item.unit}
                 </span>

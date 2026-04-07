@@ -4,6 +4,7 @@ export type MonitorItem = {
   label: string;
   value: number;
   unit?: string;
+  displayValue?: string;   // 숫자 대신 표시할 텍스트 (키 상태 등)
   status: "ok" | "warn" | "error";
   description: string;
 };
@@ -13,11 +14,70 @@ export type AdminMonitorData = {
   items: MonitorItem[];
 };
 
+// ── 키 보안 헬퍼 ──────────────────────────────────────────────────────────────
+
+/** Gemini API 키 활성 여부 — models 목록 조회(GET, 무과금)로 확인 */
+async function checkGeminiKeyStatus(): Promise<{
+  status: "ok" | "warn" | "error";
+  displayValue: string;
+  description: string;
+}> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    return { status: "error", displayValue: "키 없음", description: "GEMINI_API_KEY 미설정" };
+  }
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`,
+      { signal: AbortSignal.timeout(6000) }
+    );
+    if (res.ok) {
+      return { status: "ok", displayValue: "활성", description: "API 키 유효 — 정상 응답" };
+    }
+    if (res.status === 400 || res.status === 401 || res.status === 403) {
+      return { status: "error", displayValue: "비활성", description: `키 무효 또는 비활성화 (HTTP ${res.status}) — 재발급 필요` };
+    }
+    return { status: "warn", displayValue: "확인불가", description: `API 응답 이상 (HTTP ${res.status}) — 잠시 후 재확인` };
+  } catch {
+    return { status: "warn", displayValue: "타임아웃", description: "Gemini API 연결 실패 — 네트워크 또는 일시적 오류" };
+  }
+}
+
+/** 필수 환경변수 누락 수 */
+function countMissingEnvVars(): { count: number; missing: string[] } {
+  const required = [
+    "GEMINI_API_KEY",
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+  ];
+  const missing = required.filter((k) => !process.env[k]);
+  return { count: missing.length, missing };
+}
+
+/**
+ * 민감 키가 NEXT_PUBLIC_ 로 실수 노출됐는지 확인.
+ * NEXT_PUBLIC_ 변수는 클라이언트 번들에 포함돼 브라우저에서 노출됨.
+ */
+function countLeakedPublicEnvVars(): { count: number; leaked: string[] } {
+  const sensitiveKeys = ["GEMINI_API_KEY", "SUPABASE_SERVICE_ROLE_KEY", "YOUTUBE_API_KEY"];
+  const leaked = sensitiveKeys
+    .map((k) => `NEXT_PUBLIC_${k}`)
+    .filter((k) => !!process.env[k]);
+  return { count: leaked.length, leaked };
+}
+
+// ── 메인 ──────────────────────────────────────────────────────────────────────
+
 export async function getAdminMonitorData(): Promise<AdminMonitorData> {
   const now = new Date();
   const minus10m = new Date(now.getTime() - 10 * 60 * 1000).toISOString();
   const minus30m = new Date(now.getTime() - 30 * 60 * 1000).toISOString();
   const minus24h = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+
+  // 키 보안 체크 (DB 쿼리와 병렬)
+  const geminiKeyCheckPromise = checkGeminiKeyStatus();
 
   const [
     pendingStuckRes,       // pending 10분+ 초과
@@ -90,6 +150,10 @@ export async function getAdminMonitorData(): Promise<AdminMonitorData> {
       .not("analyzed_at", "is", null)
       .gte("created_at", minus24h),
   ]);
+
+  const geminiKey = await geminiKeyCheckPromise;
+  const { count: missingEnvCount, missing: missingEnvList } = countMissingEnvVars();
+  const { count: leakedCount, leaked: leakedList } = countLeakedPublicEnvVars();
 
   const pendingStuck = pendingStuckRes.count ?? 0;
   const runningStuck = runningStuckRes.count ?? 0;
@@ -179,6 +243,34 @@ export async function getAdminMonitorData(): Promise<AdminMonitorData> {
       unit: "건",
       status: nullStartedAt === 0 ? "ok" : "warn",
       description: "레거시 데이터 잔존 여부",
+    },
+    // ── 키 보안 ────────────────────────────────────────────────
+    {
+      label: "Gemini API 키 활성",
+      value: 0,
+      displayValue: geminiKey.displayValue,
+      status: geminiKey.status,
+      description: geminiKey.description,
+    },
+    {
+      label: "필수 환경변수 누락",
+      value: missingEnvCount,
+      unit: "개",
+      status: missingEnvCount === 0 ? "ok" : "error",
+      description:
+        missingEnvCount === 0
+          ? "모든 필수 환경변수 설정됨"
+          : `누락: ${missingEnvList.join(", ")}`,
+    },
+    {
+      label: "민감 키 NEXT_PUBLIC 노출",
+      value: leakedCount,
+      unit: "개",
+      status: leakedCount === 0 ? "ok" : "error",
+      description:
+        leakedCount === 0
+          ? "클라이언트 번들에 시크릿 없음"
+          : `노출된 키: ${leakedList.join(", ")} — 즉시 조치`,
     },
   ];
 
