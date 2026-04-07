@@ -76,8 +76,8 @@ function renderInline(text: string): React.ReactNode[] {
 const S = {
   sectionHeading:  "text-sm font-bold text-foreground tracking-tight flex items-center gap-2",
   sectionSubtitle: "text-xs font-normal text-muted-foreground/60",
-  subHeading:      "text-[13px] font-semibold text-foreground/60 mt-5 mb-2 tracking-wide",
-  boldLineHeading: "text-xs font-semibold text-foreground/60 mt-5 mb-1.5 tracking-wide",
+  subHeading:      "text-sm font-semibold text-foreground/60 mt-5 mb-2 tracking-wide",
+  boldLineHeading: "text-sm font-semibold text-foreground/60 mt-5 mb-1.5 tracking-wide",
   paragraph:       "text-sm text-muted-foreground leading-relaxed mb-3.5",
   listItem:        "text-sm text-muted-foreground leading-relaxed",
   listBadge:       "text-xs font-bold text-primary",

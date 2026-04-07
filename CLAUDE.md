@@ -59,8 +59,8 @@ TubeWatch의 모든 분석 결과는 동일한 기준 데이터(run/snapshot)를
 | 요소 | 클래스 | 비고 |
 |------|--------|------|
 | 섹션 헤딩 (##) | `text-sm font-bold text-foreground` | 최대 크기 |
-| H3 소제목 (###) | `text-[13px] font-semibold text-foreground/60` | |
-| 볼드 전체 라인 | `text-xs font-semibold text-foreground/60` | |
+| H3 소제목 (###) | `text-sm font-semibold text-foreground/60` | |
+| 볼드 전체 라인 | `text-sm font-semibold text-foreground/60` | |
 | 본문 단락 | `text-sm text-muted-foreground` | |
 | 리스트 아이템 | `text-sm text-muted-foreground` | |
 | 번호 뱃지 | `text-xs font-bold text-primary` | 최솟값 |
