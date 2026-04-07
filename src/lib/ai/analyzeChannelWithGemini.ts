@@ -308,7 +308,7 @@ function normalizeNextTrendPlan(raw: unknown): NextTrendAIPlan | null {
     return Number.isFinite(n) ? Math.max(1, Math.min(5, Math.round(n))) : 3;
   };
 
-  return {
+  const plan = {
     topic: truncateToLimit(topic, 40),
     why_this_topic: truncateToLimit(why, 300),
     pain_point: truncateToLimit(pain, 200),
@@ -331,6 +331,16 @@ function normalizeNextTrendPlan(raw: unknown): NextTrendAIPlan | null {
     video_plan_document: normalizeString(obj.video_plan_document) ?? "",
     execution_hint_document: normalizeString(obj.execution_hint_document) ?? "",
   };
+
+  // 진단 로그
+  const vpd = plan.video_plan_document;
+  const sectionCount = (vpd.match(/^## /gm) ?? []).length;
+  console.log("[Gemini] video_plan_document length:", vpd.length, "sections:", sectionCount);
+  if (sectionCount < 6) {
+    console.warn("[Gemini] video_plan_document 섹션 부족:", sectionCount, "/ 6 expected. 내용 앞 200자:", vpd.slice(0, 200));
+  }
+
+  return plan;
 }
 
 function normalizeActionExecutionHints(raw: unknown): ActionExecutionHint[] | null {
@@ -562,6 +572,29 @@ async function callGeminiOnce(
   }
 
   const rawText = extractResponseText(parsedBody);
+
+  // finishReason 추출 및 MAX_TOKENS 감지
+  let finishReason: string | undefined;
+  if (parsedBody && typeof parsedBody === "object") {
+    const root = parsedBody as { candidates?: unknown[] };
+    const firstCandidate = root.candidates?.[0] as { finishReason?: string } | undefined;
+    finishReason = firstCandidate?.finishReason;
+  }
+
+  if (finishReason && finishReason !== "STOP") {
+    console.warn("[Gemini] unexpected finishReason:", finishReason, "rawText length:", rawText.length);
+  }
+
+  if (finishReason === "MAX_TOKENS") {
+    console.error("[Gemini] MAX_TOKENS — 응답이 잘렸습니다. rawText length:", rawText.length);
+    return {
+      ok: false as const,
+      rawText: "",
+      rawBody,
+      error: "Gemini 응답이 최대 토큰 한도에서 잘렸습니다 (MAX_TOKENS). 잠시 후 다시 시도해주세요.",
+      status: 500,
+    };
+  }
 
   let usage: unknown = undefined;
   if (parsedBody && typeof parsedBody === "object") {
