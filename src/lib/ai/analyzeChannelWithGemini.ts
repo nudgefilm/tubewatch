@@ -60,6 +60,7 @@ type GeminiCallFailure = {
   rawText: "";
   rawBody: string;
   error: string;
+  status?: number;
 };
 
 type GeminiCallResult = GeminiCallSuccess | GeminiCallFailure;
@@ -491,7 +492,9 @@ function extractResponseText(data: unknown): string {
   return texts.join("").trim();
 }
 
-async function callGemini(
+const GEMINI_RETRY_DELAYS_MS = [3000, 7000]; // 2회 재시도: 3s, 7s
+
+async function callGeminiOnce(
   endpoint: string,
   apiKey: string,
   generationConfig: ReturnType<typeof getGeminiConfig>["generationConfig"],
@@ -554,6 +557,7 @@ async function callGemini(
       rawText: "",
       rawBody,
       error: message,
+      status: response.status,
     };
   }
 
@@ -571,6 +575,32 @@ async function callGemini(
     rawBody,
     usage,
   };
+}
+
+async function callGemini(
+  endpoint: string,
+  apiKey: string,
+  generationConfig: ReturnType<typeof getGeminiConfig>["generationConfig"],
+  prompt: string,
+  systemInstruction: string
+): Promise<GeminiCallResult> {
+  let result = await callGeminiOnce(endpoint, apiKey, generationConfig, prompt, systemInstruction);
+
+  for (let attempt = 0; attempt < GEMINI_RETRY_DELAYS_MS.length; attempt++) {
+    if (result.ok) break;
+
+    const failure = result as GeminiCallFailure;
+    const status = failure.status;
+    // 503 (overloaded) 또는 429 (rate limit)만 재시도
+    if (status !== 503 && status !== 429) break;
+
+    const delay = GEMINI_RETRY_DELAYS_MS[attempt];
+    console.warn(`[Gemini] ${status} — ${attempt + 1}번째 재시도 (${delay}ms 후)`);
+    await new Promise((resolve) => setTimeout(resolve, delay));
+    result = await callGeminiOnce(endpoint, apiKey, generationConfig, prompt, systemInstruction);
+  }
+
+  return result;
 }
 
 // ── Prompt construction ──
