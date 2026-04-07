@@ -6,10 +6,9 @@
  * 실행: node scripts/gen-onepager.mjs
  */
 
-const SUPABASE_URL = "https://fdgeotrubdfjuuoqzcpi.supabase.co";
-const SUPABASE_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZkZ2VvdHJ1YmRmanV1b3F6Y3BpIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTY4ODg0NywiZXhwIjoyMDg3MjY0ODQ3fQ.yRCcC6jZt4tAXFkRDyivpQTG28wCTKhiYincFPxqjwg";
-const GEMINI_API_KEY = "AIzaSyDXXvng4pbw1GggAu01Noe-ELVb8hnISkY";
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_MODEL = "gemini-2.5-flash";
 
 function fmt(n) {
