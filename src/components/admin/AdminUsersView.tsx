@@ -141,7 +141,7 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
                 <th className="px-4 pb-2 pt-3 font-medium">역할</th>
                 <th className="px-4 pb-2 pt-3 font-medium">플랜</th>
                 <th className="px-4 pb-2 pt-3 font-medium">채널</th>
-                <th className="px-4 pb-2 pt-3 font-medium">Free 사용</th>
+                <th className="px-4 pb-2 pt-3 font-medium">채널분석</th>
                 <th className="px-4 pb-2 pt-3 font-medium">가입일</th>
                 <th className="px-4 pb-2 pt-3 font-medium">마지막 로그인</th>
               </tr>
@@ -159,6 +159,7 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
                   const purchased = row.purchased_credits ?? 0;
                   const limit = FREE_LIFETIME_ANALYSIS_LIMIT + purchased;
                   const isExhausted = lifeUsed != null && lifeUsed >= limit;
+                  const totalAnalyses = row.total_analyses_count;
 
                   return (
                     <tr key={row.id} className="hover:bg-foreground/[0.02] transition-colors">
@@ -193,16 +194,12 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
                         {row.channel_count}
                       </td>
                       <td className="px-4 py-2.5">
-                        {lifeUsed == null ? (
-                          <span className="text-muted-foreground/50">—</span>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <span className={`tabular-nums ${isExhausted ? "text-red-500 font-semibold" : "text-foreground/70"}`}>
-                              {lifeUsed}/{limit}
-                            </span>
-                            {isExhausted && <ResetFreeCreditsButton userId={row.id} />}
-                          </div>
-                        )}
+                        <div className="flex items-center gap-2">
+                          <span className="tabular-nums text-foreground/70">
+                            {totalAnalyses > 0 ? `${totalAnalyses}회` : <span className="text-muted-foreground/50">—</span>}
+                          </span>
+                          {isExhausted && <ResetFreeCreditsButton userId={row.id} />}
+                        </div>
                       </td>
                       <td className="whitespace-nowrap px-4 py-2.5 tabular-nums text-muted-foreground">
                         {row.created_at ? formatDateTime(row.created_at) : "—"}

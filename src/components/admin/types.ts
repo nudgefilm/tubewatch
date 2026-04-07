@@ -43,6 +43,7 @@ export type AdminUserRow = {
   purchased_credits: number | null;
   plan_id: string | null;
   subscription_status: string | null;
+  total_analyses_count: number;
 };
 
 export type AdminUsersData = {

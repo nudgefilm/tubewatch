@@ -2,7 +2,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import type { AdminUsersData, AdminUserRow } from "@/components/admin/types";
 
 export async function getAdminUsersData(): Promise<AdminUsersData> {
-  const [authRes, channelsRes, profilesRes, creditsRes, subscriptionsRes] = await Promise.all([
+  const [authRes, channelsRes, profilesRes, creditsRes, subscriptionsRes, analysisJobsRes] = await Promise.all([
     supabaseAdmin.auth.admin.listUsers({ perPage: 200 }),
     supabaseAdmin.from("user_channels").select("user_id"),
     supabaseAdmin.from("profiles").select("id, role"),
@@ -12,6 +12,10 @@ export async function getAdminUsersData(): Promise<AdminUsersData> {
     supabaseAdmin
       .from("user_subscriptions")
       .select("user_id, plan_id, status"),
+    supabaseAdmin
+      .from("analysis_jobs")
+      .select("user_id")
+      .eq("status", "completed"),
   ]);
 
   const authUsers = authRes.data?.users ?? [];
@@ -39,6 +43,12 @@ export async function getAdminUsersData(): Promise<AdminUsersData> {
     subsMap.set(row.user_id, row);
   }
 
+  const analysisCountMap = new Map<string, number>();
+  for (const row of (analysisJobsRes.data ?? []) as { user_id: string | null }[]) {
+    if (!row.user_id) continue;
+    analysisCountMap.set(row.user_id, (analysisCountMap.get(row.user_id) ?? 0) + 1);
+  }
+
   const rows: AdminUserRow[] = authUsers.map((u) => {
     const meta = u.user_metadata ?? {};
     const credits = creditsMap.get(u.id);
@@ -56,6 +66,7 @@ export async function getAdminUsersData(): Promise<AdminUsersData> {
       role: roleMap.get(u.id) ?? null,
       lifetime_analyses_used: credits?.lifetime_analyses_used ?? null,
       purchased_credits: credits?.purchased_credits ?? null,
+      total_analyses_count: analysisCountMap.get(u.id) ?? 0,
       plan_id: sub?.plan_id ?? null,
       subscription_status: sub?.status ?? null,
     };
