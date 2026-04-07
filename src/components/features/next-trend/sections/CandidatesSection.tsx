@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { TrendingUp } from "lucide-react"
+import { TrendingUp, Antenna } from "lucide-react"
 import { EvidenceBlock } from "@/components/common/EvidenceBlock"
 import type { TrendCandidate } from "@/mocks/next-trend"
 
@@ -12,9 +12,9 @@ interface NextTrendCandidatesSectionProps {
 }
 
 const signalStrengthBadgeConfig = {
-  clear: { label: "반복 신호 확인됨", className: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
-  medium: { label: "신호 감지 중", className: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400" },
-  low: { label: "표본 부족", className: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400" },
+  clear: { label: "반복 신호 확인됨", className: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400", icon: false },
+  medium: { label: "신호감지", className: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400", icon: true },
+  low: { label: "표본 부족", className: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400", icon: false },
 }
 
 function feasibilityHint(feasibility: number): string {
@@ -77,6 +77,7 @@ export function NextTrendCandidatesSection({ data }: NextTrendCandidatesSectionP
 
                     {/* 신호 강도 뱃지 */}
                     <Badge variant="outline" className={`text-xs ${badge.className}`}>
+                      {badge.icon && <Antenna className="mr-1 h-3 w-3 shrink-0" />}
                       {badge.label}
                     </Badge>
 
