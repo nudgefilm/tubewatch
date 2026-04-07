@@ -19,11 +19,7 @@ export function ActionPlanEmptyState({ channelId }: ActionPlanEmptyStateProps) {
   const router = useRouter()
 
   const handleNavigate = () => {
-    if (channelId) {
-      router.push(`/analysis?channel=${channelId}`)
-    } else {
-      router.push("/channels")
-    }
+    router.push("/channels")
   }
 
   return (
