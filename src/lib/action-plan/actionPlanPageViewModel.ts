@@ -1209,11 +1209,6 @@ export function buildActionPlanPageViewModel(
     limitNotice = limitNotice ? `${limitNotice} ${extra}` : extra;
   }
 
-  if (channelDnaRows.length > 0) {
-    const benchLine =
-      "일부 우선순위 카드는 채널 DNA와 동일한 저장 스냅샷에서 계산된 내부 신호를 근거로 합니다.";
-    limitNotice = limitNotice ? `${limitNotice} ${benchLine}` : benchLine;
-  }
 
   if (actions.length === 0) {
     const base =
