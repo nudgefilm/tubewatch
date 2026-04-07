@@ -62,18 +62,22 @@ export async function handleSubscriptionCheckoutCompleted(
 
   let status: string;
   let currentPeriodEnd: string | null = null;
+  let currentPeriodStart: string | null = null;
   if (typeof subscriptionIdRaw === "object" && subscriptionIdRaw !== null) {
     const sub = subscriptionIdRaw as Stripe.Subscription & {
       current_period_end?: number;
+      current_period_start?: number;
     };
     status = sub.status ?? "active";
     currentPeriodEnd = toTimestamp(sub.current_period_end);
+    currentPeriodStart = toTimestamp(sub.current_period_start);
   } else {
     const stripe = getStripe();
     const subscription = await stripe.subscriptions.retrieve(subscriptionId);
     status = subscription.status;
-    const subWithPeriod = subscription as { current_period_end?: number };
+    const subWithPeriod = subscription as { current_period_end?: number; current_period_start?: number };
     currentPeriodEnd = toTimestamp(subWithPeriod.current_period_end);
+    currentPeriodStart = toTimestamp(subWithPeriod.current_period_start);
   }
 
   const now = new Date().toISOString();
@@ -83,6 +87,7 @@ export async function handleSubscriptionCheckoutCompleted(
     stripe_subscription_id: subscriptionId,
     plan_id: planIdRaw,
     subscription_status: status,
+    current_period_start: currentPeriodStart,
     current_period_end: currentPeriodEnd,
     updated_at: now,
   };
@@ -108,15 +113,18 @@ export async function handleSubscriptionUpdated(
 ): Promise<SubscriptionWebhookResult> {
   const subscriptionId = subscription.id;
   const status = subscription.status;
-  const subWithPeriod = subscription as { current_period_end?: number };
+  const subWithPeriod = subscription as { current_period_end?: number; current_period_start?: number };
   const currentPeriodEnd = toTimestamp(subWithPeriod.current_period_end);
+  const currentPeriodStart = toTimestamp(subWithPeriod.current_period_start);
 
   const updates: {
     subscription_status: string;
+    current_period_start: string | null;
     current_period_end: string | null;
     updated_at: string;
   } = {
     subscription_status: status,
+    current_period_start: currentPeriodStart,
     current_period_end: currentPeriodEnd,
     updated_at: new Date().toISOString(),
   };
@@ -141,11 +149,11 @@ export async function handleSubscriptionDeleted(
   const subscriptionId = subscription.id;
   const status = subscription.status;
 
+  const subDel = subscription as { current_period_end?: number; current_period_start?: number };
   const updates = {
     subscription_status: status,
-    current_period_end: toTimestamp(
-      (subscription as { current_period_end?: number }).current_period_end
-    ),
+    current_period_start: toTimestamp(subDel.current_period_start),
+    current_period_end: toTimestamp(subDel.current_period_end),
     updated_at: new Date().toISOString(),
   };
 
