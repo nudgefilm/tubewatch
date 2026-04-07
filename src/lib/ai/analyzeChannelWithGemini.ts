@@ -392,7 +392,7 @@ function extractResponseText(data: unknown): string {
   return texts.join("").trim();
 }
 
-const GEMINI_RETRY_DELAYS_MS = [3000, 7000]; // 2회 재시도: 3s, 7s
+const GEMINI_RETRY_DELAYS_MS = [5000, 12000, 25000]; // 3회 재시도: 5s, 12s, 25s (503/429 high demand 대응)
 
 async function callGeminiOnce(
   endpoint: string,
