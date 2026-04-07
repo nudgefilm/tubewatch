@@ -212,57 +212,49 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                 )}
               </section>
 
-              {/* [2] 포맷 방향 */}
-              <section className="space-y-4">
-                <div className="border-l-4 border-primary pl-3">
-                  <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><Video className="size-5 shrink-0 text-primary" />포맷 방향</h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">다음 영상에 적용할 길이·형식 권장</p>
-                </div>
-                {formats.length > 0 ? (
-                  <NextTrendFormatSection data={formats} />
-                ) : (
-                  <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-                    포맷 데이터가 아직 없습니다. 분석 후 자동으로 채워집니다.
-                  </div>
-                )}
-                {/* 리스크 메모 — 있을 때만 인라인 표시 */}
-                {riskSignal.hasRisk && (
-                  <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-900/40 dark:bg-amber-900/10">
-                    <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                    <div className="space-y-0.5">
-                      <p className="text-sm font-medium text-amber-800 dark:text-amber-300">주의할 신호</p>
-                      <p className="text-sm text-amber-700 dark:text-amber-400">{riskSignal.topic}</p>
-                    </div>
-                  </div>
-                )}
-              </section>
-
-              {/* [3] 데이터 인사이트 — 태그 효율성 + 시간대별 반응도 + 체류 시간 예측 */}
-              {(viewModel.tagEfficiency.length > 0 || viewModel.temporalResonance != null || viewModel.watchTimeCatalyst != null) && (
-                <section className="space-y-4">
-                  <div className="border-l-4 border-primary pl-3">
-                    <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><FlaskConical className="size-5 shrink-0 text-primary" />성공 공식 분석</h2>
-                    <p className="text-xs text-muted-foreground mt-0.5">내 데이터 안에서 발견된 조회수·참여율 패턴</p>
-                  </div>
-                  <NextTrendDataInsightsSection
-                    tagEfficiency={viewModel.tagEfficiency}
-                    temporalResonance={viewModel.temporalResonance}
-                    watchTimeCatalyst={viewModel.watchTimeCatalyst}
-                  />
-                </section>
-              )}
-
-              {/* [4] 실행 힌트 — Starter 차단 */}
-              {isStarterPlan ? (
-                <FeaturePaywallBlock
-                  title="제목·훅·썸네일에 바로 적용할 실행 힌트가 준비되어 있습니다."
-                  description="1순위 주제를 실제 영상으로 만들기 위한 구체적인 방향을 확인하세요."
-                  ctaLabel="실행 힌트 + 영상 기획안 열기"
-                  planLabel="Growth"
-                  previewHint="제목 방향, 훅 전략, 썸네일 방향, 영상 기획안이 이어집니다"
-                />
-              ) : (
+              {/* [2] 포맷 방향 이후 — Starter 플랜 차단 */}
+              {!isStarterPlan && (
                 <>
+                  {/* [2] 포맷 방향 */}
+                  <section className="space-y-4">
+                    <div className="border-l-4 border-primary pl-3">
+                      <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><Video className="size-5 shrink-0 text-primary" />포맷 방향</h2>
+                      <p className="text-xs text-muted-foreground mt-0.5">다음 영상에 적용할 길이·형식 권장</p>
+                    </div>
+                    {formats.length > 0 ? (
+                      <NextTrendFormatSection data={formats} />
+                    ) : (
+                      <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                        포맷 데이터가 아직 없습니다. 분석 후 자동으로 채워집니다.
+                      </div>
+                    )}
+                    {riskSignal.hasRisk && (
+                      <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-900/40 dark:bg-amber-900/10">
+                        <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                        <div className="space-y-0.5">
+                          <p className="text-sm font-medium text-amber-800 dark:text-amber-300">주의할 신호</p>
+                          <p className="text-sm text-amber-700 dark:text-amber-400">{riskSignal.topic}</p>
+                        </div>
+                      </div>
+                    )}
+                  </section>
+
+                  {/* [3] 데이터 인사이트 */}
+                  {(viewModel.tagEfficiency.length > 0 || viewModel.temporalResonance != null || viewModel.watchTimeCatalyst != null) && (
+                    <section className="space-y-4">
+                      <div className="border-l-4 border-primary pl-3">
+                        <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><FlaskConical className="size-5 shrink-0 text-primary" />성공 공식 분석</h2>
+                        <p className="text-xs text-muted-foreground mt-0.5">내 데이터 안에서 발견된 조회수·참여율 패턴</p>
+                      </div>
+                      <NextTrendDataInsightsSection
+                        tagEfficiency={viewModel.tagEfficiency}
+                        temporalResonance={viewModel.temporalResonance}
+                        watchTimeCatalyst={viewModel.watchTimeCatalyst}
+                      />
+                    </section>
+                  )}
+
+                  {/* [4] 실행 힌트 */}
                   <section className="space-y-4">
                     <div className="border-l-4 border-primary pl-3">
                       <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><Zap className="size-5 shrink-0 text-primary" />실행 힌트</h2>
@@ -271,7 +263,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                     <ExecutionHintDocument markdown={executionHintDocument} />
                   </section>
 
-                  {/* [4] 영상 기획안 */}
+                  {/* [5] 영상 기획안 */}
                   {actions.length > 0 && (
                     <section className="space-y-4">
                       <div className="border-l-4 border-primary pl-3">
