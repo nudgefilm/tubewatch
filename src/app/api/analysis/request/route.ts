@@ -431,16 +431,31 @@ export async function POST(request: Request) {
 
     if (!gemini.ok) {
       console.error("[Analysis Start API] error: Gemini failed:", gemini.error);
-      void updateJobStep("failed", "failed");
-      if (reservationId) void rollbackCredit(reservationId, isFreePlan);
       const isOverloaded = typeof gemini.error === "string" &&
         (gemini.error.includes("high demand") || gemini.error.includes("503") ||
          gemini.error.includes("UNAVAILABLE") || gemini.error.includes("overloaded"));
-      const userMessage = isOverloaded
-        ? "튜브워치 엔진은 정상 가동 중이나, 연동된 LLM 서버의 일시적인 분석 요청 폭주로 지연이 발생하고 있습니다. 튜브워치 외부 통신 문제이오니 약 1~2분 뒤에 다시 시도해 주시기 바랍니다."
-        : `AI 분석에 실패했습니다: ${gemini.error}`;
+
+      if (isOverloaded) {
+        // 과부하 시 job을 "queued" 상태로 전환 — 클라이언트가 countdown 후 자동 재시도
+        const RETRY_AFTER_SEC = 90;
+        await supabaseAdmin.from("analysis_jobs").update({
+          status: "queued",
+          progress_step: "queued",
+          retry_after: new Date(Date.now() + RETRY_AFTER_SEC * 1000).toISOString(),
+          retry_count: 1,
+        }).eq("id", jobId);
+        if (reservationId) void rollbackCredit(reservationId, isFreePlan);
+        console.log("[Analysis Start API] Gemini overloaded — job queued for retry:", jobId, "retryAfter:", RETRY_AFTER_SEC + "s");
+        return NextResponse.json(
+          { ok: false, code: "OVERLOAD_QUEUED", retryAfter: RETRY_AFTER_SEC },
+          { status: 503 }
+        );
+      }
+
+      void updateJobStep("failed", "failed");
+      if (reservationId) void rollbackCredit(reservationId, isFreePlan);
       return NextResponse.json(
-        { ok: false, error: userMessage },
+        { ok: false, error: `AI 분석에 실패했습니다: ${gemini.error}` },
         { status: 502 }
       );
     }

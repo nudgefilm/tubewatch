@@ -9,12 +9,16 @@ import {
 } from "@/lib/channels/selectedChannelStorage";
 import { FREE_LIFETIME_ANALYSIS_LIMIT } from "@/components/billing/types";
 import { OverloadRetryBanner } from "@/components/features/shared/OverloadRetryBanner";
+import { AnalysisWaitingCard } from "@/components/channels/AnalysisWaitingCard";
 
 type ChannelRow = {
   id: string;
   channel_title: string | null;
   channel_url: string | null;
   channel_id: string | null;
+  thumbnail_url: string | null;
+  subscriber_count: number | null;
+  video_count: number | null;
   created_at?: string | null;
 };
 
@@ -42,6 +46,8 @@ export default function ChannelsPageClient({
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [creditsExhausted, setCreditsExhausted] = useState(false);
   const [progressStep, setProgressStep] = useState<string | null>(null);
+  const [overloadQueued, setOverloadQueued] = useState(false);
+  const [overloadRetryAfterSec, setOverloadRetryAfterSec] = useState(90);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // localStorage에서 선택 채널 초기화
@@ -148,6 +154,7 @@ export default function ChannelsPageClient({
     setIsNavigating(true);
     setAnalysisError(null);
     setProgressStep("fetching_yt");
+    setOverloadQueued(false);
 
     const channelId = selectedChannel.id;
 
@@ -177,6 +184,7 @@ export default function ChannelsPageClient({
           ok?: boolean;
           code?: string;
           error?: string;
+          retryAfter?: number;
           analysisResultId?: string;
         };
         console.log("[Analysis Start UI] response:", result);
@@ -193,6 +201,13 @@ export default function ChannelsPageClient({
             setAnalysisError(result.error ?? "분석 크레딧이 소진되었습니다.");
             setIsNavigating(false);
             setProgressStep(null);
+          } else if (result.code === "OVERLOAD_QUEUED") {
+            // 과부하 큐 대기 — 에러 없이 waiting card로 전환
+            setIsNavigating(false);
+            setProgressStep(null);
+            setOverloadRetryAfterSec(result.retryAfter ?? 90);
+            setOverloadQueued(true);
+            console.log("[Analysis Start UI] overload queued — retryAfter:", result.retryAfter ?? 90, "s");
           } else {
             setAnalysisError(result.error ?? "분석 요청에 실패했습니다.");
             setIsNavigating(false);
@@ -316,10 +331,10 @@ export default function ChannelsPageClient({
             )}
           </div>
         </div>
-        <div className="mt-4 space-y-2">
+        <div className="mt-4 space-y-3">
           <button
             type="button"
-            disabled={!selectedChannel || isNavigating || creditsExhausted}
+            disabled={!selectedChannel || isNavigating || overloadQueued || creditsExhausted}
             onClick={handleStartAnalysis}
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
           >
@@ -328,17 +343,30 @@ export default function ChannelsPageClient({
                 <svg className="size-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                   <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
                 </svg>
-                {progressStep === "fetching_yt" && "유튜브 데이터 수집 중…"}
-                {progressStep === "processing_data" && "데이터 처리 중…"}
-                {progressStep === "generating_ai" && "AI 분석 중… (30–60초 소요)"}
-                {progressStep === "saving_results" && "결과 저장 중…"}
-                {(!progressStep || (progressStep !== "fetching_yt" && progressStep !== "processing_data" && progressStep !== "generating_ai" && progressStep !== "saving_results")) && "분석 중…"}
+                분석 중…
               </>
             ) : (
               "채널분석 시작"
             )}
           </button>
-          {analysisError && !creditsExhausted && (
+
+          {/* 분석 대기 카드 — 진행 중이거나 과부하 큐 대기 중일 때 표시 */}
+          {selectedChannel && (isNavigating || overloadQueued) && (
+            <AnalysisWaitingCard
+              channel={{
+                title: selectedChannel.channel_title,
+                thumbnailUrl: selectedChannel.thumbnail_url ?? null,
+                subscriberCount: selectedChannel.subscriber_count ?? null,
+                videoCount: selectedChannel.video_count ?? null,
+              }}
+              progressStep={progressStep}
+              isOverloadQueued={overloadQueued}
+              retryAfterSec={overloadRetryAfterSec}
+              onRetry={handleStartAnalysis}
+            />
+          )}
+
+          {analysisError && !creditsExhausted && !overloadQueued && (
             <OverloadRetryBanner message={analysisError} isRequesting={isNavigating} onRetry={handleStartAnalysis} />
           )}
           {creditsExhausted && (

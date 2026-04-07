@@ -37,7 +37,7 @@ export async function GET(request: Request) {
 
   const { data, error } = await supabaseAdmin
     .from("analysis_jobs")
-    .select("id, status, progress_step, started_at")
+    .select("id, status, progress_step, started_at, retry_after, retry_count")
     .eq("user_channel_id", channelId)
     .eq("user_id", user.id)
     .order("started_at", { ascending: false })
@@ -52,11 +52,13 @@ export async function GET(request: Request) {
     return NextResponse.json({ job: null });
   }
 
+  const d = data as { id: string; status: string; progress_step: string | null; retry_after: string | null; retry_count: number };
   return NextResponse.json({
     job: {
-      id: (data as { id: string }).id,
-      status: (data as { status: string }).status,
-      progress_step: (data as { progress_step: string | null }).progress_step ?? null,
+      id: d.id,
+      status: d.status,
+      progress_step: d.progress_step ?? null,
+      retry_after: d.retry_after ?? null,
     },
   });
 }
