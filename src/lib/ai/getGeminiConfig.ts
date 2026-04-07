@@ -215,27 +215,27 @@ export type TubeWatchAnalysisResult = {
             },
             vpd_sec1: {
               type: "string",
-              description: "## 1. 기획 의도 (The Logic) — 채널 메트릭·수치 인용, 왜 이 주제가 맞는지 2~3문단. 빈 문자열 금지.",
+              description: "## 1. 기획 의도 (The Logic) — 채널 메트릭·수치 인용, 왜 이 주제가 맞는지 2~3문단. 소제목은 ### 사용. **볼드** 마크다운 사용 금지. 빈 문자열 금지.",
             },
             vpd_sec2: {
               type: "string",
-              description: "## 2. 킬러 타이틀 & 썸네일 (The Hook) — 제목 후보 3개(유형 레이블 포함)와 썸네일 전략 2~3문장. 빈 문자열 금지.",
+              description: "## 2. 킬러 타이틀 & 썸네일 (The Hook) — 제목 후보 3개는 마크다운 번호 리스트(1. 2. 3.)로 작성. 썸네일 전략 2~3문장. 소제목은 ### 사용. **볼드** 마크다운 사용 금지. 빈 문자열 금지.",
             },
             vpd_sec3: {
               type: "string",
-              description: "## 3. 인트로 30초 설계 (The Retention) — 00:00-00:10 / 00:10-00:30 타임스탬프별 장면·대사 지시. 빈 문자열 금지.",
+              description: "## 3. 인트로 30초 설계 (The Retention) — 00:00-00:10 / 00:10-00:30 타임스탬프별 장면·대사 지시. 소제목은 ### 사용. **볼드** 마크다운 사용 금지. 빈 문자열 금지.",
             },
             vpd_sec4: {
               type: "string",
-              description: "## 4. 메인 콘텐츠 구성 (The Body) — Chapter 2~3개, 소제목 + 핵심 내용 한 문단씩. 빈 문자열 금지.",
+              description: "## 4. 메인 콘텐츠 구성 (The Body) — Chapter 2~3개, 소제목 ### + 핵심 내용 한 문단씩. **볼드** 마크다운 사용 금지. 빈 문자열 금지.",
             },
             vpd_sec5: {
               type: "string",
-              description: "## 5. 시청자 결핍 & SEO (The Value) — 시청자 심리적 니즈 서술 + 핵심 키워드 5~8개 #태그. 빈 문자열 금지.",
+              description: "## 5. 시청자 결핍 & SEO (The Value) — 시청자 심리적 니즈 서술 + 핵심 키워드 5~8개 #태그. 소제목은 ### 사용. **볼드** 마크다운 사용 금지. 빈 문자열 금지.",
             },
             vpd_sec6: {
               type: "string",
-              description: "## 6. 예상 시청자 반응 (The Outcome) — 예상 댓글 2개, 조회수 예상 범위, 48시간 체크포인트. 빈 문자열 금지.",
+              description: "## 6. 예상 시청자 반응 (The Outcome) — 예상 댓글 2개(마크다운 번호 리스트), 조회수 예상 범위, 48시간 체크포인트. **볼드** 마크다운 사용 금지. 빈 문자열 금지.",
             },
             execution_hint_document: {
               type: "string",

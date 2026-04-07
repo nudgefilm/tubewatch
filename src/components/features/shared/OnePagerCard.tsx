@@ -67,7 +67,7 @@ function renderInline(text: string): React.ReactNode[] {
   text = stripEmoji(text)
   return text.split(/(\*\*[^*]+\*\*)/).map((part, idx) =>
     part.startsWith("**") && part.endsWith("**")
-      ? <strong key={idx} className="font-semibold text-foreground">{part.slice(2, -2)}</strong>
+      ? <strong key={idx} className="font-medium text-foreground/80">{part.slice(2, -2)}</strong>
       : <span key={idx}>{part}</span>
   )
 }
