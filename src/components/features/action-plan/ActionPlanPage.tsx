@@ -59,16 +59,9 @@ export function ActionPlanPage({ channelId = "", channelContext, viewModel, isSt
             </div>
           )}
 
-          {/* 분석 결과 없음 — 빈 화면 대신 안내 + 최소 상태 렌더 */}
+          {/* 분석 결과 없음 — 빈 화면 대신 안내 */}
           {!viewModel.hasAnalysis && (
-            <>
-              {viewModel.hasChannel && viewModel.limitNotice && (
-                <div className="rounded-lg border border-amber-200 bg-amber-50/50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/20 dark:text-amber-300">
-                  {viewModel.limitNotice}
-                </div>
-              )}
-              <ActionPlanEmptyState channelId={viewModel.selectedChannelId ?? undefined} />
-            </>
+            <ActionPlanEmptyState channelId={viewModel.selectedChannelId ?? undefined} />
           )}
 
           {/* 분석 결과 있음 — 데이터 제한 안내 */}
