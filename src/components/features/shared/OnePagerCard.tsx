@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, startTransition } from "react"
 import {
   Download, ChevronDown, ChevronUp, FileText,
   MapPin, TrendingUp, AlertTriangle, Target, BarChart2,
@@ -241,7 +241,7 @@ export function OnePagerCard({
             <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">{preview}</p>
           </div>
           <button
-            onClick={() => setExpanded(true)}
+            onClick={() => startTransition(() => setExpanded(true))}
             className="mt-5 flex w-full items-center justify-center gap-1.5 rounded-lg border border-primary/25 bg-primary/5 px-4 py-2.5 text-[13px] font-semibold text-primary hover:bg-primary/10 active:scale-[0.99] transition-all"
           >
             <FileText className="size-3.5 shrink-0" />
