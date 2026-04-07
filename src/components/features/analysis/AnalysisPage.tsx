@@ -411,27 +411,6 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
 
           <AnalysisHeaderSection channel={channelData} />
 
-          {/* 구버전 스냅샷 감지 — 재분석 유도 UI */}
-          {viewModel.isLegacySnapshot && (
-            <div className="rounded-lg border border-amber-300 bg-amber-50 px-5 py-4 space-y-3 dark:border-amber-700 dark:bg-amber-950/40">
-              <div>
-                <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">이 분석은 최신 데이터가 아닙니다</p>
-                <p className="mt-1 text-sm text-amber-800 dark:text-amber-300">
-                  이 채널은 이전 방식으로 생성된 분석 결과입니다. 최신 영상 데이터를 반영하려면 재분석이 필요합니다.
-                </p>
-              </div>
-              {requestError && (
-                <p className="text-xs text-red-600 dark:text-red-400">{requestError}</p>
-              )}
-              <button
-                onClick={() => void handleReanalyze()}
-                disabled={isRequesting}
-                className="inline-flex items-center justify-center rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-amber-700 disabled:opacity-60 transition-colors"
-              >
-                {isRequesting ? "분석 중…" : "지금 다시 분석하기"}
-              </button>
-            </div>
-          )}
 
           {/* 분석 결과 없음 안내 — 빈 화면 대신 최소 상태로 계속 렌더 */}
           {!viewModel.hasAnalysisResult && (
