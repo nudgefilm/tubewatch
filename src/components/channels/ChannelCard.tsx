@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { formatDateTime } from '@/lib/format/formatDateTime'
+import { OverloadRetryBanner } from '@/components/features/shared/OverloadRetryBanner'
 
 type Channel = {
   id: string
@@ -193,8 +194,8 @@ export default function ChannelCard({
         </div>
       ) : null}
       {errorMessage ? (
-        <div className="mx-5 mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
-          {errorMessage}
+        <div className="mx-5 mb-3">
+          <OverloadRetryBanner message={errorMessage} isRequesting={isRequesting} onRetry={() => void handleRequestAnalysis()} />
         </div>
       ) : null}
 

@@ -8,6 +8,7 @@ import {
   writeSelectedChannelIdToStorage,
 } from "@/lib/channels/selectedChannelStorage";
 import { FREE_LIFETIME_ANALYSIS_LIMIT } from "@/components/billing/types";
+import { OverloadRetryBanner } from "@/components/features/shared/OverloadRetryBanner";
 
 type ChannelRow = {
   id: string;
@@ -139,6 +140,81 @@ export default function ChannelsPageClient({
   // E2E 진단 로그 — 선택 상태 추적
   console.log("[Channels/state] selectedChannelId:", selectedChannelId, "→ selectedChannel:", selectedChannel ? { id: selectedChannel.id, title: selectedChannel.channel_title } : null, "| channels.length:", channels.length);
 
+  const handleStartAnalysis = useCallback(() => {
+    if (!selectedChannel || !selectedChannel.id || isNavigating) {
+      setAnalysisError("선택된 채널 정보를 찾을 수 없습니다. 채널을 다시 선택하세요.");
+      return;
+    }
+    setIsNavigating(true);
+    setAnalysisError(null);
+    setProgressStep("fetching_yt");
+
+    const channelId = selectedChannel.id;
+
+    if (pollRef.current) clearInterval(pollRef.current);
+    pollRef.current = setInterval(() => {
+      void fetch(`/api/analysis/job-status?channelId=${channelId}`, { credentials: "include" })
+        .then((r) => r.json())
+        .then((d: { job?: { progress_step?: string | null } | null }) => {
+          const step = d.job?.progress_step;
+          if (step) setProgressStep(step);
+        })
+        .catch(() => undefined);
+    }, 2500);
+    console.log("[Analysis Start UI] selectedChannel:", { id: channelId, title: selectedChannel.channel_title });
+
+    const payload = { channelId };
+    console.log("[Analysis Start UI] request payload:", payload);
+
+    fetch("/api/analysis/request", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+      .then(async (res) => {
+        const result = await res.json().catch(() => ({})) as {
+          ok?: boolean;
+          code?: string;
+          error?: string;
+          analysisResultId?: string;
+        };
+        console.log("[Analysis Start UI] response:", result);
+
+        if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
+
+        if (!res.ok) {
+          if (result.code === "COOLDOWN_ACTIVE") {
+            const dest = `/analysis?channel=${channelId}`;
+            console.log("[Analysis Start UI] navigate to:", dest, "(cooldown)");
+            router.push(dest);
+          } else if (result.code === "CREDITS_EXHAUSTED") {
+            setCreditsExhausted(true);
+            setAnalysisError(result.error ?? "분석 크레딧이 소진되었습니다.");
+            setIsNavigating(false);
+            setProgressStep(null);
+          } else {
+            setAnalysisError(result.error ?? "분석 요청에 실패했습니다.");
+            setIsNavigating(false);
+            setProgressStep(null);
+          }
+          return;
+        }
+
+        const dest = `/analysis?channel=${channelId}`;
+        console.log("[Analysis Start UI] navigate to:", dest);
+        router.push(dest);
+      })
+      .catch((err: unknown) => {
+        if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
+        console.error("[Analysis Start UI] fetch error:", err);
+        setAnalysisError("네트워크 오류가 발생했습니다. 다시 시도하세요.");
+        setIsNavigating(false);
+        setProgressStep(null);
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedChannel, isNavigating, router]);
+
   return (
     <div className="mx-auto max-w-3xl space-y-8 px-6 py-10">
       <div>
@@ -244,83 +320,7 @@ export default function ChannelsPageClient({
           <button
             type="button"
             disabled={!selectedChannel || isNavigating || creditsExhausted}
-            onClick={() => {
-              // 반드시 selectedChannel 객체 기준으로만 판단
-              if (!selectedChannel || !selectedChannel.id || isNavigating) {
-                setAnalysisError("선택된 채널 정보를 찾을 수 없습니다. 채널을 다시 선택하세요.");
-                return;
-              }
-              setIsNavigating(true);
-              setAnalysisError(null);
-              setProgressStep("fetching_yt");
-
-              const channelId = selectedChannel.id;
-
-              // 진행 단계 폴링 시작 (2.5초 간격)
-              if (pollRef.current) clearInterval(pollRef.current);
-              pollRef.current = setInterval(() => {
-                void fetch(`/api/analysis/job-status?channelId=${channelId}`, { credentials: "include" })
-                  .then((r) => r.json())
-                  .then((d: { job?: { progress_step?: string | null } | null }) => {
-                    const step = d.job?.progress_step;
-                    if (step) setProgressStep(step);
-                  })
-                  .catch(() => undefined);
-              }, 2500);
-              console.log("[Analysis Start UI] selectedChannel:", { id: channelId, title: selectedChannel.channel_title });
-
-              const payload = { channelId };
-              console.log("[Analysis Start UI] request payload:", payload);
-
-              fetch("/api/analysis/request", {
-                method: "POST",
-                credentials: "include",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-              })
-                .then(async (res) => {
-                  const result = await res.json().catch(() => ({})) as {
-                    ok?: boolean;
-                    code?: string;
-                    error?: string;
-                    analysisResultId?: string;
-                  };
-                  console.log("[Analysis Start UI] response:", result);
-
-                  if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
-
-                  if (!res.ok) {
-                    if (result.code === "COOLDOWN_ACTIVE") {
-                      // 쿨다운 중 → 기존 분석 결과 표시
-                      const dest = `/analysis?channel=${channelId}`;
-                      console.log("[Analysis Start UI] navigate to:", dest, "(cooldown)");
-                      router.push(dest);
-                    } else if (result.code === "CREDITS_EXHAUSTED") {
-                      setCreditsExhausted(true);
-                      setAnalysisError(result.error ?? "분석 크레딧이 소진되었습니다.");
-                      setIsNavigating(false);
-                      setProgressStep(null);
-                    } else {
-                      setAnalysisError(result.error ?? "분석 요청에 실패했습니다.");
-                      setIsNavigating(false);
-                      setProgressStep(null);
-                    }
-                    return;
-                  }
-
-                  // snapshot은 URL에 포함하지 않는 정책 — channel만 전달하면 서버가 latestResult로 렌더
-                  const dest = `/analysis?channel=${channelId}`;
-                  console.log("[Analysis Start UI] navigate to:", dest);
-                  router.push(dest);
-                })
-                .catch((err: unknown) => {
-                  if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
-                  console.error("[Analysis Start UI] fetch error:", err);
-                  setAnalysisError("네트워크 오류가 발생했습니다. 다시 시도하세요.");
-                  setIsNavigating(false);
-                  setProgressStep(null);
-                });
-            }}
+            onClick={handleStartAnalysis}
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {isNavigating ? (
@@ -339,7 +339,7 @@ export default function ChannelsPageClient({
             )}
           </button>
           {analysisError && !creditsExhausted && (
-            <p className="text-sm text-red-600">{analysisError}</p>
+            <OverloadRetryBanner message={analysisError} isRequesting={isNavigating} onRetry={handleStartAnalysis} />
           )}
           {creditsExhausted && (
             <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5">
