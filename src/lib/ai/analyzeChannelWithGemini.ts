@@ -306,7 +306,10 @@ function assembleVideoPlanDocument(obj: Record<string, unknown>): string {
     return sections
       .map(({ heading, key }) => {
         const content = normalizeString(obj[key]) ?? "";
-        return content ? `${heading}\n${content}` : "";
+        if (!content) return "";
+        // Gemini가 이미 ## 헤딩을 포함한 경우 중복 방지
+        const startsWithHeading = content.trimStart().startsWith("##");
+        return startsWithHeading ? content : `${heading}\n${content}`;
       })
       .filter(Boolean)
       .join("\n\n");
