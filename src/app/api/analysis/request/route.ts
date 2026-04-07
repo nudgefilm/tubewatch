@@ -433,8 +433,14 @@ export async function POST(request: Request) {
       console.error("[Analysis Start API] error: Gemini failed:", gemini.error);
       void updateJobStep("failed", "failed");
       if (reservationId) void rollbackCredit(reservationId, isFreePlan);
+      const isOverloaded = typeof gemini.error === "string" &&
+        (gemini.error.includes("high demand") || gemini.error.includes("503") ||
+         gemini.error.includes("UNAVAILABLE") || gemini.error.includes("overloaded"));
+      const userMessage = isOverloaded
+        ? "튜브워치 엔진은 정상 가동 중이나, 연동된 LLM 서버의 일시적인 분석 요청 폭주로 지연이 발생하고 있습니다. 튜브워치 외부 통신 문제이오니 약 1~2분 뒤에 다시 시도해 주시기 바랍니다."
+        : `AI 분석에 실패했습니다: ${gemini.error}`;
       return NextResponse.json(
-        { ok: false, error: `AI 분석에 실패했습니다: ${gemini.error}` },
+        { ok: false, error: userMessage },
         { status: 502 }
       );
     }
