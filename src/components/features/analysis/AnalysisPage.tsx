@@ -94,7 +94,7 @@ function ReanalyzeCooldownBox({ lastRunAt, sampleCount, isRequesting, requestErr
         <span className="shrink-0 mt-0.5">💡</span>
         <span>
           <span className="font-semibold">알림:</span>{" "}
-          최근 {sampleCount != null ? `${sampleCount}개` : ""} 영상이 분석에 반영되었습니다. 새로운 영상을 1개 이상 업로드한 후 재분석을 진행해야 가장 정확하고 의미 있는 최신 분석 데이터를 확인하실 수 있습니다.
+          최근 {sampleCount != null ? `${sampleCount}개` : "50개"} 영상이 분석에 반영되었습니다. 새로운 영상을 5개 이상 업로드한 후 재분석을 진행해야 의미 있는 최신 분석 데이터를 확인하실 수 있습니다.
         </span>
       </div>
 

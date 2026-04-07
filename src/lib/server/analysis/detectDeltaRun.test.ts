@@ -63,24 +63,40 @@ describe("re-analysis — no new videos (delta run)", () => {
 // ─── Re-analysis: new videos present ─────────────────────────────────────────
 
 describe("re-analysis — new videos present (full Gemini run)", () => {
-  it("one new video → isDeltaRun false", () => {
+  // 임계값 = 5: 1~4개 신규는 delta(skip), 5개 이상만 Gemini 재호출
+  it("1개 신규 → isDeltaRun true (임계값 미달, Gemini 스킵)", () => {
     const snapshot = { videos: [{ videoId: "v1" }, { videoId: "v2" }] };
     const result = detectDeltaRun(snapshot, ["v1", "v2", "v3"]);
-    expect(result.isDeltaRun).toBe(false);
+    expect(result.isDeltaRun).toBe(true);
     expect(result.newVideoCount).toBe(1);
   });
 
-  it("many new videos → isDeltaRun false, count correct", () => {
+  it("4개 신규 → isDeltaRun true (임계값 미달, Gemini 스킵)", () => {
     const snapshot = { videos: [{ videoId: "v1" }] };
     const result = detectDeltaRun(snapshot, ["v1", "v2", "v3", "v4", "v5"]);
-    expect(result.isDeltaRun).toBe(false);
+    expect(result.isDeltaRun).toBe(true);
     expect(result.newVideoCount).toBe(4);
   });
 
-  it("completely different video IDs (channel replaced all content) → isDeltaRun false", () => {
+  it("5개 신규 → isDeltaRun false (임계값 도달, Gemini 재호출)", () => {
+    const snapshot = { videos: [{ videoId: "v1" }] };
+    const result = detectDeltaRun(snapshot, ["v1", "v2", "v3", "v4", "v5", "v6"]);
+    expect(result.isDeltaRun).toBe(false);
+    expect(result.newVideoCount).toBe(5);
+  });
+
+  it("10개 신규 → isDeltaRun false, count correct", () => {
+    const snapshot = { videos: [{ videoId: "old1" }] };
+    const ids = ["old1", ...Array.from({ length: 10 }, (_, i) => `new${i}`)];
+    const result = detectDeltaRun(snapshot, ids);
+    expect(result.isDeltaRun).toBe(false);
+    expect(result.newVideoCount).toBe(10);
+  });
+
+  it("완전히 다른 ID 3개 → isDeltaRun true (5개 미달)", () => {
     const snapshot = { videos: [{ videoId: "old1" }, { videoId: "old2" }] };
     const result = detectDeltaRun(snapshot, ["new1", "new2", "new3"]);
-    expect(result.isDeltaRun).toBe(false);
+    expect(result.isDeltaRun).toBe(true);
     expect(result.newVideoCount).toBe(3);
   });
 });

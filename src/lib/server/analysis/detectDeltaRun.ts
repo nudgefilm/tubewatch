@@ -50,7 +50,8 @@ export function detectDeltaRun(
   }
 
   const newVideoCount = currentVideoIds.filter((id) => !prevVideoIdSet.has(id)).length;
-  const isDeltaRun = newVideoCount === 0;
+  // 신규 영상 5개 미만이면 Gemini 재호출 생략 — 1~4개 추가 시 분석 결과 변화 미미
+  const isDeltaRun = newVideoCount < 5;
 
   return { isDeltaRun, prevKnownCount: prevVideoIdSet.size, newVideoCount };
 }
