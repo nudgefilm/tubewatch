@@ -1,10 +1,16 @@
 import {
   getGeminiConfig,
   type TubeWatchAnalysisResult,
-  type NextTrendAIPlan,
   type ActionExecutionHint,
 } from "@/lib/ai/getGeminiConfig";
 import type { AnalysisContext } from "@/lib/analysis/engine/types";
+import {
+  normalizeNextTrendPlan,
+  normalizeString,
+  normalizeStringArray,
+  cleanInsightArray,
+  truncateToLimit,
+} from "@/lib/ai/parseNextTrendPlan";
 
 export type ChannelVideoSample = {
   videoId: string;
@@ -66,8 +72,6 @@ type GeminiCallFailure = {
 type GeminiCallResult = GeminiCallSuccess | GeminiCallFailure;
 
 type JsonObject = Record<string, unknown>;
-
-const MAX_ITEM_LENGTH = 120;
 
 const ARRAY_SOFT_LIMITS: Record<string, number> = {
   strengths: 4,
@@ -198,68 +202,7 @@ function tryParseJson(candidate: string): {
   }
 }
 
-// ── Insight item normalization ──
-
-const LEADING_MARKER_PATTERN =
-  /^(?:[\d]+[.)]\s*|[-*•·‣▸▹►→●○◆◇■□▪▫]\s*|[①②③④⑤⑥⑦⑧⑨⑩]\s*)/;
-
-function stripLeadingMarker(text: string): string {
-  return text.replace(LEADING_MARKER_PATTERN, "").trim();
-}
-
-function truncateToLimit(text: string, limit: number): string {
-  if (text.length <= limit) return text;
-
-  const cut = text.slice(0, limit);
-
-  const lastKoreanEnd = cut.lastIndexOf("다.");
-  if (lastKoreanEnd > limit * 0.5) {
-    return cut.slice(0, lastKoreanEnd + 2);
-  }
-
-  const lastPeriod = cut.lastIndexOf(".");
-  if (lastPeriod > limit * 0.5) {
-    return cut.slice(0, lastPeriod + 1);
-  }
-
-  return cut.trimEnd();
-}
-
-function deduplicateItems(items: string[]): string[] {
-  const seen = new Set<string>();
-  return items.filter((item) => {
-    const key = item.toLowerCase().replace(/\s+/g, " ").trim();
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
-
-function cleanInsightArray(items: string[], maxCount: number): string[] {
-  const cleaned = items
-    .map((item) => stripLeadingMarker(item.trim()))
-    .filter((item) => item.length > 0)
-    .map((item) => truncateToLimit(item, MAX_ITEM_LENGTH));
-
-  return deduplicateItems(cleaned).slice(0, maxCount);
-}
-
 // ── Field normalization ──
-
-function normalizeString(value: unknown): string | null {
-  if (typeof value !== "string") return null;
-  const text = value.trim();
-  return text.length > 0 ? text : null;
-}
-
-function normalizeStringArray(value: unknown): string[] {
-  if (!Array.isArray(value)) return [];
-
-  return value
-    .filter((item): item is string => typeof item === "string")
-    .map((item) => item.trim())
-    .filter((item) => item.length > 0);
-}
 
 function pickFirstNonEmptyString(...values: unknown[]): string | null {
   for (const value of values) {
@@ -287,90 +230,6 @@ function normalizeConfidence(
   }
 
   return null;
-}
-
-function assembleVideoPlanDocument(obj: Record<string, unknown>): string {
-  // vpd_sec1~6 개별 필드 우선 조합, 없으면 구버전 video_plan_document 폴백
-  const sections = [
-    { heading: "## 1. 기획 의도 (The Logic)", key: "vpd_sec1" },
-    { heading: "## 2. 킬러 타이틀 & 썸네일 (The Hook)", key: "vpd_sec2" },
-    { heading: "## 3. 인트로 30초 설계 (The Retention)", key: "vpd_sec3" },
-    { heading: "## 4. 메인 콘텐츠 구성 (The Body)", key: "vpd_sec4" },
-    { heading: "## 5. 시청자 결핍 & SEO (The Value)", key: "vpd_sec5" },
-    { heading: "## 6. 예상 시청자 반응 (The Outcome)", key: "vpd_sec6" },
-  ];
-
-  const hasSections = sections.some((s) => typeof obj[s.key] === "string" && (obj[s.key] as string).trim().length > 0);
-
-  if (hasSections) {
-    return sections
-      .map(({ heading, key }) => {
-        const content = normalizeString(obj[key]) ?? "";
-        if (!content) return "";
-        // Gemini가 이미 ## 헤딩을 포함한 경우 중복 방지
-        const startsWithHeading = content.trimStart().startsWith("##");
-        return startsWithHeading ? content : `${heading}\n${content}`;
-      })
-      .filter(Boolean)
-      .join("\n\n");
-  }
-
-  // 구버전 호환 폴백
-  return normalizeString(obj.video_plan_document) ?? "";
-}
-
-function normalizeNextTrendPlan(raw: unknown): NextTrendAIPlan | null {
-  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
-  const obj = raw as Record<string, unknown>;
-  const topic = normalizeString(obj.topic);
-  const why = normalizeString(obj.why_this_topic);
-  const pain = normalizeString(obj.pain_point);
-  if (!topic || !why || !pain) return null;
-  const titles = cleanInsightArray(normalizeStringArray(obj.title_candidates), 3);
-  const tags = cleanInsightArray(normalizeStringArray(obj.recommended_tags), 8);
-
-  // viewing_points normalization: clamp to 1–5 integers
-  const vpRaw = obj.viewing_points && typeof obj.viewing_points === "object" && !Array.isArray(obj.viewing_points)
-    ? (obj.viewing_points as Record<string, unknown>)
-    : null;
-  const clampScore = (v: unknown) => {
-    const n = typeof v === "number" ? v : typeof v === "string" ? parseFloat(v) : NaN;
-    return Number.isFinite(n) ? Math.max(1, Math.min(5, Math.round(n))) : 3;
-  };
-
-  const plan = {
-    topic: truncateToLimit(topic, 40),
-    why_this_topic: truncateToLimit(why, 300),
-    pain_point: truncateToLimit(pain, 200),
-    content_angle: truncateToLimit(normalizeString(obj.content_angle) ?? "", 150),
-    opening_hook: truncateToLimit(normalizeString(obj.opening_hook) ?? "", 200),
-    title_candidates: titles.length > 0 ? titles : [],
-    recommended_tags: tags,
-    script_outline: truncateToLimit(normalizeString(obj.script_outline) ?? "", 400),
-    thumbnail_direction: truncateToLimit(normalizeString(obj.thumbnail_direction) ?? "", 300),
-    content_plan: truncateToLimit(normalizeString(obj.content_plan) ?? "", 400),
-    exit_prevention: truncateToLimit(normalizeString(obj.exit_prevention) ?? "", 400),
-    expected_reaction: truncateToLimit(normalizeString(obj.expected_reaction) ?? "", 400),
-    viewing_points: {
-      popularity:      clampScore(vpRaw?.popularity),
-      expertise:       clampScore(vpRaw?.expertise),
-      stimulation:     clampScore(vpRaw?.stimulation),
-      informativeness: clampScore(vpRaw?.informativeness),
-      fan_service:     clampScore(vpRaw?.fan_service),
-    },
-    video_plan_document: assembleVideoPlanDocument(obj),
-    execution_hint_document: normalizeString(obj.execution_hint_document) ?? "",
-  };
-
-  // 진단 로그
-  const vpd = plan.video_plan_document;
-  const sectionCount = (vpd.match(/^## /gm) ?? []).length;
-  console.log("[Gemini] video_plan_document length:", vpd.length, "sections:", sectionCount);
-  if (sectionCount < 6) {
-    console.warn("[Gemini] video_plan_document 섹션 부족:", sectionCount, "/ 6 expected. 내용 앞 200자:", vpd.slice(0, 200));
-  }
-
-  return plan;
 }
 
 function normalizeActionExecutionHints(raw: unknown): ActionExecutionHint[] | null {
