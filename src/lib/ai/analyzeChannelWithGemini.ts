@@ -289,6 +289,33 @@ function normalizeConfidence(
   return null;
 }
 
+function assembleVideoPlanDocument(obj: Record<string, unknown>): string {
+  // vpd_sec1~6 개별 필드 우선 조합, 없으면 구버전 video_plan_document 폴백
+  const sections = [
+    { heading: "## 1. 기획 의도 (The Logic)", key: "vpd_sec1" },
+    { heading: "## 2. 킬러 타이틀 & 썸네일 (The Hook)", key: "vpd_sec2" },
+    { heading: "## 3. 인트로 30초 설계 (The Retention)", key: "vpd_sec3" },
+    { heading: "## 4. 메인 콘텐츠 구성 (The Body)", key: "vpd_sec4" },
+    { heading: "## 5. 시청자 결핍 & SEO (The Value)", key: "vpd_sec5" },
+    { heading: "## 6. 예상 시청자 반응 (The Outcome)", key: "vpd_sec6" },
+  ];
+
+  const hasSections = sections.some((s) => typeof obj[s.key] === "string" && (obj[s.key] as string).trim().length > 0);
+
+  if (hasSections) {
+    return sections
+      .map(({ heading, key }) => {
+        const content = normalizeString(obj[key]) ?? "";
+        return content ? `${heading}\n${content}` : "";
+      })
+      .filter(Boolean)
+      .join("\n\n");
+  }
+
+  // 구버전 호환 폴백
+  return normalizeString(obj.video_plan_document) ?? "";
+}
+
 function normalizeNextTrendPlan(raw: unknown): NextTrendAIPlan | null {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
   const obj = raw as Record<string, unknown>;
@@ -328,7 +355,7 @@ function normalizeNextTrendPlan(raw: unknown): NextTrendAIPlan | null {
       informativeness: clampScore(vpRaw?.informativeness),
       fan_service:     clampScore(vpRaw?.fan_service),
     },
-    video_plan_document: normalizeString(obj.video_plan_document) ?? "",
+    video_plan_document: assembleVideoPlanDocument(obj),
     execution_hint_document: normalizeString(obj.execution_hint_document) ?? "",
   };
 
@@ -805,27 +832,12 @@ ${videoLines.join("\n\n")}
 - title_candidates: 제목 후보 3개. 각 30자 이내. 위 레퍼런스 영상의 언어 감각 참고. 원시 수치 절대 금지. 번호·기호 없이 제목만.
 - recommended_tags: SEO 태그 5~8개. 단어 또는 짧은 구.
 - viewing_points: 5개 지표 1~5 정수. 채널 특성·주제 성격 반영. 모두 3점 동일 금지.
-- video_plan_document: [절대 필수 — 아래 ## 1 ~ ## 6 섹션을 전부 작성할 것. 3개 섹션에서 절대 멈추지 말 것. 6개 섹션 미완성 시 오답으로 간주. 빈 문자열 금지. 1000자 이상.] 위 [채널 정보]·[최근 영상 샘플]·[최고 성과 영상 레퍼런스]의 실제 수치·영상 제목·패턴을 직접 인용. 일반론 금지.
-
-  ## 1. 기획 의도 (The Logic)
-  채널 메트릭·실제 영상 성과 수치 인용. 왜 이 주제가 지금 이 채널에 맞는지. 2~3문단.
-
-  ## 2. 킬러 타이틀 & 썸네일 (The Hook)
-  제목 후보 3개, 각각 유형 레이블(감성형/희소성형/결과형 등) 붙여 제시. 이 채널 영상 패턴 기반 썸네일 전략 2~3문장.
-
-  ## 3. 인트로 30초 설계 (The Retention)
-  00:00-00:10 / 00:10-00:30 타임스탬프별 구체적 장면·대사 지시.
-
-  ## 4. 메인 콘텐츠 구성 (The Body)
-  Chapter 2~3개. 소제목 + 핵심 내용 한 문단씩.
-
-  ## 5. 시청자 결핍 & SEO (The Value)
-  시청자 심리적 니즈 서술. 핵심 키워드 5~8개 #태그 형식.
-
-  ## 6. 예상 시청자 반응 (The Outcome)
-  예상 댓글 2개 (실제 댓글 형태). 채널 평균 대비 조회수 예상 범위. 48시간 체크포인트.
-
-  ※ 위 6개 섹션(## 1 ~ ## 6)이 모두 포함되어야 합니다. 섹션 누락 시 재작성.
+- vpd_sec1: [## 1. 기획 의도 (The Logic)] 채널 메트릭·실제 영상 성과 수치 인용. 왜 이 주제가 지금 이 채널에 맞는지. 2~3문단. 빈 문자열 금지.
+- vpd_sec2: [## 2. 킬러 타이틀 & 썸네일 (The Hook)] 제목 후보 3개(유형 레이블 포함)와 이 채널 패턴 기반 썸네일 전략 2~3문장. 빈 문자열 금지.
+- vpd_sec3: [## 3. 인트로 30초 설계 (The Retention)] 00:00-00:10 / 00:10-00:30 타임스탬프별 구체적 장면·대사 지시. 빈 문자열 금지.
+- vpd_sec4: [## 4. 메인 콘텐츠 구성 (The Body)] Chapter 2~3개. 소제목 + 핵심 내용 한 문단씩. 빈 문자열 금지.
+- vpd_sec5: [## 5. 시청자 결핍 & SEO (The Value)] 시청자 심리적 니즈 서술 + 핵심 키워드 5~8개 #태그 형식. 빈 문자열 금지.
+- vpd_sec6: [## 6. 예상 시청자 반응 (The Outcome)] 예상 댓글 2개(실제 댓글 형태), 조회수 예상 범위, 48시간 체크포인트. 빈 문자열 금지.
 
 - execution_hint_document: [필수 — 빈 문자열 절대 금지.] 제목·훅·썸네일 실행 힌트를 하나로 묶은 간결한 원페이퍼. 아래 3개 섹션 구조로 작성. 전체 300자 내외(video_plan_document의 절반 분량). 채널 데이터에 근거한 구체적 표현만 사용.
 

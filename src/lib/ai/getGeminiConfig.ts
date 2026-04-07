@@ -213,16 +213,36 @@ export type TubeWatchAnalysisResult = {
               },
               required: ["popularity", "expertise", "stimulation", "informativeness", "fan_service"],
             },
-            video_plan_document: {
+            vpd_sec1: {
               type: "string",
-              description: "채널 실제 데이터(수치·영상 제목·패턴)를 인용한 전략 리포트 전문. 마크다운 형식. 6개 섹션(## 1~## 6). 필수 항목 — 빈 문자열 절대 금지. 500자 이상 실제 내용으로 작성.",
+              description: "## 1. 기획 의도 (The Logic) — 채널 메트릭·수치 인용, 왜 이 주제가 맞는지 2~3문단. 빈 문자열 금지.",
+            },
+            vpd_sec2: {
+              type: "string",
+              description: "## 2. 킬러 타이틀 & 썸네일 (The Hook) — 제목 후보 3개(유형 레이블 포함)와 썸네일 전략 2~3문장. 빈 문자열 금지.",
+            },
+            vpd_sec3: {
+              type: "string",
+              description: "## 3. 인트로 30초 설계 (The Retention) — 00:00-00:10 / 00:10-00:30 타임스탬프별 장면·대사 지시. 빈 문자열 금지.",
+            },
+            vpd_sec4: {
+              type: "string",
+              description: "## 4. 메인 콘텐츠 구성 (The Body) — Chapter 2~3개, 소제목 + 핵심 내용 한 문단씩. 빈 문자열 금지.",
+            },
+            vpd_sec5: {
+              type: "string",
+              description: "## 5. 시청자 결핍 & SEO (The Value) — 시청자 심리적 니즈 서술 + 핵심 키워드 5~8개 #태그. 빈 문자열 금지.",
+            },
+            vpd_sec6: {
+              type: "string",
+              description: "## 6. 예상 시청자 반응 (The Outcome) — 예상 댓글 2개, 조회수 예상 범위, 48시간 체크포인트. 빈 문자열 금지.",
             },
             execution_hint_document: {
               type: "string",
               description: "제목·훅·썸네일 실행 힌트 통합 원페이퍼. 마크다운 형식. 3개 섹션(## 제목 후보 / ## 훅 설계 / ## 썸네일 방향). 전체 300자 내외. 채널 데이터 기반 구체적 표현. 빈 문자열 금지.",
             },
           },
-          required: ["topic", "why_this_topic", "pain_point", "content_angle", "opening_hook", "title_candidates", "recommended_tags", "viewing_points", "video_plan_document", "execution_hint_document"],
+          required: ["topic", "why_this_topic", "pain_point", "content_angle", "opening_hook", "title_candidates", "recommended_tags", "viewing_points", "vpd_sec1", "vpd_sec2", "vpd_sec3", "vpd_sec4", "vpd_sec5", "vpd_sec6", "execution_hint_document"],
         },
         channel_dna_narrative: {
           type: "string",
