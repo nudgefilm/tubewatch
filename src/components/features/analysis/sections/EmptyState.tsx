@@ -35,7 +35,7 @@ export function AnalysisEmptyState({ channelId, title, description }: AnalysisEm
           {description ?? "채널을 등록하고 분석을 실행하면 채널 성과 리포트를 확인할 수 있습니다."}
         </p>
         <Button variant="outline" onClick={handleNavigate}>
-          {channelId ? "채널 분석 시작하기 →" : "채널 등록하기"}
+          {channelId ? "채널 분석 시작하기" : "채널 등록하기"}
         </Button>
       </div>
 
