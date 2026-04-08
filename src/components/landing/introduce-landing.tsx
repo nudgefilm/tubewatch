@@ -54,10 +54,10 @@ function HeroSection() {
 
         <h1 className={`font-heading font-medium leading-[1.15] tracking-[-0.03em] transition-all duration-1000 delay-100 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
           <span className="block text-[clamp(2rem,6vw,4.5rem)]">
-            당신의 데이터는 이미 다음 전략을 말하고 있습니다.
+            당신의 데이터는 이미<br />다음 전략을 말하고 있습니다.
           </span>
-          <span className="block text-[clamp(2rem,6vw,4.5rem)] text-muted-foreground mt-2">
-            유튜브 스튜디오가 보여주지 않는 1% 시그널, 튜브워치가 설계합니다.
+          <span className="block text-[clamp(1.2rem,3.6vw,2.7rem)] text-muted-foreground mt-2">
+            유튜브 스튜디오가 보여주지 않는 1% 시그널,<br />튜브워치가 설계합니다.
           </span>
         </h1>
 
