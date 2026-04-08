@@ -54,21 +54,12 @@ function HeroSection() {
 
         <h1 className={`font-heading font-medium leading-[1.15] tracking-[-0.03em] transition-all duration-1000 delay-100 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
           <span className="block text-[clamp(2rem,6vw,4.5rem)]">
-            열심히 올리는데,<br className="hidden sm:block" /> 왜 안 늘까요?
+            당신의 데이터는 이미 다음 전략을 말하고 있습니다.
           </span>
           <span className="block text-[clamp(2rem,6vw,4.5rem)] text-muted-foreground mt-2">
-            감이 아니라 데이터로,<br className="hidden sm:block" /> &ldquo;다음에 뭘 해야 할지&rdquo; 바로 알 수 있습니다.
+            유튜브 스튜디오가 보여주지 않는 1% 시그널, 튜브워치가 설계합니다.
           </span>
         </h1>
-
-        <div className={`mt-8 transition-all duration-700 delay-200 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-          <p className="font-heading text-xl lg:text-2xl font-medium tracking-[-0.02em] text-foreground leading-snug">
-            당신의 데이터는 이미 다음 전략을 말하고 있습니다.
-          </p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            유튜브 스튜디오가 보여주지 않는 1% 시그널, 튜브워치가 설계합니다.
-          </p>
-        </div>
 
         <div className={`mt-8 flex flex-col sm:flex-row items-start gap-4 transition-all duration-700 delay-300 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
           <Button size="lg" className="bg-black hover:bg-neutral-800 text-white px-8 h-12 text-base rounded-lg shadow-lg group" asChild>
