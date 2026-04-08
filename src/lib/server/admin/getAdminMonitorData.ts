@@ -7,6 +7,8 @@ export type MonitorItem = {
   displayValue?: string;   // 숫자 대신 표시할 텍스트 (키 상태 등)
   status: "ok" | "warn" | "error";
   description: string;
+  /** 정리 버튼을 연결할 Server Action 식별자 */
+  actionKey?: "cleanupNullStartedAt" | "normalizeJobStatusSuccess";
 };
 
 export type AdminMonitorData = {
@@ -87,6 +89,7 @@ export async function getAdminMonitorData(): Promise<AdminMonitorData> {
     queuedRunRes,          // 현재 queued 런
     nullScoreRes,          // total_score null
     nullStartedAtRes,      // started_at null (completed 상태)
+    legacySuccessJobsRes,  // analysis_jobs.status = "success" 레거시 건수
     completedModuleRes,    // 최근 24h completed 모듈
     totalModuleRes,        // 최근 24h 전체 모듈
     avgDurationRes,        // 최근 24h 평균 소요 시간
@@ -132,6 +135,11 @@ export async function getAdminMonitorData(): Promise<AdminMonitorData> {
       .is("started_at", null),
 
     supabaseAdmin
+      .from("analysis_jobs")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "success"),
+
+    supabaseAdmin
       .from("analysis_module_results")
       .select("*", { count: "exact", head: true })
       .eq("status", "completed")
@@ -162,6 +170,7 @@ export async function getAdminMonitorData(): Promise<AdminMonitorData> {
   const queuedRun = queuedRunRes.count ?? 0;
   const nullScore = nullScoreRes.count ?? 0;
   const nullStartedAt = nullStartedAtRes.count ?? 0;
+  const legacySuccessJobs = legacySuccessJobsRes.count ?? 0;
   const completedModule = completedModuleRes.count ?? 0;
   const totalModule = totalModuleRes.count ?? 0;
 
@@ -243,6 +252,15 @@ export async function getAdminMonitorData(): Promise<AdminMonitorData> {
       unit: "건",
       status: nullStartedAt === 0 ? "ok" : "warn",
       description: "레거시 데이터 잔존 여부",
+      actionKey: "cleanupNullStartedAt",
+    },
+    {
+      label: "분석 완료 status=success 잔존",
+      value: legacySuccessJobs,
+      unit: "건",
+      status: legacySuccessJobs === 0 ? "ok" : "warn",
+      description: "버그로 인해 completed 대신 success로 저장된 채널분석 횟수 누락 원인",
+      actionKey: "normalizeJobStatusSuccess",
     },
     // ── 키 보안 ────────────────────────────────────────────────
     {

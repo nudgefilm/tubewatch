@@ -2,16 +2,23 @@
 
 import { useTransition, useState } from "react";
 import { useRouter } from "next/navigation";
-import { cleanupNullStartedAt } from "@/app/admin/monitor/actions";
+import { cleanupNullStartedAt, normalizeJobStatusSuccess } from "@/app/admin/monitor/actions";
 
-export function CleanupLegacyButton() {
+const ACTION_MAP = {
+  cleanupNullStartedAt,
+  normalizeJobStatusSuccess,
+} as const;
+
+type ActionKey = keyof typeof ACTION_MAP;
+
+export function CleanupLegacyButton({ actionKey }: { actionKey: ActionKey }) {
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
   const router = useRouter();
 
   function handleCleanup() {
     startTransition(async () => {
-      const result = await cleanupNullStartedAt();
+      const result = await ACTION_MAP[actionKey]();
       if (result.error) {
         setMessage(`오류: ${result.error}`);
       } else if (result.updated === 0) {

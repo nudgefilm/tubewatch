@@ -86,8 +86,8 @@ export default function AdminMonitorView({ data }: { data: AdminMonitorData }) {
               )}
             </p>
             <p className="mt-1.5 text-xs text-muted-foreground">{item.description}</p>
-            {item.label === "started_at null (completed)" && item.status !== "ok" && (
-              <CleanupLegacyButton />
+            {item.actionKey && item.status !== "ok" && (
+              <CleanupLegacyButton actionKey={item.actionKey} />
             )}
           </div>
         ))}

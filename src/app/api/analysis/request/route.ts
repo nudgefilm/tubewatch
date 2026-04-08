@@ -642,7 +642,7 @@ export async function POST(request: Request) {
     }
   }
 
-  void updateJobStep("completed", "success");
+  void updateJobStep("completed", "completed");
 
   // 크레딧 예약 확정 — non-fatal
   if (reservationId) void confirmCredit(reservationId, savedRow.id);

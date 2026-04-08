@@ -37,3 +37,22 @@ export async function cleanupNullStartedAt(): Promise<{ updated: number; error?:
   revalidatePath("/admin/monitor");
   return { updated };
 }
+
+/**
+ * analysis_jobs.status = "success" 레거시 행을 "completed"로 정규화.
+ * 이전 버그로 인해 updateJobStep("completed", "success") 호출 시 저장된 행 대상.
+ */
+export async function normalizeJobStatusSuccess(): Promise<{ updated: number; error?: string }> {
+  const { data, error } = await supabaseAdmin
+    .from("analysis_jobs")
+    .update({ status: "completed" })
+    .eq("status", "success")
+    .select("id");
+
+  if (error) {
+    return { updated: 0, error: error.message };
+  }
+
+  revalidatePath("/admin/users");
+  return { updated: data?.length ?? 0 };
+}
