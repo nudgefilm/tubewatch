@@ -62,14 +62,11 @@ function HeroSection() {
         </h1>
 
         <div className={`mt-8 flex flex-col sm:flex-row items-start gap-4 transition-all duration-700 delay-300 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-          <Button size="lg" className="bg-black hover:bg-neutral-800 text-white px-8 h-12 text-base rounded-lg shadow-lg group" asChild>
-            <a href="/channels">
-              무료로 내 채널 분석하기
-              <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
-            </a>
-          </Button>
-          <Button size="lg" variant="outline" className="h-12 px-8 text-base rounded-lg" asChild>
-            <a href="#features">기능 먼저 보기</a>
+          <a href="/channels">
+            <img src="/mainbb.png" alt="무료로 내 채널 분석하기" className="h-12 w-auto object-contain hover:opacity-90 transition-opacity" />
+          </a>
+          <Button size="lg" variant="outline" className="h-12 px-8 text-base rounded-lg bg-white hover:bg-white text-foreground" asChild>
+            <a href="/channels">내 채널 분석하기</a>
           </Button>
         </div>
 
