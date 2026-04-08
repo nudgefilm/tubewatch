@@ -47,7 +47,7 @@ function HeroSection() {
         style={{ backgroundImage: "radial-gradient(circle, hsl(var(--foreground)/0.04) 1px, transparent 1px)", backgroundSize: "32px 32px" }}
       />
 
-      <div className="relative z-10 max-w-[1200px] mx-auto px-8 lg:px-20">
+      <div className="relative z-10 max-w-[1400px] mx-auto px-6 lg:px-12">
         <div className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
           <SectionLabel>TubeWatch™ Platform Introduction</SectionLabel>
         </div>
@@ -61,16 +61,9 @@ function HeroSection() {
           </span>
         </h1>
 
-        <div className={`mt-8 flex flex-col sm:flex-row items-start gap-4 transition-all duration-700 delay-300 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-          <img src="/mainbb.png" alt="" className="h-24 w-auto object-contain" />
-          <Button size="lg" variant="outline" className="h-12 px-8 text-base rounded-lg bg-white hover:bg-white text-foreground" asChild>
-            <a href="/channels">내 채널 분석하기</a>
-          </Button>
+        <div className={`mt-8 transition-all duration-700 delay-300 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+          <img src="/mainbb.png" alt="" className="h-48 w-auto object-contain rounded-lg" />
         </div>
-
-        <p className={`mt-4 font-mono text-xs text-muted-foreground/70 transition-all duration-700 delay-300 ${visible ? "opacity-100" : "opacity-0"}`}>
-          → 5분 안에 결과 확인
-        </p>
 
         {/* Stats row */}
         <div className={`mt-10 flex flex-wrap gap-x-10 gap-y-5 border-t border-foreground/10 pt-8 transition-all duration-700 delay-500 ${visible ? "opacity-100" : "opacity-0"}`}>
