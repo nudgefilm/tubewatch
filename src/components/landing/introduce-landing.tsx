@@ -66,7 +66,7 @@ function HeroSection() {
             당신의 데이터는 이미 다음 전략을 말하고 있습니다.
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
-            유튜브 스튜디오가 보여주지 않는 1%의 시그널, 튜브워치가 설계합니다.
+            유튜브 스튜디오가 보여주지 않는 1% 시그널, 튜브워치가 설계합니다.
           </p>
         </div>
 
