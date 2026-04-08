@@ -58,6 +58,17 @@ export async function POST(req: NextRequest) {
     }
 
     const typedRow = row as Record<string, unknown>;
+
+    // 핵심 필드 유효성 검사 — null이면 Gemini가 빈 데이터로 무의미한 리포트 생성
+    if (!typedRow.gemini_raw_json) {
+      console.warn("[regenerate-module] gemini_raw_json missing", { snapshotId: row.id, moduleKey });
+      return NextResponse.json({ error: "분석 원본 데이터가 없습니다. 채널 재분석 후 다시 시도해주세요." }, { status: 422 });
+    }
+    if (!typedRow.feature_snapshot) {
+      console.warn("[regenerate-module] feature_snapshot missing", { snapshotId: row.id, moduleKey });
+      return NextResponse.json({ error: "채널 지표 데이터가 없습니다. 채널 재분석 후 다시 시도해주세요." }, { status: 422 });
+    }
+
     const now = new Date().toISOString();
     let markdown: string | null = null;
 

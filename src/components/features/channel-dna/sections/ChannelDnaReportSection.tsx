@@ -104,7 +104,7 @@ export function ChannelDnaReportSection({ channelId }: ChannelDnaReportSectionPr
         setMarkdown(data.markdown)
         setIsFailed(false)
       } else {
-        setRetryError("재생성에 실패했습니다. 잠시 후 다시 시도해주세요.")
+        setRetryError(data.error ?? "재생성에 실패했습니다. 잠시 후 다시 시도해주세요.")
       }
     } catch {
       setRetryError("네트워크 오류가 발생했습니다.")
