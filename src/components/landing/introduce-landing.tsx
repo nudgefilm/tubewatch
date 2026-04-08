@@ -62,7 +62,7 @@ function HeroSection() {
         </h1>
 
         <div className={`mt-8 transition-all duration-700 delay-300 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-          <img src="/mainbb.png" alt="" className="h-48 w-auto object-contain rounded-lg" />
+          <img src="/mainbb.png" alt="" className="h-[154px] w-auto object-contain rounded-lg" />
         </div>
 
         {/* Stats row */}
