@@ -114,7 +114,7 @@ function PainPointsSection() {
 
   return (
     <section ref={ref} className="relative py-10 lg:py-16 border-t border-foreground/10">
-      <div className="max-w-[1200px] mx-auto px-8 lg:px-20">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
         <div className={`mb-8 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
           <SectionLabel>For Creators</SectionLabel>
           <h2 className="font-heading text-4xl lg:text-5xl font-medium tracking-[-0.03em] leading-[1.1]">
@@ -260,7 +260,7 @@ function FeaturesSection() {
 
   return (
     <section id="features" className="relative py-10 lg:py-16 border-t border-foreground/10">
-      <div className="max-w-[1200px] mx-auto px-8 lg:px-20">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
         <div ref={ref} className={`mb-8 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
           <SectionLabel>Core Features</SectionLabel>
           <h2 className="font-heading text-4xl lg:text-5xl font-medium tracking-[-0.03em] leading-[1.1]">
@@ -294,7 +294,7 @@ function HowItWorksSection() {
 
   return (
     <section className="relative py-10 lg:py-16 border-t border-foreground/10">
-      <div className="max-w-[1200px] mx-auto px-8 lg:px-20">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
         <div ref={ref} className={`mb-8 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
           <SectionLabel>How It Works</SectionLabel>
           <h2 className="font-heading text-4xl lg:text-5xl font-medium tracking-[-0.03em] leading-[1.1]">
@@ -360,7 +360,7 @@ function WhySection() {
 
   return (
     <section className="relative py-10 lg:py-16 border-t border-foreground/10">
-      <div className="max-w-[1200px] mx-auto px-8 lg:px-20">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
         <div ref={ref} className={`mb-8 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
           <SectionLabel>Why TubeWatch</SectionLabel>
           <h2 className="font-heading text-4xl lg:text-5xl font-medium tracking-[-0.03em] leading-[1.1]">
@@ -434,7 +434,7 @@ function PricingPreviewSection() {
 
   return (
     <section className="relative py-10 lg:py-16 border-t border-foreground/10">
-      <div className="max-w-[1200px] mx-auto px-8 lg:px-20">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
         <div ref={ref} className={`mb-8 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
           <SectionLabel>Pricing</SectionLabel>
           <h2 className="font-heading text-4xl lg:text-5xl font-medium tracking-[-0.03em] leading-[1.1]">
@@ -491,7 +491,7 @@ function FinalCtaSection() {
 
   return (
     <section className="relative py-10 lg:py-16 border-t border-foreground/10">
-      <div className="max-w-[1200px] mx-auto px-8 lg:px-20">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
         <div
           ref={ref}
           className={`relative border border-foreground px-8 lg:px-14 py-10 lg:py-16 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
