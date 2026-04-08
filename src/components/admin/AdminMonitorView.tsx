@@ -1,5 +1,6 @@
 import type { AdminMonitorData } from "@/lib/server/admin/getAdminMonitorData";
 import { CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
+import { CleanupLegacyButton } from "@/components/admin/CleanupLegacyButton";
 
 function StatusIcon({ status }: { status: "ok" | "warn" | "error" }) {
   if (status === "ok")
@@ -85,6 +86,9 @@ export default function AdminMonitorView({ data }: { data: AdminMonitorData }) {
               )}
             </p>
             <p className="mt-1.5 text-xs text-muted-foreground">{item.description}</p>
+            {item.label === "started_at null (completed)" && item.status !== "ok" && (
+              <CleanupLegacyButton />
+            )}
           </div>
         ))}
       </div>

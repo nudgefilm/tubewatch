@@ -136,6 +136,7 @@ export async function insertAnalysisModuleResults(
       module_key: moduleKeyRaw,
       result: payload,
       status: "completed",
+      started_at: analyzedAt,
       analyzed_at: analyzedAt,
     });
 
