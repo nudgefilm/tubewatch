@@ -324,11 +324,9 @@ function StepCard({ step, title, sub, desc, index }: { step: string; title: stri
     >
       <span className="font-mono text-3xl font-medium tracking-[-0.03em] text-foreground/15">{step}</span>
       <div>
-        <div className="flex items-baseline gap-2 mb-1">
-          <h3 className="font-heading text-xl font-medium tracking-[-0.02em]">{title}</h3>
-          <span className="font-mono text-xs text-muted-foreground">({sub})</span>
-        </div>
-        <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
+        <h3 className="font-heading text-xl font-medium tracking-[-0.02em]">{title}</h3>
+        <p className="font-mono text-xs text-muted-foreground mt-0.5">{sub}</p>
+        <p className="text-sm text-muted-foreground leading-relaxed mt-2">{desc}</p>
       </div>
     </div>
   );
