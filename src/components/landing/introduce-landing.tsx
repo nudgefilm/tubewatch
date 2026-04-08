@@ -26,8 +26,7 @@ function useFadeIn(threshold = 0.15) {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-3 text-sm font-mono text-muted-foreground mb-6">
-      <span className="w-8 h-px bg-foreground/30" />
+    <span className="inline-flex items-center text-sm font-mono text-muted-foreground mb-6">
       {children}
     </span>
   );
