@@ -62,7 +62,7 @@ function HeroSection() {
         </h1>
 
         <div className={`mt-8 flex flex-col sm:flex-row items-start gap-4 transition-all duration-700 delay-300 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-          <img src="/mainbb.png" alt="" className="h-12 w-auto object-contain" />
+          <img src="/mainbb.png" alt="" className="h-24 w-auto object-contain" />
           <Button size="lg" variant="outline" className="h-12 px-8 text-base rounded-lg bg-white hover:bg-white text-foreground" asChild>
             <a href="/channels">내 채널 분석하기</a>
           </Button>
