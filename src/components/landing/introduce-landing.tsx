@@ -113,8 +113,8 @@ function PainPointsSection() {
   const { ref, visible } = useFadeIn();
 
   return (
-    <section ref={ref} className="relative py-10 lg:py-16 border-t border-foreground/10">
-      <div className="max-w-[1200px] mx-auto px-8 lg:px-20">
+    <section ref={ref} className="relative py-6 lg:py-10 border-t border-foreground/10">
+      <div className="max-w-[1080px] mx-auto px-8 lg:px-20">
         <div className={`mb-8 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
           <SectionLabel>For Creators</SectionLabel>
           <h2 className="font-heading text-4xl lg:text-5xl font-medium tracking-[-0.03em] leading-[1.1]">
@@ -259,8 +259,8 @@ function FeaturesSection() {
   const { ref, visible } = useFadeIn();
 
   return (
-    <section id="features" className="relative py-10 lg:py-16 border-t border-foreground/10">
-      <div className="max-w-[1200px] mx-auto px-8 lg:px-20">
+    <section id="features" className="relative py-6 lg:py-10 border-t border-foreground/10">
+      <div className="max-w-[1080px] mx-auto px-8 lg:px-20">
         <div ref={ref} className={`mb-8 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
           <SectionLabel>Core Features</SectionLabel>
           <h2 className="font-heading text-4xl lg:text-5xl font-medium tracking-[-0.03em] leading-[1.1]">
@@ -293,8 +293,8 @@ function HowItWorksSection() {
   const { ref, visible } = useFadeIn();
 
   return (
-    <section className="relative py-10 lg:py-16 border-t border-foreground/10">
-      <div className="max-w-[1200px] mx-auto px-8 lg:px-20">
+    <section className="relative py-6 lg:py-10 border-t border-foreground/10">
+      <div className="max-w-[1080px] mx-auto px-8 lg:px-20">
         <div ref={ref} className={`mb-8 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
           <SectionLabel>How It Works</SectionLabel>
           <h2 className="font-heading text-4xl lg:text-5xl font-medium tracking-[-0.03em] leading-[1.1]">
@@ -359,8 +359,8 @@ function WhySection() {
   const { ref, visible } = useFadeIn();
 
   return (
-    <section className="relative py-10 lg:py-16 border-t border-foreground/10">
-      <div className="max-w-[1200px] mx-auto px-8 lg:px-20">
+    <section className="relative py-6 lg:py-10 border-t border-foreground/10">
+      <div className="max-w-[1080px] mx-auto px-8 lg:px-20">
         <div ref={ref} className={`mb-8 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
           <SectionLabel>Why TubeWatch</SectionLabel>
           <h2 className="font-heading text-4xl lg:text-5xl font-medium tracking-[-0.03em] leading-[1.1]">
@@ -433,8 +433,8 @@ function PricingPreviewSection() {
   const { ref, visible } = useFadeIn();
 
   return (
-    <section className="relative py-10 lg:py-16 border-t border-foreground/10">
-      <div className="max-w-[1200px] mx-auto px-8 lg:px-20">
+    <section className="relative py-6 lg:py-10 border-t border-foreground/10">
+      <div className="max-w-[1080px] mx-auto px-8 lg:px-20">
         <div ref={ref} className={`mb-8 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
           <SectionLabel>Pricing</SectionLabel>
           <h2 className="font-heading text-4xl lg:text-5xl font-medium tracking-[-0.03em] leading-[1.1]">
@@ -490,8 +490,8 @@ function FinalCtaSection() {
   const { ref, visible } = useFadeIn(0.2);
 
   return (
-    <section className="relative py-10 lg:py-16 border-t border-foreground/10">
-      <div className="max-w-[1200px] mx-auto px-8 lg:px-20">
+    <section className="relative py-6 lg:py-10 border-t border-foreground/10">
+      <div className="max-w-[1080px] mx-auto px-8 lg:px-20">
         <div
           ref={ref}
           className={`relative border border-foreground px-8 lg:px-14 py-10 lg:py-16 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
@@ -507,20 +507,9 @@ function FinalCtaSection() {
               5분 안에 첫 성장 인사이트를<br />
               확인할 수 있습니다.
             </h2>
-            <p className="text-lg text-muted-foreground mb-4 leading-relaxed">
-              지금도 수많은 채널이<br />
-              감이 아닌 데이터로 성장하고 있습니다.
-            </p>
-            <p className="text-lg font-medium mb-12">
-              당신 채널도,<br />
-              다음 단계로 넘어갈 준비가 되었나요?
-            </p>
-            <div className="flex flex-col sm:flex-row items-start gap-4">
-              <Button size="lg" className="bg-black hover:bg-neutral-800 text-white px-8 h-12 text-base rounded-lg shadow-lg group" asChild>
-                <a href="/channels">
-                  무료로 내 채널 분석 시작하기
-                  <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
-                </a>
+            <div className="flex flex-col sm:flex-row items-start gap-4 mt-8">
+              <Button size="lg" className="bg-black hover:bg-neutral-800 text-white px-8 h-12 text-base rounded-lg shadow-lg" asChild>
+                <a href="/channels">내 채널 분석하기</a>
               </Button>
             </div>
             <p className="mt-8 font-mono text-xs text-muted-foreground/50">
