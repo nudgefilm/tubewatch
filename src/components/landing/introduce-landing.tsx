@@ -500,9 +500,9 @@ function FinalCtaSection() {
           <div className="absolute top-0 right-0 w-24 h-24 border-b border-l border-foreground/10" />
           <div className="absolute bottom-0 left-0 w-24 h-24 border-t border-r border-foreground/10" />
 
-          <div className="relative z-10 max-w-2xl">
+          <div className="relative z-10">
             <p className="font-mono text-xs tracking-[0.15em] uppercase text-muted-foreground mb-6">Get Started</p>
-            <h2 className="font-heading text-4xl lg:text-6xl font-medium tracking-[-0.03em] leading-[1.1] mb-6">
+            <h2 className="font-heading text-4xl lg:text-6xl font-medium tracking-[-0.03em] leading-[1.1] mb-6 break-keep">
               지금 채널을 등록하면<br />
               5분 안에 첫 성장 인사이트를<br />
               확인할 수 있습니다.
