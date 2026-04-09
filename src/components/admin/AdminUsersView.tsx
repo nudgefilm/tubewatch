@@ -263,9 +263,15 @@ function ManualGrantModal({
             <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
             {(() => {
               const p = GRANT_PLANS.find((g) => g.id === planId);
-              const badge = PLAN_BADGES.find((b) => b.id === planId || (planId.startsWith(b.id) && b.id !== "free"));
+              const colorMap: Record<string, string> = {
+                creator:    "bg-blue-100 text-blue-700",
+                creator_6m: "bg-blue-100 text-blue-700",
+                pro:        "bg-violet-100 text-violet-700",
+                pro_6m:     "bg-violet-100 text-violet-700",
+              };
+              const cls = colorMap[planId] ?? "bg-foreground/10 text-foreground/60";
               return p ? (
-                <span className={`shrink-0 rounded-md px-2 py-0.5 text-[10px] font-medium ${badge?.className ?? "bg-foreground/10 text-foreground/60"}`}>
+                <span className={`shrink-0 rounded-md px-2 py-0.5 text-[10px] font-medium ${cls}`}>
                   {p.label}
                 </span>
               ) : null;
