@@ -8,7 +8,7 @@ export type MonitorItem = {
   status: "ok" | "warn" | "error";
   description: string;
   /** 정리 버튼을 연결할 Server Action 식별자 */
-  actionKey?: "cleanupNullStartedAt" | "normalizeJobStatusSuccess";
+  actionKey?: "cleanupNullStartedAt" | "normalizeJobStatusSuccess" | "resetStuckPending";
 };
 
 export type AdminMonitorData = {
@@ -93,6 +93,7 @@ export async function getAdminMonitorData(): Promise<AdminMonitorData> {
     completedModuleRes,    // 최근 24h completed 모듈
     totalModuleRes,        // 최근 24h 전체 모듈
     avgDurationRes,        // 최근 24h 평균 소요 시간
+    totalJobsRes,          // 최근 24h 총 분석 요청 수
   ] = await Promise.all([
     supabaseAdmin
       .from("analysis_module_results")
@@ -157,6 +158,11 @@ export async function getAdminMonitorData(): Promise<AdminMonitorData> {
       .not("started_at", "is", null)
       .not("analyzed_at", "is", null)
       .gte("created_at", minus24h),
+
+    supabaseAdmin
+      .from("analysis_jobs")
+      .select("*", { count: "exact", head: true })
+      .gte("created_at", minus24h),
   ]);
 
   const geminiKey = await geminiKeyCheckPromise;
@@ -173,6 +179,7 @@ export async function getAdminMonitorData(): Promise<AdminMonitorData> {
   const legacySuccessJobs = legacySuccessJobsRes.count ?? 0;
   const completedModule = completedModuleRes.count ?? 0;
   const totalModule = totalModuleRes.count ?? 0;
+  const totalJobs24h = totalJobsRes.count ?? 0;
 
   // 평균 분석 소요 시간 계산 (초 단위)
   let avgDurationSec = 0;
@@ -195,7 +202,8 @@ export async function getAdminMonitorData(): Promise<AdminMonitorData> {
       value: pendingStuck,
       unit: "건",
       status: pendingStuck === 0 ? "ok" : pendingStuck <= 2 ? "warn" : "error",
-      description: "0이 정상. 무한 pending 감지",
+      description: "0이 정상. 서버점검사항",
+      actionKey: "resetStuckPending",
     },
     {
       label: "Running 30분+ 초과",
@@ -210,6 +218,13 @@ export async function getAdminMonitorData(): Promise<AdminMonitorData> {
       unit: "건",
       status: queuedRun <= 3 ? "ok" : queuedRun <= 10 ? "warn" : "error",
       description: "현재 처리 대기 중인 분석 건수",
+    },
+    {
+      label: "지난 24시간 총 분석수",
+      value: totalJobs24h,
+      unit: "건",
+      status: "ok",
+      description: "최근 24h 동안 요청된 총 채널분석 횟수",
     },
     {
       label: "Failed 런 (최근 24h)",
@@ -287,7 +302,7 @@ export async function getAdminMonitorData(): Promise<AdminMonitorData> {
       status: leakedCount === 0 ? "ok" : "error",
       description:
         leakedCount === 0
-          ? "클라이언트 번들에 시크릿 없음"
+          ? "[해킹]설정 노출 여부"
           : `노출된 키: ${leakedList.join(", ")} — 즉시 조치`,
     },
   ];

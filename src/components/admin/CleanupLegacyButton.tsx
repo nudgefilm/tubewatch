@@ -2,12 +2,19 @@
 
 import { useTransition, useState } from "react";
 import { useRouter } from "next/navigation";
-import { cleanupNullStartedAt, normalizeJobStatusSuccess } from "@/app/admin/monitor/actions";
+import { cleanupNullStartedAt, normalizeJobStatusSuccess, resetStuckPending } from "@/app/admin/monitor/actions";
 
 const ACTION_MAP = {
   cleanupNullStartedAt,
   normalizeJobStatusSuccess,
+  resetStuckPending,
 } as const;
+
+const BUTTON_LABELS: Record<keyof typeof ACTION_MAP, string> = {
+  cleanupNullStartedAt: "레거시 정리하기",
+  normalizeJobStatusSuccess: "레거시 정리하기",
+  resetStuckPending: "강제 초기화",
+};
 
 type ActionKey = keyof typeof ACTION_MAP;
 
@@ -44,7 +51,7 @@ export function CleanupLegacyButton({ actionKey }: { actionKey: ActionKey }) {
             정리 중…
           </span>
         ) : (
-          "레거시 정리하기"
+          BUTTON_LABELS[actionKey]
         )}
       </button>
       {message && (
