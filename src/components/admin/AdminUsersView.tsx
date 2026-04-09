@@ -209,7 +209,7 @@ function ManualGrantModal({
   onClose: () => void;
   onSuccess: (newExpiresAt: string) => void;
 }) {
-  const [planId, setPlanId] = useState<string>(defaultPlanId);
+  const planId = defaultPlanId;
   const [durationDays, setDurationDays] = useState<number>(30);
   const [reason, setReason] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
@@ -269,27 +269,6 @@ function ManualGrantModal({
           </div>
         ) : (
           <>
-            {/* 플랜 선택 */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-foreground/70">플랜</label>
-              <div className="grid grid-cols-2 gap-1.5">
-                {GRANT_PLANS.map((p) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => setPlanId(p.id)}
-                    className={`rounded-lg border px-3 py-2 text-xs font-medium transition-all ${
-                      planId === p.id
-                        ? "border-foreground bg-foreground text-background shadow-sm"
-                        : "border-foreground/15 text-muted-foreground hover:border-foreground/40 hover:text-foreground"
-                    }`}
-                  >
-                    {p.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
             {/* 기간 선택 */}
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-foreground/70">부여 기간</label>
