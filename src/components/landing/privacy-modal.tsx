@@ -54,7 +54,7 @@ export function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
 
         {/* Content */}
         <div className="p-6 overflow-y-auto max-h-[calc(80vh-80px)] text-sm text-muted-foreground leading-relaxed space-y-6">
-          <p className="text-xs text-muted-foreground/70">최종 업데이트: 2026년 3월</p>
+          <p className="text-xs text-muted-foreground/70">최종 업데이트: 2026년 4월</p>
 
           <section>
             <h3 className="text-foreground font-medium mb-2">1. 개인정보 수집 항목</h3>
@@ -77,6 +77,17 @@ export function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
                   <li>서비스 이용 로그</li>
                 </ul>
               </div>
+
+              <div>
+                <p className="text-foreground/80 font-medium">결제 및 구독 정보</p>
+                <ul className="list-disc list-inside ml-2">
+                  <li>구독 플랜 종류 및 결제일</li>
+                  <li>플랜 만료일</li>
+                  <li>플랜 변경 이력</li>
+                  <li>분석 쿼터 사용 내역</li>
+                </ul>
+                <p className="text-xs text-muted-foreground/70 mt-1">※ 카드번호 등 결제 수단 정보는 PG사에서 직접 처리하며 회사는 보관하지 않습니다.</p>
+              </div>
             </div>
           </section>
 
@@ -86,8 +97,10 @@ export function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
             <ul className="list-disc list-inside space-y-1 ml-2">
               <li>서비스 로그인 및 계정 관리</li>
               <li>유튜브 채널 분석 서비스 제공</li>
+              <li>유료 플랜 결제 및 구독 관리</li>
+              <li>환불 처리 및 고객 응대</li>
               <li>서비스 개선 및 오류 분석</li>
-              <li>사용자 지원</li>
+              <li>만료 안내 등 서비스 관련 이메일 발송</li>
             </ul>
           </section>
 
@@ -112,8 +125,10 @@ export function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
             <h3 className="text-foreground font-medium mb-2">4. 개인정보 보관 기간</h3>
             <p className="mb-2">개인정보는 다음 기간 동안 보관됩니다.</p>
             <ul className="list-disc list-inside space-y-1 ml-2">
-              <li>서비스 이용 기간 동안 보관</li>
-              <li>계정 삭제 요청 시 즉시 삭제</li>
+              <li>계정 정보: 서비스 이용 기간 동안 보관, 계정 삭제 요청 시 즉시 삭제</li>
+              <li>분석 데이터: 유료 플랜 만료 후 30일간 보관 후 영구 삭제</li>
+              <li>결제 및 구독 이력: 전자상거래법에 따라 5년간 보관</li>
+              <li>환불 처리 기록: 관련 법령에 따른 기간 동안 보관</li>
             </ul>
             <p className="mt-2">단, 법령에 따라 일정 기간 보관이 필요한 경우 해당 기간 동안 보관됩니다.</p>
           </section>

@@ -54,7 +54,7 @@ export function TermsModal({ isOpen, onClose }: TermsModalProps) {
 
         {/* Content */}
         <div className="p-6 overflow-y-auto max-h-[calc(80vh-80px)] text-sm text-muted-foreground leading-relaxed space-y-6">
-          <p className="text-xs text-muted-foreground/70">최종 업데이트: 2026년 3월</p>
+          <p className="text-xs text-muted-foreground/70">최종 업데이트: 2026년 4월</p>
 
           <section>
             <h3 className="text-foreground font-medium mb-2">제1조 (목적)</h3>
@@ -164,6 +164,58 @@ export function TermsModal({ isOpen, onClose }: TermsModalProps) {
           <section>
             <h3 className="text-foreground font-medium mb-2">제12조 (준거법)</h3>
             <p>본 약관은 대한민국 법률을 따릅니다.</p>
+          </section>
+
+          <section>
+            <h3 className="text-foreground font-medium mb-2">제13조 (유료 서비스 및 결제)</h3>
+            <p className="mb-2">회사는 다음의 유료 플랜을 제공합니다.</p>
+            <ul className="list-disc list-inside space-y-1 ml-2 mb-2">
+              <li><strong>월간 플랜:</strong> 결제일 기준 30일 단위로 자동 갱신</li>
+              <li><strong>6개월 플랜:</strong> 결제일 기준 180일 선결제</li>
+            </ul>
+            <p className="mb-2">유료 서비스 이용과 관련하여 다음 사항이 적용됩니다.</p>
+            <ul className="list-disc list-inside space-y-1 ml-2">
+              <li>분석 쿼터(횟수)는 결제일 기준 30일마다 초기화됩니다.</li>
+              <li>쿼터 소진 시 해당 주기 내 추가 분석이 제한됩니다.</li>
+              <li>플랜별 채널 등록 한도 및 기능 범위는 서비스 내 안내 기준을 따릅니다.</li>
+              <li>결제 금액 및 플랜 상세 내용은 결제 시점에 고지된 기준을 따릅니다.</li>
+            </ul>
+          </section>
+
+          <section>
+            <h3 className="text-foreground font-medium mb-2">제14조 (청약철회 및 환불)</h3>
+            <p className="mb-2">유료 서비스의 청약철회 및 환불은 다음 기준으로 처리됩니다.</p>
+            <ul className="list-disc list-inside space-y-1 ml-2 mb-2">
+              <li><strong>결제일로부터 7일 이내, 미사용:</strong> 전액 환불</li>
+              <li><strong>결제일로부터 7일 이내, 서비스 이용 시작:</strong> 「전자상거래 등에서의 소비자보호에 관한 법률」 제17조 제2항에 따라 청약철회가 제한될 수 있습니다. 단, 이용자의 요청이 타당한 경우 고객센터를 통해 요청 익월부터 잔여 기간에 해당하는 금액을 환불합니다.</li>
+              <li><strong>결제일로부터 7일 초과:</strong> 환불은 원칙적으로 불가하나, 이용자의 요청이 타당한 경우 고객센터를 통해 요청 익월부터 잔여 기간에 해당하는 금액을 환불합니다.</li>
+            </ul>
+            <p className="mb-2 text-foreground/80 font-medium">※ 디지털 콘텐츠 서비스 청약철회 제한 안내</p>
+            <p className="mb-2">결제 완료 후 서비스 이용이 시작된 경우, 「전자상거래 등에서의 소비자보호에 관한 법률」 제17조에 따라 청약철회가 제한됩니다. 이에 대해 결제 전 이용자의 사전 동의를 받습니다.</p>
+            <ul className="list-disc list-inside space-y-1 ml-2">
+              <li>환불 문의: nudgefilm@gmail.com</li>
+              <li>환불 처리는 고객센터 응대를 통해 진행되며, 서비스 내 환불 버튼은 별도로 제공되지 않습니다.</li>
+            </ul>
+          </section>
+
+          <section>
+            <h3 className="text-foreground font-medium mb-2">제15조 (채널 관리)</h3>
+            <ul className="list-disc list-inside space-y-1 ml-2">
+              <li>이용자는 플랜별 채널 등록 한도 내에서 채널을 등록할 수 있습니다.</li>
+              <li>채널 교체는 플랜 채널 한도의 2배까지 매월 허용되며, 교체 횟수는 매월 초기화됩니다.</li>
+              <li>채널 교체 시 기존 채널의 분석 데이터는 삭제되며, 복구되지 않습니다.</li>
+              <li>플랜 다운그레이드 시 초과 채널은 이용자가 직접 정리한 후 진행할 수 있습니다.</li>
+            </ul>
+          </section>
+
+          <section>
+            <h3 className="text-foreground font-medium mb-2">제16조 (데이터 보관 및 만료)</h3>
+            <ul className="list-disc list-inside space-y-1 ml-2">
+              <li>유료 플랜 만료 후 익일까지 서비스를 이용할 수 있습니다.</li>
+              <li>플랜 만료 후 분석 데이터는 30일간 보관되며, 이후 영구 삭제됩니다.</li>
+              <li>데이터 삭제 전 사전 안내가 제공됩니다.</li>
+              <li>이용자는 보관 기간 내 재결제를 통해 데이터를 유지할 수 있습니다.</li>
+            </ul>
           </section>
         </div>
       </div>
