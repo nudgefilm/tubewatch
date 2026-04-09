@@ -26,6 +26,8 @@ function SubscriptionPlanCard({
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [agreed, setAgreed] = useState(false);
+  const checkboxId = `agree-${plan.id}-${period}`;
 
   const isSemiannual = period === "semiannual";
   const planId = isSemiannual ? plan.semiannualPlanId : plan.id;
@@ -105,9 +107,33 @@ function SubscriptionPlanCard({
             </div>
           ))}
         </div>
-        <Button className="mt-auto w-full" onClick={handleSubscribe} disabled={loading}>
+        {/* 청약철회 불가 동의 체크박스 */}
+        <label
+          htmlFor={checkboxId}
+          className="mb-3 flex cursor-pointer items-start gap-2 rounded-lg border border-foreground/8 bg-foreground/[0.02] p-3"
+        >
+          <input
+            id={checkboxId}
+            type="checkbox"
+            checked={agreed}
+            onChange={(e) => setAgreed(e.target.checked)}
+            className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-primary cursor-pointer"
+          />
+          <span className="text-[11px] leading-relaxed text-muted-foreground">
+            서비스 이용 시작 후에는{" "}
+            <strong className="font-medium text-foreground/70">청약철회가 제한</strong>
+            될 수 있음을 이해하고 동의합니다.{" "}
+            <span className="text-muted-foreground/50">(전자상거래법 제17조)</span>
+          </span>
+        </label>
+        <Button className="mt-auto w-full" onClick={handleSubscribe} disabled={loading || !agreed}>
           {loading ? "이동 중..." : "구독 시작하기"}
         </Button>
+        {!agreed && (
+          <p className="mt-1.5 text-center text-[10px] text-muted-foreground/50">
+            위 동의 후 결제가 가능합니다.
+          </p>
+        )}
         {error && (
           <p className="mt-2 text-xs text-red-600" role="alert">
             {error}

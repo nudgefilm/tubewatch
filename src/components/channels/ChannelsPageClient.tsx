@@ -106,9 +106,10 @@ export default function ChannelsPageClient({
   }, [channels, selectedChannelId, loading]);
 
   const handleDelete = async (row: ChannelRow) => {
+    const name = row.channel_title ?? row.channel_id ?? "채널";
     if (
       !window.confirm(
-        `"${row.channel_title ?? row.channel_id ?? "채널"}"을(를) 삭제할까요?`
+        `"${name}"을(를) 삭제할까요?\n\n⚠️ 이 채널의 분석 데이터가 함께 삭제됩니다.`
       )
     ) {
       return;
@@ -370,14 +371,27 @@ export default function ChannelsPageClient({
             <OverloadRetryBanner message={analysisError} isRequesting={isNavigating} onRetry={handleStartAnalysis} />
           )}
           {creditsExhausted && (
-            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5">
-              <p className="text-sm font-medium text-amber-800">{analysisError}</p>
-              <a
-                href="/billing"
-                className="mt-1 inline-block text-xs font-semibold text-amber-700 underline hover:text-amber-900"
-              >
-                플랜 업그레이드 →
-              </a>
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 space-y-2">
+              <p className="text-sm font-semibold text-amber-800">
+                {analysisError ?? "분석 횟수를 모두 사용했습니다."}
+              </p>
+              <p className="text-xs text-amber-700">
+                다음 달 리셋까지 기다리거나, 플랜을 업그레이드하세요.
+              </p>
+              <div className="flex flex-wrap gap-2 pt-0.5">
+                <a
+                  href="/billing"
+                  className="inline-flex items-center rounded-md bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700 transition-colors"
+                >
+                  플랜 업그레이드
+                </a>
+                <a
+                  href="/billing?period=semiannual"
+                  className="inline-flex items-center rounded-md border border-amber-300 bg-white px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-50 transition-colors"
+                >
+                  6개월 플랜 보기 (15% 할인)
+                </a>
+              </div>
             </div>
           )}
         </div>
@@ -385,9 +399,19 @@ export default function ChannelsPageClient({
 
       {/* 등록된 채널 목록 */}
       <div>
-        <h2 className="mb-3 text-sm font-medium text-muted-foreground">
-          등록된 채널
-        </h2>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm font-medium text-muted-foreground">등록된 채널</h2>
+          {channels.length > 0 && (
+            <span className="text-[11px] text-muted-foreground/60">
+              최대 {maxCount}개 등록 · 월 {maxCount * 2}회 교체 가능
+            </span>
+          )}
+        </div>
+        {channels.length > 0 && (
+          <p className="mb-2 text-[11px] text-muted-foreground/50">
+            채널 삭제 시 해당 채널의 분석 데이터가 함께 삭제되며 복구되지 않습니다.
+          </p>
+        )}
         {loading ? (
           <ul className="divide-y rounded-xl border border-border bg-card">
             {[1, 2].map((i) => (
@@ -453,3 +477,4 @@ export default function ChannelsPageClient({
     </div>
   );
 }
+
