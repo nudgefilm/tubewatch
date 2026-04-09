@@ -11,8 +11,9 @@ import {
   FREE_LIFETIME_ANALYSIS_LIMIT,
 } from "@/components/billing/types";
 
-// refunded는 의도적으로 제외 — 환불된 구독은 만료일까지 조회만 허용, 분석 차단
-const VALID_SUBSCRIPTION_STATUSES = ["active", "trialing", "manual"] as const;
+// refunded 포함: 기간까지 서비스 이용 허용 (정책: 기간 유지 후 종료)
+// 재결제 차단은 PG 연동 시 결제 API에서 별도 처리
+const VALID_SUBSCRIPTION_STATUSES = ["active", "trialing", "manual", "refunded"] as const;
 const FREE_CHANNEL_LIMIT = 1;
 
 // 6개월 플랜 → 베이스 플랜 매핑 (한도는 동일, plan_id만 다름)

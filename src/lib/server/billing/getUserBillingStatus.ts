@@ -17,7 +17,8 @@ const PLAN_ID_TO_BASE: Record<string, "creator" | "pro"> = {
   pro_6m: "pro",
 };
 
-const VALID_STATUSES = ["active", "trialing", "manual"];
+// refunded 포함: 기간까지 서비스 이용 허용 (정책: 기간 유지 후 종료)
+const VALID_STATUSES = ["active", "trialing", "manual", "refunded"];
 
 export async function getUserBillingStatus(
   supabase: SupabaseClient,
