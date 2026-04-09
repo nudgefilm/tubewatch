@@ -11,6 +11,7 @@ import {
   FREE_LIFETIME_ANALYSIS_LIMIT,
 } from "@/components/billing/types";
 
+// refunded는 의도적으로 제외 — 환불된 구독은 만료일까지 조회만 허용, 분석 차단
 const VALID_SUBSCRIPTION_STATUSES = ["active", "trialing", "manual"] as const;
 const FREE_CHANNEL_LIMIT = 1;
 

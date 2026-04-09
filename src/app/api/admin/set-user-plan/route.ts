@@ -1,8 +1,9 @@
 /**
  * POST /api/admin/set-user-plan
  * 특정 유저의 구독 플랜을 어드민이 수동으로 설정.
- * - "creator" | "pro" → user_subscriptions upsert (status: active, stripe ID: manual)
+ * - "creator" | "pro" → user_subscriptions upsert (subscription_status: active, grant_type: manual)
  * - "free" → user_subscriptions row 삭제
+ * - subscription_changes 이력 기록
  * Admin 전용 — profiles.role = 'admin' 체크.
  */
 import { NextResponse } from "next/server";
@@ -16,90 +17,105 @@ type PlanId = typeof VALID_PLAN_IDS[number];
 
 export async function POST(request: Request) {
   try {
-  const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) {
-    return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
-  }
-
-  const isAdmin = await isAdminUser(user.id);
-  if (!isAdmin) {
-    return NextResponse.json({ error: "권한이 없습니다." }, { status: 403 });
-  }
-
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "잘못된 요청입니다." }, { status: 400 });
-  }
-
-  const raw = body as Record<string, unknown>;
-  const targetUserId = typeof raw.userId === "string" ? raw.userId.trim() : "";
-  const planId = typeof raw.planId === "string" ? raw.planId.trim() as PlanId : "";
-
-  if (!targetUserId) {
-    return NextResponse.json({ error: "userId가 필요합니다." }, { status: 400 });
-  }
-  if (!VALID_PLAN_IDS.includes(planId as PlanId)) {
-    return NextResponse.json({ error: "planId는 creator | pro | free 중 하나여야 합니다." }, { status: 400 });
-  }
-
-  if (planId === "free") {
-    // free로 설정 = 구독 row 삭제
-    const { error } = await supabaseAdmin
-      .from("user_subscriptions")
-      .delete()
-      .eq("user_id", targetUserId);
-
-    if (error) {
-      console.error("[set-user-plan] delete error:", error.message);
-      return NextResponse.json({ error: "플랜 초기화에 실패했습니다." }, { status: 500 });
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
     }
-    console.log(`[set-user-plan] set free (deleted subscription) for user=${targetUserId} by admin=${user.id}`);
-    return NextResponse.json({ ok: true, planId: "free" });
-  }
 
-  // creator / pro → 기존 row 삭제 후 신규 INSERT (upsert 충돌 회피)
-  const plan = BILLING_PLANS.find((p) => p.id === planId);
-  if (!plan) {
-    return NextResponse.json({ error: "알 수 없는 플랜입니다." }, { status: 400 });
-  }
+    const isAdmin = await isAdminUser(user.id);
+    if (!isAdmin) {
+      return NextResponse.json({ error: "권한이 없습니다." }, { status: 403 });
+    }
 
-  const now = new Date().toISOString();
-  const manualSubId = `manual_admin_${targetUserId}_${planId}_${Date.now()}`;
+    const body = await request.json().catch(() => ({})) as Record<string, unknown>;
+    const targetUserId = typeof body.userId === "string" ? body.userId.trim() : "";
+    const planId = typeof body.planId === "string" ? body.planId.trim() as PlanId : "";
 
-  // 1) 기존 row 삭제 (없어도 에러 없음)
-  const { error: delError } = await supabaseAdmin
-    .from("user_subscriptions")
-    .delete()
-    .eq("user_id", targetUserId);
+    if (!targetUserId) {
+      return NextResponse.json({ error: "userId가 필요합니다." }, { status: 400 });
+    }
+    if (!VALID_PLAN_IDS.includes(planId as PlanId)) {
+      return NextResponse.json({ error: "planId는 creator | pro | free 중 하나여야 합니다." }, { status: 400 });
+    }
 
-  if (delError) {
-    console.error("[set-user-plan] delete error:", delError.message);
-    return NextResponse.json({ error: `기존 플랜 삭제 실패: ${delError.message}` }, { status: 500 });
-  }
+    // 기존 구독 조회 (이력 기록용)
+    const { data: existing } = await supabaseAdmin
+      .from("user_subscriptions")
+      .select("plan_id, subscription_status, current_period_end")
+      .eq("user_id", targetUserId)
+      .maybeSingle();
 
-  // 2) 신규 INSERT
-  const { error: insertError } = await supabaseAdmin
-    .from("user_subscriptions")
-    .insert({
+    if (planId === "free") {
+      const { error } = await supabaseAdmin
+        .from("user_subscriptions")
+        .delete()
+        .eq("user_id", targetUserId);
+
+      if (error) {
+        return NextResponse.json({ error: "플랜 초기화에 실패했습니다." }, { status: 500 });
+      }
+
+      await supabaseAdmin.from("subscription_changes").insert({
+        user_id: targetUserId,
+        previous_plan_id: existing?.plan_id ?? null,
+        new_plan_id: "free",
+        previous_expires_at: existing?.current_period_end ?? null,
+        new_expires_at: null,
+        change_type: "cancel",
+        change_source: "admin",
+        note: "어드민 플랜 초기화",
+        changed_by_admin_id: user.id,
+      });
+
+      return NextResponse.json({ ok: true, planId: "free" });
+    }
+
+    const plan = BILLING_PLANS.find((p) => p.id === planId);
+    if (!plan) {
+      return NextResponse.json({ error: "알 수 없는 플랜입니다." }, { status: 400 });
+    }
+
+    const now = new Date();
+    const newExpiresAt = new Date(now);
+    newExpiresAt.setUTCMonth(newExpiresAt.getUTCMonth() + 1); // 기본 1개월
+
+    const { error: upsertError } = await supabaseAdmin
+      .from("user_subscriptions")
+      .upsert({
+        user_id: targetUserId,
+        plan_id: planId,
+        subscription_status: "active",
+        grant_type: "manual",
+        manual_grant_reason: "어드민 직접 플랜 설정",
+        last_plan_id: existing?.plan_id ?? null,
+        current_period_start: now.toISOString(),
+        current_period_end: newExpiresAt.toISOString(),
+        stripe_customer_id: null,
+        stripe_subscription_id: null,
+        updated_at: now.toISOString(),
+      }, { onConflict: "user_id", ignoreDuplicates: false });
+
+    if (upsertError) {
+      return NextResponse.json({ error: `플랜 설정 실패: ${upsertError.message}` }, { status: 500 });
+    }
+
+    await supabaseAdmin.from("subscription_changes").insert({
       user_id: targetUserId,
-      plan_id: planId,
-      status: "active",
+      previous_plan_id: existing?.plan_id ?? null,
+      new_plan_id: planId,
+      previous_expires_at: existing?.current_period_end ?? null,
+      new_expires_at: newExpiresAt.toISOString(),
+      change_type: existing ? "upgrade" : "new",
+      change_source: "admin",
+      note: "어드민 직접 플랜 설정",
+      changed_by_admin_id: user.id,
     });
 
-  if (insertError) {
-    console.error("[set-user-plan] insert error:", insertError.message);
-    return NextResponse.json({ error: `플랜 설정 실패: ${insertError.message}` }, { status: 500 });
-  }
-
-  console.log(`[set-user-plan] set ${planId} for user=${targetUserId} by admin=${user.id}`);
-  return NextResponse.json({ ok: true, planId });
+    return NextResponse.json({ ok: true, planId });
 
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    console.error("[set-user-plan] uncaught exception:", msg);
     return NextResponse.json({ error: `서버 오류: ${msg}` }, { status: 500 });
   }
 }

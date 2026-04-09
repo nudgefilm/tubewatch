@@ -43,7 +43,21 @@ export type AdminUserRow = {
   purchased_credits: number | null;
   plan_id: string | null;
   subscription_status: string | null;
+  current_period_end: string | null;
+  grant_type: string | null;
   total_analyses_count: number;
+};
+
+export type AdminSubscriptionChangeRow = {
+  id: string;
+  changed_at: string;
+  previous_plan_id: string | null;
+  new_plan_id: string | null;
+  previous_expires_at: string | null;
+  new_expires_at: string | null;
+  change_type: string;
+  change_source: string;
+  note: string | null;
 };
 
 export type AdminUsersData = {
