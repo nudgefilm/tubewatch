@@ -14,7 +14,7 @@ export async function getAdminUsersData(): Promise<AdminUsersData> {
       .select("user_id, plan_id, status, current_period_start, renewal_at, grant_type"),
     supabaseAdmin
       .from("analysis_jobs")
-      .select("user_id, created_at")
+      .select("user_id")
       .eq("status", "completed"),
   ]);
 
@@ -50,15 +50,12 @@ export async function getAdminUsersData(): Promise<AdminUsersData> {
     subsMap.set(row.user_id, row);
   }
 
-  type JobRow = { user_id: string | null; created_at: string | null };
+  type JobRow = { user_id: string | null };
   const allJobs = (analysisJobsRes.data ?? []) as JobRow[];
 
   const analysisCountMap = new Map<string, number>();
   for (const row of allJobs) {
     if (!row.user_id) continue;
-    const sub = subsMap.get(row.user_id);
-    const periodStart = sub?.current_period_start;
-    if (periodStart && row.created_at && row.created_at < periodStart) continue;
     analysisCountMap.set(row.user_id, (analysisCountMap.get(row.user_id) ?? 0) + 1);
   }
 
