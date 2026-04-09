@@ -276,10 +276,10 @@ function ManualGrantModal({
                     key={p.id}
                     type="button"
                     onClick={() => setPlanId(p.id)}
-                    className={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+                    className={`rounded-lg border px-3 py-2 text-xs font-medium transition-all ${
                       planId === p.id
-                        ? "border-foreground/40 bg-foreground/5 text-foreground"
-                        : "border-foreground/10 text-muted-foreground hover:border-foreground/20"
+                        ? "border-foreground bg-foreground text-background shadow-sm"
+                        : "border-foreground/15 text-muted-foreground hover:border-foreground/40 hover:text-foreground"
                     }`}
                   >
                     {p.label}
@@ -297,10 +297,10 @@ function ManualGrantModal({
                     key={d.days}
                     type="button"
                     onClick={() => setDurationDays(d.days)}
-                    className={`flex-1 rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+                    className={`flex-1 rounded-lg border px-3 py-2 text-xs font-medium transition-all ${
                       durationDays === d.days
-                        ? "border-foreground/40 bg-foreground/5 text-foreground"
-                        : "border-foreground/10 text-muted-foreground hover:border-foreground/20"
+                        ? "border-foreground bg-foreground text-background shadow-sm"
+                        : "border-foreground/15 text-muted-foreground hover:border-foreground/40 hover:text-foreground"
                     }`}
                   >
                     {d.label}
