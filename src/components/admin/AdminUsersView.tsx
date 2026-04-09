@@ -197,17 +197,19 @@ function ResetFreeCreditsButton({ userId }: { userId: string }) {
 function ManualGrantModal({
   userId,
   userEmail,
+  defaultPlanId,
   currentPeriodEnd,
   onClose,
   onSuccess,
 }: {
   userId: string;
   userEmail: string | null;
+  defaultPlanId: string;
   currentPeriodEnd: string | null;
   onClose: () => void;
   onSuccess: (newExpiresAt: string) => void;
 }) {
-  const [planId, setPlanId] = useState<string>("creator");
+  const [planId, setPlanId] = useState<string>(defaultPlanId);
   const [durationDays, setDurationDays] = useState<number>(30);
   const [reason, setReason] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
@@ -577,7 +579,7 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
   const { rows, total } = data;
 
   const [search, setSearch] = useState("");
-  const [grantModal, setGrantModal] = useState<{ userId: string; email: string | null; periodEnd: string | null } | null>(null);
+  const [grantModal, setGrantModal] = useState<{ userId: string; email: string | null; periodEnd: string | null; planId: string | null } | null>(null);
   const [historyPanel, setHistoryPanel] = useState<{ userId: string; email: string | null } | null>(null);
   const [refundModal, setRefundModal] = useState<{ userId: string; email: string | null; periodEnd: string | null } | null>(null);
   // 로컬 만료일 업데이트 (수동부여 성공 시)
@@ -601,6 +603,7 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
         <ManualGrantModal
           userId={grantModal.userId}
           userEmail={grantModal.email}
+          defaultPlanId={grantModal.planId ?? "creator"}
           currentPeriodEnd={localExpiry[grantModal.userId] ?? grantModal.periodEnd}
           onClose={() => setGrantModal(null)}
           onSuccess={(newExpiry) => {
@@ -764,7 +767,7 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
                         <div className="flex items-center gap-1">
                           <button
                             type="button"
-                            onClick={() => setGrantModal({ userId: row.id, email: row.email, periodEnd: effectivePeriodEnd })}
+                            onClick={() => setGrantModal({ userId: row.id, email: row.email, periodEnd: effectivePeriodEnd, planId: row.plan_id })}
                             className="rounded px-1.5 py-0.5 text-[10px] font-medium bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
                           >
                             부여
