@@ -170,12 +170,12 @@ export function TermsModal({ isOpen, onClose }: TermsModalProps) {
             <h3 className="text-foreground font-medium mb-2">제13조 (유료 서비스 및 결제)</h3>
             <p className="mb-2">회사는 다음의 유료 플랜을 제공합니다.</p>
             <ul className="list-disc list-inside space-y-1 ml-2 mb-2">
-              <li><strong>월간 플랜:</strong> 결제일 기준 30일 단위로 자동 갱신</li>
-              <li><strong>6개월 플랜:</strong> 결제일 기준 180일 선결제</li>
+              <li><strong>월간 플랜:</strong> 결제일 기준 30일 이용 (자동 갱신 없음)</li>
+              <li><strong>6개월 플랜:</strong> 결제일 기준 180일 선결제 (자동 갱신 없음)</li>
             </ul>
             <p className="mb-2">유료 서비스 이용과 관련하여 다음 사항이 적용됩니다.</p>
             <ul className="list-disc list-inside space-y-1 ml-2">
-              <li>분석 쿼터(횟수)는 결제일 기준 30일마다 초기화됩니다.</li>
+              <li>분석 쿼터(횟수)는 결제 시작일 기준으로 초기화됩니다. 월간 플랜은 30일마다, 6개월 플랜은 180일마다 초기화됩니다.</li>
               <li>쿼터 소진 시 해당 주기 내 추가 분석이 제한됩니다.</li>
               <li>플랜별 채널 등록 한도 및 기능 범위는 서비스 내 안내 기준을 따릅니다.</li>
               <li>결제 금액 및 플랜 상세 내용은 결제 시점에 고지된 기준을 따릅니다.</li>
@@ -213,7 +213,7 @@ export function TermsModal({ isOpen, onClose }: TermsModalProps) {
             <ul className="list-disc list-inside space-y-1 ml-2">
               <li>유료 플랜 만료 후 익일까지 서비스를 이용할 수 있습니다.</li>
               <li>플랜 만료 후 분석 데이터는 30일간 보관되며, 이후 영구 삭제됩니다.</li>
-              <li>데이터 삭제 전 사전 안내가 제공됩니다.</li>
+              <li>이용자는 서비스 내 결제 현황에서 만료 일정을 직접 확인할 수 있습니다.</li>
               <li>이용자는 보관 기간 내 재결제를 통해 데이터를 유지할 수 있습니다.</li>
             </ul>
           </section>
