@@ -1,8 +1,8 @@
 /**
  * POST /api/admin/process-refund
  * 환불 처리 (Option B: 기간 유지 후 종료).
- * - current_period_end 유지 (해당일까지 이용 가능)
- * - subscription_status → 'refunded' (재구독 방지)
+ * - renewal_at 유지 (해당일까지 이용 가능)
+ * - status → 'refunded' (재구독 방지)
  * - subscription_changes 이력 기록
  */
 import { NextResponse } from "next/server";
@@ -29,28 +29,22 @@ export async function POST(request: Request) {
     if (!targetUserId) return NextResponse.json({ error: "userId가 필요합니다." }, { status: 400 });
     if (!note) return NextResponse.json({ error: "환불 사유(note)가 필요합니다." }, { status: 400 });
 
-    // 현재 구독 조회
     const { data: existing, error: fetchError } = await supabaseAdmin
       .from("user_subscriptions")
-      .select("plan_id, subscription_status, current_period_end")
+      .select("plan_id, status, renewal_at")
       .eq("user_id", targetUserId)
       .maybeSingle();
 
-    if (fetchError) {
-      return NextResponse.json({ error: fetchError.message }, { status: 500 });
-    }
-    if (!existing) {
-      return NextResponse.json({ error: "활성 구독이 없습니다." }, { status: 404 });
-    }
-    if (existing.subscription_status === "refunded") {
+    if (fetchError) return NextResponse.json({ error: fetchError.message }, { status: 500 });
+    if (!existing) return NextResponse.json({ error: "활성 구독이 없습니다." }, { status: 404 });
+    if (existing.status === "refunded") {
       return NextResponse.json({ error: "이미 환불 처리된 구독입니다." }, { status: 409 });
     }
 
-    // Option B: 기간은 유지, status만 refunded로 변경
     const { error: updateError } = await supabaseAdmin
       .from("user_subscriptions")
       .update({
-        subscription_status: "refunded",
+        status: "refunded",
         last_plan_id: existing.plan_id,
         updated_at: new Date().toISOString(),
       })
@@ -60,25 +54,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: `환불 처리 실패: ${updateError.message}` }, { status: 500 });
     }
 
-    // 이력 기록
     await supabaseAdmin.from("subscription_changes").insert({
       user_id: targetUserId,
       previous_plan_id: existing.plan_id,
       new_plan_id: existing.plan_id,
-      previous_expires_at: existing.current_period_end,
-      new_expires_at: existing.current_period_end,
+      previous_expires_at: existing.renewal_at,
+      new_expires_at: existing.renewal_at,
       change_type: "refund",
       change_source: "admin",
       note,
       changed_by_admin_id: user.id,
     });
 
-    console.log(`[process-refund] refunded | user=${targetUserId} | admin=${user.id} | note=${note}`);
-
-    return NextResponse.json({
-      ok: true,
-      currentPeriodEnd: existing.current_period_end,
-    });
+    return NextResponse.json({ ok: true, currentPeriodEnd: existing.renewal_at });
 
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);

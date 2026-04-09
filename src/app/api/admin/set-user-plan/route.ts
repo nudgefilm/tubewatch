@@ -1,10 +1,9 @@
 /**
  * POST /api/admin/set-user-plan
  * 특정 유저의 구독 플랜을 어드민이 수동으로 설정.
- * - "creator" | "pro" → user_subscriptions upsert (subscription_status: active, grant_type: manual)
+ * - "creator" | "pro" → user_subscriptions upsert (status: active, grant_type: manual)
  * - "free" → user_subscriptions row 삭제
  * - subscription_changes 이력 기록
- * Admin 전용 — profiles.role = 'admin' 체크.
  */
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
@@ -42,7 +41,7 @@ export async function POST(request: Request) {
     // 기존 구독 조회 (이력 기록용)
     const { data: existing } = await supabaseAdmin
       .from("user_subscriptions")
-      .select("plan_id, subscription_status, current_period_end")
+      .select("plan_id, status, renewal_at")
       .eq("user_id", targetUserId)
       .maybeSingle();
 
@@ -60,7 +59,7 @@ export async function POST(request: Request) {
         user_id: targetUserId,
         previous_plan_id: existing?.plan_id ?? null,
         new_plan_id: "free",
-        previous_expires_at: existing?.current_period_end ?? null,
+        previous_expires_at: existing?.renewal_at ?? null,
         new_expires_at: null,
         change_type: "cancel",
         change_source: "admin",
@@ -78,21 +77,19 @@ export async function POST(request: Request) {
 
     const now = new Date();
     const newExpiresAt = new Date(now);
-    newExpiresAt.setUTCMonth(newExpiresAt.getUTCMonth() + 1); // 기본 1개월
+    newExpiresAt.setUTCMonth(newExpiresAt.getUTCMonth() + 1);
 
     const { error: upsertError } = await supabaseAdmin
       .from("user_subscriptions")
       .upsert({
         user_id: targetUserId,
         plan_id: planId,
-        subscription_status: "active",
+        status: "active",
         grant_type: "manual",
         manual_grant_reason: "어드민 직접 플랜 설정",
         last_plan_id: existing?.plan_id ?? null,
         current_period_start: now.toISOString(),
-        current_period_end: newExpiresAt.toISOString(),
-        stripe_customer_id: null,
-        stripe_subscription_id: null,
+        renewal_at: newExpiresAt.toISOString(),
         updated_at: now.toISOString(),
       }, { onConflict: "user_id", ignoreDuplicates: false });
 
@@ -104,7 +101,7 @@ export async function POST(request: Request) {
       user_id: targetUserId,
       previous_plan_id: existing?.plan_id ?? null,
       new_plan_id: planId,
-      previous_expires_at: existing?.current_period_end ?? null,
+      previous_expires_at: existing?.renewal_at ?? null,
       new_expires_at: newExpiresAt.toISOString(),
       change_type: existing ? "upgrade" : "new",
       change_source: "admin",

@@ -1,7 +1,7 @@
 /**
  * 구독 기반 실제 사용 한도 계산.
  * user_subscriptions + BILLING_PLANS 기준. Admin 예외는 호출부에서 처리.
- * 유효 구독: active, trialing, manual + 만료 익일 이내.
+ * 유효 구독: active, trialing, manual, refunded + 만료 익일 이내.
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -12,11 +12,10 @@ import {
 } from "@/components/billing/types";
 
 // refunded 포함: 기간까지 서비스 이용 허용 (정책: 기간 유지 후 종료)
-// 재결제 차단은 PG 연동 시 결제 API에서 별도 처리
 const VALID_SUBSCRIPTION_STATUSES = ["active", "trialing", "manual", "refunded"] as const;
 const FREE_CHANNEL_LIMIT = 1;
 
-// 6개월 플랜 → 베이스 플랜 매핑 (한도는 동일, plan_id만 다름)
+// 6개월 플랜 → 베이스 플랜 매핑
 const PLAN_ID_TO_BASE: Record<string, Extract<BillingPlanId, "creator" | "pro">> = {
   creator: "creator",
   creator_6m: "creator",
@@ -33,16 +32,13 @@ export type EffectiveLimitsResult = {
   monthlyAnalysisLimit: number;
 };
 
-/**
- * 일반 사용자 기준 한도 계산. Admin 여부는 호출부에서 판단.
- */
 export async function getEffectiveLimits(
   supabase: SupabaseClient,
   userId: string
 ): Promise<EffectiveLimitsResult> {
   const { data: row, error } = await supabase
     .from("user_subscriptions")
-    .select("plan_id, subscription_status, current_period_end")
+    .select("plan_id, status, renewal_at, current_period_start")
     .eq("user_id", userId)
     .limit(1)
     .maybeSingle();
@@ -56,19 +52,14 @@ export async function getEffectiveLimits(
     };
   }
 
-  const status =
-    typeof (row as Record<string, unknown>).subscription_status === "string"
-      ? ((row as Record<string, unknown>).subscription_status as string).trim().toLowerCase()
-      : "";
-
-  const isValidStatus = (
-    VALID_SUBSCRIPTION_STATUSES as readonly string[]
-  ).includes(status);
+  const r = row as Record<string, unknown>;
+  const status = typeof r.status === "string" ? r.status.trim().toLowerCase() : "";
+  const isValidStatus = (VALID_SUBSCRIPTION_STATUSES as readonly string[]).includes(status);
 
   // 만료일 익일까지 이용 허용
-  const periodEnd = (row as Record<string, unknown>).current_period_end as string | null;
-  const isWithinGracePeriod = periodEnd
-    ? new Date(periodEnd).getTime() + 24 * 60 * 60 * 1000 > Date.now()
+  const renewalAt = r.renewal_at as string | null;
+  const isWithinGracePeriod = renewalAt
+    ? new Date(renewalAt).getTime() + 24 * 60 * 60 * 1000 > Date.now()
     : false;
 
   if (!isValidStatus || !isWithinGracePeriod) {
@@ -80,8 +71,7 @@ export async function getEffectiveLimits(
     };
   }
 
-  const planIdRaw =
-    typeof row.plan_id === "string" ? row.plan_id.trim() : "";
+  const planIdRaw = typeof row.plan_id === "string" ? row.plan_id.trim() : "";
   const basePlanId = PLAN_ID_TO_BASE[planIdRaw] ?? null;
 
   if (!basePlanId) {

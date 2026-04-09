@@ -11,7 +11,7 @@ export async function getAdminUsersData(): Promise<AdminUsersData> {
       .select("user_id, lifetime_analyses_used, purchased_credits"),
     supabaseAdmin
       .from("user_subscriptions")
-      .select("user_id, plan_id, subscription_status, current_period_start, current_period_end, grant_type"),
+      .select("user_id, plan_id, status, current_period_start, renewal_at, grant_type"),
     supabaseAdmin
       .from("analysis_jobs")
       .select("user_id, created_at")
@@ -40,9 +40,9 @@ export async function getAdminUsersData(): Promise<AdminUsersData> {
   type SubRow = {
     user_id: string;
     plan_id: string | null;
-    subscription_status: string | null;
+    status: string | null;
     current_period_start: string | null;
-    current_period_end: string | null;
+    renewal_at: string | null;
     grant_type: string | null;
   };
   const subsMap = new Map<string, SubRow>();
@@ -58,7 +58,6 @@ export async function getAdminUsersData(): Promise<AdminUsersData> {
     if (!row.user_id) continue;
     const sub = subsMap.get(row.user_id);
     const periodStart = sub?.current_period_start;
-    // 유료 플랜: 현재 구독 기간 시작 이후만 카운트 / Free: 전체 누적
     if (periodStart && row.created_at && row.created_at < periodStart) continue;
     analysisCountMap.set(row.user_id, (analysisCountMap.get(row.user_id) ?? 0) + 1);
   }
@@ -82,8 +81,8 @@ export async function getAdminUsersData(): Promise<AdminUsersData> {
       purchased_credits: credits?.purchased_credits ?? null,
       total_analyses_count: analysisCountMap.get(u.id) ?? 0,
       plan_id: sub?.plan_id ?? null,
-      subscription_status: sub?.subscription_status ?? null,
-      current_period_end: sub?.current_period_end ?? null,
+      subscription_status: sub?.status ?? null,
+      current_period_end: sub?.renewal_at ?? null,
       grant_type: sub?.grant_type ?? null,
     };
   });

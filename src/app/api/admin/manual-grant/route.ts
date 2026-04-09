@@ -1,7 +1,7 @@
 /**
  * POST /api/admin/manual-grant
  * 이벤트 당첨자 등 수동 구독 권한 부여.
- * - 기존 active/manual 구독이 있으면 만료일에 기간 합산 (연장)
+ * - 기존 active/manual 구독이 있으면 renewal_at에 기간 합산 (연장)
  * - 없으면 지금부터 기간 신규 부여
  * - subscription_changes 이력 기록
  */
@@ -52,12 +52,12 @@ export async function POST(request: Request) {
     // 기존 구독 조회
     const { data: existing } = await supabaseAdmin
       .from("user_subscriptions")
-      .select("plan_id, subscription_status, current_period_end")
+      .select("plan_id, status, renewal_at")
       .eq("user_id", targetUserId)
       .maybeSingle();
 
     const now = new Date();
-    const existingEnd = existing?.current_period_end ? new Date(existing.current_period_end) : null;
+    const existingEnd = existing?.renewal_at ? new Date(existing.renewal_at) : null;
 
     // 연장: 기존 만료일이 미래면 거기서 추가, 아니면 지금부터
     const baseDate = existingEnd && existingEnd > now ? existingEnd : now;
@@ -66,14 +66,12 @@ export async function POST(request: Request) {
     const upsertRow = {
       user_id: targetUserId,
       plan_id: planId,
-      subscription_status: "manual",
+      status: "manual",
       grant_type: "manual",
       manual_grant_reason: reason,
       last_plan_id: existing?.plan_id ?? null,
       current_period_start: now.toISOString(),
-      current_period_end: newExpiresAt.toISOString(),
-      stripe_customer_id: null,
-      stripe_subscription_id: null,
+      renewal_at: newExpiresAt.toISOString(),
       updated_at: now.toISOString(),
     };
 
@@ -90,7 +88,7 @@ export async function POST(request: Request) {
       user_id: targetUserId,
       previous_plan_id: existing?.plan_id ?? null,
       new_plan_id: planId,
-      previous_expires_at: existing?.current_period_end ?? null,
+      previous_expires_at: existing?.renewal_at ?? null,
       new_expires_at: newExpiresAt.toISOString(),
       change_type: existing ? "manual_grant" : "new",
       change_source: "admin",
@@ -98,7 +96,7 @@ export async function POST(request: Request) {
       changed_by_admin_id: user.id,
     });
 
-    console.log(`[manual-grant] ${planId} +${durationDays}d → expires ${newExpiresAt.toISOString()} | user=${targetUserId} | admin=${user.id} | reason=${reason}`);
+    console.log(`[manual-grant] ${planId} +${durationDays}d → expires ${newExpiresAt.toISOString()} | user=${targetUserId} | admin=${user.id}`);
 
     return NextResponse.json({
       ok: true,
