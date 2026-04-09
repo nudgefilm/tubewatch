@@ -259,7 +259,17 @@ function ManualGrantModal({
       >
         <div>
           <h3 className="font-heading text-base font-medium tracking-[-0.02em]">수동 권한 부여</h3>
-          <p className="mt-0.5 text-xs text-muted-foreground truncate">{userEmail}</p>
+          <div className="mt-1 flex items-center gap-2">
+            <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
+            {(() => {
+              const p = GRANT_PLANS.find((g) => g.id === planId);
+              return p ? (
+                <span className="shrink-0 rounded-md border border-foreground/15 bg-foreground/[0.04] px-2 py-0.5 text-[10px] font-medium text-foreground/60">
+                  {p.label}
+                </span>
+              ) : null;
+            })()}
+          </div>
         </div>
 
         {status === "done" ? (
