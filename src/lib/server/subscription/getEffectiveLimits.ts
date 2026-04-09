@@ -1,7 +1,7 @@
 /**
  * 구독 기반 실제 사용 한도 계산.
  * user_subscriptions + BILLING_PLANS 기준. Admin 예외는 호출부에서 처리.
- * 유효 구독: active, trialing만 인정.
+ * 유효 구독: active, trialing, manual + 만료 익일 이내.
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -11,14 +11,16 @@ import {
   FREE_LIFETIME_ANALYSIS_LIMIT,
 } from "@/components/billing/types";
 
-const VALID_SUBSCRIPTION_STATUSES = ["active", "trialing"] as const;
+const VALID_SUBSCRIPTION_STATUSES = ["active", "trialing", "manual"] as const;
 const FREE_CHANNEL_LIMIT = 1;
 
-const BILLING_PLAN_IDS: BillingPlanId[] = ["creator", "pro"];
-
-function isValidPlanId(value: string): value is BillingPlanId {
-  return BILLING_PLAN_IDS.includes(value as BillingPlanId);
-}
+// 6개월 플랜 → 베이스 플랜 매핑 (한도는 동일, plan_id만 다름)
+const PLAN_ID_TO_BASE: Record<string, Extract<BillingPlanId, "creator" | "pro">> = {
+  creator: "creator",
+  creator_6m: "creator",
+  pro: "pro",
+  pro_6m: "pro",
+};
 
 export type EffectivePlanId = BillingPlanId | "free";
 
@@ -38,21 +40,12 @@ export async function getEffectiveLimits(
 ): Promise<EffectiveLimitsResult> {
   const { data: row, error } = await supabase
     .from("user_subscriptions")
-    .select("plan_id, status")
+    .select("plan_id, subscription_status, current_period_end")
     .eq("user_id", userId)
     .limit(1)
     .maybeSingle();
 
-  if (error) {
-    return {
-      planId: "free",
-      subscriptionStatus: null,
-      channelLimit: FREE_CHANNEL_LIMIT,
-      monthlyAnalysisLimit: FREE_LIFETIME_ANALYSIS_LIMIT,
-    };
-  }
-
-  if (!row) {
+  if (error || !row) {
     return {
       planId: "free",
       subscriptionStatus: null,
@@ -62,14 +55,21 @@ export async function getEffectiveLimits(
   }
 
   const status =
-    typeof (row as Record<string, unknown>).status === "string"
-      ? ((row as Record<string, unknown>).status as string).trim().toLowerCase()
+    typeof (row as Record<string, unknown>).subscription_status === "string"
+      ? ((row as Record<string, unknown>).subscription_status as string).trim().toLowerCase()
       : "";
+
   const isValidStatus = (
     VALID_SUBSCRIPTION_STATUSES as readonly string[]
   ).includes(status);
 
-  if (!isValidStatus) {
+  // 만료일 익일까지 이용 허용
+  const periodEnd = (row as Record<string, unknown>).current_period_end as string | null;
+  const isWithinGracePeriod = periodEnd
+    ? new Date(periodEnd).getTime() + 24 * 60 * 60 * 1000 > Date.now()
+    : false;
+
+  if (!isValidStatus || !isWithinGracePeriod) {
     return {
       planId: "free",
       subscriptionStatus: status || null,
@@ -80,7 +80,9 @@ export async function getEffectiveLimits(
 
   const planIdRaw =
     typeof row.plan_id === "string" ? row.plan_id.trim() : "";
-  if (!planIdRaw || !isValidPlanId(planIdRaw)) {
+  const basePlanId = PLAN_ID_TO_BASE[planIdRaw] ?? null;
+
+  if (!basePlanId) {
     return {
       planId: "free",
       subscriptionStatus: status || null,
@@ -89,7 +91,7 @@ export async function getEffectiveLimits(
     };
   }
 
-  const plan = BILLING_PLANS.find((p) => p.id === planIdRaw);
+  const plan = BILLING_PLANS.find((p) => p.id === basePlanId);
   if (!plan) {
     return {
       planId: "free",
@@ -100,7 +102,7 @@ export async function getEffectiveLimits(
   }
 
   return {
-    planId: plan.id,
+    planId: planIdRaw as EffectivePlanId,
     subscriptionStatus: status,
     channelLimit: plan.channels,
     monthlyAnalysisLimit: plan.monthlyAnalyses,
