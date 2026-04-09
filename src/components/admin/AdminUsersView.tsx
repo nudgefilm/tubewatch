@@ -22,6 +22,14 @@ const GRANT_PLANS = [
   { id: "pro_6m",     label: "Pro 6개월" },
 ] as const;
 
+function grantPlanBadge(id: string): { label: string; cls: string } {
+  const p = GRANT_PLANS.find((g) => g.id === id);
+  const cls = id.startsWith("creator") ? "bg-blue-100 text-blue-700"
+    : id.startsWith("pro") ? "bg-violet-100 text-violet-700"
+    : "bg-foreground/10 text-foreground/60";
+  return { label: p?.label ?? id, cls };
+}
+
 const GRANT_DURATIONS = [
   { days: 30,  label: "30일" },
   { days: 90,  label: "90일" },
@@ -261,21 +269,9 @@ function ManualGrantModal({
           <h3 className="font-heading text-base font-medium tracking-[-0.02em]">수동 권한 부여</h3>
           <div className="mt-1 flex items-center gap-2">
             <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
-            {(() => {
-              const p = GRANT_PLANS.find((g) => g.id === planId);
-              const colorMap: Record<string, string> = {
-                creator:    "bg-blue-100 text-blue-700",
-                creator_6m: "bg-blue-100 text-blue-700",
-                pro:        "bg-violet-100 text-violet-700",
-                pro_6m:     "bg-violet-100 text-violet-700",
-              };
-              const cls = colorMap[planId] ?? "bg-foreground/10 text-foreground/60";
-              return p ? (
-                <span className={`shrink-0 rounded-md px-2 py-0.5 text-[10px] font-medium ${cls}`}>
-                  {p.label}
-                </span>
-              ) : null;
-            })()}
+            <span className={`shrink-0 rounded-md px-2 py-0.5 text-[10px] font-medium ${grantPlanBadge(planId).cls}`}>
+              {grantPlanBadge(planId).label}
+            </span>
           </div>
         </div>
 
