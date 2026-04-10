@@ -212,7 +212,7 @@ function SubscriptionPlanCard({
             <>
               {IS_PORTONE ? (
                 <span className="text-3xl font-bold">
-                  {plan.semiannualPriceKrw.toLocaleString("ko-KR")}원
+                  ₩{plan.semiannualPriceKrw.toLocaleString("ko-KR")}
                 </span>
               ) : (
                 <span className="text-3xl font-bold">${plan.semiannualPriceUsd}</span>
@@ -223,7 +223,7 @@ function SubscriptionPlanCard({
             <>
               {IS_PORTONE ? (
                 <span className="text-3xl font-bold">
-                  {plan.priceKrw.toLocaleString("ko-KR")}원
+                  ₩{plan.priceKrw.toLocaleString("ko-KR")}
                 </span>
               ) : (
                 <span className="text-3xl font-bold">${plan.priceUsd}</span>
@@ -387,7 +387,7 @@ function CreditProductCard({ product }: { product: (typeof CREDIT_PRODUCTS)[numb
         <div className="mt-1">
           {IS_PORTONE ? (
             <span className="text-2xl font-bold">
-              {product.priceKrw.toLocaleString("ko-KR")}원
+              ₩{product.priceKrw.toLocaleString("ko-KR")}
             </span>
           ) : (
             <span className="text-2xl font-bold">${product.priceUsd}</span>
