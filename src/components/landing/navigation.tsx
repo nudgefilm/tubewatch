@@ -15,7 +15,7 @@ import { createClient } from "@/lib/supabase/client";
 import { readSelectedChannelIdFromStorage } from "@/lib/channels/selectedChannelStorage";
 
 const navLinks = [
-  { name: "Channel Analysis", href: "/analysis", description: "내 채널, 지금 몇점일까?" },
+  { name: "Channel Analysis", href: "/analysis", description: "내 채널, 지금 몇점일까?", loginRequired: true },
   { name: "Channel DNA", href: "/channel-dna", description: "이 채널의 성과 구조, 패턴이 궁금해" },
   { name: "Action Plan", href: "/action-plan", description: "그래서 오늘 뭐하면 돼?" },
   { name: "Next Trend", href: "/next-trend", description: "다음 영상, 뭐 찍을건데 !" },
@@ -146,19 +146,27 @@ export function Navigation() {
 
           {/* Desktop Navigation + CTA - Right Aligned */}
           <div className="hidden md:flex items-center gap-5">
-            {navLinks.map((link) => (
-              <a
-                key={link.name}
-                href={getNavHref(link.href)}
-                className="text-sm text-foreground/70 hover:text-foreground transition-colors duration-300 relative group cursor-pointer"
-              >
-                {link.name}
-                <span className="absolute -bottom-1 left-0 w-0 h-px bg-foreground transition-all duration-300 group-hover:w-full" />
-                <span className="absolute left-1/2 -translate-x-1/2 top-full mt-2 px-3 py-1.5 bg-foreground text-background text-xs rounded-lg whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 pointer-events-none">
-                  {link.description}
-                </span>
-              </a>
-            ))}
+            {navLinks.map((link) => {
+              const needsLogin = link.loginRequired && !isLoggedIn;
+              return (
+                <a
+                  key={link.name}
+                  href={needsLogin ? undefined : getNavHref(link.href)}
+                  onClick={needsLogin ? (e) => {
+                    e.preventDefault();
+                    setOauthReturnPath(getSafeOAuthReturnPath(link.href));
+                    setIsAuthModalOpen(true);
+                  } : undefined}
+                  className="text-sm text-foreground/70 hover:text-foreground transition-colors duration-300 relative group cursor-pointer"
+                >
+                  {link.name}
+                  <span className="absolute -bottom-1 left-0 w-0 h-px bg-foreground transition-all duration-300 group-hover:w-full" />
+                  <span className="absolute left-1/2 -translate-x-1/2 top-full mt-2 px-3 py-1.5 bg-foreground text-background text-xs rounded-lg whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 pointer-events-none">
+                    {link.description}
+                  </span>
+                </a>
+              );
+            })}
 
             <span className="w-px h-4 bg-foreground/20" />
 
@@ -272,21 +280,29 @@ export function Navigation() {
         <div className="flex flex-col h-full px-8 pt-28 pb-8">
           {/* Navigation Links */}
           <div className="flex-1 flex flex-col justify-center gap-8">
-            {navLinks.map((link, i) => (
-              <a
-                key={link.name}
-                href={getNavHref(link.href)}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`text-5xl font-sans text-foreground hover:text-muted-foreground transition-all duration-500 cursor-pointer ${
-                  isMobileMenuOpen 
-                    ? "opacity-100 translate-y-0" 
-                    : "opacity-0 translate-y-4"
-                }`}
-                style={{ transitionDelay: isMobileMenuOpen ? `${i * 75}ms` : "0ms" }}
-              >
-                {link.name}
-              </a>
-            ))}
+            {navLinks.map((link, i) => {
+              const needsLogin = link.loginRequired && !isLoggedIn;
+              return (
+                <a
+                  key={link.name}
+                  href={needsLogin ? undefined : getNavHref(link.href)}
+                  onClick={needsLogin ? (e) => {
+                    e.preventDefault();
+                    setIsMobileMenuOpen(false);
+                    setOauthReturnPath(getSafeOAuthReturnPath(link.href));
+                    setIsAuthModalOpen(true);
+                  } : () => setIsMobileMenuOpen(false)}
+                  className={`text-5xl font-sans text-foreground hover:text-muted-foreground transition-all duration-500 cursor-pointer ${
+                    isMobileMenuOpen
+                      ? "opacity-100 translate-y-0"
+                      : "opacity-0 translate-y-4"
+                  }`}
+                  style={{ transitionDelay: isMobileMenuOpen ? `${i * 75}ms` : "0ms" }}
+                >
+                  {link.name}
+                </a>
+              );
+            })}
           </div>
           
           {/* Bottom CTAs */}
