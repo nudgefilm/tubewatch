@@ -45,20 +45,20 @@ export function FooterSection() {
 
           {/* Info Rows */}
           <div className="flex flex-col gap-1 text-xs text-muted-foreground/70">
-            {/* Row 1 - Email */}
+            {/* Row 1 - Company + CEO + Email */}
             <div>
-              <span>Unfold Lab | CEO: Jae Woo Jung | Email. nudgefilm@gmail.com</span>
+              <span>언폴드랩(UNFOLD LAB) | 대표 정재우 | Email. nudgefilm@gmail.com</span>
             </div>
-            
+
             {/* Row 2 - Business License (left) + Built by (right) */}
             <div className="flex flex-col md:flex-row justify-between gap-1">
-              <span>Business License 136-11-23540</span>
+              <span>사업자등록번호: 136-11-23540</span>
               <span className="text-muted-foreground/70">Built by Creators for Creators</span>
             </div>
-            
+
             {/* Row 3 - Address (left) + Terms (right) */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-1">
-              <span>Suite 214-S46, Apgujeong-ro 2-gil, Gangnam-gu, Seoul, Korea</span>
+              <span>서울특별시 강남구 압구정로2길 46, 214-S46호</span>
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                 <button onClick={() => setIsTermsModalOpen(true)} className="hover:text-foreground transition-colors cursor-pointer">Terms of Service</button>
                 <span>|</span>
