@@ -71,7 +71,7 @@ export default function SupportView() {
     {
       question: "채널 분석은 어떻게 실행하나요?",
       answer:
-        "Channel Analysis 페이지에서 '분석 시작' 버튼을 눌러 직접 실행합니다. 자동 업데이트는 없으며, 재분석은 마지막 분석 후 12시간이 지나야 다시 실행할 수 있습니다.",
+        "채널 등록 후 채널 분석을 바로 시작할 수 있습니다. 설정/채널 관리 및 Channel Analysis 페이지에서 실행할 수 있습니다.",
     },
     {
       question: "분석 크레딧은 어떻게 충전하나요?",
