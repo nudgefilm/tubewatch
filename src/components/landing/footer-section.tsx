@@ -47,7 +47,7 @@ export function FooterSection() {
           <div className="flex flex-col gap-1 text-xs text-muted-foreground/70">
             {/* Row 1 - Email */}
             <div>
-              <span>Unfold Lab | CEO: J. W. Jung | Email. nudgefilm@gmail.com</span>
+              <span>Unfold Lab | CEO: Jae Woo Jung | Email. nudgefilm@gmail.com</span>
             </div>
             
             {/* Row 2 - Business License (left) + Built by (right) */}
