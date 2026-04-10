@@ -210,24 +210,16 @@ function SubscriptionPlanCard({
         <div className="mt-2">
           {isSemiannual ? (
             <>
-              {IS_PORTONE ? (
-                <span className="text-3xl font-bold">
-                  ₩{plan.semiannualPriceKrw.toLocaleString("ko-KR")}
-                </span>
-              ) : (
-                <span className="text-3xl font-bold">${plan.semiannualPriceUsd}</span>
-              )}
+              <span className="text-3xl font-bold">
+                ₩{plan.semiannualPriceKrw.toLocaleString("ko-KR")}
+              </span>
               <span className="text-sm text-muted-foreground"> / 6개월</span>
             </>
           ) : (
             <>
-              {IS_PORTONE ? (
-                <span className="text-3xl font-bold">
-                  ₩{plan.priceKrw.toLocaleString("ko-KR")}
-                </span>
-              ) : (
-                <span className="text-3xl font-bold">${plan.priceUsd}</span>
-              )}
+              <span className="text-3xl font-bold">
+                ₩{plan.priceKrw.toLocaleString("ko-KR")}
+              </span>
               <span className="text-sm text-muted-foreground">/월</span>
             </>
           )}
@@ -385,13 +377,9 @@ function CreditProductCard({ product }: { product: (typeof CREDIT_PRODUCTS)[numb
         </div>
         <CardTitle className="text-base">{product.name}</CardTitle>
         <div className="mt-1">
-          {IS_PORTONE ? (
-            <span className="text-2xl font-bold">
-              ₩{product.priceKrw.toLocaleString("ko-KR")}
-            </span>
-          ) : (
-            <span className="text-2xl font-bold">${product.priceUsd}</span>
-          )}
+          <span className="text-2xl font-bold">
+            ₩{product.priceKrw.toLocaleString("ko-KR")}
+          </span>
         </div>
         <CardDescription className="mt-1">{product.description}</CardDescription>
       </CardHeader>
