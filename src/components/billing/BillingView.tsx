@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Check, Zap, Crown, ArrowRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,8 +11,86 @@ import {
   CREDIT_PRODUCTS,
   FREE_LIFETIME_ANALYSIS_LIMIT,
   type BillingPeriod,
+  type BillingPlanId,
+  type CreditProductId,
 } from "./types";
 import type { UserBillingStatus } from "@/lib/server/billing/getUserBillingStatus";
+
+// ─── 결제 수단 판별 ───────────────────────────────────────────────────────────
+// .env.local: NEXT_PUBLIC_PAYMENT_PROVIDER=portone  →  PortOne V2 + TossPayments 사용
+// 미설정 또는 다른 값 → 기존 Stripe 사용
+
+const IS_PORTONE = process.env.NEXT_PUBLIC_PAYMENT_PROVIDER === "portone";
+
+// ─── PortOne SDK 동적 로드 ─────────────────────────────────────────────────
+
+async function requestPortOnePayment(params: {
+  paymentId: string;
+  orderName: string;
+  totalAmount: number;
+  redirectUrl: string;
+}) {
+  const PortOne = (await import("@portone/browser-sdk/v2")).default;
+  return PortOne.requestPayment({
+    storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID ?? "",
+    channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY ?? "",
+    paymentId: params.paymentId,
+    orderName: params.orderName,
+    totalAmount: params.totalAmount,
+    currency: "KRW",
+    payMethod: "CARD",
+    redirectUrl: params.redirectUrl,
+  });
+}
+
+// ─── PortOne 리디렉트 복귀 처리 ────────────────────────────────────────────
+
+function usePortOneRedirectReturn(onSuccess: () => void) {
+  const searchParams = useSearchParams();
+  const [returnState, setReturnState] = useState<"idle" | "verifying" | "success" | "error">("idle");
+  const [returnError, setReturnError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!IS_PORTONE) return;
+    const paymentId = searchParams.get("po_payment_id");
+    if (!paymentId) return;
+
+    const type = searchParams.get("po_type") as "subscription" | "credit" | null;
+    const planId = searchParams.get("po_plan");
+    const productId = searchParams.get("po_product");
+    if (!type) return;
+
+    setReturnState("verifying");
+
+    const body =
+      type === "subscription"
+        ? { paymentId, type, planId }
+        : { paymentId, type, productId };
+
+    fetch("/api/portone/payment-complete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    })
+      .then((r) => r.json())
+      .then((json: { ok?: boolean; error?: string }) => {
+        if (json.ok) {
+          setReturnState("success");
+          onSuccess();
+        } else {
+          setReturnState("error");
+          setReturnError(json.error ?? "결제 확인에 실패했습니다.");
+        }
+      })
+      .catch(() => {
+        setReturnState("error");
+        setReturnError("결제 확인 중 오류가 발생했습니다.");
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return { returnState, returnError };
+}
 
 // ─── Subscription plan card ───────────────────────────────────────────────────
 
@@ -24,31 +103,85 @@ function SubscriptionPlanCard({
   isPopular?: boolean;
   period: BillingPeriod;
 }) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [agreed, setAgreed] = useState(false);
   const checkboxId = `agree-${plan.id}-${period}`;
 
   const isSemiannual = period === "semiannual";
-  const planId = isSemiannual ? plan.semiannualPlanId : plan.id;
+  const planId: BillingPlanId = isSemiannual ? plan.semiannualPlanId : plan.id;
+
+  async function handleSubscribeStripe() {
+    const res = await fetch("/api/stripe/subscription-checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ planId }),
+    });
+    const json = (await res.json()) as { url?: string; error?: string };
+    if (!res.ok) {
+      setError(typeof json.error === "string" ? json.error : "결제 페이지를 열 수 없습니다.");
+      return;
+    }
+    if (typeof json.url === "string") window.location.href = json.url;
+    else setError("결제 페이지 URL을 받지 못했습니다.");
+  }
+
+  async function handleSubscribePortOne() {
+    const amountKrw = isSemiannual ? plan.semiannualPriceKrw : plan.priceKrw;
+    const orderName = `TubeWatch ${plan.name} ${isSemiannual ? "6개월" : "1개월"}`;
+    const paymentId = `tw_sub_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+
+    const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+    const redirectUrl =
+      `${baseUrl}/billing?po_payment_id=${paymentId}&po_type=subscription&po_plan=${planId}`;
+
+    let response;
+    try {
+      response = await requestPortOnePayment({ paymentId, orderName, totalAmount: amountKrw, redirectUrl });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "결제 모듈 로드에 실패했습니다.");
+      return;
+    }
+
+    // 팝업 결제 완료 시 응답 수신 (리디렉트 시에는 undefined)
+    if (!response) return; // 리디렉트 → usePortOneRedirectReturn이 처리
+    if ("code" in response && response.code) {
+      setError(("message" in response ? (response as { message?: string }).message : null) ?? "결제에 실패했습니다.");
+      return;
+    }
+
+    // 팝업 결제 성공 → 서버 검증
+    setLoading(true);
+    try {
+      const res = await fetch("/api/portone/payment-complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentId, type: "subscription", planId }),
+      });
+      const json = (await res.json()) as { ok?: boolean; error?: string };
+      if (json.ok) {
+        router.refresh();
+      } else {
+        setError(json.error ?? "결제 확인에 실패했습니다.");
+      }
+    } catch {
+      setError("결제 확인 중 오류가 발생했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function handleSubscribe() {
     if (loading) return;
     setError(null);
     setLoading(true);
     try {
-      const res = await fetch("/api/stripe/subscription-checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planId }),
-      });
-      const json = (await res.json()) as { url?: string; error?: string };
-      if (!res.ok) {
-        setError(typeof json.error === "string" ? json.error : "결제 페이지를 열 수 없습니다.");
-        return;
+      if (IS_PORTONE) {
+        await handleSubscribePortOne();
+      } else {
+        await handleSubscribeStripe();
       }
-      if (typeof json.url === "string") window.location.href = json.url;
-      else setError("결제 페이지 URL을 받지 못했습니다.");
     } catch {
       setError("요청 중 오류가 발생했습니다.");
     } finally {
@@ -77,12 +210,24 @@ function SubscriptionPlanCard({
         <div className="mt-2">
           {isSemiannual ? (
             <>
-              <span className="text-3xl font-bold">${plan.semiannualPriceUsd}</span>
+              {IS_PORTONE ? (
+                <span className="text-3xl font-bold">
+                  {plan.semiannualPriceKrw.toLocaleString("ko-KR")}원
+                </span>
+              ) : (
+                <span className="text-3xl font-bold">${plan.semiannualPriceUsd}</span>
+              )}
               <span className="text-sm text-muted-foreground"> / 6개월</span>
             </>
           ) : (
             <>
-              <span className="text-3xl font-bold">${plan.priceUsd}</span>
+              {IS_PORTONE ? (
+                <span className="text-3xl font-bold">
+                  {plan.priceKrw.toLocaleString("ko-KR")}원
+                </span>
+              ) : (
+                <span className="text-3xl font-bold">${plan.priceUsd}</span>
+              )}
               <span className="text-sm text-muted-foreground">/월</span>
             </>
           )}
@@ -127,7 +272,7 @@ function SubscriptionPlanCard({
           </span>
         </label>
         <Button className="mt-auto w-full" onClick={handleSubscribe} disabled={loading || !agreed}>
-          {loading ? "이동 중..." : "구독 시작하기"}
+          {loading ? "처리 중..." : "구독 시작하기"}
         </Button>
         {!agreed && (
           <p className="mt-1.5 text-center text-[10px] text-muted-foreground/50">
@@ -147,26 +292,84 @@ function SubscriptionPlanCard({
 // ─── One-time credit card ─────────────────────────────────────────────────────
 
 function CreditProductCard({ product }: { product: (typeof CREDIT_PRODUCTS)[number] }) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  async function handlePurchaseStripe() {
+    const res = await fetch("/api/stripe/one-time-checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ productId: product.id }),
+    });
+    const json = (await res.json()) as { url?: string; error?: string };
+    if (!res.ok) {
+      setError(typeof json.error === "string" ? json.error : "결제 페이지를 열 수 없습니다.");
+      return;
+    }
+    if (typeof json.url === "string") window.location.href = json.url;
+    else setError("결제 페이지 URL을 받지 못했습니다.");
+  }
+
+  async function handlePurchasePortOne() {
+    const productId: CreditProductId = product.id;
+    const paymentId = `tw_credit_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    const orderName = `TubeWatch ${product.name} (분석 ${product.creditCount}회)`;
+
+    const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+    const redirectUrl =
+      `${baseUrl}/billing?po_payment_id=${paymentId}&po_type=credit&po_product=${productId}`;
+
+    let response;
+    try {
+      response = await requestPortOnePayment({
+        paymentId,
+        orderName,
+        totalAmount: product.priceKrw,
+        redirectUrl,
+      });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "결제 모듈 로드에 실패했습니다.");
+      return;
+    }
+
+    if (!response) return; // 리디렉트 처리 중
+    if ("code" in response && response.code) {
+      setError(("message" in response ? (response as { message?: string }).message : null) ?? "결제에 실패했습니다.");
+      return;
+    }
+
+    // 팝업 결제 성공 → 서버 검증
+    setLoading(true);
+    try {
+      const res = await fetch("/api/portone/payment-complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentId, type: "credit", productId }),
+      });
+      const json = (await res.json()) as { ok?: boolean; error?: string };
+      if (json.ok) {
+        router.refresh();
+      } else {
+        setError(json.error ?? "결제 확인에 실패했습니다.");
+      }
+    } catch {
+      setError("결제 확인 중 오류가 발생했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function handlePurchase() {
     if (loading) return;
     setError(null);
     setLoading(true);
     try {
-      const res = await fetch("/api/stripe/one-time-checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: product.id }),
-      });
-      const json = (await res.json()) as { url?: string; error?: string };
-      if (!res.ok) {
-        setError(typeof json.error === "string" ? json.error : "결제 페이지를 열 수 없습니다.");
-        return;
+      if (IS_PORTONE) {
+        await handlePurchasePortOne();
+      } else {
+        await handlePurchaseStripe();
       }
-      if (typeof json.url === "string") window.location.href = json.url;
-      else setError("결제 페이지 URL을 받지 못했습니다.");
     } catch {
       setError("요청 중 오류가 발생했습니다.");
     } finally {
@@ -182,7 +385,13 @@ function CreditProductCard({ product }: { product: (typeof CREDIT_PRODUCTS)[numb
         </div>
         <CardTitle className="text-base">{product.name}</CardTitle>
         <div className="mt-1">
-          <span className="text-2xl font-bold">${product.priceUsd}</span>
+          {IS_PORTONE ? (
+            <span className="text-2xl font-bold">
+              {product.priceKrw.toLocaleString("ko-KR")}원
+            </span>
+          ) : (
+            <span className="text-2xl font-bold">${product.priceUsd}</span>
+          )}
         </div>
         <CardDescription className="mt-1">{product.description}</CardDescription>
       </CardHeader>
@@ -196,7 +405,7 @@ function CreditProductCard({ product }: { product: (typeof CREDIT_PRODUCTS)[numb
           onClick={handlePurchase}
           disabled={loading}
         >
-          {loading ? "이동 중..." : "구매하기"}
+          {loading ? "처리 중..." : "구매하기"}
         </Button>
         {error && (
           <p className="mt-2 text-xs text-red-600" role="alert">
@@ -297,19 +506,22 @@ function CurrentPlanCard({ status }: { status: UserBillingStatus }) {
             </div>
             <div className="mt-1 space-y-0.5 text-sm text-muted-foreground">
               {nextBillingDate && (
-                <p>다음 결제일: {nextBillingDate}</p>
+                <p>만료일: {nextBillingDate}</p>
               )}
               <p>이번 달 분석: {status.monthlyCreditsUsed}회 사용</p>
             </div>
           </div>
-          <div className="flex flex-col gap-2">
-            <Button variant="outline" size="sm" onClick={handleManage} disabled={portalLoading}>
-              {portalLoading ? "이동 중..." : "구독 관리"}
-            </Button>
-            {portalError && (
-              <p className="text-xs text-red-600">{portalError}</p>
-            )}
-          </div>
+          {/* Stripe 사용 시에만 포털 버튼 표시 */}
+          {!IS_PORTONE && (
+            <div className="flex flex-col gap-2">
+              <Button variant="outline" size="sm" onClick={handleManage} disabled={portalLoading}>
+                {portalLoading ? "이동 중..." : "구독 관리"}
+              </Button>
+              {portalError && (
+                <p className="text-xs text-red-600">{portalError}</p>
+              )}
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -319,7 +531,14 @@ function CurrentPlanCard({ status }: { status: UserBillingStatus }) {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function BillingView({ initialData }: { initialData: UserBillingStatus }) {
+  const router = useRouter();
   const [period, setPeriod] = useState<BillingPeriod>("monthly");
+
+  const handlePaymentSuccess = useCallback(() => {
+    router.refresh();
+  }, [router]);
+
+  const { returnState, returnError } = usePortOneRedirectReturn(handlePaymentSuccess);
 
   return (
     <div className="min-h-screen bg-background">
@@ -334,6 +553,23 @@ export default function BillingView({ initialData }: { initialData: UserBillingS
       </section>
 
       <div className="mx-auto max-w-5xl space-y-16 px-6 py-12 lg:px-12">
+        {/* PortOne 리디렉트 복귀 상태 알림 */}
+        {IS_PORTONE && returnState !== "idle" && (
+          <div
+            className={`rounded-lg border px-4 py-3 text-sm ${
+              returnState === "success"
+                ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                : returnState === "verifying"
+                ? "border-blue-200 bg-blue-50 text-blue-800"
+                : "border-red-200 bg-red-50 text-red-800"
+            }`}
+          >
+            {returnState === "verifying" && "결제를 확인하는 중입니다..."}
+            {returnState === "success" && "결제가 완료되었습니다."}
+            {returnState === "error" && (returnError ?? "결제 확인에 실패했습니다.")}
+          </div>
+        )}
+
         {/* Current plan status */}
         <section>
           <CurrentPlanCard status={initialData} />

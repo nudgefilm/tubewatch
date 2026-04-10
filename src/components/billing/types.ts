@@ -12,9 +12,13 @@ export interface BillingPlan {
   id: Extract<BillingPlanId, "creator" | "pro">;
   name: string;
   priceUsd: number;
-  /** 6개월 결제 총액 */
+  /** 6개월 결제 총액 (USD) */
   semiannualPriceUsd: number;
-  /** 6개월 플랜 ID (Stripe용) */
+  /** 월 결제 원화 (PortOne/TossPayments용) */
+  priceKrw: number;
+  /** 6개월 결제 원화 (PortOne/TossPayments용) */
+  semiannualPriceKrw: number;
+  /** 6개월 플랜 ID */
   semiannualPlanId: Extract<BillingPlanId, "creator_6m" | "pro_6m">;
   /** 6개월 절약 문구 */
   semiannualBadge: string;
@@ -44,6 +48,8 @@ export const BILLING_PLANS: BillingPlan[] = [
     name: "Creator",
     priceUsd: 9,
     semiannualPriceUsd: 49,
+    priceKrw: 13000,
+    semiannualPriceKrw: 69000,
     semiannualPlanId: "creator_6m",
     semiannualBadge: "한 달이 공짜",
     channels: 3,
@@ -57,6 +63,8 @@ export const BILLING_PLANS: BillingPlan[] = [
     name: "Pro",
     priceUsd: 29,
     semiannualPriceUsd: 149,
+    priceKrw: 39000,
+    semiannualPriceKrw: 199000,
     semiannualPlanId: "pro_6m",
     semiannualBadge: "약 15% 할인",
     channels: 10,
@@ -75,6 +83,8 @@ export interface CreditProduct {
   id: CreditProductId;
   name: string;
   priceUsd: number;
+  /** 원화 가격 (PortOne/TossPayments용) */
+  priceKrw: number;
   /** 충전되는 분석 횟수 */
   creditCount: number;
   description: string;
@@ -93,6 +103,7 @@ export const CREDIT_PRODUCTS: CreditProduct[] = [
     id: "single",
     name: "싱글 패스",
     priceUsd: 2.9,
+    priceKrw: 4900,
     creditCount: 1,
     description: "1회 분석",
     stripePriceId: null,
@@ -101,6 +112,7 @@ export const CREDIT_PRODUCTS: CreditProduct[] = [
     id: "triple",
     name: "트리플 팩",
     priceUsd: 5.9,
+    priceKrw: 8900,
     creditCount: 3,
     description: "3회 분석",
     stripePriceId: null,
