@@ -120,7 +120,7 @@ export default function SupportView() {
     },
     {
       title: "Action Plan 활용하기",
-      description: "AI 추천 실행 과제를 우선순위에 따라 적용하는 방법",
+      description: "튜브워치 엔진 추천 실행 과제를 우선순위에 따라 적용하는 방법",
       icon: Zap,
       href: "/action-plan",
     },
