@@ -193,7 +193,7 @@ function SubscriptionPlanCard({
     `채널 ${plan.channels}개`,
     `월 ${plan.monthlyAnalyses}회 분석`,
     "재분석 12시간 쿨다운",
-    "영상 50개 분석",
+    "회당 50개 영상 분석 데이터 업데이트",
     "Channel Analysis · Channel DNA",
     "Action Plan · Next Trend",
   ];
