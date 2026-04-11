@@ -10,6 +10,7 @@ import {
 import { FREE_LIFETIME_ANALYSIS_LIMIT } from "@/components/billing/types";
 import { OverloadRetryBanner } from "@/components/features/shared/OverloadRetryBanner";
 import { AnalysisWaitingCard } from "@/components/channels/AnalysisWaitingCard";
+import { IntegratedSummaryModal } from "@/components/channels/IntegratedSummaryModal";
 
 type ChannelRow = {
   id: string;
@@ -48,6 +49,7 @@ export default function ChannelsPageClient({
   const [progressStep, setProgressStep] = useState<string | null>(null);
   const [overloadQueued, setOverloadQueued] = useState(false);
   const [overloadRetryAfterSec, setOverloadRetryAfterSec] = useState(90);
+  const [summaryTargetChannel, setSummaryTargetChannel] = useState<ChannelRow | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // localStorage에서 선택 채널 초기화
@@ -232,6 +234,7 @@ export default function ChannelsPageClient({
   }, [selectedChannel, isNavigating, router]);
 
   return (
+    <>
     <div className="mx-auto max-w-3xl space-y-8 px-6 py-10">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">내 채널</h1>
@@ -463,6 +466,13 @@ export default function ChannelsPageClient({
                 </button>
                 <button
                   type="button"
+                  onClick={() => setSummaryTargetChannel(ch)}
+                  className="shrink-0 rounded-lg border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors"
+                >
+                  통합 요약
+                </button>
+                <button
+                  type="button"
                   disabled={deletingId === ch.id}
                   onClick={() => void handleDelete(ch)}
                   className="shrink-0 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100 disabled:opacity-50"
@@ -475,6 +485,16 @@ export default function ChannelsPageClient({
         )}
       </div>
     </div>
+
+    {/* 통합 요약 모달 — fixed 포지션이므로 레이아웃 외부에 마운트 */}
+    {summaryTargetChannel && (
+      <IntegratedSummaryModal
+        isOpen={true}
+        channel={summaryTargetChannel}
+        onClose={() => setSummaryTargetChannel(null)}
+      />
+    )}
+    </>
   );
 }
 
