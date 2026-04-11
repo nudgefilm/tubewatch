@@ -581,7 +581,7 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
         {/* 채널 종합 진단서 원페이퍼 */}
         {viewModel.selectedChannelId && (
           <section>
-            <AnalysisReportSection channelId={viewModel.selectedChannelId} />
+            <AnalysisReportSection channelId={viewModel.selectedChannelId} channelTitle={viewModel.channel?.title ?? null} />
           </section>
         )}
 

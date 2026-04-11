@@ -142,7 +142,7 @@ export function ActionPlanPage({ channelId = "", channelContext, viewModel, isSt
                 </h2>
                 <p className="text-xs text-muted-foreground mt-0.5">채널 데이터 기반 튜브워치 엔진 원페이퍼</p>
               </div>
-              <StrategyPlanSection channelId={viewModel.selectedChannelId} />
+              <StrategyPlanSection channelId={viewModel.selectedChannelId} channelTitle={channelContext?.title ?? null} />
             </section>
           )}
 

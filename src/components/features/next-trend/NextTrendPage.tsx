@@ -274,7 +274,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                         <p className="text-xs text-muted-foreground mt-0.5">채널 데이터 기반 튜브워치 엔진 원페이퍼</p>
                       </div>
                       <NextTrendActionSection data={actions} />
-                      <IntegratedSummaryButton channelId={viewModel.selectedChannelId ?? channelId} />
+                      <IntegratedSummaryButton channelId={viewModel.selectedChannelId ?? channelId} channelTitle={channelContext?.title ?? null} />
                     </section>
                   )}
                 </>

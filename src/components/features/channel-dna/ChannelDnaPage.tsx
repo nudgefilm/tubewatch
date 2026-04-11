@@ -243,7 +243,7 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
           {/* [5] 채널 DNA 진단 리포트 원페이퍼 — Starter 차단 */}
           {!isStarterPlan && channelId && (
             <section>
-              <ChannelDnaReportSection channelId={channelId} />
+              <ChannelDnaReportSection channelId={channelId} channelTitle={channelContext?.title ?? null} />
             </section>
           )}
 
