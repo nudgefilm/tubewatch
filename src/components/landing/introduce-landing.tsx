@@ -65,7 +65,7 @@ function HeroSection() {
             </h1>
 
             <div className={`mt-6 transition-all duration-700 delay-300 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-              <img src="/mainbb.png" alt="" className="h-[110px] w-auto object-contain rounded-lg" />
+              <img src="/mainbb.png" alt="" className="h-[88px] w-auto object-contain rounded-lg" />
             </div>
 
             {/* Stats row */}
@@ -89,7 +89,7 @@ function HeroSection() {
           </div>
 
           {/* Right: YouTube Shorts 영상 */}
-          <div className={`shrink-0 transition-all duration-700 delay-400 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
+          <div className={`shrink-0 self-end transition-all duration-700 delay-400 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
             <div className="relative w-[220px] lg:w-[255px] rounded-2xl overflow-hidden border border-foreground/10 shadow-xl">
               {/* 9:16 비율 컨테이너 */}
               <div className="relative" style={{ paddingBottom: "177.78%" }}>
