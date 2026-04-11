@@ -119,6 +119,13 @@ export function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
                 </a>
               </li>
             </ul>
+            <p className="mt-3">
+              TubeWatch의 YouTube API 사용 및 YouTube API로부터 수신한 정보의 다른 앱으로의 이전은{" "}
+              <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener noreferrer" className="text-foreground underline hover:text-foreground/80 cursor-pointer">
+                Google API 서비스 사용자 데이터 정책
+              </a>
+              을 준수하며, 여기에는 제한적 사용 요구 사항이 포함됩니다.
+            </p>
           </section>
 
           <section>
