@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useState } from "react"
 import { Sparkles } from "lucide-react"
 import { IntegratedSummaryModal } from "@/components/channels/IntegratedSummaryModal"
 
@@ -9,12 +9,17 @@ interface Props {
 }
 
 /**
+ * 모듈 레벨 싱글톤 캐시.
+ * 4개 리포트 페이지 어디서든 한 번 생성하면 다른 페이지에서 재생성하지 않음.
+ */
+const globalSummaryCache = new Map<string, string>()
+
+/**
  * 각 리포트 페이지 하단에 삽입하는 통합 요약 트리거 버튼.
- * 자기완결형 — 모달 상태와 세션 캐시를 내부에서 관리.
+ * 모든 인스턴스가 globalSummaryCache를 공유 — 어느 페이지에서 생성해도 재호출 없음.
  */
 export function IntegratedSummaryButton({ channelId }: Props) {
-  const [isOpen, setIsOpen]   = useState(false)
-  const cacheRef = useRef<Map<string, string>>(new Map())
+  const [isOpen, setIsOpen] = useState(false)
 
   return (
     <>
@@ -31,8 +36,8 @@ export function IntegratedSummaryButton({ channelId }: Props) {
         <IntegratedSummaryModal
           isOpen={isOpen}
           channel={{ id: channelId, channel_title: null }}
-          cachedSummary={cacheRef.current.get(channelId) ?? null}
-          onSummaryCached={(id, summary) => { cacheRef.current.set(id, summary) }}
+          cachedSummary={globalSummaryCache.get(channelId) ?? null}
+          onSummaryCached={(id, summary) => { globalSummaryCache.set(id, summary) }}
           onClose={() => setIsOpen(false)}
         />
       )}

@@ -10,7 +10,6 @@ import {
 import { FREE_LIFETIME_ANALYSIS_LIMIT } from "@/components/billing/types";
 import { OverloadRetryBanner } from "@/components/features/shared/OverloadRetryBanner";
 import { AnalysisWaitingCard } from "@/components/channels/AnalysisWaitingCard";
-import { IntegratedSummaryModal } from "@/components/channels/IntegratedSummaryModal";
 
 type ChannelRow = {
   id: string;
@@ -49,9 +48,6 @@ export default function ChannelsPageClient({
   const [progressStep, setProgressStep] = useState<string | null>(null);
   const [overloadQueued, setOverloadQueued] = useState(false);
   const [overloadRetryAfterSec, setOverloadRetryAfterSec] = useState(90);
-  const [summaryTargetChannel, setSummaryTargetChannel] = useState<ChannelRow | null>(null);
-  // 세션 내 통합 요약 캐시 — 같은 채널 재클릭 시 Gemini 재호출 방지
-  const summaryCacheRef = useRef<Map<string, string>>(new Map());
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // localStorage에서 선택 채널 초기화
@@ -236,7 +232,6 @@ export default function ChannelsPageClient({
   }, [selectedChannel, isNavigating, router]);
 
   return (
-    <>
     <div className="mx-auto max-w-3xl space-y-8 px-6 py-10">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">내 채널</h1>
@@ -317,13 +312,12 @@ export default function ChannelsPageClient({
               선택한 채널의 현재 상태를 진단하고 후속 전략 메뉴의 기준선을
               만듭니다.
             </p>
-            <div className="mt-3 border-t border-border/60 pt-3 space-y-0.5">
+            <div className="mt-3 border-t border-border/60 pt-3 space-y-1">
               <p className="text-xs text-muted-foreground">
                 최대 50개 영상 · 80가지 이상의 핵심 지표를 정밀 분석합니다.
               </p>
               <p className="text-xs text-muted-foreground">
-                분석 완료 후 이 페이지에서 4개 리포트의{" "}
-                <span className="font-medium text-foreground">통합 요약</span>을 바로 확인할 수 있습니다.
+                <span className="font-medium text-foreground">'튜브워치 4개 리포트 통합 요약'</span>은 채널 분석 완료 후 생성이 가능합니다. 채널의 '핵심 인사이트'를 놓치지 마세요.
               </p>
             </div>
             {selectedChannel ? (
@@ -477,13 +471,6 @@ export default function ChannelsPageClient({
                 </button>
                 <button
                   type="button"
-                  onClick={() => setSummaryTargetChannel(ch)}
-                  className="shrink-0 rounded-lg border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors"
-                >
-                  통합 요약
-                </button>
-                <button
-                  type="button"
                   disabled={deletingId === ch.id}
                   onClick={() => void handleDelete(ch)}
                   className="shrink-0 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100 disabled:opacity-50"
@@ -496,18 +483,6 @@ export default function ChannelsPageClient({
         )}
       </div>
     </div>
-
-    {/* 통합 요약 모달 — fixed 포지션이므로 레이아웃 외부에 마운트 */}
-    {summaryTargetChannel && (
-      <IntegratedSummaryModal
-        isOpen={true}
-        channel={summaryTargetChannel}
-        cachedSummary={summaryCacheRef.current.get(summaryTargetChannel.id) ?? null}
-        onSummaryCached={(id, summary) => { summaryCacheRef.current.set(id, summary); }}
-        onClose={() => setSummaryTargetChannel(null)}
-      />
-    )}
-    </>
   );
 }
 
