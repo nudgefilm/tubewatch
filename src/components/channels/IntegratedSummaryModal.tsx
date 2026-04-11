@@ -26,7 +26,7 @@ interface Props {
   /** 부모가 보관 중인 세션 캐시값. 있으면 Gemini 재호출 생략. */
   cachedSummary: string | null;
   /** 요약 생성 완료 시 부모 캐시에 저장하도록 콜백 */
-  onSummaryCached: (channelId: string, summary: string, channelTitle: string | null) => void;
+  onSummaryCached: (channelId: string, summary: string, channelTitle: string | null, snapshotId: string) => void;
   onClose: () => void;
 }
 
@@ -107,10 +107,11 @@ export function IntegratedSummaryModal({ isOpen, channel, cachedSummary, onSumma
       }
 
       const resolvedTitle = typeof data.channelTitle === "string" ? data.channelTitle : null;
+      const resolvedSnapshotId = typeof data.snapshotId === "string" ? data.snapshotId : "";
       if (resolvedTitle) {
         setApiChannelTitle(resolvedTitle);
       }
-      onSummaryCached(channel.id, data.summary, resolvedTitle);
+      onSummaryCached(channel.id, data.summary, resolvedTitle, resolvedSnapshotId);
       applyResult(data.summary);
     } catch {
       setErrorMsg("네트워크 오류가 발생했습니다. 인터넷 연결을 확인해 주세요.");

@@ -10,42 +10,46 @@ interface Props {
 }
 
 // ── sessionStorage 헬퍼 ───────────────────────────────────────────────────────
-// 풀 페이지 리로드(메인 페이지 이동 등) 후에도 탭 세션 내 캐시를 유지한다.
-// 탭 종료 시 자동 삭제.
+// 캐시 키는 analysis_results.id(snapshotId) 기준 — 채널 재분석 시 자동 무효화.
+// tubewatch_snap_{channelId}  → 해당 채널의 최신 snapshotId
+// tubewatch_summary_{snapId}  → snapshotId에 대응하는 통합요약 텍스트
+// tubewatch_title_{channelId} → 채널명 (UI 표시용)
 
-function readSummaryFromSession(channelId: string): string | null {
+function ssGet(key: string): string | null {
   if (typeof window === "undefined") return null
-  try { return sessionStorage.getItem(`tubewatch_summary_${channelId}`) } catch { return null }
+  try { return sessionStorage.getItem(key) } catch { return null }
 }
-function writeSummaryToSession(channelId: string, summary: string): void {
+function ssSet(key: string, value: string): void {
   if (typeof window === "undefined") return
-  try { sessionStorage.setItem(`tubewatch_summary_${channelId}`, summary) } catch { /* ignore */ }
-}
-function readTitleFromSession(channelId: string): string | null {
-  if (typeof window === "undefined") return null
-  try { return sessionStorage.getItem(`tubewatch_title_${channelId}`) } catch { return null }
-}
-function writeTitleToSession(channelId: string, title: string): void {
-  if (typeof window === "undefined") return
-  try { sessionStorage.setItem(`tubewatch_title_${channelId}`, title) } catch { /* ignore */ }
+  try { sessionStorage.setItem(key, value) } catch { /* ignore */ }
 }
 
 // ── 모듈 레벨 메모리 캐시 (SPA 탐색 최적화 — sessionStorage 읽기 생략) ────────
-const globalSummaryCache = new Map<string, string>()
-const globalChannelTitleCache = new Map<string, string>()
+const memSnap    = new Map<string, string>()  // channelId → snapshotId
+const memSummary = new Map<string, string>()  // snapshotId → summary
+const memTitle   = new Map<string, string>()  // channelId → channelTitle
 
-/** 메모리 → sessionStorage 순으로 캐시 조회 */
+/** 캐시 조회: 메모리 → sessionStorage 순. 캐시 미스 시 null 반환. */
 function getCachedSummary(channelId: string): string | null {
-  return globalSummaryCache.get(channelId) ?? readSummaryFromSession(channelId)
+  const snapId = memSnap.get(channelId) ?? ssGet(`tubewatch_snap_${channelId}`)
+  if (!snapId) return null
+  return memSummary.get(snapId) ?? ssGet(`tubewatch_summary_${snapId}`)
 }
 function getCachedTitle(channelId: string): string | null {
-  return globalChannelTitleCache.get(channelId) ?? readTitleFromSession(channelId)
+  return memTitle.get(channelId) ?? ssGet(`tubewatch_title_${channelId}`)
 }
 
 /**
  * 각 리포트 페이지 하단에 삽입하는 통합 요약 트리거 버튼.
- * 모든 인스턴스가 globalSummaryCache + sessionStorage를 공유 —
- * 어느 페이지에서 생성해도, 풀 리로드 후에도 재호출하지 않음.
+ *
+ * 캐시 계층:
+ *   1. 모듈 메모리 Map  (SPA 탐색, 즉시)
+ *   2. sessionStorage   (풀 리로드·로그아웃 후 재로그인, 탭 세션 내)
+ *   3. DB 캐시 (API)    (타 기기·새 탭·탭 재오픈 — Gemini 재호출 없음)
+ *   4. Gemini 신규 생성 (최초 1회 또는 재분석 후 첫 요청)
+ *
+ * 캐시 키는 analysis_results.id(snapshotId) 기준이므로
+ * 채널 재분석 시 snapshotId가 바뀌어 이전 캐시가 자동으로 무효화된다.
  */
 export function IntegratedSummaryButton({ channelId, channelTitle }: Props) {
   const [isOpen, setIsOpen] = useState(false)
@@ -66,12 +70,16 @@ export function IntegratedSummaryButton({ channelId, channelTitle }: Props) {
           isOpen={isOpen}
           channel={{ id: channelId, channel_title: getCachedTitle(channelId) ?? channelTitle ?? null }}
           cachedSummary={getCachedSummary(channelId)}
-          onSummaryCached={(id, summary, title) => {
-            globalSummaryCache.set(id, summary)
-            writeSummaryToSession(id, summary)
+          onSummaryCached={(id, summary, title, snapshotId) => {
+            if (snapshotId) {
+              memSnap.set(id, snapshotId)
+              ssSet(`tubewatch_snap_${id}`, snapshotId)
+              memSummary.set(snapshotId, summary)
+              ssSet(`tubewatch_summary_${snapshotId}`, summary)
+            }
             if (title) {
-              globalChannelTitleCache.set(id, title)
-              writeTitleToSession(id, title)
+              memTitle.set(id, title)
+              ssSet(`tubewatch_title_${id}`, title)
             }
           }}
           onClose={() => setIsOpen(false)}
