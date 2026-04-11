@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import type { AdminUsersData, AdminSubscriptionChangeRow } from "./types";
 import { formatDateTime } from "@/lib/format/formatDateTime";
 import { FREE_LIFETIME_ANALYSIS_LIMIT } from "@/components/billing/types";
 
 // ─── 상수 ────────────────────────────────────────────────────────────────────
+
+const PAGE_SIZE = 100;
 
 type PlanOption = "free" | "creator" | "pro";
 
@@ -571,6 +573,7 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
   const { rows, total } = data;
 
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
   const [grantModal, setGrantModal] = useState<{ userId: string; email: string | null; periodEnd: string | null; planId: string | null } | null>(null);
   const [historyPanel, setHistoryPanel] = useState<{ userId: string; email: string | null } | null>(null);
   const [refundModal, setRefundModal] = useState<{ userId: string; email: string | null; periodEnd: string | null } | null>(null);
@@ -587,6 +590,12 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
         r.id.toLowerCase().includes(q)
     );
   }, [rows, search]);
+
+  // 검색어 변경 시 첫 페이지로 리셋
+  useEffect(() => { setPage(1); }, [search]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div className="space-y-6">
@@ -626,7 +635,9 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
         <div>
           <h1 className="font-heading text-2xl font-medium tracking-[-0.03em] text-foreground">Users</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            총 {formatNum(total)}명 {search && `· 검색결과 ${formatNum(filtered.length)}명`}
+            총 {formatNum(total)}명
+            {search && ` · 검색결과 ${formatNum(filtered.length)}명`}
+            {totalPages > 1 && ` · ${page}/${totalPages} 페이지`}
           </p>
         </div>
         <input
@@ -639,7 +650,7 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
       </div>
 
       {/* 테이블 */}
-      <div className="rounded-xl border border-foreground/10 bg-foreground/[0.02]">
+      <div className="rounded-xl border border-foreground/10 bg-foreground/[0.02] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
@@ -655,14 +666,14 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
               </tr>
             </thead>
             <tbody className="divide-y divide-foreground/5">
-              {filtered.length === 0 ? (
+              {paged.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-4 py-6 text-center text-muted-foreground/60">
                     {search ? "검색 결과가 없습니다." : "데이터가 없습니다."}
                   </td>
                 </tr>
               ) : (
-                filtered.map((row) => {
+                paged.map((row) => {
                   const effectivePeriodEnd = localExpiry[row.id] ?? row.current_period_end;
                   const lifeUsed = row.lifetime_analyses_used;
                   const purchased = row.purchased_credits ?? 0;
@@ -790,6 +801,55 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
           </table>
         </div>
       </div>
+
+      {/* 페이지네이션 */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between px-1">
+          <p className="text-xs text-muted-foreground">
+            {formatNum((page - 1) * PAGE_SIZE + 1)}–{formatNum(Math.min(page * PAGE_SIZE, filtered.length))} / {formatNum(filtered.length)}명
+          </p>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="rounded px-2.5 py-1 text-xs font-medium border border-foreground/10 text-muted-foreground hover:bg-foreground/5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              이전
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 2)
+              .reduce<(number | "…")[]>((acc, p, idx, arr) => {
+                if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("…");
+                acc.push(p);
+                return acc;
+              }, [])
+              .map((p, idx) =>
+                p === "…" ? (
+                  <span key={`ellipsis-${idx}`} className="px-1 text-xs text-muted-foreground/40">…</span>
+                ) : (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p as number)}
+                    className={`rounded px-2.5 py-1 text-xs font-medium border transition-colors ${
+                      page === p
+                        ? "border-foreground/30 bg-foreground text-background"
+                        : "border-foreground/10 text-muted-foreground hover:bg-foreground/5"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="rounded px-2.5 py-1 text-xs font-medium border border-foreground/10 text-muted-foreground hover:bg-foreground/5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              다음
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
