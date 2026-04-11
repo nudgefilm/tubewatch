@@ -190,8 +190,8 @@ export function TermsModal({ isOpen, onClose }: TermsModalProps) {
               <li><strong>결제일로부터 7일 이내, 서비스 이용 시작:</strong> 본 서비스는 결제 완료 후 채널 분석 리포트(Channel Analysis, Channel DNA, Action Plan, Next Trend 중 1개 이상)를 1회 이상 생성한 시점을 서비스 이용 시작으로 간주합니다. 이 경우 「전자상거래 등에서의 소비자보호에 관한 법률」 제17조 제2항에 따라 청약철회가 제한될 수 있습니다. 단, 리포트를 생성하지 않은 경우라면 결제일로부터 7일 이내에는 전액 환불이 가능합니다.</li>
               <li><strong>결제일로부터 7일 초과:</strong> 환불은 원칙적으로 불가하나, 이용자의 요청이 타당한 경우 고객센터를 통해 요청 처리일 이후 잔여 결제 주기에 해당하는 금액을 환불합니다.</li>
             </ul>
-            <p className="mb-2 text-foreground/80 font-medium">※ "서비스 이용 시작"의 기준</p>
-            <p className="mb-2">본 약관에서 "서비스 이용 시작"이란 결제 완료 후 채널 분석 리포트(Channel Analysis, Channel DNA, Action Plan, Next Trend 중 1개 이상)를 1회 이상 생성한 시점을 기준으로 합니다. 결제 후 리포트를 생성하지 않은 경우라도 결제일로부터 7일 이내에는 전액 환불이 가능합니다.</p>
+            <p className="mb-2 text-foreground/80 font-medium">※ &ldquo;서비스 이용 시작&rdquo;의 기준</p>
+            <p className="mb-2">본 약관에서 &ldquo;서비스 이용 시작&rdquo;이란 결제 완료 후 채널 분석 리포트(Channel Analysis, Channel DNA, Action Plan, Next Trend 중 1개 이상)를 1회 이상 생성한 시점을 기준으로 합니다. 결제 후 리포트를 생성하지 않은 경우라도 결제일로부터 7일 이내에는 전액 환불이 가능합니다.</p>
             <p className="mb-2 text-foreground/80 font-medium">※ 디지털 콘텐츠 서비스 청약철회 제한 안내</p>
             <p className="mb-2">결제 완료 후 서비스 이용이 시작된 경우, 「전자상거래 등에서의 소비자보호에 관한 법률」 제17조에 따라 청약철회가 제한됩니다. 이에 대해 결제 전 이용자의 사전 동의를 받습니다.</p>
             <ul className="list-disc list-inside space-y-1 ml-2">
