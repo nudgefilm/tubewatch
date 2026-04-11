@@ -68,9 +68,10 @@ function parseSummary(text: string): SummarySection[] {
 }
 
 export function IntegratedSummaryModal({ isOpen, channel, cachedSummary, onSummaryCached, onClose }: Props) {
-  const [status,   setStatus]   = useState<Status>("loading");
-  const [sections, setSections] = useState<SummarySection[]>([]);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [status,          setStatus]          = useState<Status>("loading");
+  const [sections,        setSections]        = useState<SummarySection[]>([]);
+  const [errorMsg,        setErrorMsg]        = useState<string | null>(null);
+  const [apiChannelTitle, setApiChannelTitle] = useState<string | null>(null);
 
   const applyResult = useCallback((summaryText: string) => {
     const parsed = parseSummary(summaryText);
@@ -105,6 +106,9 @@ export function IntegratedSummaryModal({ isOpen, channel, cachedSummary, onSumma
         return;
       }
 
+      if (typeof data.channelTitle === "string") {
+        setApiChannelTitle(data.channelTitle);
+      }
       onSummaryCached(channel.id, data.summary);
       applyResult(data.summary);
     } catch {
@@ -155,7 +159,7 @@ export function IntegratedSummaryModal({ isOpen, channel, cachedSummary, onSumma
             <div className="min-w-0">
               <h2 className="text-sm font-semibold text-foreground">튜브워치 통합요약</h2>
               <p className="truncate text-xs text-muted-foreground">
-                {channel.channel_title ?? "채널"}
+                {apiChannelTitle ?? channel.channel_title ?? "채널"}
               </p>
             </div>
           </div>

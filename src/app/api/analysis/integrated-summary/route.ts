@@ -66,7 +66,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ noAnalysis: true });
     }
 
-    // ── 4. 프롬프트 빌드 + Gemini 호출 ───────────────────────────────────────
+    // ── 4. 채널명 조회 (user_channels 직접 조회 — analysis_results 값보다 신뢰도 높음) ──
+    const { data: channelRow } = await supabase
+      .from("user_channels")
+      .select("channel_title")
+      .eq("id", userChannelId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    const channelTitle: string | null =
+      (channelRow?.channel_title as string | null | undefined) ?? null;
+
+    // ── 5. 프롬프트 빌드 + Gemini 호출 ───────────────────────────────────────
     const prompt = buildIntegratedSummaryPrompt(snap as Record<string, unknown>);
     const summary = await callGeminiForIntegratedSummary(prompt);
 
@@ -78,7 +89,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    return NextResponse.json({ summary });
+    return NextResponse.json({ summary, channelTitle });
   } catch (e) {
     console.error("[integrated-summary] unexpected error:", e);
     return NextResponse.json({ error: "서버 오류가 발생했습니다." }, { status: 500 });
