@@ -39,7 +39,7 @@ function HeroSection() {
   useEffect(() => { setVisible(true); }, []);
 
   return (
-    <section className="relative min-h-[80vh] flex flex-col justify-center py-16 overflow-hidden">
+    <section className="relative flex flex-col justify-center py-12 lg:py-16 overflow-hidden">
       {/* Background grid */}
       <div
         className="absolute inset-0 pointer-events-none"
@@ -47,40 +47,63 @@ function HeroSection() {
       />
 
       <div className="relative z-10 max-w-[1400px] mx-auto px-6 lg:px-12">
-        <div className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-          <SectionLabel>TubeWatch™ Platform Introduction</SectionLabel>
-        </div>
+        <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
 
-        <h1 className={`font-heading font-medium leading-[1.15] tracking-[-0.03em] transition-all duration-1000 delay-100 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
-          <span className="block text-[clamp(2rem,6vw,4.5rem)]">
-            당신의 데이터는 이미<br />다음 전략을 말하고 있습니다.
-          </span>
-          <span className="block text-[clamp(1.2rem,3.6vw,2.7rem)] text-muted-foreground mt-2">
-            유튜브 스튜디오가 보여주지 않는 1% 시그널,<br />튜브워치가 설계합니다.
-          </span>
-        </h1>
-
-        <div className={`mt-8 transition-all duration-700 delay-300 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-          <img src="/mainbb.png" alt="" className="h-[154px] w-auto object-contain rounded-lg" />
-        </div>
-
-        {/* Stats row */}
-        <div className={`mt-10 flex flex-wrap gap-x-10 gap-y-5 border-t border-foreground/10 pt-8 transition-all duration-700 delay-500 ${visible ? "opacity-100" : "opacity-0"}`}>
-          {[
-            { value: "4개", label: "핵심 분석 모듈" },
-            { value: "50개+", label: "영상 심층 분석" },
-            { value: "80개+", label: "데이터 시그널 기반" },
-            { value: "무료", label: "로 시작 가능", highlight: true },
-          ].map(({ value, label, highlight }) => (
-            <div key={label}>
-              <p className={`font-heading text-3xl lg:text-4xl font-medium tracking-[-0.03em] ${highlight ? "text-foreground" : ""}`}>
-                {value}
-              </p>
-              <p className={`text-sm mt-1 ${highlight ? "text-foreground font-medium" : "text-muted-foreground"}`}>
-                {highlight ? <><span className="underline underline-offset-4">{label}</span></> : label}
-              </p>
+          {/* Left: 텍스트 + 배너 + 스탯 */}
+          <div className="flex-1 min-w-0">
+            <div className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+              <SectionLabel>TubeWatch™ Platform Introduction</SectionLabel>
             </div>
-          ))}
+
+            <h1 className={`font-heading font-medium leading-[1.15] tracking-[-0.03em] transition-all duration-1000 delay-100 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+              <span className="block text-[clamp(1.6rem,4vw,3.2rem)]">
+                당신의 데이터는 이미<br />다음 전략을 말하고 있습니다.
+              </span>
+              <span className="block text-[clamp(1rem,2.4vw,1.9rem)] text-muted-foreground mt-2">
+                유튜브 스튜디오가 보여주지 않는 1% 시그널,<br />튜브워치가 설계합니다.
+              </span>
+            </h1>
+
+            <div className={`mt-6 transition-all duration-700 delay-300 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+              <img src="/mainbb.png" alt="" className="h-[110px] w-auto object-contain rounded-lg" />
+            </div>
+
+            {/* Stats row */}
+            <div className={`mt-7 flex flex-wrap gap-x-8 gap-y-4 border-t border-foreground/10 pt-6 transition-all duration-700 delay-500 ${visible ? "opacity-100" : "opacity-0"}`}>
+              {[
+                { value: "4개", label: "핵심 분석 모듈" },
+                { value: "50개+", label: "영상 심층 분석" },
+                { value: "80개+", label: "데이터 시그널 기반" },
+                { value: "무료", label: "로 시작 가능", highlight: true },
+              ].map(({ value, label, highlight }) => (
+                <div key={label}>
+                  <p className={`font-heading text-2xl lg:text-3xl font-medium tracking-[-0.03em] ${highlight ? "text-foreground" : ""}`}>
+                    {value}
+                  </p>
+                  <p className={`text-xs mt-0.5 ${highlight ? "text-foreground font-medium" : "text-muted-foreground"}`}>
+                    {highlight ? <span className="underline underline-offset-4">{label}</span> : label}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Right: YouTube Shorts 영상 */}
+          <div className={`shrink-0 transition-all duration-700 delay-400 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
+            <div className="relative w-[220px] lg:w-[255px] rounded-2xl overflow-hidden border border-foreground/10 shadow-xl">
+              {/* 9:16 비율 컨테이너 */}
+              <div className="relative" style={{ paddingBottom: "177.78%" }}>
+                <iframe
+                  src="https://www.youtube.com/embed/DyoQs-ZHRgU"
+                  className="absolute inset-0 w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  title="TubeWatch 소개 영상"
+                />
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </section>
