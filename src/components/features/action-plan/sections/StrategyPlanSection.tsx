@@ -150,11 +150,6 @@ export function StrategyPlanSection({ channelId }: StrategyPlanSectionProps) {
           markdown={markdown}
           downloadFilename="성장전략실행플랜.png"
         />
-        {remainLabel && (
-          <p className="mt-2 text-right text-xs text-muted-foreground px-1">
-            {remainLabel} 후 재분석 시 갱신됩니다
-          </p>
-        )}
         <IntegratedSummaryButton channelId={channelId} />
       </>
     )
