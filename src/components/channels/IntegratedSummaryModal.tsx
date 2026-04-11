@@ -283,7 +283,7 @@ export function IntegratedSummaryModal({ isOpen, channel, onClose }: Props) {
         {status === "done" && (
           <div className="border-t border-border bg-muted/30 px-5 py-3">
             <p className="text-xs text-muted-foreground">
-              TubeWatch AI가 채널 분석·DNA·액션 플랜·넥스트 트렌드 4개 리포트를 통합 분석했습니다.
+              TubeWatch가 채널 분석·DNA·액션 플랜·넥스트 트렌드 4개 리포트를 통합 분석했습니다.
             </p>
           </div>
         )}
