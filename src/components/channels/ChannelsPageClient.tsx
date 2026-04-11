@@ -317,6 +317,15 @@ export default function ChannelsPageClient({
               선택한 채널의 현재 상태를 진단하고 후속 전략 메뉴의 기준선을
               만듭니다.
             </p>
+            <div className="mt-3 border-t border-border/60 pt-3 space-y-0.5">
+              <p className="text-xs text-muted-foreground">
+                최대 50개 영상 · 80가지 이상의 핵심 지표를 정밀 분석합니다.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                분석 완료 후 이 페이지에서 4개 리포트의{" "}
+                <span className="font-medium text-foreground">통합 요약</span>을 바로 확인할 수 있습니다.
+              </p>
+            </div>
             {selectedChannel ? (
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <p className="inline-flex items-center rounded-md bg-primary/10 px-2.5 py-1 text-sm font-medium text-primary">
