@@ -36,7 +36,11 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 function HeroSection() {
   const [visible, setVisible] = useState(false);
-  useEffect(() => { setVisible(true); }, []);
+  const [iframeSrc, setIframeSrc] = useState("https://www.youtube.com/embed/DyoQs-ZHRgU?rel=0");
+  useEffect(() => {
+    setVisible(true);
+    setIframeSrc(`https://www.youtube.com/embed/DyoQs-ZHRgU?rel=0&enablejsapi=1&origin=${window.location.origin}`);
+  }, []);
 
   return (
     <section className="relative flex flex-col justify-center py-12 lg:py-16 overflow-hidden">
@@ -102,7 +106,7 @@ function HeroSection() {
               {/* 9:16 비율 컨테이너 */}
               <div className="relative" style={{ paddingBottom: "177.78%" }}>
                 <iframe
-                  src="https://www.youtube.com/embed/DyoQs-ZHRgU"
+                  src={iframeSrc}
                   className="absolute inset-0 w-full h-full"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
