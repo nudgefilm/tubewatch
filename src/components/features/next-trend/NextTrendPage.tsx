@@ -13,6 +13,7 @@ import { AlertCircle, ArrowRight, TrendingUp, Lightbulb, Video, FlaskConical, Za
 import { EvidenceBlock } from "@/components/common/EvidenceBlock"
 import type { NextTrendPageViewModel } from "@/lib/next-trend/nextTrendPageViewModel"
 import { buildNextTrendPageSections, SIGNAL_STRENGTH_BADGE } from "@/lib/engines/nextTrendPageEngine"
+import { IntegratedSummaryButton } from "@/components/features/shared/IntegratedSummaryButton"
 
 interface NextTrendPageProps {
   channelId?: string
@@ -273,6 +274,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                         <p className="text-xs text-muted-foreground mt-0.5">채널 데이터 기반 튜브워치 엔진 원페이퍼</p>
                       </div>
                       <NextTrendActionSection data={actions} />
+                      <IntegratedSummaryButton channelId={viewModel.selectedChannelId ?? channelId} />
                     </section>
                   )}
                 </>

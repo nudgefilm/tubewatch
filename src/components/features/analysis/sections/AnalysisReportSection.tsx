@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { Loader2, RefreshCw } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { OnePagerCard } from "@/components/features/shared/OnePagerCard"
+import { IntegratedSummaryButton } from "@/components/features/shared/IntegratedSummaryButton"
 
 interface AnalysisReportSectionProps {
   channelId: string
@@ -115,11 +116,14 @@ export function AnalysisReportSection({ channelId }: AnalysisReportSectionProps)
 
   if (markdown) {
     return (
-      <OnePagerCard
-        title="채널 종합 진단서"
-        markdown={markdown}
-        downloadFilename="채널종합진단서.png"
-      />
+      <>
+        <OnePagerCard
+          title="채널 종합 진단서"
+          markdown={markdown}
+          downloadFilename="채널종합진단서.png"
+        />
+        <IntegratedSummaryButton channelId={channelId} />
+      </>
     )
   }
 

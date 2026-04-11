@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { Loader2, RefreshCw } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { OnePagerCard } from "@/components/features/shared/OnePagerCard"
+import { IntegratedSummaryButton } from "@/components/features/shared/IntegratedSummaryButton"
 
 interface StrategyPlanSectionProps {
   channelId: string
@@ -154,6 +155,7 @@ export function StrategyPlanSection({ channelId }: StrategyPlanSectionProps) {
             {remainLabel} 후 재분석 시 갱신됩니다
           </p>
         )}
+        <IntegratedSummaryButton channelId={channelId} />
       </>
     )
   }

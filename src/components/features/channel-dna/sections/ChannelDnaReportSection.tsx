@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { Loader2, RefreshCw } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { OnePagerCard } from "@/components/features/shared/OnePagerCard"
+import { IntegratedSummaryButton } from "@/components/features/shared/IntegratedSummaryButton"
 
 interface ChannelDnaReportSectionProps {
   channelId: string
@@ -115,11 +116,14 @@ export function ChannelDnaReportSection({ channelId }: ChannelDnaReportSectionPr
 
   if (markdown) {
     return (
-      <OnePagerCard
-        title="채널 DNA 진단 리포트"
-        markdown={markdown}
-        downloadFilename="채널DNA진단리포트.png"
-      />
+      <>
+        <OnePagerCard
+          title="채널 DNA 진단 리포트"
+          markdown={markdown}
+          downloadFilename="채널DNA진단리포트.png"
+        />
+        <IntegratedSummaryButton channelId={channelId} />
+      </>
     )
   }
 
