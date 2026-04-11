@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef, useState } from "react";
 import { X } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 interface AdminAuthModalProps {
   isOpen: boolean;
@@ -9,6 +10,15 @@ interface AdminAuthModalProps {
 }
 
 export function AdminAuthModal({ isOpen, onClose }: AdminAuthModalProps) {
+  const [isFlashRed, setIsFlashRed] = useState(false);
+  const [isChecking, setIsChecking] = useState(false);
+  const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  const clearTimeouts = useCallback(() => {
+    timeoutsRef.current.forEach(clearTimeout);
+    timeoutsRef.current = [];
+  }, []);
+
   const handleEscKey = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -24,8 +34,76 @@ export function AdminAuthModal({ isOpen, onClose }: AdminAuthModalProps) {
     return () => {
       document.removeEventListener("keydown", handleEscKey);
       document.body.style.overflow = "unset";
+      clearTimeouts();
+      setIsFlashRed(false);
+      setIsChecking(false);
     };
-  }, [isOpen, handleEscKey]);
+  }, [isOpen, handleEscKey, clearTimeouts]);
+
+  const runFlashAndClose = useCallback(() => {
+    const push = (fn: () => void, ms: number) => {
+      const id = setTimeout(fn, ms);
+      timeoutsRef.current.push(id);
+    };
+
+    // Flash 1 on
+    setIsFlashRed(true);
+    push(() => {
+      // Flash 1 off
+      setIsFlashRed(false);
+      push(() => {
+        // Flash 2 on
+        setIsFlashRed(true);
+        push(() => {
+          // Flash 2 off
+          setIsFlashRed(false);
+          push(() => {
+            onClose();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }, 200);
+        }, 500);
+      }, 300);
+    }, 500);
+  }, [onClose]);
+
+  const handleAdminButtonClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (isChecking) return;
+
+    setIsChecking(true);
+    try {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        // 비로그인 → /admin으로 이동 (서버에서 로그인 리다이렉트 처리)
+        window.location.href = "/admin";
+        return;
+      }
+
+      const { data } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      const role = (data as { role?: string } | null)?.role ?? "user";
+
+      if (role === "admin") {
+        window.location.href = "/admin";
+        return;
+      }
+
+      // 일반 회원: 빨간 바탕 2회 플래시 후 모달 닫기 + 상단 이동
+      setIsChecking(false);
+      runFlashAndClose();
+    } catch {
+      setIsChecking(false);
+      window.location.href = "/admin";
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -34,12 +112,16 @@ export function AdminAuthModal({ isOpen, onClose }: AdminAuthModalProps) {
       className="fixed inset-0 z-50 flex items-center justify-center"
       onClick={onClose}
     >
-      {/* Overlay - matching how-it-works modal */}
+      {/* Overlay */}
       <div className="absolute inset-0 bg-background/80 backdrop-blur-sm animate-in fade-in duration-300" />
 
       {/* Modal */}
       <div
         className="relative bg-background border border-foreground/10 rounded-2xl shadow-2xl w-full max-w-md mx-4 p-8 animate-in fade-in zoom-in-95 duration-300"
+        style={{
+          backgroundColor: isFlashRed ? "rgba(239, 68, 68, 0.85)" : undefined,
+          transition: "background-color 0.12s ease-in-out",
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
@@ -87,9 +169,10 @@ export function AdminAuthModal({ isOpen, onClose }: AdminAuthModalProps) {
           </p>
 
           {/* Google Login Button */}
-          <a
-            href="/admin"
-            className="w-full flex items-center justify-center gap-3 bg-foreground text-background py-4 px-6 rounded-xl font-medium hover:bg-foreground/90 transition-colors cursor-pointer"
+          <button
+            onClick={handleAdminButtonClick}
+            disabled={isChecking}
+            className="w-full flex items-center justify-center gap-3 bg-foreground text-background py-4 px-6 rounded-xl font-medium hover:bg-foreground/90 transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
@@ -109,8 +192,8 @@ export function AdminAuthModal({ isOpen, onClose }: AdminAuthModalProps) {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            Google 관리자 로그인
-          </a>
+            {isChecking ? "확인 중..." : "Google 관리자 로그인"}
+          </button>
 
           {/* Note */}
           <p className="text-xs text-muted-foreground/60 mt-4">
