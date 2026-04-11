@@ -317,7 +317,7 @@ export default function ChannelsPageClient({
                 최대 50개 영상 · 80가지 이상의 핵심 지표를 정밀 분석합니다.
               </p>
               <p className="text-xs text-muted-foreground">
-                <span className="font-medium text-foreground">'튜브워치 4개 리포트 통합 요약'</span>은 채널 분석 완료 후 생성이 가능합니다. 채널의 '핵심 인사이트'를 놓치지 마세요.
+                <span className="font-medium text-foreground">&apos;튜브워치 4개 리포트 통합 요약&apos;</span>은 채널 분석 완료 후 생성이 가능합니다. 채널의 &apos;핵심 인사이트&apos;를 놓치지 마세요.
               </p>
             </div>
             {selectedChannel ? (
