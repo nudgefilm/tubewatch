@@ -12,6 +12,10 @@ interface ChannelInfo {
 interface Props {
   isOpen: boolean;
   channel: ChannelInfo;
+  /** 부모가 보관 중인 세션 캐시값. 있으면 Gemini 재호출 생략. */
+  cachedSummary: string | null;
+  /** 요약 생성 완료 시 부모 캐시에 저장하도록 콜백 */
+  onSummaryCached: (channelId: string, summary: string) => void;
   onClose: () => void;
 }
 
@@ -50,10 +54,16 @@ function parseSummary(text: string): SummarySection[] {
   return sections;
 }
 
-export function IntegratedSummaryModal({ isOpen, channel, onClose }: Props) {
+export function IntegratedSummaryModal({ isOpen, channel, cachedSummary, onSummaryCached, onClose }: Props) {
   const [status,   setStatus]   = useState<Status>("loading");
   const [sections, setSections] = useState<SummarySection[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const applyResult = useCallback((summaryText: string) => {
+    const parsed = parseSummary(summaryText);
+    setSections(parsed.length > 0 ? parsed : [{ label: "요약", content: summaryText }]);
+    setStatus("done");
+  }, []);
 
   const fetchSummary = useCallback(async () => {
     setStatus("loading");
@@ -82,20 +92,23 @@ export function IntegratedSummaryModal({ isOpen, channel, onClose }: Props) {
         return;
       }
 
-      const parsed = parseSummary(data.summary);
-      setSections(parsed.length > 0 ? parsed : [{ label: "요약", content: data.summary }]);
-      setStatus("done");
+      onSummaryCached(channel.id, data.summary);
+      applyResult(data.summary);
     } catch {
       setErrorMsg("네트워크 오류가 발생했습니다. 인터넷 연결을 확인해 주세요.");
       setStatus("error");
     }
-  }, [channel.id]);
+  }, [channel.id, onSummaryCached, applyResult]);
 
-  // 모달 열릴 때마다 새로 fetch (캐싱 없이 항상 최신 분석 기준)
+  // 캐시 히트 시 즉시 렌더, 미스 시에만 API 호출
   useEffect(() => {
     if (!isOpen) return;
+    if (cachedSummary) {
+      applyResult(cachedSummary);
+      return;
+    }
     void fetchSummary();
-  }, [isOpen, fetchSummary]);
+  }, [isOpen, cachedSummary, fetchSummary, applyResult]);
 
   // ESC 키 닫기
   useEffect(() => {

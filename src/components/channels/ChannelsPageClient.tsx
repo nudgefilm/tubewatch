@@ -50,6 +50,8 @@ export default function ChannelsPageClient({
   const [overloadQueued, setOverloadQueued] = useState(false);
   const [overloadRetryAfterSec, setOverloadRetryAfterSec] = useState(90);
   const [summaryTargetChannel, setSummaryTargetChannel] = useState<ChannelRow | null>(null);
+  // 세션 내 통합 요약 캐시 — 같은 채널 재클릭 시 Gemini 재호출 방지
+  const summaryCacheRef = useRef<Map<string, string>>(new Map());
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // localStorage에서 선택 채널 초기화
@@ -491,6 +493,8 @@ export default function ChannelsPageClient({
       <IntegratedSummaryModal
         isOpen={true}
         channel={summaryTargetChannel}
+        cachedSummary={summaryCacheRef.current.get(summaryTargetChannel.id) ?? null}
+        onSummaryCached={(id, summary) => { summaryCacheRef.current.set(id, summary); }}
         onClose={() => setSummaryTargetChannel(null)}
       />
     )}
