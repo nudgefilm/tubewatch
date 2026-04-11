@@ -22,6 +22,19 @@ import type { UserBillingStatus } from "@/lib/server/billing/getUserBillingStatu
 
 const IS_PORTONE = process.env.NEXT_PUBLIC_PAYMENT_PROVIDER === "portone";
 
+// ─── Google Ads 구매 전환 이벤트 ──────────────────────────────────────────────
+
+function fireAdsConversion(transactionId: string, value?: number) {
+  if (typeof window === "undefined") return;
+  const w = window as unknown as { gtag?: (...args: unknown[]) => void };
+  if (typeof w.gtag !== "function") return;
+  w.gtag("event", "conversion", {
+    send_to: "AW-17934413106/GKwpCNLttJocELLa5edC",
+    transaction_id: transactionId,
+    ...(value !== undefined ? { value, currency: "KRW" } : {}),
+  });
+}
+
 // ─── PortOne SDK 동적 로드 ─────────────────────────────────────────────────
 
 async function requestPortOnePayment(params: {
@@ -67,6 +80,21 @@ function usePortOneRedirectReturn(onSuccess: () => void) {
         ? { paymentId, type, planId }
         : { paymentId, type, productId };
 
+    // 금액 역산 (ROAS 측정용)
+    let redirectAmount: number | undefined;
+    if (type === "subscription" && planId) {
+      const matchedPlan = BILLING_PLANS.find(
+        (p) => p.id === planId || p.semiannualPlanId === planId
+      );
+      if (matchedPlan) {
+        const isSemiannual = planId === "creator_6m" || planId === "pro_6m";
+        redirectAmount = isSemiannual ? matchedPlan.semiannualPriceKrw : matchedPlan.priceKrw;
+      }
+    } else if (type === "credit" && productId) {
+      const matchedProduct = CREDIT_PRODUCTS.find((p) => p.id === productId);
+      redirectAmount = matchedProduct?.priceKrw;
+    }
+
     fetch("/api/portone/payment-complete", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -75,6 +103,7 @@ function usePortOneRedirectReturn(onSuccess: () => void) {
       .then((r) => r.json())
       .then((json: { ok?: boolean; error?: string }) => {
         if (json.ok) {
+          fireAdsConversion(paymentId, redirectAmount);
           setReturnState("success");
           onSuccess();
         } else {
@@ -161,6 +190,7 @@ function SubscriptionPlanCard({
       });
       const json = (await res.json()) as { ok?: boolean; error?: string };
       if (json.ok) {
+        fireAdsConversion(paymentId, amountKrw);
         router.refresh();
       } else {
         setError(json.error ?? "결제 확인에 실패했습니다.");
@@ -341,6 +371,7 @@ function CreditProductCard({ product }: { product: (typeof CREDIT_PRODUCTS)[numb
       });
       const json = (await res.json()) as { ok?: boolean; error?: string };
       if (json.ok) {
+        fireAdsConversion(paymentId, product.priceKrw);
         router.refresh();
       } else {
         setError(json.error ?? "결제 확인에 실패했습니다.");
