@@ -42,9 +42,28 @@ function SectionRow({ icon, label, children }: { icon: React.ReactNode; label: s
   )
 }
 
-/** AI가 생성한 본문에서 **bold** 마커를 제거 — ## 섹션 제목은 유지 */
-function stripBold(md: string): string {
-  return md.replace(/\*\*([^*]+)\*\*/g, "$1")
+/**
+ * 영상 기획안 마크다운 정규화
+ * - **N. 섹션 제목** 전체 볼드 라인 → ## N. 섹션 제목 (섹션 헤딩으로 승격)
+ * - ###Title (공백 없음) → ### Title
+ * - 나머지 inline **bold** 마커 스트립
+ */
+function normalizeVideoPlan(md: string): string {
+  return md
+    .split("\n")
+    .map((line) => {
+      const trimmed = line.trim()
+      // **N. 섹션 제목** 전체 볼드 라인 → ## 헤딩
+      const sectionMatch = trimmed.match(/^\*\*(\d+\.\s+.+?)\*\*[：:：]?\s*$/)
+      if (sectionMatch) return `## ${sectionMatch[1]}`
+      // ## / ### 뒤 공백 없으면 추가
+      if (/^#{2,3}[^\s#]/.test(trimmed)) {
+        return line.replace(/^(\s*)(#{2,3})([^\s#])/, "$1$2 $3")
+      }
+      // 나머지 **...** 스트립
+      return line.replace(/\*\*([^*]+)\*\*/g, "$1")
+    })
+    .join("\n")
 }
 
 /** 기획안 카드 1장 */
@@ -87,7 +106,7 @@ function ActionCard({ action }: { action: ExecutionAction }) {
   return (
     <OnePagerCard
       title="영상 기획안"
-      markdown={stripBold(action.videoPlanDocument)}
+      markdown={normalizeVideoPlan(action.videoPlanDocument)}
       downloadFilename="영상기획안.png"
       extra={extra}
     />
