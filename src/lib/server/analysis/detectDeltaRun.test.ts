@@ -50,20 +50,23 @@ describe("re-analysis — no new videos (delta run)", () => {
     expect(result.isDeltaRun).toBe(true);
     expect(result.prevKnownCount).toBe(3);
     expect(result.newVideoCount).toBe(0);
+    expect(result.deletedVideoCount).toBe(0);
   });
 
-  it("current fetch is a subset of previous (some videos deleted) → isDeltaRun true", () => {
+  it("1개 삭제(임계값 미달) → isDeltaRun true, Gemini 스킵", () => {
     const snapshot = { videos: [{ videoId: "v1" }, { videoId: "v2" }, { videoId: "v3" }] };
     const result = detectDeltaRun(snapshot, ["v1", "v2"]);
     expect(result.isDeltaRun).toBe(true);
     expect(result.newVideoCount).toBe(0);
+    expect(result.deletedVideoCount).toBe(1);
   });
 });
 
 // ─── Re-analysis: new videos present ─────────────────────────────────────────
 
 describe("re-analysis — new videos present (full Gemini run)", () => {
-  // 임계값 = 5: 1~4개 신규는 delta(skip), 5개 이상만 Gemini 재호출
+  // 임계값 = 2: 신규 2개 미만 AND 삭제 2개 미만이면 delta(skip), 둘 중 하나라도 2개 이상이면 Gemini 재호출
+
   it("1개 신규 → isDeltaRun true (임계값 미달, Gemini 스킵)", () => {
     const snapshot = { videos: [{ videoId: "v1" }, { videoId: "v2" }] };
     const result = detectDeltaRun(snapshot, ["v1", "v2", "v3"]);
@@ -71,14 +74,14 @@ describe("re-analysis — new videos present (full Gemini run)", () => {
     expect(result.newVideoCount).toBe(1);
   });
 
-  it("4개 신규 → isDeltaRun true (임계값 미달, Gemini 스킵)", () => {
+  it("2개 신규 → isDeltaRun false (임계값 도달, Gemini 재호출)", () => {
     const snapshot = { videos: [{ videoId: "v1" }] };
-    const result = detectDeltaRun(snapshot, ["v1", "v2", "v3", "v4", "v5"]);
-    expect(result.isDeltaRun).toBe(true);
-    expect(result.newVideoCount).toBe(4);
+    const result = detectDeltaRun(snapshot, ["v1", "v2", "v3"]);
+    expect(result.isDeltaRun).toBe(false);
+    expect(result.newVideoCount).toBe(2);
   });
 
-  it("5개 신규 → isDeltaRun false (임계값 도달, Gemini 재호출)", () => {
+  it("5개 신규 → isDeltaRun false (임계값 초과, Gemini 재호출)", () => {
     const snapshot = { videos: [{ videoId: "v1" }] };
     const result = detectDeltaRun(snapshot, ["v1", "v2", "v3", "v4", "v5", "v6"]);
     expect(result.isDeltaRun).toBe(false);
@@ -92,12 +95,47 @@ describe("re-analysis — new videos present (full Gemini run)", () => {
     expect(result.isDeltaRun).toBe(false);
     expect(result.newVideoCount).toBe(10);
   });
+});
 
-  it("완전히 다른 ID 3개 → isDeltaRun true (5개 미달)", () => {
+// ─── Re-analysis: deleted videos present ─────────────────────────────────────
+
+describe("re-analysis — deleted videos present", () => {
+  it("1개 삭제 → isDeltaRun true (임계값 미달, Gemini 스킵)", () => {
+    const snapshot = { videos: [{ videoId: "v1" }, { videoId: "v2" }, { videoId: "v3" }] };
+    const result = detectDeltaRun(snapshot, ["v1", "v2"]);
+    expect(result.isDeltaRun).toBe(true);
+    expect(result.deletedVideoCount).toBe(1);
+  });
+
+  it("2개 삭제 → isDeltaRun false (임계값 도달, Gemini 재호출)", () => {
+    const snapshot = { videos: [{ videoId: "v1" }, { videoId: "v2" }, { videoId: "v3" }] };
+    const result = detectDeltaRun(snapshot, ["v1"]);
+    expect(result.isDeltaRun).toBe(false);
+    expect(result.deletedVideoCount).toBe(2);
+  });
+
+  it("신규 1개 + 삭제 1개 → isDeltaRun true (둘 다 임계값 미달)", () => {
+    const snapshot = { videos: [{ videoId: "v1" }, { videoId: "v2" }] };
+    const result = detectDeltaRun(snapshot, ["v1", "v3"]);
+    expect(result.isDeltaRun).toBe(true);
+    expect(result.newVideoCount).toBe(1);
+    expect(result.deletedVideoCount).toBe(1);
+  });
+
+  it("신규 2개 + 삭제 2개 → isDeltaRun false (둘 다 임계값 도달)", () => {
+    const snapshot = { videos: [{ videoId: "old1" }, { videoId: "old2" }] };
+    const result = detectDeltaRun(snapshot, ["new1", "new2"]);
+    expect(result.isDeltaRun).toBe(false);
+    expect(result.newVideoCount).toBe(2);
+    expect(result.deletedVideoCount).toBe(2);
+  });
+
+  it("완전히 다른 ID 3개(신규 3 + 삭제 2) → isDeltaRun false (임계값 초과)", () => {
     const snapshot = { videos: [{ videoId: "old1" }, { videoId: "old2" }] };
     const result = detectDeltaRun(snapshot, ["new1", "new2", "new3"]);
-    expect(result.isDeltaRun).toBe(true);
+    expect(result.isDeltaRun).toBe(false);
     expect(result.newVideoCount).toBe(3);
+    expect(result.deletedVideoCount).toBe(2);
   });
 });
 
@@ -109,8 +147,10 @@ describe("edge cases", () => {
     const result = detectDeltaRun(snapshot, []);
     // YouTube returned 0 videos — treating as delta (skip Gemini) is safer
     // than calling Gemini with an empty video list
+    // deletedVideoCount = 1 < 2, so still isDeltaRun true
     expect(result.isDeltaRun).toBe(true);
     expect(result.newVideoCount).toBe(0);
+    expect(result.deletedVideoCount).toBe(1);
   });
 
   it("snapshot has mixed: some videos with videoId, some without → only valid IDs counted", () => {
