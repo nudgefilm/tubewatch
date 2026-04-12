@@ -8,17 +8,7 @@ import { IntegratedSummaryButton } from "@/components/features/shared/Integrated
 
 interface StrategyPlanSectionProps {
   channelId: string
-}
-
-const COOLDOWN_MS = 12 * 60 * 60 * 1000
-const storageKey = (id: string) => `tw_strategy_sat:${id}`
-
-function getRemainingLabel(savedAt: number): string | null {
-  const remaining = COOLDOWN_MS - (Date.now() - savedAt)
-  if (remaining <= 0) return null
-  const h = Math.floor(remaining / (1000 * 60 * 60))
-  const m = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60))
-  return h > 0 ? `${h}시간 ${m}분` : `${m}분`
+  channelTitle?: string | null
 }
 
 function usePendingMessage(isActive: boolean) {
@@ -49,11 +39,10 @@ const ShellHeader = () => (
   </div>
 )
 
-export function StrategyPlanSection({ channelId }: StrategyPlanSectionProps) {
+export function StrategyPlanSection({ channelId, channelTitle }: StrategyPlanSectionProps) {
   const [markdown, setMarkdown] = useState<string | null>(null)
   const [pending, setPending] = useState(true)
   const [initialFetchDone, setInitialFetchDone] = useState(false)
-  const [remainLabel, setRemainLabel] = useState<string | null>(null)
   const [isFailed, setIsFailed] = useState(false)
   const [isRetrying, setIsRetrying] = useState(false)
   const [retryError, setRetryError] = useState<string | null>(null)
@@ -77,10 +66,6 @@ export function StrategyPlanSection({ channelId }: StrategyPlanSectionProps) {
         if (data.markdown) {
           setMarkdown(data.markdown)
           setPending(false)
-          try {
-            const existing = localStorage.getItem(storageKey(channelId))
-            if (!existing) localStorage.setItem(storageKey(channelId), String(Date.now()))
-          } catch { /* ignore */ }
           if (intervalId) { clearInterval(intervalId); intervalId = null }
         } else if (data.pending) {
           setPending(true)
@@ -106,18 +91,6 @@ export function StrategyPlanSection({ channelId }: StrategyPlanSectionProps) {
       if (intervalId) { clearInterval(intervalId); intervalId = null }
     }
   }, [channelId])
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(storageKey(channelId))
-      if (!raw) return
-      const savedAt = Number(raw)
-      const update = () => setRemainLabel(getRemainingLabel(savedAt))
-      update()
-      const timer = setInterval(update, 60_000)
-      return () => clearInterval(timer)
-    } catch { /* ignore */ }
-  }, [channelId, markdown])
 
   async function handleRetry() {
     setIsRetrying(true)
@@ -150,7 +123,7 @@ export function StrategyPlanSection({ channelId }: StrategyPlanSectionProps) {
           markdown={markdown}
           downloadFilename="성장전략실행플랜.png"
         />
-        <IntegratedSummaryButton channelId={channelId} />
+        <IntegratedSummaryButton channelId={channelId} channelTitle={channelTitle} />
       </>
     )
   }

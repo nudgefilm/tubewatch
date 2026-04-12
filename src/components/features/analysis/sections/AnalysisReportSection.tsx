@@ -8,6 +8,7 @@ import { IntegratedSummaryButton } from "@/components/features/shared/Integrated
 
 interface AnalysisReportSectionProps {
   channelId: string
+  channelTitle?: string | null
 }
 
 function usePendingMessage(isActive: boolean) {
@@ -38,7 +39,7 @@ const ShellHeader = () => (
   </div>
 )
 
-export function AnalysisReportSection({ channelId }: AnalysisReportSectionProps) {
+export function AnalysisReportSection({ channelId, channelTitle }: AnalysisReportSectionProps) {
   const [markdown, setMarkdown] = useState<string | null>(null)
   const [pending, setPending] = useState(true)
   const [initialFetchDone, setInitialFetchDone] = useState(false)
@@ -122,7 +123,7 @@ export function AnalysisReportSection({ channelId }: AnalysisReportSectionProps)
           markdown={markdown}
           downloadFilename="채널종합진단서.png"
         />
-        <IntegratedSummaryButton channelId={channelId} />
+        <IntegratedSummaryButton channelId={channelId} channelTitle={channelTitle} />
       </>
     )
   }
