@@ -2,57 +2,76 @@
 
 import { useTransition, useState } from "react";
 import { useRouter } from "next/navigation";
-import { resetStuckPending } from "@/app/admin/monitor/actions";
+import type { DirectActionKey, ModalActionKey } from "@/lib/server/admin/getAdminMonitorData";
+import { resetStuckPending, resetStuckRunning, clearStuckQueued } from "@/app/admin/monitor/actions";
+import { AdminMonitorModal } from "./AdminMonitorModal";
 
-const ACTION_MAP = {
+const DIRECT_ACTIONS = {
   resetStuckPending,
+  resetStuckRunning,
+  clearStuckQueued,
 } as const;
 
-const BUTTON_LABELS: Record<keyof typeof ACTION_MAP, string> = {
-  resetStuckPending: "강제 초기화",
+type Props = {
+  buttonLabel: string;
+  directAction?: DirectActionKey;
+  modalAction?: ModalActionKey;
+  extraData?: unknown;
 };
 
-type ActionKey = keyof typeof ACTION_MAP;
-
-export function CleanupLegacyButton({ actionKey }: { actionKey: ActionKey }) {
+export function CleanupLegacyButton({ buttonLabel, directAction, modalAction, extraData }: Props) {
   const [isPending, startTransition] = useTransition();
-  const [message, setMessage] = useState<string | null>(null);
+  const [resultMsg, setResultMsg] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
   const router = useRouter();
 
-  function handleCleanup() {
-    startTransition(async () => {
-      const result = await ACTION_MAP[actionKey]();
-      if (result.error) {
-        setMessage(`오류: ${result.error}`);
-      } else if (result.updated === 0) {
-        setMessage("정리할 데이터 없음");
-      } else {
-        setMessage(`${result.updated}건 초기화 완료`);
-        router.refresh();
-      }
-    });
+  function handleClick() {
+    if (directAction) {
+      startTransition(async () => {
+        const result = await DIRECT_ACTIONS[directAction]();
+        if (result.error) {
+          setResultMsg(`오류: ${result.error}`);
+        } else if (result.updated === 0) {
+          setResultMsg("처리할 항목 없음");
+        } else {
+          setResultMsg(`${result.updated}건 처리 완료`);
+          router.refresh();
+        }
+      });
+    } else if (modalAction) {
+      setModalOpen(true);
+    }
   }
 
   return (
-    <div className="mt-3 flex items-center gap-2">
-      <button
-        type="button"
-        onClick={handleCleanup}
-        disabled={isPending}
-        className="rounded border border-amber-400/60 bg-amber-50/60 px-2.5 py-1 text-xs font-medium text-amber-700 transition-colors hover:bg-amber-100/80 disabled:opacity-50 dark:border-amber-500/40 dark:bg-amber-950/20 dark:text-amber-400 dark:hover:bg-amber-950/40"
-      >
-        {isPending ? (
-          <span className="flex items-center gap-1.5">
-            <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
-            처리 중…
-          </span>
-        ) : (
-          BUTTON_LABELS[actionKey]
+    <>
+      <div className="mt-3 flex items-center gap-2">
+        <button
+          type="button"
+          onClick={handleClick}
+          disabled={isPending}
+          className="rounded border border-foreground/20 bg-foreground/[0.04] px-2.5 py-1 text-xs font-medium text-foreground/70 transition-colors hover:bg-foreground/[0.08] disabled:opacity-50"
+        >
+          {isPending ? (
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              처리 중…
+            </span>
+          ) : (
+            buttonLabel
+          )}
+        </button>
+        {resultMsg && (
+          <span className="text-xs text-muted-foreground">{resultMsg}</span>
         )}
-      </button>
-      {message && (
-        <span className="text-xs text-muted-foreground">{message}</span>
+      </div>
+      {modalOpen && modalAction && (
+        <AdminMonitorModal
+          action={modalAction}
+          extraData={extraData}
+          onClose={() => setModalOpen(false)}
+        />
       )}
-    </div>
+    </>
   );
 }

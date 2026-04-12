@@ -86,8 +86,13 @@ export default function AdminMonitorView({ data }: { data: AdminMonitorData }) {
               )}
             </p>
             <p className="mt-1.5 text-xs text-muted-foreground">{item.description}</p>
-            {item.actionKey && item.status !== "ok" && (
-              <CleanupLegacyButton actionKey={item.actionKey} />
+            {(item.directAction || item.modalAction) && (
+              <CleanupLegacyButton
+                buttonLabel={item.buttonLabel}
+                directAction={item.directAction}
+                modalAction={item.modalAction}
+                extraData={item.extraData}
+              />
             )}
           </div>
         ))}
