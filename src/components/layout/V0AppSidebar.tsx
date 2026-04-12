@@ -263,7 +263,9 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
       const url = new URL(window.location.href)
       url.searchParams.set("channel", id)
       router.replace(url.pathname + url.search, { scroll: false })
-      window.dispatchEvent(new Event("tubewatch-channels-updated"))
+      // tubewatch-channel-selected: 선택 변경 전용 이벤트 (loadChannels 미호출)
+      // tubewatch-channels-updated는 채널 목록 변경(등록/삭제) 시에만 사용
+      window.dispatchEvent(new Event("tubewatch-channel-selected"))
     }
   }
 

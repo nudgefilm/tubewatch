@@ -75,8 +75,14 @@ export default function ChannelsPageClient({
       if (raw) setCooldownCache(JSON.parse(raw) as Record<string, string>);
     } catch { /* ignore */ }
     const handler = () => setSelectedChannelId(readSelectedChannelIdFromStorage());
+    // tubewatch-channel-selected: 사이드바 채널 변경 (선택만 동기화, loadChannels 불필요)
+    // tubewatch-channels-updated: 채널 목록 변경 (등록/삭제 후 선택 동기화)
+    window.addEventListener("tubewatch-channel-selected", handler);
     window.addEventListener("tubewatch-channels-updated", handler);
-    return () => window.removeEventListener("tubewatch-channels-updated", handler);
+    return () => {
+      window.removeEventListener("tubewatch-channel-selected", handler);
+      window.removeEventListener("tubewatch-channels-updated", handler);
+    };
   }, []);
 
   // 언마운트 시 폴링 정리
