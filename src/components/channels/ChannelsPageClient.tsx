@@ -111,7 +111,6 @@ export default function ChannelsPageClient({
         return;
       }
       const loaded = Array.isArray(json.data) ? json.data : [];
-      console.log("[Channels/load] loaded channels:", loaded.length, loaded.map(c => ({ id: c.id, title: c.channel_title, last_analyzed_at: c.last_analyzed_at })));
       setChannels(loaded);
     } catch (e) {
       console.error("[Channels/load] fetch exception:", e);
@@ -192,10 +191,6 @@ export default function ChannelsPageClient({
     : ""
   const isCooldown = cooldownRemain.length > 0
 
-  // E2E 진단 로그 — 선택 상태 추적
-  console.log("[Channels/state] selectedChannelId:", selectedChannelId, "→ selectedChannel:", selectedChannel ? { id: selectedChannel.id, title: selectedChannel.channel_title } : null, "| channels.length:", channels.length);
-  console.log("[Channels/cooldown] source:", cooldownSource, "| remain:", cooldownRemain, "| isCooldown:", isCooldown, "| isAdmin:", isAdmin, "| cache:", cooldownCache);
-
   const handleStartAnalysis = useCallback(() => {
     if (!selectedChannel || !selectedChannel.id || isNavigating) {
       setAnalysisError("선택된 채널 정보를 찾을 수 없습니다. 채널을 다시 선택하세요.");
@@ -218,10 +213,6 @@ export default function ChannelsPageClient({
         })
         .catch(() => undefined);
     }, 2500);
-    console.log("[Analysis Start UI] selectedChannel:", { id: channelId, title: selectedChannel.channel_title });
-
-    const payload = { channelId };
-    console.log("[Analysis Start UI] request payload:", payload);
 
     fetch("/api/analysis/request", {
       method: "POST",
@@ -237,17 +228,13 @@ export default function ChannelsPageClient({
           retryAfter?: number;
           analysisResultId?: string;
         };
-        console.log("[Analysis Start UI] response:", result);
-
         if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
 
         if (!res.ok) {
           if (result.code === "COOLDOWN_ACTIVE") {
             setIsNavigating(false);
             setProgressStep(null);
-            const dest = `/analysis?channel=${channelId}`;
-            console.log("[Analysis Start UI] navigate to:", dest, "(cooldown)");
-            router.push(dest);
+            router.push(`/analysis?channel=${channelId}`);
           } else if (result.code === "CREDITS_EXHAUSTED") {
             setCreditsExhausted(true);
             setAnalysisError(result.error ?? "분석 크레딧이 소진되었습니다.");
@@ -259,7 +246,6 @@ export default function ChannelsPageClient({
             setProgressStep(null);
             setOverloadRetryAfterSec(result.retryAfter ?? 90);
             setOverloadQueued(true);
-            console.log("[Analysis Start UI] overload queued — retryAfter:", result.retryAfter ?? 90, "s");
           } else {
             setAnalysisError(result.error ?? "분석 요청에 실패했습니다.");
             setIsNavigating(false);
@@ -277,9 +263,7 @@ export default function ChannelsPageClient({
           setCooldownCache(cache);
         } catch { /* ignore */ }
 
-        const dest = `/analysis?channel=${channelId}`;
-        console.log("[Analysis Start UI] navigate to:", dest);
-        router.push(dest);
+        router.push(`/analysis?channel=${channelId}`);
       })
       .catch((err: unknown) => {
         if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
@@ -335,7 +319,6 @@ export default function ChannelsPageClient({
         isAdmin={isAdmin}
         onRegistered={async (newChannelId) => {
           // localStorage를 먼저 쓴 뒤 broadcast — 사이드바 이벤트 핸들러가 읽을 때 새 ID가 이미 저장되어 있어야 함
-          console.log("[Channels/register] onRegistered called. newChannelId:", newChannelId ?? "(none)");
           if (newChannelId) {
             writeSelectedChannelIdToStorage(newChannelId);
           }
