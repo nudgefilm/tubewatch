@@ -263,6 +263,7 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
       const url = new URL(window.location.href)
       url.searchParams.set("channel", id)
       router.replace(url.pathname + url.search, { scroll: false })
+      window.dispatchEvent(new Event("tubewatch-channels-updated"))
     }
   }
 
