@@ -9,6 +9,7 @@ import {
 } from "@/lib/channels/selectedChannelStorage";
 import { FREE_LIFETIME_ANALYSIS_LIMIT } from "@/components/billing/types";
 import { OverloadRetryBanner } from "@/components/features/shared/OverloadRetryBanner";
+import { AnalysisProgressBar } from "@/components/features/shared/AnalysisProgressBar";
 import { AnalysisWaitingCard } from "@/components/channels/AnalysisWaitingCard";
 
 type ChannelRow = {
@@ -358,6 +359,8 @@ export default function ChannelsPageClient({
               "채널분석 시작"
             )}
           </button>
+
+          <AnalysisProgressBar isActive={isNavigating} />
 
           {/* 분석 대기 카드 — 진행 중이거나 과부하 큐 대기 중일 때 표시 */}
           {selectedChannel && (isNavigating || overloadQueued) && (
