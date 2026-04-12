@@ -87,7 +87,8 @@ export async function GET(request: Request) {
   let latestRunMap: Record<string, string> = {};
   if (channelIds.length > 0) {
     // analysis_runs.channel_id = user_channels.id (UUID)
-    const { data: runs } = await supabase
+    // supabaseAdmin 사용 — user client는 RLS로 analysis_runs 조회 불가
+    const { data: runs } = await supabaseAdmin
       .from("analysis_runs")
       .select("channel_id, completed_at")
       .in("channel_id", channelIds)
