@@ -217,7 +217,7 @@ export async function getAdminMonitorData(): Promise<AdminMonitorData> {
       value: queuedRun,
       unit: "건",
       status: queuedRun <= 3 ? "ok" : queuedRun <= 10 ? "warn" : "error",
-      description: "현재 처리 대기 중인 분석 건수",
+      description: "비정상 queued 잔존 여부 (0이 정상)",
     },
     {
       label: "지난 24시간 총 분석수",

@@ -458,16 +458,11 @@ export async function POST(request: Request) {
          gemini.error.includes("UNAVAILABLE") || gemini.error.includes("overloaded"));
 
       if (isOverloaded) {
-        // 과부하 시 job을 "queued" 상태로 전환 — 클라이언트가 countdown 후 자동 재시도
+        // 자동 재시도 없음 — failed로 저장해 어드민 모니터 "Failed 런"에 집계
         const RETRY_AFTER_SEC = 90;
-        await supabaseAdmin.from("analysis_jobs").update({
-          status: "queued",
-          progress_step: "queued",
-          retry_after: new Date(Date.now() + RETRY_AFTER_SEC * 1000).toISOString(),
-          retry_count: 1,
-        }).eq("id", jobId);
+        void updateJobStep("failed", "failed");
         if (reservationId) void rollbackCredit(reservationId, isFreePlan);
-        console.log("[Analysis Start API] Gemini overloaded — job queued for retry:", jobId, "retryAfter:", RETRY_AFTER_SEC + "s");
+        console.log("[Analysis Start API] Gemini overloaded — job failed (no auto-retry):", jobId, "retryAfter:", RETRY_AFTER_SEC + "s");
         return NextResponse.json(
           { ok: false, code: "OVERLOAD_QUEUED", retryAfter: RETRY_AFTER_SEC },
           { status: 503 }
