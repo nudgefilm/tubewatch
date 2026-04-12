@@ -28,11 +28,21 @@ export type ChannelVideoSample = {
   categoryId?: string | null;
 };
 
+export type PreviousAnalysisSummary = {
+  channelSummary: string;
+  contentPatterns: string[];
+  strengths: string[];
+};
+
 export type AnalyzeChannelWithGeminiArgs = {
   channelTitle: string;
   subscriberCount: number | null;
   videos: ChannelVideoSample[];
   analysisContext?: AnalysisContext;
+  /** 재분석 시 이전 분석 요약 — 일관성 유지 및 Hallucination 방지용 */
+  previousAnalysis?: PreviousAnalysisSummary;
+  /** 이번 분석에서 감지된 신규 영상 수 — 프롬프트 내 신규/기존 영상 분리 표시용 */
+  newVideoCount?: number;
 };
 
 export type AnalyzeChannelWithGeminiSuccess = {
@@ -610,16 +620,22 @@ function buildContextSection(ctx: AnalysisContext): string {
 }
 
 function buildPrompt(args: AnalyzeChannelWithGeminiArgs): string {
-  const videoLines = args.videos.map((video, index) => {
-    return [
-      `${index + 1}. title: ${video.title}`,
+  const newCount = args.newVideoCount ?? 0;
+  const isReanalysis = newCount > 0 && args.previousAnalysis != null;
+
+  // 신규/기존 영상 분리 (신규 영상이 앞에 위치)
+  const newVideos = isReanalysis ? args.videos.slice(0, newCount) : [];
+  const existingVideos = isReanalysis ? args.videos.slice(newCount) : args.videos;
+
+  const toVideoLines = (videos: ChannelVideoSample[], startIndex: number) =>
+    videos.map((video, i) => [
+      `${startIndex + i + 1}. title: ${video.title}`,
       `published_at: ${video.publishedAt ?? "unknown"}`,
       `views: ${video.viewCount ?? "unknown"}`,
       `likes: ${video.likeCount ?? "unknown"}`,
       `comments: ${video.commentCount ?? "unknown"}`,
       `duration: ${video.duration ?? "unknown"}`,
-    ].join("\n");
-  });
+    ].join("\n"));
 
   const contextBlock = args.analysisContext
     ? buildContextSection(args.analysisContext) + "\n\n"
@@ -635,6 +651,41 @@ function buildPrompt(args: AnalyzeChannelWithGeminiArgs): string {
       top3.map((v, i) => `TOP${i + 1}. "${v.title}" — 조회수 ${formatNumber(v.viewCount ?? 0)}`).join("\n")
     : "";
 
+  // 이전 분석 요약 블록 (재분석 시 일관성 유지용)
+  const prevAnalysisBlock = args.previousAnalysis
+    ? [
+        `[이전 분석 요약 — 일관성 유지 참고용]`,
+        `채널 요약: ${args.previousAnalysis.channelSummary}`,
+        `주요 패턴: ${args.previousAnalysis.contentPatterns.slice(0, 2).join(" / ")}`,
+        `주요 강점: ${args.previousAnalysis.strengths.slice(0, 2).join(" / ")}`,
+        `→ 수치·팩트는 최신 데이터 기준으로 갱신하되, 위 결론의 방향성과 일관성을 유지하세요.`,
+        `→ 이전 결론과 달라지는 부분은 반드시 수치 근거를 인용하세요.`,
+      ].join("\n") + "\n\n"
+    : "";
+
+  // 영상 섹션 구성 (신규/기존 분리 or 통합)
+  let videoSection: string;
+  if (isReanalysis && newVideos.length > 0) {
+    const avgViews = existingVideos.length > 0
+      ? Math.round(existingVideos.reduce((s, v) => s + (v.viewCount ?? 0), 0) / existingVideos.length)
+      : null;
+    const newAvgViews = newVideos.length > 0
+      ? Math.round(newVideos.reduce((s, v) => s + (v.viewCount ?? 0), 0) / newVideos.length)
+      : null;
+    const comparisonLine = (avgViews !== null && newAvgViews !== null)
+      ? `※ 기존 영상 평균 조회수: ${formatNumber(avgViews)} / 신규 영상 평균 조회수: ${formatNumber(newAvgViews)}\n`
+      : "";
+    videoSection =
+      `[신규 영상 — ${newVideos.length}개] (이번 분석에서 새로 감지된 영상)\n` +
+      comparisonLine +
+      toVideoLines(newVideos, 0).join("\n\n") +
+      (existingVideos.length > 0
+        ? `\n\n[기존 영상 — ${existingVideos.length}개]\n` + toVideoLines(existingVideos, newVideos.length).join("\n\n")
+        : "");
+  } else {
+    videoSection = `[영상 샘플 — ${args.videos.length}개]\n` + toVideoLines(args.videos, 0).join("\n\n");
+  }
+
   return `
 당신은 YouTube 채널 성장 분석가입니다.
 
@@ -645,16 +696,17 @@ function buildPrompt(args: AnalyzeChannelWithGeminiArgs): string {
 [채널 정보]
 channel_title: ${args.channelTitle}
 subscriber_count: ${formatNumber(args.subscriberCount)}
-sample_video_count: ${args.videos.length}
+sample_video_count: ${args.videos.length}${isReanalysis ? ` (신규 ${newCount}개 포함)` : ""}
 
-${contextBlock}${top3Block ? top3Block + "\n\n" : ""}[최근 영상 샘플]
-${videoLines.join("\n\n")}
+${prevAnalysisBlock}${contextBlock}${top3Block ? top3Block + "\n\n" : ""}${videoSection}
 
 [작성 규칙]
 - 위 메트릭과 패턴, 스코어를 근거로 분석하세요
 - 메트릭 수치를 구체적으로 인용하세요 (예: "평균 조회수 1,234회로 노출이 제한적입니다", "좋아요 비율 3.2%로 양호합니다")
-- 감지된 패턴이 있으면 해당 패턴을 분석에 반영하세요
-- next_trend_plan의 topic은 [최근 영상 샘플]에 이미 존재하는 영상과 주제가 중복되지 않아야 합니다. 조회수가 높은 기존 영상을 모방하거나 재현하는 제안은 절대 하지 마세요.
+- 감지된 패턴이 있으면 해당 패턴을 분석에 반영하세요${isReanalysis ? `
+- 전체 ${args.videos.length}개 영상 평균 성과 대비 신규 ${newCount}개의 성과를 비교하여 일시적 변화인지 채널 체질 변화인지 판단하세요
+- 이전 분석 결론과 달라지는 부분은 반드시 수치 근거를 인용하고, 이전 결론의 방향성은 연속성 있게 유지하세요` : ""}
+- next_trend_plan의 topic은 [신규 영상] 및 [기존 영상] 샘플에 이미 존재하는 영상과 주제가 중복되지 않아야 합니다. 조회수가 높은 기존 영상을 모방하거나 재현하는 제안은 절대 하지 마세요.
 - next_trend_plan.video_plan_document는 반드시 실제 콘텐츠로 채워야 합니다. 빈 문자열이나 placeholder 금지.
 - vpd_sec1~vpd_sec6은 하나의 유기적인 영상 기획안입니다. 모든 섹션에서 동일한 톤앤매너(경어체, 방송 작가 관점)를 일관되게 유지하세요.
 - 스코어가 낮은 영역의 개선점을 우선 제시하세요

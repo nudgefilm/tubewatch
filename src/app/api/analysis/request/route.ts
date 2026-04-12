@@ -246,11 +246,10 @@ export async function POST(request: Request) {
   }
 
   // YouTube API: 영상 수집 + 채널 최신 정보(구독자수) 병렬 fetch
-  // - 첫 분석(스냅샷 없음): 50개 전체 수집
-  // - 재분석: 최근 15개만 수집해 신규 감지 → 신규 + 기존 스냅샷 영상 합산
+  // - 첫 분석 / 재분석 모두 최신 50개 full fetch
+  // - 재분석 시 기존 스냅샷과 비교해 신규 영상 수 감지 (Gemini 재호출 여부 판단)
   const FULL_FETCH = 50;
-  const DELTA_FETCH = 15;
-  const fetchCount = existingSnapshot ? DELTA_FETCH : FULL_FETCH;
+  const fetchCount = FULL_FETCH;
 
   let youtubeVideos: VideoInfo[];
   // 채널 현황 수치: DB 캐시값을 기본으로 하되 YouTube API 최신값으로 덮어씀
@@ -318,36 +317,7 @@ export async function POST(request: Request) {
   const isDeltaRun = _isDeltaRunRaw && !(isAdmin && forceFullRun);
   console.log(`[Analysis/delta] prev_known=${prevKnownCount} new=${newVideoCount} skip_gemini=${isDeltaRun}${isAdmin && forceFullRun ? " (force-bypassed by admin)" : ""}`);
 
-  // 재분석 시 기존 스냅샷 영상과 합산 (description은 스냅샷에 미저장 → 빈 문자열)
-  if (existingSnapshot) {
-    type SnapVideo = {
-      videoId: string; title: string; publishedAt: string | null;
-      viewCount: number | null; likeCount: number | null; commentCount: number | null;
-      thumbnail: string | null; duration: string | null; tags: string[]; categoryId: string | null;
-    };
-    const snapVideos: SnapVideo[] = (
-      (existingSnapshot.feature_snapshot as Record<string, unknown>)?.videos as SnapVideo[] | undefined
-    ) ?? [];
-    const fetchedIds = new Set(youtubeVideos.map((v) => v.video_id));
-    const reusable: VideoInfo[] = snapVideos
-      .filter((v) => !fetchedIds.has(v.videoId))
-      .map((v) => ({
-        video_id: v.videoId,
-        title: v.title,
-        description: "",
-        published_at: v.publishedAt,
-        view_count: v.viewCount,
-        like_count: v.likeCount,
-        comment_count: v.commentCount,
-        thumbnail_url: v.thumbnail,
-        duration: v.duration,
-        tags: v.tags ?? [],
-        category_id: v.categoryId,
-      }));
-    // 신규 영상 앞에, 기존 영상 이어서 — 최대 50개
-    youtubeVideos = [...youtubeVideos, ...reusable].slice(0, FULL_FETCH);
-    console.log(`[Analysis/pipe-1/merge] merged total=${youtubeVideos.length} (new=${youtubeVideos.length - reusable.length} reused=${reusable.length})`);
-  };
+  // full fetch(50개)이므로 스냅샷 합산 불필요 — YouTube API 응답이 곧 최신 상태
 
   void updateJobStep("processing_data");
 
@@ -449,11 +419,16 @@ export async function POST(request: Request) {
     // 신규 영상 있음 or 첫 분석 — Gemini 정식 호출
     try {
       gemini = await analyzeChannelWithGemini({
-        channelTitle:
-          (channelRow.channel_title as string | null) ?? "Untitled Channel",
+        channelTitle: freshChannelTitle ?? "Untitled Channel",
         subscriberCount: freshSubscriberCount,
         videos: toChannelVideoSamples(youtubeVideos),
         analysisContext,
+        newVideoCount,
+        previousAnalysis: existingSnapshot ? {
+          channelSummary: typeof existingSnapshot.channel_summary === "string" ? existingSnapshot.channel_summary : "",
+          contentPatterns: Array.isArray(existingSnapshot.content_patterns) ? (existingSnapshot.content_patterns as string[]) : [],
+          strengths: Array.isArray(existingSnapshot.strengths) ? (existingSnapshot.strengths as string[]) : [],
+        } : undefined,
       });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -576,76 +551,44 @@ export async function POST(request: Request) {
 
   // 페이지별 AI 콘텐츠를 analysis_module_results에 저장 (non-fatal)
   // needsOnepagerGeneration: waitUntil one-pager 생성 필요 여부
-  // - full run: 항상 true
-  // - delta + 점수 동일 + copy 성공: false (기존 one-pager 재사용)
-  // - delta + 점수 변화 또는 copy 실패: true (재생성)
+  // - Gemini 재호출(isDeltaRun=false): 무조건 재생성
+  // - Gemini 스킵(isDeltaRun=true): 이전 module_results 복사 (stale 유지)
   let needsOnepagerGeneration = true;
 
   if (isDeltaRun && existingSnapshot?.id) {
-    // Delta run: 총점 + 구성 점수 비교 → 메트릭 변화 없으면 이전 one-pager 복사
-    // key 순서 무관한 안전한 비교 (Object.entries().sort())
-    const isSectionScoresEqual = (
-      a: Record<string, unknown> | null | undefined,
-      b: Record<string, unknown> | null | undefined
-    ): boolean =>
-      JSON.stringify(Object.entries(a ?? {}).sort()) ===
-      JSON.stringify(Object.entries(b ?? {}).sort());
+    // Delta run: Gemini 스킵 → 이전 module_results 복사 (stale 상태로 유지)
+    console.log("[delta-run] Gemini skipped — copying previous module_results from snapshot:", existingSnapshot.id);
 
-    const prevTotalScore = (existingSnapshot as Record<string, unknown>).feature_total_score as number | null ?? null;
-    const prevSectionScores = (existingSnapshot as Record<string, unknown>).feature_section_scores as Record<string, unknown> | null ?? null;
-    const metricsChanged =
-      prevTotalScore !== scoreResult.totalScore ||
-      !isSectionScoresEqual(prevSectionScores, scoreResult.sectionScores as Record<string, unknown>);
+    const { data: prevModules, error: prevModErr } = await supabaseAdmin
+      .from("analysis_module_results")
+      .select("module_key, result")
+      .eq("snapshot_id", existingSnapshot.id)
+      .eq("user_id", user.id)
+      .eq("status", "completed");
 
-    console.log("[delta-run]", {
-      snapshot_id: savedRow.id,
-      prevScore: prevTotalScore,
-      currentScore: scoreResult.totalScore,
-      sectionScoresChanged: !isSectionScoresEqual(prevSectionScores, scoreResult.sectionScores as Record<string, unknown>),
-      metricsChanged,
-      willCopyModules: !metricsChanged,
-    });
-
-    if (!metricsChanged) {
-      // 점수 동일 → 이전 snapshot one-pager 복사 (Gemini 비용 절약)
-      const { data: prevModules, error: prevModErr } = await supabaseAdmin
-        .from("analysis_module_results")
-        .select("module_key, result")
-        .eq("snapshot_id", existingSnapshot.id)
-        .eq("user_id", user.id)
-        .eq("status", "completed");
-
-      if (prevModErr) {
-        console.error("[Analysis Start API] delta: prev module_results fetch failed (non-fatal):", prevModErr.message);
-        // 복사 실패 → waitUntil에서 재생성
-      } else if (prevModules && prevModules.length > 0) {
-        const copyRows = (prevModules as Array<{ module_key: string; result: Record<string, unknown> }>).map((m) => ({
-          user_id: user.id,
-          channel_id: userChannelId,
-          snapshot_id: savedRow.id,
-          module_key: m.module_key,
-          result: m.result,
-          status: "completed",
-          analyzed_at: now,
-        }));
-        const { error: copyErr } = await supabaseAdmin.from("analysis_module_results").insert(copyRows);
-        if (copyErr) {
-          console.error("[Analysis Start API] delta: module_results copy failed (non-fatal):", copyErr.message);
-          // 복사 실패 → waitUntil에서 재생성
-        } else {
-          const copiedKeys = (prevModules as Array<{ module_key: string; result: Record<string, unknown> }>).map((m) => m.module_key);
-          const nextTrendCopied = copiedKeys.includes("next_trend");
-          console.log("[Analysis Start API] delta: module_results copied from", existingSnapshot.id, "→", savedRow.id, "keys:", copiedKeys, "nextTrendCopied:", nextTrendCopied);
-          // next_trend까지 복사된 경우에만 waitUntil 건너뜀 — 누락 시 재생성 필요
-          needsOnepagerGeneration = !nextTrendCopied;
-        }
+    if (prevModErr) {
+      console.error("[Analysis Start API] delta: prev module_results fetch failed (non-fatal):", prevModErr.message);
+    } else if (prevModules && prevModules.length > 0) {
+      const copyRows = (prevModules as Array<{ module_key: string; result: Record<string, unknown> }>).map((m) => ({
+        user_id: user.id,
+        channel_id: userChannelId,
+        snapshot_id: savedRow.id,
+        module_key: m.module_key,
+        result: m.result,
+        status: "completed",
+        analyzed_at: now,
+      }));
+      const { error: copyErr } = await supabaseAdmin.from("analysis_module_results").insert(copyRows);
+      if (copyErr) {
+        console.error("[Analysis Start API] delta: module_results copy failed (non-fatal):", copyErr.message);
       } else {
-        console.log("[Analysis Start API] delta: no previous module_results to copy (snapshot:", existingSnapshot.id, ") — will trigger waitUntil generation");
-        // 복사할 게 없으면 waitUntil에서 새로 생성
+        const copiedKeys = (prevModules as Array<{ module_key: string; result: Record<string, unknown> }>).map((m) => m.module_key);
+        const nextTrendCopied = copiedKeys.includes("next_trend");
+        console.log("[Analysis Start API] delta: module_results copied →", savedRow.id, "keys:", copiedKeys);
+        needsOnepagerGeneration = !nextTrendCopied;
       }
     } else {
-      // 메트릭 변화 있음 → one-pager 재생성 필요 (waitUntil 블록에서 처리)
-      console.log("[Analysis Start API] delta: metrics changed — skipping module copy, will regenerate via waitUntil");
+      console.log("[Analysis Start API] delta: no previous module_results to copy — will trigger waitUntil generation");
     }
   } else {
     // Full run: Gemini 신규 호출 결과를 저장
