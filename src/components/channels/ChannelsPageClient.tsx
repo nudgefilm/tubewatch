@@ -62,11 +62,16 @@ export default function ChannelsPageClient({
   const [progressStep, setProgressStep] = useState<string | null>(null);
   const [overloadQueued, setOverloadQueued] = useState(false);
   const [overloadRetryAfterSec, setOverloadRetryAfterSec] = useState(90);
+  // 서버에서 COOLDOWN_ACTIVE 응답 시 즉시 로컬 쿨다운 적용
+  const [localCooldownAt, setLocalCooldownAt] = useState<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // localStorage에서 선택 채널 초기화
+  // localStorage에서 선택 채널 초기화 + 사이드바 변경 이벤트 동기화
   useEffect(() => {
     setSelectedChannelId(readSelectedChannelIdFromStorage());
+    const handler = () => setSelectedChannelId(readSelectedChannelIdFromStorage());
+    window.addEventListener("tubewatch-channels-updated", handler);
+    return () => window.removeEventListener("tubewatch-channels-updated", handler);
   }, []);
 
   // 언마운트 시 폴링 정리
@@ -85,7 +90,7 @@ export default function ChannelsPageClient({
   const loadChannels = useCallback(async () => {
     setListError(null);
     try {
-      const res = await fetch("/api/channels", { credentials: "include" });
+      const res = await fetch("/api/channels", { credentials: "include", cache: "no-store" });
       const json: { ok?: boolean; data?: ChannelRow[]; error?: string } =
         await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -159,8 +164,10 @@ export default function ChannelsPageClient({
     channels.find((ch) => ch.id === selectedChannelId) ?? null;
 
   // 쿨다운 체크 — last_analyzed_at 기준 12시간 (admin bypass)
-  const cooldownRemain = !isAdmin && selectedChannel?.last_analyzed_at
-    ? formatCooldownRemain(selectedChannel.last_analyzed_at)
+  // last_analyzed_at (DB) 또는 localCooldownAt (서버 응답 기반) 중 유효한 쪽 사용
+  const cooldownSource = selectedChannel?.last_analyzed_at ?? localCooldownAt
+  const cooldownRemain = !isAdmin && cooldownSource
+    ? formatCooldownRemain(cooldownSource)
     : ""
   const isCooldown = cooldownRemain.length > 0
 
@@ -214,6 +221,10 @@ export default function ChannelsPageClient({
 
         if (!res.ok) {
           if (result.code === "COOLDOWN_ACTIVE") {
+            // 즉시 로컬 쿨다운 적용 (다음 방문 시에도 버튼 비활성화)
+            setLocalCooldownAt(new Date().toISOString());
+            setIsNavigating(false);
+            setProgressStep(null);
             const dest = `/analysis?channel=${channelId}`;
             console.log("[Analysis Start UI] navigate to:", dest, "(cooldown)");
             router.push(dest);
