@@ -80,7 +80,38 @@ export async function GET(request: Request) {
     );
   }
 
-  return NextResponse.json({ ok: true, data: data ?? [] });
+  const channels = data ?? [];
+
+  // analysis_runs에서 채널별 최신 completed_at 조회 — last_analyzed_at 미업데이트 케이스 보완
+  const channelIds = channels.map((c: { id: string }) => c.id);
+  let latestRunMap: Record<string, string> = {};
+  if (channelIds.length > 0) {
+    const { data: runs } = await supabase
+      .from("analysis_runs")
+      .select("user_channel_id, completed_at")
+      .in("user_channel_id", channelIds)
+      .eq("status", "completed")
+      .order("completed_at", { ascending: false });
+    if (runs) {
+      for (const run of runs as { user_channel_id: string; completed_at: string | null }[]) {
+        if (run.user_channel_id && run.completed_at && !latestRunMap[run.user_channel_id]) {
+          latestRunMap[run.user_channel_id] = run.completed_at;
+        }
+      }
+    }
+  }
+
+  // last_analyzed_at과 analysis_runs.completed_at 중 더 최신 값 사용
+  const enriched = channels.map((c: { id: string; last_analyzed_at?: string | null }) => {
+    const runAt = latestRunMap[c.id] ?? null;
+    const dbAt = c.last_analyzed_at ?? null;
+    const best = runAt && dbAt
+      ? (new Date(runAt) > new Date(dbAt) ? runAt : dbAt)
+      : (runAt ?? dbAt);
+    return { ...c, last_analyzed_at: best };
+  });
+
+  return NextResponse.json({ ok: true, data: enriched });
 }
 
 /** 등록: channel_url 또는 channel_id(UC…) */

@@ -640,11 +640,11 @@ export async function POST(request: Request) {
     if (freshThumbnailUrl !== null) updatePayload.thumbnail_url = freshThumbnailUrl;
     if (freshDescription !== null) updatePayload.description = freshDescription;
     if (freshPublishedAt !== null) updatePayload.published_at = freshPublishedAt;
+    // supabaseAdmin은 RLS bypass — id 단독으로 충분 (user_id 조건 불필요, 소유권은 상단에서 이미 검증)
     const { error: channelUpdateErr } = await supabaseAdmin
       .from("user_channels")
       .update(updatePayload)
-      .eq("id", userChannelId)
-      .eq("user_id", user.id);
+      .eq("id", userChannelId);
     if (channelUpdateErr) {
       console.error("[Analysis Start API] user_channels update FAILED:", channelUpdateErr.message, "code:", channelUpdateErr.code, "payload keys:", Object.keys(updatePayload));
     } else {
