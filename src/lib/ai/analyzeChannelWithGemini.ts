@@ -43,6 +43,10 @@ export type AnalyzeChannelWithGeminiArgs = {
   previousAnalysis?: PreviousAnalysisSummary;
   /** 이번 분석에서 감지된 신규 영상 수 — 프롬프트 내 신규/기존 영상 분리 표시용 */
   newVideoCount?: number;
+  /** 채널 설명(Bio) — 채널 방향성·키워드 파악용 */
+  channelDescription?: string | null;
+  /** 채널 개설일 ISO string — 채널 성숙도 파악용 */
+  channelPublishedAt?: string | null;
 };
 
 export type AnalyzeChannelWithGeminiSuccess = {
@@ -696,7 +700,7 @@ function buildPrompt(args: AnalyzeChannelWithGeminiArgs): string {
 [채널 정보]
 channel_title: ${args.channelTitle}
 subscriber_count: ${formatNumber(args.subscriberCount)}
-sample_video_count: ${args.videos.length}${isReanalysis ? ` (신규 ${newCount}개 포함)` : ""}
+sample_video_count: ${args.videos.length}${isReanalysis ? ` (신규 ${newCount}개 포함)` : ""}${args.channelPublishedAt ? `\nchannel_published_at: ${args.channelPublishedAt.slice(0, 10)}` : ""}${args.channelDescription ? `\nchannel_description: ${args.channelDescription.slice(0, 300)}` : ""}
 
 ${prevAnalysisBlock}${contextBlock}${top3Block ? top3Block + "\n\n" : ""}${videoSection}
 

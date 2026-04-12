@@ -30,6 +30,7 @@ export interface ChannelInfo {
   channel_id: string;
   channel_title: string;
   description: string | null;
+  published_at: string | null;
   subscriber_count: number | null;
   video_count: number | null;
   view_count: number | null;

@@ -145,6 +145,7 @@ async function fetchChannelInfoById(
     channel_id: item.id,
     channel_title: safeString(item.snippet?.title) || "Untitled Channel",
     description: safeNullableString(item.snippet?.description),
+    published_at: safeNullableString(item.snippet?.publishedAt),
     subscriber_count: toNumber(item.statistics?.subscriberCount),
     video_count: toNumber(item.statistics?.videoCount),
     view_count: toNumber(item.statistics?.viewCount),

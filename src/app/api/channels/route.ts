@@ -189,6 +189,8 @@ export async function POST(request: Request) {
     subscriber_count: info.subscriber_count,
     video_count: info.video_count,
     view_count: info.view_count ?? null,
+    description: info.description ?? null,
+    published_at: info.published_at ?? null,
   };
   console.log("[Channels API] insert payload:", JSON.stringify(insertPayload));
 

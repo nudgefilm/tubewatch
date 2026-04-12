@@ -258,6 +258,8 @@ export async function POST(request: Request) {
   let freshViewCount: number | null = null; // user_channels에 컬럼 추가됨
   let freshChannelTitle: string | null = (channelRow.channel_title as string | null) ?? null;
   let freshThumbnailUrl: string | null = (channelRow.thumbnail_url as string | null) ?? null;
+  let freshDescription: string | null = null;
+  let freshPublishedAt: string | null = null;
 
   try {
     const [videos, channelInfo] = await Promise.allSettled([
@@ -287,7 +289,13 @@ export async function POST(request: Request) {
       if (typeof ci.thumbnail_url === "string" && ci.thumbnail_url.trim()) {
         freshThumbnailUrl = ci.thumbnail_url;
       }
-      console.log(`[Analysis Start API] channel stats refreshed — subscribers: ${freshSubscriberCount}, videos: ${freshVideoCount}, views: ${freshViewCount}, title: ${freshChannelTitle}`);
+      if (typeof ci.description === "string" && ci.description.trim()) {
+        freshDescription = ci.description;
+      }
+      if (typeof ci.published_at === "string" && ci.published_at.trim()) {
+        freshPublishedAt = ci.published_at;
+      }
+      console.log(`[Analysis Start API] channel stats refreshed — subscribers: ${freshSubscriberCount}, videos: ${freshVideoCount}, views: ${freshViewCount}, title: ${freshChannelTitle}, publishedAt: ${freshPublishedAt ?? "n/a"}`);
     } else {
       console.warn("[Analysis Start API] getChannelInfo failed (non-fatal), using cached channel stats:", channelInfo.reason);
     }
@@ -333,9 +341,9 @@ export async function POST(request: Request) {
     normalizedDataset = normalizeVideoMetrics({
       channel: {
         youtube_channel_id: youtubeChannelId,
-        title: (channelRow.channel_title as string | null) ?? "",
-        description: "",
-        published_at: null,
+        title: freshChannelTitle ?? "",
+        description: freshDescription ?? "",
+        published_at: freshPublishedAt,
         subscriber_count: freshSubscriberCount,
         video_count: freshVideoCount,
         view_count: freshViewCount,
@@ -424,6 +432,8 @@ export async function POST(request: Request) {
         videos: toChannelVideoSamples(youtubeVideos),
         analysisContext,
         newVideoCount,
+        channelDescription: freshDescription,
+        channelPublishedAt: freshPublishedAt,
         previousAnalysis: existingSnapshot ? {
           channelSummary: typeof existingSnapshot.channel_summary === "string" ? existingSnapshot.channel_summary : "",
           contentPatterns: Array.isArray(existingSnapshot.content_patterns) ? (existingSnapshot.content_patterns as string[]) : [],
@@ -635,6 +645,8 @@ export async function POST(request: Request) {
     if (freshViewCount !== null) updatePayload.view_count = freshViewCount;
     if (freshChannelTitle !== null) updatePayload.channel_title = freshChannelTitle;
     if (freshThumbnailUrl !== null) updatePayload.thumbnail_url = freshThumbnailUrl;
+    if (freshDescription !== null) updatePayload.description = freshDescription;
+    if (freshPublishedAt !== null) updatePayload.published_at = freshPublishedAt;
     await supabase
       .from("user_channels")
       .update(updatePayload)
