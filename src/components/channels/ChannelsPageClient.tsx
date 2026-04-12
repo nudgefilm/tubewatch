@@ -62,13 +62,18 @@ export default function ChannelsPageClient({
   const [progressStep, setProgressStep] = useState<string | null>(null);
   const [overloadQueued, setOverloadQueued] = useState(false);
   const [overloadRetryAfterSec, setOverloadRetryAfterSec] = useState(90);
-  // 서버에서 COOLDOWN_ACTIVE 응답 시 즉시 로컬 쿨다운 적용
-  const [localCooldownAt, setLocalCooldownAt] = useState<string | null>(null);
+  // localStorage 기반 쿨다운 캐시 (라우터 캐시 무관하게 복원)
+  const [cooldownCache, setCooldownCache] = useState<Record<string, string>>({});
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // localStorage에서 선택 채널 초기화 + 사이드바 변경 이벤트 동기화
   useEffect(() => {
     setSelectedChannelId(readSelectedChannelIdFromStorage());
+    // 저장된 쿨다운 캐시 복원
+    try {
+      const raw = localStorage.getItem("tw-cd-cache");
+      if (raw) setCooldownCache(JSON.parse(raw) as Record<string, string>);
+    } catch { /* ignore */ }
     const handler = () => setSelectedChannelId(readSelectedChannelIdFromStorage());
     window.addEventListener("tubewatch-channels-updated", handler);
     return () => window.removeEventListener("tubewatch-channels-updated", handler);
@@ -113,6 +118,15 @@ export default function ChannelsPageClient({
 
   useEffect(() => {
     void loadChannels();
+  }, [loadChannels]);
+
+  // 페이지가 다시 보일 때 최신 채널 데이터 재조회 (라우터 캐시 우회)
+  useEffect(() => {
+    const handler = () => {
+      if (document.visibilityState === "visible") void loadChannels();
+    };
+    document.addEventListener("visibilitychange", handler);
+    return () => document.removeEventListener("visibilitychange", handler);
   }, [loadChannels]);
 
   // 삭제된 채널이 선택 중이면 선택 해제
@@ -163,9 +177,10 @@ export default function ChannelsPageClient({
   const selectedChannel =
     channels.find((ch) => ch.id === selectedChannelId) ?? null;
 
-  // 쿨다운 체크 — last_analyzed_at 기준 12시간 (admin bypass)
-  // last_analyzed_at (DB) 또는 localCooldownAt (서버 응답 기반) 중 유효한 쪽 사용
-  const cooldownSource = selectedChannel?.last_analyzed_at ?? localCooldownAt
+  // 쿨다운 체크 — last_analyzed_at (DB) || localStorage 캐시 중 유효한 쪽 사용 (admin bypass)
+  const cooldownSource = selectedChannel
+    ? (selectedChannel.last_analyzed_at ?? cooldownCache[selectedChannel.id] ?? null)
+    : null
   const cooldownRemain = !isAdmin && cooldownSource
     ? formatCooldownRemain(cooldownSource)
     : ""
@@ -221,8 +236,6 @@ export default function ChannelsPageClient({
 
         if (!res.ok) {
           if (result.code === "COOLDOWN_ACTIVE") {
-            // 즉시 로컬 쿨다운 적용 (다음 방문 시에도 버튼 비활성화)
-            setLocalCooldownAt(new Date().toISOString());
             setIsNavigating(false);
             setProgressStep(null);
             const dest = `/analysis?channel=${channelId}`;
@@ -247,6 +260,15 @@ export default function ChannelsPageClient({
           }
           return;
         }
+
+        // 분석 완료 시간을 localStorage에 저장 → 페이지 재방문 시 쿨다운 즉시 복원
+        try {
+          const raw = localStorage.getItem("tw-cd-cache");
+          const cache: Record<string, string> = raw ? (JSON.parse(raw) as Record<string, string>) : {};
+          cache[channelId] = new Date().toISOString();
+          localStorage.setItem("tw-cd-cache", JSON.stringify(cache));
+          setCooldownCache(cache);
+        } catch { /* ignore */ }
 
         const dest = `/analysis?channel=${channelId}`;
         console.log("[Analysis Start UI] navigate to:", dest);
