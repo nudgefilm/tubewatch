@@ -147,7 +147,8 @@ export function PlanDocument({ markdown }: { markdown: string }) {
     // 번호 리스트
     if (/^\d+\.\s/.test(line)) {
       const items: string[] = []
-      let num = 1
+      // num을 현재 라인의 실제 시작 번호로 추출 — 1 고정 시 무한 루프 발생
+      let num = parseInt(line.match(/^(\d+)\.\s/)?.[1] ?? "1", 10)
       while (i < lines.length && new RegExp(`^${num}\\. `).test(lines[i])) {
         items.push(lines[i].replace(/^\d+\.\s+/, "")); i++; num++
       }
