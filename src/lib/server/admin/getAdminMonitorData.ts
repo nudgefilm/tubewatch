@@ -102,10 +102,10 @@ export async function getAdminMonitorData(): Promise<AdminMonitorData> {
       .lt("created_at", minus10m),
 
     supabaseAdmin
-      .from("analysis_runs")
+      .from("analysis_jobs")
       .select("*", { count: "exact", head: true })
       .eq("status", "running")
-      .lt("updated_at", minus30m),
+      .lt("started_at", minus30m),
 
     supabaseAdmin
       .from("analysis_module_results")
@@ -114,13 +114,13 @@ export async function getAdminMonitorData(): Promise<AdminMonitorData> {
       .gte("created_at", minus24h),
 
     supabaseAdmin
-      .from("analysis_runs")
+      .from("analysis_jobs")
       .select("*", { count: "exact", head: true })
       .eq("status", "failed")
       .gte("created_at", minus24h),
 
     supabaseAdmin
-      .from("analysis_runs")
+      .from("analysis_jobs")
       .select("*", { count: "exact", head: true })
       .eq("status", "queued"),
 
