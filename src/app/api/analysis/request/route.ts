@@ -253,8 +253,10 @@ export async function POST(request: Request) {
   const fetchCount = existingSnapshot ? DELTA_FETCH : FULL_FETCH;
 
   let youtubeVideos: VideoInfo[];
-  // 구독자수: DB 캐시값을 기본으로 하되 YouTube API 최신값으로 덮어씀
+  // 채널 현황 수치: DB 캐시값을 기본으로 하되 YouTube API 최신값으로 덮어씀
   let freshSubscriberCount: number | null = (channelRow.subscriber_count as number | null) ?? null;
+  let freshVideoCount: number | null = (channelRow.video_count as number | null) ?? null;
+  let freshViewCount: number | null = null; // user_channels에 컬럼 추가됨
 
   try {
     const [videos, channelInfo] = await Promise.allSettled([
@@ -268,13 +270,19 @@ export async function POST(request: Request) {
     youtubeVideos = videos.value;
 
     if (channelInfo.status === "fulfilled") {
-      const apiCount = channelInfo.value.subscriber_count;
-      if (typeof apiCount === "number" && apiCount > 0) {
-        freshSubscriberCount = apiCount;
-        console.log(`[Analysis Start API] subscriber_count refreshed: ${freshSubscriberCount} (was: ${channelRow.subscriber_count ?? "null"})`);
+      const ci = channelInfo.value;
+      if (typeof ci.subscriber_count === "number" && ci.subscriber_count > 0) {
+        freshSubscriberCount = ci.subscriber_count;
       }
+      if (typeof ci.video_count === "number" && ci.video_count > 0) {
+        freshVideoCount = ci.video_count;
+      }
+      if (typeof ci.view_count === "number" && ci.view_count > 0) {
+        freshViewCount = ci.view_count;
+      }
+      console.log(`[Analysis Start API] channel stats refreshed — subscribers: ${freshSubscriberCount}, videos: ${freshVideoCount}, views: ${freshViewCount}`);
     } else {
-      console.warn("[Analysis Start API] getChannelInfo failed (non-fatal), using cached subscriber_count:", channelInfo.reason);
+      console.warn("[Analysis Start API] getChannelInfo failed (non-fatal), using cached channel stats:", channelInfo.reason);
     }
   } catch (e) {
     const msg = e instanceof Error ? e.message : "unknown";
@@ -351,8 +359,8 @@ export async function POST(request: Request) {
         description: "",
         published_at: null,
         subscriber_count: freshSubscriberCount,
-        video_count: (channelRow.video_count as number | null) ?? null,
-        view_count: null,
+        video_count: freshVideoCount,
+        view_count: freshViewCount,
       },
       videos: youtubeVideos.map((v) => ({
         video_id: v.video_id,
@@ -668,12 +676,12 @@ export async function POST(request: Request) {
   // 크레딧 예약 확정 — non-fatal
   if (reservationId) void confirmCredit(reservationId, savedRow.id);
 
-  // last_analyzed_at + subscriber_count 업데이트 (분석 시점 최신 값 반영)
+  // last_analyzed_at + 채널 현황 수치 업데이트 (분석 시점 최신 YouTube API 값 반영)
   {
     const updatePayload: Record<string, unknown> = { last_analyzed_at: now };
-    if (freshSubscriberCount !== null) {
-      updatePayload.subscriber_count = freshSubscriberCount;
-    }
+    if (freshSubscriberCount !== null) updatePayload.subscriber_count = freshSubscriberCount;
+    if (freshVideoCount !== null) updatePayload.video_count = freshVideoCount;
+    if (freshViewCount !== null) updatePayload.view_count = freshViewCount;
     await supabase
       .from("user_channels")
       .update(updatePayload)

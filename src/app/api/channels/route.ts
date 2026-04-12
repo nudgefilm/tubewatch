@@ -188,7 +188,7 @@ export async function POST(request: Request) {
     thumbnail_url: info.thumbnail_url,
     subscriber_count: info.subscriber_count,
     video_count: info.video_count,
-    // view_count: user_channels 테이블에 해당 컬럼 없음 — 제거
+    view_count: info.view_count ?? null,
   };
   console.log("[Channels API] insert payload:", JSON.stringify(insertPayload));
 
