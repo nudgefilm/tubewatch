@@ -638,6 +638,7 @@ export async function POST(request: Request) {
   if (reservationId) void confirmCredit(reservationId, savedRow.id);
 
   // last_analyzed_at + 채널 현황 전체 업데이트 (분석 시점 최신 YouTube API 값 반영)
+  // supabaseAdmin 사용: RLS UPDATE 정책 우회, 에러 로깅 추가
   {
     const updatePayload: Record<string, unknown> = { last_analyzed_at: now };
     if (freshSubscriberCount !== null) updatePayload.subscriber_count = freshSubscriberCount;
@@ -647,11 +648,16 @@ export async function POST(request: Request) {
     if (freshThumbnailUrl !== null) updatePayload.thumbnail_url = freshThumbnailUrl;
     if (freshDescription !== null) updatePayload.description = freshDescription;
     if (freshPublishedAt !== null) updatePayload.published_at = freshPublishedAt;
-    await supabase
+    const { error: channelUpdateErr } = await supabaseAdmin
       .from("user_channels")
       .update(updatePayload)
       .eq("id", userChannelId)
       .eq("user_id", user.id);
+    if (channelUpdateErr) {
+      console.error("[Analysis Start API] user_channels update FAILED:", channelUpdateErr.message, "code:", channelUpdateErr.code, "payload keys:", Object.keys(updatePayload));
+    } else {
+      console.log("[Analysis Start API] user_channels updated — keys:", Object.keys(updatePayload).join(", "));
+    }
   }
 
   // 원페이퍼 3개를 메인 분석 응답 반환 후 백그라운드에서 순차 생성
