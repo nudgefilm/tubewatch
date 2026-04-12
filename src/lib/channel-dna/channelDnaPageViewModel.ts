@@ -40,7 +40,6 @@ export type ChannelDnaPageViewModel = {
   comparativeMetrics: ComparativeMetricsVm;
   patternInsights: PatternInsightsDatasetVm;
   trendSignals: TrendSignalsVm;
-  extensionNotice: string | null;
   /** 외부 시장 슬롯과 별도 — `feature_snapshot`·구간 점수·진단 문자열만으로 계산 */
   internalChannelDnaSummary: InternalChannelDnaSummaryVm;
   /** 페이지 하단 전략 코멘트 카드 */
@@ -74,8 +73,6 @@ export function buildChannelDnaPageViewModel(
     comparativeMetrics: null,
     patternInsights: null,
     trendSignals: null,
-    extensionNotice:
-      "Channel DNA는 저장된 분석 결과와 채널 지표를 기반으로 성과 구조·패턴을 설명합니다. 외부 시장 확장 슬롯은 별도이며, 연동 시 동일 메뉴에서 추가합니다.",
     internalChannelDnaSummary,
     strategicComment,
   };
