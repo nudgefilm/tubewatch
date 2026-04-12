@@ -1,16 +1,8 @@
 "use client";
 
-import { useTransition, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import type { DirectActionKey, ModalActionKey } from "@/lib/server/admin/getAdminMonitorData";
-import { resetStuckPending, resetStuckRunning, clearStuckQueued } from "@/app/admin/monitor/actions";
 import { AdminMonitorModal } from "./AdminMonitorModal";
-
-const DIRECT_ACTIONS = {
-  resetStuckPending,
-  resetStuckRunning,
-  clearStuckQueued,
-} as const;
 
 type Props = {
   buttonLabel: string;
@@ -20,27 +12,22 @@ type Props = {
 };
 
 export function CleanupLegacyButton({ buttonLabel, directAction, modalAction, extraData }: Props) {
-  const [isPending, startTransition] = useTransition();
-  const [resultMsg, setResultMsg] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const router = useRouter();
 
+  // directAction 항목: 어드민 수동 작업 필요 — 버튼 없이 레이블만 표시
+  if (directAction && !modalAction) {
+    return (
+      <div className="mt-3">
+        <span className="inline-block rounded border border-dashed border-foreground/15 px-2 py-0.5 text-xs text-muted-foreground/50">
+          작업 요청
+        </span>
+      </div>
+    );
+  }
+
+  // modalAction 항목: 버튼으로 상세 조회
   function handleClick() {
-    if (directAction) {
-      startTransition(async () => {
-        const result = await DIRECT_ACTIONS[directAction]();
-        if (result.error) {
-          setResultMsg(`오류: ${result.error}`);
-        } else if (result.updated === 0) {
-          setResultMsg("처리할 항목 없음");
-        } else {
-          setResultMsg(`${result.updated}건 처리 완료`);
-          router.refresh();
-        }
-      });
-    } else if (modalAction) {
-      setModalOpen(true);
-    }
+    if (modalAction) setModalOpen(true);
   }
 
   return (
@@ -49,21 +36,11 @@ export function CleanupLegacyButton({ buttonLabel, directAction, modalAction, ex
         <button
           type="button"
           onClick={handleClick}
-          disabled={isPending}
+
           className="rounded border border-foreground/20 bg-foreground/[0.04] px-2.5 py-1 text-xs font-medium text-foreground/70 transition-colors hover:bg-foreground/[0.08] disabled:opacity-50"
         >
-          {isPending ? (
-            <span className="flex items-center gap-1.5">
-              <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
-              처리 중…
-            </span>
-          ) : (
-            buttonLabel
-          )}
+          {buttonLabel}
         </button>
-        {resultMsg && (
-          <span className="text-xs text-muted-foreground">{resultMsg}</span>
-        )}
       </div>
       {modalOpen && modalAction && (
         <AdminMonitorModal
