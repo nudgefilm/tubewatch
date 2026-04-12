@@ -228,7 +228,7 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
       }
       if (result.code === "OVERLOAD_QUEUED") {
         console.warn("[AnalysisPage/reanalyze] Gemini overloaded (503)")
-        setRequestError("AI 서버가 일시적으로 과부하 상태입니다. 1~2분 후 다시 시도해 주세요.")
+        setRequestError("외부 API 서버가 사용자 증가로 일시적인 과부하 상태입니다. 1~2분 후 다시 시도해 주세요.")
         return
       }
       if (!result.ok) {
