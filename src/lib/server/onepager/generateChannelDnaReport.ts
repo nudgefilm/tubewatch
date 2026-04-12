@@ -10,7 +10,7 @@ const MODELS: Array<{ model: string; generationConfig: Record<string, unknown> }
   { model: "gemini-2.5-flash-lite", generationConfig: { temperature: 0.7, maxOutputTokens: 2048 } },
   { model: "gemini-2.5-flash",      generationConfig: { temperature: 0.7, maxOutputTokens: 2048, thinkingConfig: { thinkingBudget: 0 } } },
 ];
-const MAX_RETRIES = 2;
+const MAX_RETRIES = 1; // fail-fast: 모델당 1회만 시도, long-tail retry 제거
 
 const SYSTEM_TEXT =
   "당신은 유튜브 채널 DNA 전문 분석가입니다. 마크다운 형식의 채널 DNA 진단 리포트를 작성합니다. JSON을 반환하지 않습니다. 인사말·서문·서명(예: '안녕하세요', '드림', '[이름]' 등)은 절대 포함하지 마세요. 바로 본문 내용으로 시작하세요.";
@@ -105,7 +105,7 @@ export async function callGeminiForChannelDnaReport(prompt: string): Promise<str
   for (const { model, generationConfig } of MODELS) {
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 50_000);
+      const timeout = setTimeout(() => controller.abort(), 25_000); // 25s: 정상 5~15s, 초과 시 장애 판정
       let res: Response;
       try {
         res = await fetch(
