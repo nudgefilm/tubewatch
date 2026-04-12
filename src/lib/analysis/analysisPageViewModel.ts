@@ -767,7 +767,7 @@ export function buildAnalysisPageViewModel(
   });
 
   // [pipe/5] ViewModel 생성 직후 — 최종 영상 배열 개수
-  console.log(`[Analysis/pipe-5/vm] recentVideos:${rawVideos.slice(0, 12).length} topVideos:${top.length} weakVideos:${weak.length}`);
+  console.log(`[Analysis/pipe-5/vm] recentVideos:${rawVideos.slice(0, 50).length} topVideos:${top.length} weakVideos:${weak.length}`);
 
   return {
     ...ext,
@@ -788,7 +788,7 @@ export function buildAnalysisPageViewModel(
     urgentImprovements: urgent,
     sampleSizeNote: sampleNote,
     analysisConfidence,
-    recentVideos: rawVideos.slice(0, 12),
+    recentVideos: rawVideos.slice(0, 50),
     topVideos: top,
     weakVideos: weak,
     performanceCompareSummary: summary,

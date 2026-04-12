@@ -212,7 +212,7 @@ function mapToKpiData(vm: AnalysisPageViewModel) {
 
 function mapToViewTrendData(videos: AnalysisVideoRow[]) {
   return videos
-    .slice(0, 10)
+    .slice(0, 50)
     .reverse()
     .map((v, i) => ({
       index: i + 1,
