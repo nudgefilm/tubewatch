@@ -86,16 +86,17 @@ export async function GET(request: Request) {
   const channelIds = channels.map((c: { id: string }) => c.id);
   let latestRunMap: Record<string, string> = {};
   if (channelIds.length > 0) {
+    // analysis_runs.channel_id = user_channels.id (UUID)
     const { data: runs } = await supabase
       .from("analysis_runs")
-      .select("user_channel_id, completed_at")
-      .in("user_channel_id", channelIds)
+      .select("channel_id, completed_at")
+      .in("channel_id", channelIds)
       .eq("status", "completed")
       .order("completed_at", { ascending: false });
     if (runs) {
-      for (const run of runs as { user_channel_id: string; completed_at: string | null }[]) {
-        if (run.user_channel_id && run.completed_at && !latestRunMap[run.user_channel_id]) {
-          latestRunMap[run.user_channel_id] = run.completed_at;
+      for (const run of runs as { channel_id: string; completed_at: string | null }[]) {
+        if (run.channel_id && run.completed_at && !latestRunMap[run.channel_id]) {
+          latestRunMap[run.channel_id] = run.completed_at;
         }
       }
     }
