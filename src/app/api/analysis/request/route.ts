@@ -14,6 +14,7 @@ import { buildAnalysisReportPrompt, callGeminiForAnalysisReport } from "@/lib/se
 import { buildChannelDnaReportPrompt, callGeminiForChannelDnaReport } from "@/lib/server/onepager/generateChannelDnaReport";
 import { buildStrategyPlanPrompt, callGeminiForStrategyPlan } from "@/lib/server/onepager/generateStrategyPlan";
 import { getRecentVideos } from "@/lib/youtube";
+import { getChannelInfo } from "@/lib/youtube/getChannelInfo";
 import { normalizeVideoMetrics } from "@/lib/analysis/engine/normalizeVideoMetrics";
 import { buildChannelFeatures } from "@/lib/analysis/engine/buildChannelFeatures";
 import { featureScoring } from "@/lib/analysis/engine/featureScoring";
@@ -244,7 +245,7 @@ export async function POST(request: Request) {
     await supabaseAdmin.from("analysis_jobs").update(patch).eq("id", jobId);
   }
 
-  // YouTube API: 영상 수집
+  // YouTube API: 영상 수집 + 채널 최신 정보(구독자수) 병렬 fetch
   // - 첫 분석(스냅샷 없음): 50개 전체 수집
   // - 재분석: 최근 15개만 수집해 신규 감지 → 신규 + 기존 스냅샷 영상 합산
   const FULL_FETCH = 50;
@@ -252,8 +253,29 @@ export async function POST(request: Request) {
   const fetchCount = existingSnapshot ? DELTA_FETCH : FULL_FETCH;
 
   let youtubeVideos: VideoInfo[];
+  // 구독자수: DB 캐시값을 기본으로 하되 YouTube API 최신값으로 덮어씀
+  let freshSubscriberCount: number | null = (channelRow.subscriber_count as number | null) ?? null;
+
   try {
-    youtubeVideos = await getRecentVideos(youtubeChannelId, fetchCount);
+    const [videos, channelInfo] = await Promise.allSettled([
+      getRecentVideos(youtubeChannelId, fetchCount),
+      getChannelInfo(youtubeChannelId),
+    ]);
+
+    if (videos.status === "rejected") {
+      throw videos.reason;
+    }
+    youtubeVideos = videos.value;
+
+    if (channelInfo.status === "fulfilled") {
+      const apiCount = channelInfo.value.subscriber_count;
+      if (typeof apiCount === "number" && apiCount > 0) {
+        freshSubscriberCount = apiCount;
+        console.log(`[Analysis Start API] subscriber_count refreshed: ${freshSubscriberCount} (was: ${channelRow.subscriber_count ?? "null"})`);
+      }
+    } else {
+      console.warn("[Analysis Start API] getChannelInfo failed (non-fatal), using cached subscriber_count:", channelInfo.reason);
+    }
   } catch (e) {
     const msg = e instanceof Error ? e.message : "unknown";
     console.error("[Analysis Start API] error: getRecentVideos failed:", msg);
@@ -328,7 +350,7 @@ export async function POST(request: Request) {
         title: (channelRow.channel_title as string | null) ?? "",
         description: "",
         published_at: null,
-        subscriber_count: (channelRow.subscriber_count as number | null) ?? null,
+        subscriber_count: freshSubscriberCount,
         video_count: (channelRow.video_count as number | null) ?? null,
         view_count: null,
       },
@@ -355,8 +377,7 @@ export async function POST(request: Request) {
       channelPatterns,
       scoreResult,
       {
-        subscriberCount:
-          (channelRow.subscriber_count as number | null) ?? undefined,
+        subscriberCount: freshSubscriberCount ?? undefined,
         sampleVideoCount: youtubeVideos.length,
         collectedVideoCount: normalizedDataset.collectedVideoCount,
       }
@@ -414,7 +435,7 @@ export async function POST(request: Request) {
       gemini = await analyzeChannelWithGemini({
         channelTitle:
           (channelRow.channel_title as string | null) ?? "Untitled Channel",
-        subscriberCount: (channelRow.subscriber_count as number | null) ?? null,
+        subscriberCount: freshSubscriberCount,
         videos: toChannelVideoSamples(youtubeVideos),
         analysisContext,
       });
@@ -647,12 +668,18 @@ export async function POST(request: Request) {
   // 크레딧 예약 확정 — non-fatal
   if (reservationId) void confirmCredit(reservationId, savedRow.id);
 
-  // last_analyzed_at 업데이트
-  await supabase
-    .from("user_channels")
-    .update({ last_analyzed_at: now })
-    .eq("id", userChannelId)
-    .eq("user_id", user.id);
+  // last_analyzed_at + subscriber_count 업데이트 (분석 시점 최신 값 반영)
+  {
+    const updatePayload: Record<string, unknown> = { last_analyzed_at: now };
+    if (freshSubscriberCount !== null) {
+      updatePayload.subscriber_count = freshSubscriberCount;
+    }
+    await supabase
+      .from("user_channels")
+      .update(updatePayload)
+      .eq("id", userChannelId)
+      .eq("user_id", user.id);
+  }
 
   // 원페이퍼 3개를 메인 분석 응답 반환 후 백그라운드에서 순차 생성
   // Vercel Pro maxDuration=300 — waitUntil로 응답 차단 없이 실행
