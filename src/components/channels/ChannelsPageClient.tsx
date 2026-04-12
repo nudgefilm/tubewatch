@@ -105,7 +105,7 @@ export default function ChannelsPageClient({
         return;
       }
       const loaded = Array.isArray(json.data) ? json.data : [];
-      console.log("[Channels/load] loaded channels:", loaded.length, loaded.map(c => ({ id: c.id, title: c.channel_title })));
+      console.log("[Channels/load] loaded channels:", loaded.length, loaded.map(c => ({ id: c.id, title: c.channel_title, last_analyzed_at: c.last_analyzed_at })));
       setChannels(loaded);
     } catch (e) {
       console.error("[Channels/load] fetch exception:", e);
@@ -188,6 +188,7 @@ export default function ChannelsPageClient({
 
   // E2E 진단 로그 — 선택 상태 추적
   console.log("[Channels/state] selectedChannelId:", selectedChannelId, "→ selectedChannel:", selectedChannel ? { id: selectedChannel.id, title: selectedChannel.channel_title } : null, "| channels.length:", channels.length);
+  console.log("[Channels/cooldown] source:", cooldownSource, "| remain:", cooldownRemain, "| isCooldown:", isCooldown, "| isAdmin:", isAdmin, "| cache:", cooldownCache);
 
   const handleStartAnalysis = useCallback(() => {
     if (!selectedChannel || !selectedChannel.id || isNavigating) {
