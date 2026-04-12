@@ -2,17 +2,13 @@
 
 import { useTransition, useState } from "react";
 import { useRouter } from "next/navigation";
-import { cleanupNullStartedAt, normalizeJobStatusSuccess, resetStuckPending } from "@/app/admin/monitor/actions";
+import { resetStuckPending } from "@/app/admin/monitor/actions";
 
 const ACTION_MAP = {
-  cleanupNullStartedAt,
-  normalizeJobStatusSuccess,
   resetStuckPending,
 } as const;
 
 const BUTTON_LABELS: Record<keyof typeof ACTION_MAP, string> = {
-  cleanupNullStartedAt: "레거시 정리하기",
-  normalizeJobStatusSuccess: "레거시 정리하기",
   resetStuckPending: "강제 초기화",
 };
 
@@ -31,7 +27,7 @@ export function CleanupLegacyButton({ actionKey }: { actionKey: ActionKey }) {
       } else if (result.updated === 0) {
         setMessage("정리할 데이터 없음");
       } else {
-        setMessage(`${result.updated}건 정리 완료`);
+        setMessage(`${result.updated}건 초기화 완료`);
         router.refresh();
       }
     });
@@ -48,7 +44,7 @@ export function CleanupLegacyButton({ actionKey }: { actionKey: ActionKey }) {
         {isPending ? (
           <span className="flex items-center gap-1.5">
             <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
-            정리 중…
+            처리 중…
           </span>
         ) : (
           BUTTON_LABELS[actionKey]
