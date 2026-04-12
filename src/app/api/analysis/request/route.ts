@@ -109,7 +109,7 @@ export async function POST(request: Request) {
   const { data: channelRow, error: channelErr } = await supabase
     .from("user_channels")
     .select(
-      "id, channel_id, channel_title, channel_url, subscriber_count, video_count, last_analyzed_at"
+      "id, channel_id, channel_title, channel_url, thumbnail_url, subscriber_count, video_count, last_analyzed_at"
     )
     .eq("id", userChannelId)
     .eq("user_id", user.id)
@@ -257,6 +257,8 @@ export async function POST(request: Request) {
   let freshSubscriberCount: number | null = (channelRow.subscriber_count as number | null) ?? null;
   let freshVideoCount: number | null = (channelRow.video_count as number | null) ?? null;
   let freshViewCount: number | null = null; // user_channels에 컬럼 추가됨
+  let freshChannelTitle: string | null = (channelRow.channel_title as string | null) ?? null;
+  let freshThumbnailUrl: string | null = (channelRow.thumbnail_url as string | null) ?? null;
 
   try {
     const [videos, channelInfo] = await Promise.allSettled([
@@ -280,7 +282,13 @@ export async function POST(request: Request) {
       if (typeof ci.view_count === "number" && ci.view_count > 0) {
         freshViewCount = ci.view_count;
       }
-      console.log(`[Analysis Start API] channel stats refreshed — subscribers: ${freshSubscriberCount}, videos: ${freshVideoCount}, views: ${freshViewCount}`);
+      if (typeof ci.channel_title === "string" && ci.channel_title.trim()) {
+        freshChannelTitle = ci.channel_title;
+      }
+      if (typeof ci.thumbnail_url === "string" && ci.thumbnail_url.trim()) {
+        freshThumbnailUrl = ci.thumbnail_url;
+      }
+      console.log(`[Analysis Start API] channel stats refreshed — subscribers: ${freshSubscriberCount}, videos: ${freshVideoCount}, views: ${freshViewCount}, title: ${freshChannelTitle}`);
     } else {
       console.warn("[Analysis Start API] getChannelInfo failed (non-fatal), using cached channel stats:", channelInfo.reason);
     }
@@ -527,8 +535,8 @@ export async function POST(request: Request) {
       jobId,
       channelId: youtubeChannelId,
       channelUrl: (channelRow.channel_url as string | null) ?? "",
-      channelTitle: (channelRow.channel_title as string | null) ?? null,
-      thumbnailUrl: null,
+      channelTitle: freshChannelTitle,
+      thumbnailUrl: freshThumbnailUrl,
       sampleVideoCount: youtubeVideos.length,
       analysisConfidence: geminiSuccess.result.analysis_confidence ?? null,
       status: "analyzed",
@@ -676,12 +684,14 @@ export async function POST(request: Request) {
   // 크레딧 예약 확정 — non-fatal
   if (reservationId) void confirmCredit(reservationId, savedRow.id);
 
-  // last_analyzed_at + 채널 현황 수치 업데이트 (분석 시점 최신 YouTube API 값 반영)
+  // last_analyzed_at + 채널 현황 전체 업데이트 (분석 시점 최신 YouTube API 값 반영)
   {
     const updatePayload: Record<string, unknown> = { last_analyzed_at: now };
     if (freshSubscriberCount !== null) updatePayload.subscriber_count = freshSubscriberCount;
     if (freshVideoCount !== null) updatePayload.video_count = freshVideoCount;
     if (freshViewCount !== null) updatePayload.view_count = freshViewCount;
+    if (freshChannelTitle !== null) updatePayload.channel_title = freshChannelTitle;
+    if (freshThumbnailUrl !== null) updatePayload.thumbnail_url = freshThumbnailUrl;
     await supabase
       .from("user_channels")
       .update(updatePayload)
