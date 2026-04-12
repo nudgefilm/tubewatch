@@ -318,12 +318,12 @@ export async function POST(request: Request) {
 
   // Delta 감지: 신규 영상이 없으면 Gemini 스킵 (detectDeltaRun.ts 참고)
   // forceFullRun(admin 전용)이면 delta 무시하고 항상 Gemini 신규 호출
-  const { isDeltaRun: _isDeltaRunRaw, prevKnownCount, newVideoCount } = detectDeltaRun(
+  const { isDeltaRun: _isDeltaRunRaw, prevKnownCount, newVideoCount, deletedVideoCount } = detectDeltaRun(
     existingSnapshot?.feature_snapshot,
     youtubeVideos.map((v) => v.video_id)
   );
   const isDeltaRun = _isDeltaRunRaw && !(isAdmin && forceFullRun);
-  console.log(`[Analysis/delta] prev_known=${prevKnownCount} new=${newVideoCount} skip_gemini=${isDeltaRun}${isAdmin && forceFullRun ? " (force-bypassed by admin)" : ""}`);
+  console.log(`[Analysis/delta] prev_known=${prevKnownCount} new=${newVideoCount} deleted=${deletedVideoCount} skip_gemini=${isDeltaRun}${isAdmin && forceFullRun ? " (force-bypassed by admin)" : ""}`);
 
   // full fetch(50개)이므로 스냅샷 합산 불필요 — YouTube API 응답이 곧 최신 상태
 

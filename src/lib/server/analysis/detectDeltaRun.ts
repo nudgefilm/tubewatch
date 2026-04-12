@@ -17,12 +17,14 @@ type SnapshotVideo = { videoId?: string };
 type FeatureSnapshot = { videos?: SnapshotVideo[] };
 
 export type DeltaDetectionResult = {
-  /** true = no new videos found → Gemini can be skipped */
+  /** true = no significant change found → Gemini can be skipped */
   isDeltaRun: boolean;
   /** number of video IDs known from the previous snapshot */
   prevKnownCount: number;
   /** number of videos in currentVideoIds not present in the previous snapshot */
   newVideoCount: number;
+  /** number of videos in the previous snapshot no longer in currentVideoIds (deleted) */
+  deletedVideoCount: number;
 };
 
 /**
@@ -46,13 +48,16 @@ export function detectDeltaRun(
 
   // If the previous snapshot has no video IDs, treat as first analysis.
   if (prevVideoIdSet.size === 0) {
-    return { isDeltaRun: false, prevKnownCount: 0, newVideoCount: currentVideoIds.length };
+    return { isDeltaRun: false, prevKnownCount: 0, newVideoCount: currentVideoIds.length, deletedVideoCount: 0 };
   }
 
+  const currentIdSet = new Set(currentVideoIds);
   const newVideoCount = currentVideoIds.filter((id) => !prevVideoIdSet.has(id)).length;
-  // 신규 영상 2개 미만(0~1개)이면 Gemini 재호출 생략
-  // 2개 이상이면 Gemini 재호출하여 최신 데이터 반영
-  const isDeltaRun = newVideoCount < 2;
+  const deletedVideoCount = [...prevVideoIdSet].filter((id) => !currentIdSet.has(id)).length;
 
-  return { isDeltaRun, prevKnownCount: prevVideoIdSet.size, newVideoCount };
+  // 신규 2개 미만 AND 삭제 2개 미만이면 Gemini 재호출 생략
+  // 신규 2개 이상 OR 삭제 2개 이상이면 Gemini 재호출하여 최신 데이터 반영
+  const isDeltaRun = newVideoCount < 2 && deletedVideoCount < 2;
+
+  return { isDeltaRun, prevKnownCount: prevVideoIdSet.size, newVideoCount, deletedVideoCount };
 }
