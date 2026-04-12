@@ -21,7 +21,20 @@ type ChannelRow = {
   subscriber_count: number | null;
   video_count: number | null;
   created_at?: string | null;
+  last_analyzed_at?: string | null;
 };
+
+const COOLDOWN_MS = 12 * 60 * 60 * 1000 // 12시간
+
+function formatCooldownRemain(lastAnalyzedAt: string): string {
+  const elapsed = Date.now() - new Date(lastAnalyzedAt).getTime()
+  const remain = Math.max(0, COOLDOWN_MS - elapsed)
+  if (remain <= 0) return ""
+  const h = Math.floor(remain / 3600000)
+  const m = Math.floor((remain % 3600000) / 60000)
+  if (h > 0) return `${h}시간 ${m}분 후 재분석 가능`
+  return `${m}분 후 재분석 가능`
+}
 
 function broadcastChannelsUpdated(): void {
   if (typeof window === "undefined") return;
@@ -144,6 +157,12 @@ export default function ChannelsPageClient({
 
   const selectedChannel =
     channels.find((ch) => ch.id === selectedChannelId) ?? null;
+
+  // 쿨다운 체크 — last_analyzed_at 기준 12시간 (admin bypass)
+  const cooldownRemain = !isAdmin && selectedChannel?.last_analyzed_at
+    ? formatCooldownRemain(selectedChannel.last_analyzed_at)
+    : ""
+  const isCooldown = cooldownRemain.length > 0
 
   // E2E 진단 로그 — 선택 상태 추적
   console.log("[Channels/state] selectedChannelId:", selectedChannelId, "→ selectedChannel:", selectedChannel ? { id: selectedChannel.id, title: selectedChannel.channel_title } : null, "| channels.length:", channels.length);
@@ -344,7 +363,7 @@ export default function ChannelsPageClient({
         <div className="mt-4 space-y-3">
           <button
             type="button"
-            disabled={!selectedChannel || isNavigating || overloadQueued || creditsExhausted}
+            disabled={!selectedChannel || isNavigating || overloadQueued || creditsExhausted || isCooldown}
             onClick={handleStartAnalysis}
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
           >
@@ -359,6 +378,13 @@ export default function ChannelsPageClient({
               "채널분석 시작"
             )}
           </button>
+
+          {/* 쿨다운 안내 */}
+          {isCooldown && (
+            <p className="text-xs text-muted-foreground">
+              최근 분석이 완료되었습니다 — {cooldownRemain}.
+            </p>
+          )}
 
           <AnalysisProgressBar isActive={isNavigating} />
 
