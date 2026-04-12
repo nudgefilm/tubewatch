@@ -82,34 +82,34 @@ export async function GET(request: Request) {
 
   const channels = data ?? [];
 
-  // analysis_runs에서 채널별 최신 completed_at 조회 — last_analyzed_at 미업데이트 케이스 보완
+  // analysis_results에서 채널별 최신 created_at 조회 — last_analyzed_at 미업데이트 케이스 보완
+  // 메인 분석(/api/analysis/request)은 analysis_runs를 생성하지 않고 analysis_results만 기록하므로
+  // analysis_results.created_at을 기준으로 사용
   const channelIds = channels.map((c: { id: string }) => c.id);
-  let latestRunMap: Record<string, string> = {};
+  let latestResultMap: Record<string, string> = {};
   if (channelIds.length > 0) {
-    // analysis_runs.channel_id = user_channels.id (UUID)
-    // supabaseAdmin 사용 — user client는 RLS로 analysis_runs 조회 불가
-    const { data: runs } = await supabaseAdmin
-      .from("analysis_runs")
-      .select("channel_id, completed_at")
-      .in("channel_id", channelIds)
-      .eq("status", "completed")
-      .order("completed_at", { ascending: false });
-    if (runs) {
-      for (const run of runs as { channel_id: string; completed_at: string | null }[]) {
-        if (run.channel_id && run.completed_at && !latestRunMap[run.channel_id]) {
-          latestRunMap[run.channel_id] = run.completed_at;
+    // analysis_results.user_channel_id = user_channels.id (UUID)
+    const { data: results } = await supabaseAdmin
+      .from("analysis_results")
+      .select("user_channel_id, created_at")
+      .in("user_channel_id", channelIds)
+      .order("created_at", { ascending: false });
+    if (results) {
+      for (const r of results as { user_channel_id: string; created_at: string | null }[]) {
+        if (r.user_channel_id && r.created_at && !latestResultMap[r.user_channel_id]) {
+          latestResultMap[r.user_channel_id] = r.created_at;
         }
       }
     }
   }
 
-  // last_analyzed_at과 analysis_runs.completed_at 중 더 최신 값 사용
+  // last_analyzed_at과 analysis_results.created_at 중 더 최신 값 사용
   const enriched = channels.map((c: { id: string; last_analyzed_at?: string | null }) => {
-    const runAt = latestRunMap[c.id] ?? null;
+    const resultAt = latestResultMap[c.id] ?? null;
     const dbAt = c.last_analyzed_at ?? null;
-    const best = runAt && dbAt
-      ? (new Date(runAt) > new Date(dbAt) ? runAt : dbAt)
-      : (runAt ?? dbAt);
+    const best = resultAt && dbAt
+      ? (new Date(resultAt) > new Date(dbAt) ? resultAt : dbAt)
+      : (resultAt ?? dbAt);
     return { ...c, last_analyzed_at: best };
   });
 
