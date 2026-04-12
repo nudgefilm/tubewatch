@@ -42,6 +42,11 @@ function SectionRow({ icon, label, children }: { icon: React.ReactNode; label: s
   )
 }
 
+/** AI가 생성한 본문에서 **bold** 마커를 제거 — ## 섹션 제목은 유지 */
+function stripBold(md: string): string {
+  return md.replace(/\*\*([^*]+)\*\*/g, "$1")
+}
+
 /** 기획안 카드 1장 */
 function ActionCard({ action }: { action: ExecutionAction }) {
   if (!action.videoPlanDocument) {
@@ -82,7 +87,7 @@ function ActionCard({ action }: { action: ExecutionAction }) {
   return (
     <OnePagerCard
       title="영상 기획안"
-      markdown={action.videoPlanDocument}
+      markdown={stripBold(action.videoPlanDocument)}
       downloadFilename="영상기획안.png"
       extra={extra}
     />
