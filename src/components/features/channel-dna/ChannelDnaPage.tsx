@@ -61,12 +61,6 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
 
           <ChannelContextHeader channelContext={channelContext} />
 
-          {viewModel.extensionNotice && (
-            <div className="rounded-lg border border-muted px-4 py-3 text-sm text-muted-foreground">
-              {viewModel.extensionNotice}
-            </div>
-          )}
-
           {/* [1] 채널 정체성 — 타겟 시청자 + 콘텐츠 패턴 */}
           <section className="space-y-6">
             <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
