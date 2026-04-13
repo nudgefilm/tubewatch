@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Check, Zap, Crown, ArrowRight } from "lucide-react";
+import { Check, Zap, Crown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { TermsModal } from "@/components/landing/terms-modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -552,6 +553,7 @@ function CurrentPlanCard({ status }: { status: UserBillingStatus }) {
 export default function BillingView({ initialData }: { initialData: UserBillingStatus }) {
   const router = useRouter();
   const [period, setPeriod] = useState<BillingPeriod>("monthly");
+  const [termsOpen, setTermsOpen] = useState(false);
 
   const handlePaymentSuccess = useCallback(() => {
     router.refresh();
@@ -654,16 +656,28 @@ export default function BillingView({ initialData }: { initialData: UserBillingS
           </div>
         </section>
 
-        {/* Support CTA */}
+        {/* Footer links */}
         <section className="border-t pt-8 text-center">
-          <p className="text-sm text-muted-foreground">결제 관련 문의가 있으신가요?</p>
-          <Button variant="ghost" size="sm" className="mt-2" asChild>
-            <a href="/support">
-              고객센터 문의하기 <ArrowRight className="ml-1 h-3 w-3" />
+          <div className="flex items-center justify-center gap-1 text-sm text-muted-foreground">
+            <button
+              type="button"
+              onClick={() => setTermsOpen(true)}
+              className="hover:text-foreground transition-colors underline-offset-4 hover:underline"
+            >
+              환불 정책
+            </button>
+            <span className="px-1 text-muted-foreground/40">|</span>
+            <a
+              href="/support"
+              className="hover:text-foreground transition-colors underline-offset-4 hover:underline"
+            >
+              결제 관련 문의
             </a>
-          </Button>
+          </div>
         </section>
       </div>
+
+      <TermsModal isOpen={termsOpen} onClose={() => setTermsOpen(false)} />
     </div>
   );
 }
