@@ -50,15 +50,15 @@ export function FooterSection() {
               <span>언폴드랩(UNFOLD LAB)</span>
             </div>
 
-            {/* Row 2 - CEO + Business License + 통신판매업신고 (left) + Built by (right) */}
-            <div className="flex flex-col md:flex-row justify-between gap-1">
+            {/* Row 2 - CEO + Business License + 통신판매업신고 */}
+            <div>
               <span>대표: 정재우 | 사업자등록번호: 136-11-23540 | 통신판매업신고: 제 2026-서울강남-XXXX 호</span>
-              <span className="text-muted-foreground/70">Built by Creators for Creators</span>
             </div>
 
-            {/* Row 3 - Address */}
-            <div>
+            {/* Row 3 - Address (left) + Built by (right) */}
+            <div className="flex flex-col md:flex-row justify-between gap-1">
               <span>주소: 서울특별시 강남구 압구정로2길 46, 214-S46호</span>
+              <span className="text-muted-foreground/70">Built by Creators for Creators</span>
             </div>
 
             {/* Row 4 - Contact + Terms (right) */}
