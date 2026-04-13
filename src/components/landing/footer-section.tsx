@@ -45,20 +45,25 @@ export function FooterSection() {
 
           {/* Info Rows */}
           <div className="flex flex-col gap-1 text-xs text-muted-foreground/70">
-            {/* Row 1 - Company + CEO + Email */}
+            {/* Row 1 - Company Name */}
             <div>
-              <span>언폴드랩(UNFOLD LAB) | 대표 정재우</span>
+              <span>언폴드랩(UNFOLD LAB)</span>
             </div>
 
-            {/* Row 2 - Business License (left) + Built by (right) */}
+            {/* Row 2 - CEO + Business License + 통신판매업신고 (left) + Built by (right) */}
             <div className="flex flex-col md:flex-row justify-between gap-1">
-              <span>사업자등록번호: 136-11-23540</span>
+              <span>대표: 정재우 | 사업자등록번호: 136-11-23540 | 통신판매업신고: 제 2026-서울강남-XXXX 호</span>
               <span className="text-muted-foreground/70">Built by Creators for Creators</span>
             </div>
 
-            {/* Row 3 - Address (left) + Terms (right) */}
+            {/* Row 3 - Address */}
+            <div>
+              <span>주소: 서울특별시 강남구 압구정로2길 46, 214-S46호</span>
+            </div>
+
+            {/* Row 4 - Contact + Terms (right) */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-1">
-              <span>서울특별시 강남구 압구정로2길 46, 214-S46호</span>
+              <span>연락처: 02-518-2022 | 이메일: nudgefilm@gmail.com</span>
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                 <button onClick={() => setIsTermsModalOpen(true)} className="hover:text-foreground transition-colors cursor-pointer">Terms of Service</button>
                 <span>|</span>
