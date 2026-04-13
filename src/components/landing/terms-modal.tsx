@@ -183,17 +183,18 @@ export function TermsModal({ isOpen, onClose }: TermsModalProps) {
           </section>
 
           <section>
-            <h3 className="text-foreground font-medium mb-2">제14조 (환불 정책)</h3>
-            <p className="mb-2">유료 서비스의 환불 요청은 다음 기준으로 처리됩니다.</p>
-            <ul className="list-disc list-inside space-y-1 ml-2 mb-2">
-              <li><strong>결제일로부터 7일 이내, 미사용:</strong> 전액 환불</li>
-              <li><strong>결제일로부터 7일 이내, 서비스 이용 시작:</strong> 본 서비스는 결제 완료 후 채널 분석 리포트(Channel Analysis, Channel DNA, Action Plan, Next Trend 중 1개 이상)를 1회 이상 생성한 시점을 서비스 이용 시작으로 간주합니다. 이 경우 「전자상거래 등에서의 소비자보호에 관한 법률」 제17조 제2항에 따라 청약철회가 제한될 수 있습니다. 단, 리포트를 생성하지 않은 경우라면 결제일로부터 7일 이내에는 전액 환불이 가능합니다.</li>
-              <li><strong>결제일로부터 7일 초과:</strong> 환불은 원칙적으로 불가하나, 이용자의 요청이 타당한 경우 고객센터를 통해 요청 처리일 이후 잔여 결제 주기에 해당하는 금액을 환불합니다.</li>
+            <h3 className="text-foreground font-medium mb-2">제14조 (환불 정책 및 청약철회)</h3>
+            <p className="mb-2 text-foreground/80 font-medium">1. 환불 기준</p>
+            <p className="mb-2">유료 서비스의 환불 요청은 다음 기준에 따라 처리됩니다.</p>
+            <ul className="list-disc list-inside space-y-1 ml-2 mb-4">
+              <li><strong>결제 후 7일 이내 및 리포트 미생성 시:</strong> 전액 환불이 가능합니다.</li>
+              <li><strong>결제 후 7일 이내라도 리포트를 1회 이상 생성한 경우:</strong> 본 서비스는 디지털 콘텐츠 특성상 리포트를 생성한 시점을 &lsquo;서비스 이용 시작&rsquo;으로 간주하며, 이 경우 「전자상거래 등에서의 소비자보호에 관한 법률」 제17조 제2항에 따라 청약철회가 제한됩니다.</li>
+              <li><strong>결제일로부터 7일 초과 시:</strong> 원칙적으로 환불이 불가합니다. 다만, 시스템 오류 등 이용자의 요청이 타당하다고 판단되는 경우 고객센터를 통해 잔여 기간 또는 잔여 서비스 횟수에 해당하는 금액을 환불할 수 있습니다.</li>
             </ul>
-            <p className="mb-2 text-foreground/80 font-medium">※ &ldquo;서비스 이용 시작&rdquo;의 기준</p>
-            <p className="mb-2">본 약관에서 &ldquo;서비스 이용 시작&rdquo;이란 결제 완료 후 채널 분석 리포트(Channel Analysis, Channel DNA, Action Plan, Next Trend 중 1개 이상)를 1회 이상 생성한 시점을 기준으로 합니다. 결제 후 리포트를 생성하지 않은 경우라도 결제일로부터 7일 이내에는 전액 환불이 가능합니다.</p>
-            <p className="mb-2 text-foreground/80 font-medium">※ 디지털 콘텐츠 서비스 청약철회 제한 안내</p>
-            <p className="mb-2">결제 완료 후 서비스 이용이 시작된 경우, 「전자상거래 등에서의 소비자보호에 관한 법률」 제17조에 따라 청약철회가 제한됩니다. 이에 대해 결제 전 이용자의 사전 동의를 받습니다.</p>
+            <p className="mb-2 text-foreground/80 font-medium">2. 서비스 이용 시작의 기준</p>
+            <p className="mb-4">본 약관에서 &lsquo;서비스 이용 시작&rsquo;이란, 결제 완료 후 제공되는 분석 리포트(Channel Analysis, Channel DNA, Action Plan, Next Trend 등)를 최소 1회 이상 생성한 시점을 의미합니다.</p>
+            <p className="mb-2 text-foreground/80 font-medium">3. 청약철회 제한 안내</p>
+            <p className="mb-4">본 서비스는 결제와 동시에 콘텐츠 제공이 준비되는 디지털 서비스입니다. 리포트 생성 등 서비스 이용이 시작된 경우, 관련 법령에 따라 청약철회가 제한됨을 결제 전 이용자에게 고지하고 사전 동의를 받습니다.</p>
             <p>환불 문의: nudgefilm@gmail.com</p>
           </section>
 
