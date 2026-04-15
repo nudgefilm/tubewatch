@@ -17,12 +17,6 @@ import {
 } from "./types";
 import type { UserBillingStatus } from "@/lib/server/billing/getUserBillingStatus";
 
-// ─── 결제 수단 판별 ───────────────────────────────────────────────────────────
-// .env.local: NEXT_PUBLIC_PAYMENT_PROVIDER=portone  →  PortOne V2 + TossPayments 사용
-// 미설정 또는 다른 값 → 기존 Stripe 사용
-
-const IS_PORTONE = process.env.NEXT_PUBLIC_PAYMENT_PROVIDER === "portone";
-
 // ─── Google Ads 구매 전환 이벤트 ──────────────────────────────────────────────
 
 function fireAdsConversion(transactionId: string, value?: number) {
@@ -70,7 +64,6 @@ function usePortOneRedirectReturn(onSuccess: () => void) {
   const [returnError, setReturnError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!IS_PORTONE) return;
     const paymentId = searchParams.get("po_payment_id");
     if (!paymentId) return;
 
@@ -153,21 +146,6 @@ function SubscriptionPlanCard({
   const isSemiannual = period === "semiannual";
   const planId: BillingPlanId = isSemiannual ? plan.semiannualPlanId : plan.id;
 
-  async function handleSubscribeStripe() {
-    const res = await fetch("/api/stripe/subscription-checkout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ planId }),
-    });
-    const json = (await res.json()) as { url?: string; error?: string };
-    if (!res.ok) {
-      setError(typeof json.error === "string" ? json.error : "결제 페이지를 열 수 없습니다.");
-      return;
-    }
-    if (typeof json.url === "string") window.location.href = json.url;
-    else setError("결제 페이지 URL을 받지 못했습니다.");
-  }
-
   async function handleSubscribePortOne() {
     const amountKrw = isSemiannual ? plan.semiannualPriceKrw : plan.priceKrw;
     const orderName = `TubeWatch ${plan.name} ${isSemiannual ? "6개월" : "1개월"}`;
@@ -219,11 +197,7 @@ function SubscriptionPlanCard({
     setError(null);
     setLoading(true);
     try {
-      if (IS_PORTONE) {
-        await handleSubscribePortOne();
-      } else {
-        await handleSubscribeStripe();
-      }
+      await handleSubscribePortOne();
     } catch {
       setError("요청 중 오류가 발생했습니다.");
     } finally {
@@ -343,21 +317,6 @@ function CreditProductCard({ product }: { product: (typeof CREDIT_PRODUCTS)[numb
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handlePurchaseStripe() {
-    const res = await fetch("/api/stripe/one-time-checkout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ productId: product.id }),
-    });
-    const json = (await res.json()) as { url?: string; error?: string };
-    if (!res.ok) {
-      setError(typeof json.error === "string" ? json.error : "결제 페이지를 열 수 없습니다.");
-      return;
-    }
-    if (typeof json.url === "string") window.location.href = json.url;
-    else setError("결제 페이지 URL을 받지 못했습니다.");
-  }
-
   async function handlePurchasePortOne() {
     const productId: CreditProductId = product.id;
     const paymentId = `tw_credit_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
@@ -413,11 +372,7 @@ function CreditProductCard({ product }: { product: (typeof CREDIT_PRODUCTS)[numb
     setError(null);
     setLoading(true);
     try {
-      if (IS_PORTONE) {
-        await handlePurchasePortOne();
-      } else {
-        await handlePurchaseStripe();
-      }
+      await handlePurchasePortOne();
     } catch {
       setError("요청 중 오류가 발생했습니다.");
     } finally {
@@ -464,29 +419,6 @@ function CreditProductCard({ product }: { product: (typeof CREDIT_PRODUCTS)[numb
 // ─── Current plan status card ─────────────────────────────────────────────────
 
 function CurrentPlanCard({ status }: { status: UserBillingStatus }) {
-  const [portalLoading, setPortalLoading] = useState(false);
-  const [portalError, setPortalError] = useState<string | null>(null);
-
-  async function handleManage() {
-    if (portalLoading) return;
-    setPortalError(null);
-    setPortalLoading(true);
-    try {
-      const res = await fetch("/api/stripe/portal", { method: "POST" });
-      const json = (await res.json()) as { url?: string; error?: string };
-      if (!res.ok) {
-        setPortalError(json.error ?? "구독 관리 페이지를 열 수 없습니다.");
-        return;
-      }
-      if (typeof json.url === "string") window.location.href = json.url;
-      else setPortalError("포털 URL을 받지 못했습니다.");
-    } catch {
-      setPortalError("요청 중 오류가 발생했습니다.");
-    } finally {
-      setPortalLoading(false);
-    }
-  }
-
   function formatDate(iso: string | null) {
     if (!iso) return null;
     try {
@@ -555,17 +487,6 @@ function CurrentPlanCard({ status }: { status: UserBillingStatus }) {
               <p>이번 달 분석: {status.monthlyCreditsUsed}회 사용</p>
             </div>
           </div>
-          {/* Stripe 사용 시에만 포털 버튼 표시 */}
-          {!IS_PORTONE && (
-            <div className="flex flex-col gap-2">
-              <Button variant="outline" size="sm" onClick={handleManage} disabled={portalLoading}>
-                {portalLoading ? "이동 중..." : "구독 관리"}
-              </Button>
-              {portalError && (
-                <p className="text-xs text-red-600">{portalError}</p>
-              )}
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>
@@ -598,8 +519,8 @@ export default function BillingView({ initialData }: { initialData: UserBillingS
       </section>
 
       <div className="mx-auto max-w-5xl space-y-16 px-6 py-12 lg:px-12">
-        {/* PortOne 리디렉트 복귀 상태 알림 */}
-        {IS_PORTONE && returnState !== "idle" && (
+        {/* 결제 리디렉트 복귀 상태 알림 */}
+        {returnState !== "idle" && (
           <div
             className={`rounded-lg border px-4 py-3 text-sm ${
               returnState === "success"

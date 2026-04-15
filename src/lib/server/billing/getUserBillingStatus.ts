@@ -24,7 +24,7 @@ export async function getUserBillingStatus(
   const [subRes, creditsRes] = await Promise.all([
     supabase
       .from("user_subscriptions")
-      .select("plan_id, subscription_status, current_period_end")
+      .select("plan_id, subscription_status, renewal_at")
       .eq("user_id", userId)
       .limit(1)
       .maybeSingle(),
@@ -40,7 +40,7 @@ export async function getUserBillingStatus(
   const sub = subRes.data as {
     plan_id: string | null;
     subscription_status: string | null;
-    current_period_end: string | null;
+    renewal_at: string | null;
   } | null;
 
   const credits = creditsRes.data as {
@@ -54,8 +54,8 @@ export async function getUserBillingStatus(
       ? sub.subscription_status.trim().toLowerCase()
       : null;
 
-  // current_period_end 기준 만료 여부 — subscription_status 값과 무관하게 판단
-  const periodEnd = sub?.current_period_end ?? null;
+  // renewal_at 단일 소스 기준 만료 여부 — subscription_status 값과 무관하게 판단
+  const periodEnd = sub?.renewal_at ?? null;
   const isExpired = !periodEnd || new Date(periodEnd).getTime() < Date.now();
 
   const planIdRaw = typeof sub?.plan_id === "string" ? sub.plan_id.trim() : "";

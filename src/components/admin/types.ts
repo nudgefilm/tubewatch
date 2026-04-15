@@ -43,7 +43,7 @@ export type AdminUserRow = {
   purchased_credits: number | null;
   plan_id: string | null;
   subscription_status: string | null;
-  current_period_end: string | null;
+  renewal_at: string | null;
   grant_type: string | null;
   total_analyses_count: number;
 };

@@ -1,6 +1,6 @@
 /**
  * 구독 기반 실제 사용 한도 계산.
- * 플랜 판단 기준: current_period_end — subscription_status 값과 무관.
+ * 플랜 판단 기준: renewal_at 단일 소스 — subscription_status 값과 무관.
  * 만료 시 무조건 free fallback. Admin 예외는 호출부에서 처리.
  */
 
@@ -43,7 +43,7 @@ export async function getEffectiveLimits(
 ): Promise<EffectiveLimitsResult> {
   const { data: row, error } = await supabase
     .from("user_subscriptions")
-    .select("plan_id, subscription_status, current_period_end")
+    .select("plan_id, subscription_status, renewal_at")
     .eq("user_id", userId)
     .limit(1)
     .maybeSingle();
@@ -55,8 +55,8 @@ export async function getEffectiveLimits(
     ? r.subscription_status.trim().toLowerCase()
     : null;
 
-  // current_period_end 기준 만료 여부 — subscription_status 값과 무관하게 판단
-  const periodEnd = r.current_period_end as string | null;
+  // renewal_at 단일 소스 기준 만료 여부 — subscription_status 값과 무관하게 판단
+  const periodEnd = r.renewal_at as string | null;
   const isExpired = !periodEnd || new Date(periodEnd).getTime() < Date.now();
 
   if (isExpired) return FREE_RESULT(status);

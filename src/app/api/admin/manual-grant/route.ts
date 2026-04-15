@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     // 기존 구독 조회
     const { data: existing } = await supabaseAdmin
       .from("user_subscriptions")
-      .select("plan_id, status, renewal_at")
+      .select("plan_id, subscription_status, renewal_at")
       .eq("user_id", targetUserId)
       .maybeSingle();
 
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
     const upsertRow = {
       user_id: targetUserId,
       plan_id: planId,
-      status: "manual",
+      subscription_status: "manual",
       grant_type: "manual",
       manual_grant_reason: reason,
       last_plan_id: existing?.plan_id ?? null,

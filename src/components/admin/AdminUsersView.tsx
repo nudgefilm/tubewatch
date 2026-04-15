@@ -674,7 +674,7 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
                 </tr>
               ) : (
                 paged.map((row) => {
-                  const effectivePeriodEnd = localExpiry[row.id] ?? row.current_period_end;
+                  const effectivePeriodEnd = localExpiry[row.id] ?? row.renewal_at;
                   const lifeUsed = row.lifetime_analyses_used;
                   const purchased = row.purchased_credits ?? 0;
                   const limit = FREE_LIFETIME_ANALYSIS_LIMIT + purchased;

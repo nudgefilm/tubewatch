@@ -139,7 +139,6 @@ export async function POST(request: Request) {
           plan_id: planIdTyped,
           subscription_status: "active",
           payment_status: "paid",
-          current_period_end: expiresAtIso,
           renewal_at: expiresAtIso,
           portone_payment_id: paymentId,
           grant_type: "portone",

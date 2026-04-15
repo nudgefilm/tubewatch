@@ -30,17 +30,7 @@ export interface BillingPlan {
   targetAudience: string;
   /** 추천 대상 (6개월) */
   targetAudienceSemiannual: string;
-  /** Stripe subscription price ID (env-based, null until resolved on server) */
-  stripePriceId: string | null;
 }
-
-/** Env var names for subscription price IDs. Resolve on server via process.env[key]. */
-export const SUBSCRIPTION_PRICE_ID_ENV_KEYS: Record<BillingPlanId, string> = {
-  creator: "STRIPE_SUBSCRIPTION_CREATOR_PRICE_ID",
-  pro: "STRIPE_SUBSCRIPTION_PRO_PRICE_ID",
-  creator_6m: "STRIPE_SUBSCRIPTION_CREATOR_6M_PRICE_ID",
-  pro_6m: "STRIPE_SUBSCRIPTION_PRO_6M_PRICE_ID",
-};
 
 export const BILLING_PLANS: BillingPlan[] = [
   {
@@ -56,7 +46,6 @@ export const BILLING_PLANS: BillingPlan[] = [
     monthlyAnalyses: 90,
     targetAudience: "1인 크리에이터 전용",
     targetAudienceSemiannual: "꾸준한 성장을 원하는 크리에이터",
-    stripePriceId: null,
   },
   {
     id: "pro",
@@ -71,7 +60,6 @@ export const BILLING_PLANS: BillingPlan[] = [
     monthlyAnalyses: 300,
     targetAudience: "성장 채널 전용",
     targetAudienceSemiannual: "성과 집중 채널 전용",
-    stripePriceId: null,
   },
 ];
 
@@ -88,15 +76,7 @@ export interface CreditProduct {
   /** 충전되는 분석 횟수 */
   creditCount: number;
   description: string;
-  /** Stripe one-time price ID (env-based, null until resolved on server) */
-  stripePriceId: string | null;
 }
-
-/** Env var names for one-time credit price IDs. */
-export const CREDIT_PRICE_ID_ENV_KEYS: Record<CreditProductId, string> = {
-  single: "STRIPE_CREDIT_SINGLE_PRICE_ID",
-  triple: "STRIPE_CREDIT_TRIPLE_PRICE_ID",
-};
 
 export const CREDIT_PRODUCTS: CreditProduct[] = [
   {
@@ -106,7 +86,6 @@ export const CREDIT_PRODUCTS: CreditProduct[] = [
     priceKrw: 3900,
     creditCount: 1,
     description: "1회 분석",
-    stripePriceId: null,
   },
   {
     id: "triple",
@@ -115,7 +94,6 @@ export const CREDIT_PRODUCTS: CreditProduct[] = [
     priceKrw: 7900,
     creditCount: 3,
     description: "3회 분석",
-    stripePriceId: null,
   },
 ];
 
