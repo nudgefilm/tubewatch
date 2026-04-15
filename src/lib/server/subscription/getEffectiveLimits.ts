@@ -38,7 +38,7 @@ export async function getEffectiveLimits(
 ): Promise<EffectiveLimitsResult> {
   const { data: row, error } = await supabase
     .from("user_subscriptions")
-    .select("plan_id, status, renewal_at, current_period_start")
+    .select("plan_id, subscription_status, current_period_end")
     .eq("user_id", userId)
     .limit(1)
     .maybeSingle();
@@ -53,13 +53,13 @@ export async function getEffectiveLimits(
   }
 
   const r = row as Record<string, unknown>;
-  const status = typeof r.status === "string" ? r.status.trim().toLowerCase() : "";
+  const status = typeof r.subscription_status === "string" ? r.subscription_status.trim().toLowerCase() : "";
   const isValidStatus = (VALID_SUBSCRIPTION_STATUSES as readonly string[]).includes(status);
 
   // 만료일 익일까지 이용 허용
-  const renewalAt = r.renewal_at as string | null;
-  const isWithinGracePeriod = renewalAt
-    ? new Date(renewalAt).getTime() + 24 * 60 * 60 * 1000 > Date.now()
+  const periodEnd = r.current_period_end as string | null;
+  const isWithinGracePeriod = periodEnd
+    ? new Date(periodEnd).getTime() + 24 * 60 * 60 * 1000 > Date.now()
     : false;
 
   if (!isValidStatus || !isWithinGracePeriod) {

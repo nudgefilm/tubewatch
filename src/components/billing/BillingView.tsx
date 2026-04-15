@@ -133,16 +133,22 @@ function SubscriptionPlanCard({
   plan,
   isPopular,
   period,
+  currentPlanId,
 }: {
   plan: (typeof BILLING_PLANS)[number];
   isPopular?: boolean;
   period: BillingPeriod;
+  currentPlanId: "free" | "creator" | "pro";
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [agreed, setAgreed] = useState(false);
   const checkboxId = `agree-${plan.id}-${period}`;
+
+  // 현재 구독 중인 플랜 여부 + 전체 구독 중 여부 (구매 차단 기준)
+  const isCurrentPlan = plan.id === currentPlanId;
+  const isSubscribed = currentPlanId !== "free";
 
   const isSemiannual = period === "semiannual";
   const planId: BillingPlanId = isSemiannual ? plan.semiannualPlanId : plan.id;
@@ -280,37 +286,50 @@ function SubscriptionPlanCard({
             </div>
           ))}
         </div>
-        {/* 청약철회 불가 동의 체크박스 */}
-        <label
-          htmlFor={checkboxId}
-          className="mb-3 flex cursor-pointer items-start gap-2 rounded-lg border border-foreground/8 bg-foreground/[0.02] p-3"
-        >
-          <input
-            id={checkboxId}
-            type="checkbox"
-            checked={agreed}
-            onChange={(e) => setAgreed(e.target.checked)}
-            className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-primary cursor-pointer"
-          />
-          <span className="text-[11px] leading-relaxed text-muted-foreground">
-            서비스 이용 시작 후에는{" "}
-            <strong className="font-medium text-foreground/70">청약철회가 제한</strong>
-            될 수 있음을 이해하고 동의합니다.{" "}
-            <span className="text-muted-foreground/50">(전자상거래법 제17조)</span>
-          </span>
-        </label>
-        <Button className="mt-auto w-full" onClick={handleSubscribe} disabled={loading || !agreed}>
-          {loading ? "처리 중..." : "구독 시작하기"}
-        </Button>
-        {!agreed && (
-          <p className="mt-1.5 text-center text-[10px] text-muted-foreground/50">
-            위 동의 후 결제가 가능합니다.
-          </p>
-        )}
-        {error && (
-          <p className="mt-2 text-xs text-red-600" role="alert">
-            {error}
-          </p>
+        {/* 구독 중인 경우: 구매 차단 + 안내 표시 */}
+        {isSubscribed ? (
+          <div className="mt-auto rounded-lg border border-foreground/10 bg-foreground/[0.03] px-4 py-3 text-center">
+            {isCurrentPlan ? (
+              <p className="text-sm font-medium text-primary">현재 이용 중인 플랜</p>
+            ) : (
+              <p className="text-sm text-muted-foreground">구독 만료 후 변경 가능합니다.</p>
+            )}
+          </div>
+        ) : (
+          <>
+            {/* 청약철회 불가 동의 체크박스 */}
+            <label
+              htmlFor={checkboxId}
+              className="mb-3 flex cursor-pointer items-start gap-2 rounded-lg border border-foreground/8 bg-foreground/[0.02] p-3"
+            >
+              <input
+                id={checkboxId}
+                type="checkbox"
+                checked={agreed}
+                onChange={(e) => setAgreed(e.target.checked)}
+                className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-primary cursor-pointer"
+              />
+              <span className="text-[11px] leading-relaxed text-muted-foreground">
+                서비스 이용 시작 후에는{" "}
+                <strong className="font-medium text-foreground/70">청약철회가 제한</strong>
+                될 수 있음을 이해하고 동의합니다.{" "}
+                <span className="text-muted-foreground/50">(전자상거래법 제17조)</span>
+              </span>
+            </label>
+            <Button className="mt-auto w-full" onClick={handleSubscribe} disabled={loading || !agreed}>
+              {loading ? "처리 중..." : "구독 시작하기"}
+            </Button>
+            {!agreed && (
+              <p className="mt-1.5 text-center text-[10px] text-muted-foreground/50">
+                위 동의 후 결제가 가능합니다.
+              </p>
+            )}
+            {error && (
+              <p className="mt-2 text-xs text-red-600" role="alert">
+                {error}
+              </p>
+            )}
+          </>
         )}
       </CardContent>
     </Card>
@@ -640,7 +659,7 @@ export default function BillingView({ initialData }: { initialData: UserBillingS
           </div>
           <div className="grid gap-6 sm:grid-cols-2">
             {BILLING_PLANS.map((plan, i) => (
-              <SubscriptionPlanCard key={plan.id} plan={plan} isPopular={i === 1} period={period} />
+              <SubscriptionPlanCard key={plan.id} plan={plan} isPopular={i === 1} period={period} currentPlanId={initialData.planId} />
             ))}
           </div>
         </section>
