@@ -155,6 +155,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, planId: planIdTyped });
   }
 
+  console.log('type:', type);
+
   // ─── 단건 크레딧 처리 ─────────────────────────────────────────────────────
 
   const productId = typeof raw.productId === "string" ? raw.productId.trim() : "";
