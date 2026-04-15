@@ -205,13 +205,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                 })()}
 
                 {hasLockedCandidates && (
-                  <FeaturePaywallBlock
-                    title="지금 흐름에서 시도할 다음 후보가 더 있습니다."
-                    description="Top 2 이후의 아이디어까지 열어보세요."
-                    ctaLabel="지금 다음 영상 설계하기"
-                    planLabel="Growth"
-                    previewHint="지금 흐름에서 가장 유력한 다음 주제가 포함됩니다"
-                  />
+                  <FeaturePaywallBlock ctaLabel="지금 다음 영상 설계하기" />
                 )}
               </section>
 

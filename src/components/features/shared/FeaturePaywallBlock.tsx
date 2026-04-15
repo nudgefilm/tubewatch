@@ -5,37 +5,26 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 
 interface FeaturePaywallBlockProps {
-  title: string
-  description: string
   ctaLabel: string
-  planLabel?: string
-  previewHint?: string
 }
 
-export function FeaturePaywallBlock({
-  title,
-  description,
-  ctaLabel,
-  planLabel = "Growth",
-  previewHint,
-}: FeaturePaywallBlockProps) {
+export function FeaturePaywallBlock({ ctaLabel }: FeaturePaywallBlockProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const channelParam = searchParams.get("channel")
   return (
-    <div className="rounded-lg border border-primary/20 bg-muted/30 px-5 py-5 flex flex-col items-center text-center gap-3">
-      <div className="flex size-9 items-center justify-center rounded-full bg-primary/10">
-        <Lock className="size-4 text-primary" />
+    <div className="rounded-lg border border-primary/20 bg-primary/[0.04] px-4 py-4 flex flex-wrap items-center justify-between gap-3">
+      <div className="flex items-center gap-2.5 min-w-0">
+        <Lock className="size-4 text-primary shrink-0" />
+        <p className="text-sm font-medium text-primary leading-snug">
+          전체 분석 데이터는 구독 플랜에서 확인 가능합니다.
+        </p>
       </div>
-      <div className="space-y-1.5">
-        <p className="text-sm font-semibold leading-snug">{title}</p>
-        <p className="text-xs text-muted-foreground leading-relaxed">{description}</p>
-      </div>
-      {previewHint && (
-        <p className="text-sm text-muted-foreground mt-2">{previewHint}</p>
-      )}
-      <p className="text-xs text-muted-foreground">{planLabel} 플랜에서 이어집니다</p>
-      <Button size="sm" onClick={() => router.push(channelParam ? `/billing?channel=${channelParam}` : "/billing")}>
+      <Button
+        size="sm"
+        className="rounded-lg shrink-0"
+        onClick={() => router.push(channelParam ? `/billing?channel=${channelParam}` : "/billing")}
+      >
         {ctaLabel}
       </Button>
     </div>

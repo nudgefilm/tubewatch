@@ -124,13 +124,7 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
 
           {/* Paywall — Starter 전용 */}
           {isStarterPlan && (
-            <FeaturePaywallBlock
-              title="채널 구조를 끝까지 읽어야 반복 성장 패턴이 보입니다."
-              description="전체 DNA 해석은 Growth에서 확인하세요."
-              ctaLabel="지금 전체 구조 확인하기"
-              planLabel="Growth"
-              previewHint="다음 구간에서 반복 성장 패턴이 이어집니다"
-            />
+            <FeaturePaywallBlock ctaLabel="지금 전체 구조 확인하기" />
           )}
 
           {/* [3] 채널 구조 안정성 — Starter 차단 */}
