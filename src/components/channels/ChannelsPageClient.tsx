@@ -143,6 +143,14 @@ export default function ChannelsPageClient({
     }
   }, [channels, selectedChannelId, loading]);
 
+  // 로그아웃 후 재로그인 시 selectedChannelId가 null로 초기화된 경우 자동 복원
+  // 로그아웃 시 writeSelectedChannelIdToStorage(null)이 호출되어 선택이 해제되므로,
+  // 채널이 로드됐는데 아무것도 선택되지 않았다면 첫 번째 채널을 자동 선택한다.
+  useEffect(() => {
+    if (loading || selectedChannelId || channels.length === 0) return;
+    selectChannel(channels[0].id);
+  }, [channels, selectedChannelId, loading, selectChannel]);
+
   const handleDelete = async (row: ChannelRow) => {
     const name = row.channel_title ?? row.channel_id ?? "채널";
     if (
