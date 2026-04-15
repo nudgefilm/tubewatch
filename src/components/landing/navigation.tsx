@@ -224,14 +224,16 @@ export function Navigation() {
                       <User className="w-4 h-4 text-muted-foreground" />
                     </div>
                   )}
-                  <span className={`text-foreground/80 transition-all duration-500 ${isScrolled ? "text-xs" : "text-sm"}`}>
-                    {userDisplayName}
-                  </span>
-                  {planId && (
-                    <span className="rounded px-1.5 py-0.5 text-[10px] font-semibold bg-primary text-primary-foreground capitalize">
-                      {planId}
+                  <div className="flex flex-col items-start">
+                    <span className={`text-foreground/80 transition-all duration-500 leading-tight ${isScrolled ? "text-xs" : "text-sm"}`}>
+                      {userDisplayName}
                     </span>
-                  )}
+                    {planId && (
+                      <span className="mt-0.5 rounded px-1.5 py-0.5 text-[10px] font-semibold bg-primary text-primary-foreground capitalize">
+                        {planId}
+                      </span>
+                    )}
+                  </div>
                 </button>
 
                 {/* Hover Dropdown */}

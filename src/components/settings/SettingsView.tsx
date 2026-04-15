@@ -25,10 +25,13 @@ type ChannelRow = {
 
 type Props = {
   email: string | null;
+  displayName: string | null;
+  avatarUrl: string | null;
+  planId: string | null;
   channels: ChannelRow[];
 };
 
-export default function SettingsView({ email, channels }: Props) {
+export default function SettingsView({ email, displayName, avatarUrl, planId, channels }: Props) {
   const router = useRouter()
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
@@ -94,6 +97,30 @@ export default function SettingsView({ email, channels }: Props) {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Google Profile Row */}
+              <div className="flex items-center gap-4 py-3 border-b">
+                {avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={avatarUrl}
+                    alt={displayName ?? "profile"}
+                    className="w-10 h-10 rounded-full object-cover ring-2 ring-foreground/10 shrink-0"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center ring-2 ring-foreground/10 shrink-0">
+                    <User className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                )}
+                <div>
+                  <p className="text-sm font-medium">{displayName ?? "—"}</p>
+                  {planId && (
+                    <span className="mt-0.5 inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold bg-primary text-primary-foreground capitalize">
+                      {planId}
+                    </span>
+                  )}
+                </div>
+              </div>
+              {/* Email Row */}
               <div className="flex items-center justify-between py-3">
                 <div className="flex items-center gap-3">
                   <Mail className="w-4 h-4 text-muted-foreground" />

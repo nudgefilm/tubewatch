@@ -315,15 +315,7 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                     )}
                     <div className="grid flex-1 text-left text-sm leading-tight">
                       <span className="truncate font-semibold">{activeChannelLabel}</span>
-                      {planId ? (
-                        <span className="mt-0.5">
-                          <span className="rounded px-1.5 py-0.5 text-[10px] font-semibold bg-primary text-primary-foreground capitalize">
-                            {planId}
-                          </span>
-                        </span>
-                      ) : (
-                        <span className="truncate text-xs text-muted-foreground">Free Plan</span>
-                      )}
+                      <span className="truncate text-xs text-muted-foreground">채널 분석</span>
                     </div>
                     <ChevronDown className="ml-auto size-4" />
                   </SidebarMenuButton>
@@ -442,6 +434,13 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">
             <span className="truncate font-medium text-foreground">{userDisplayName ?? "User"}</span>
+            {planId && (
+              <span className="mt-0.5">
+                <span className="rounded px-1.5 py-0.5 text-[10px] font-semibold bg-primary text-primary-foreground capitalize">
+                  {planId}
+                </span>
+              </span>
+            )}
             {userEmail ? (
               <span className="truncate text-xs text-muted-foreground">{userEmail}</span>
             ) : null}
