@@ -44,10 +44,15 @@ async function requestPortOnePayment(params: {
   totalAmount: number;
   redirectUrl: string;
 }) {
+  const storeId = process.env.NEXT_PUBLIC_PORTONE_STORE_ID;
+  const channelKey = process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY;
+  if (!storeId || !channelKey) {
+    throw new Error("결제 설정이 올바르지 않습니다. 관리자에게 문의해주세요.");
+  }
   const PortOne = (await import("@portone/browser-sdk/v2")).default;
   return PortOne.requestPayment({
-    storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID ?? "",
-    channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY ?? "",
+    storeId,
+    channelKey,
     paymentId: params.paymentId,
     orderName: params.orderName,
     totalAmount: params.totalAmount,
