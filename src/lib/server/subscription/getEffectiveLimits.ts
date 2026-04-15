@@ -28,13 +28,15 @@ export type EffectiveLimitsResult = {
   subscriptionStatus: string | null;
   channelLimit: number;
   monthlyAnalysisLimit: number;
+  credits: number;
 };
 
-const FREE_RESULT = (subscriptionStatus: string | null): EffectiveLimitsResult => ({
+const FREE_RESULT = (subscriptionStatus: string | null, credits = 0): EffectiveLimitsResult => ({
   planId: "free",
   subscriptionStatus,
   channelLimit: FREE_CHANNEL_LIMIT,
   monthlyAnalysisLimit: FREE_LIFETIME_ANALYSIS_LIMIT,
+  credits,
 });
 
 export async function getEffectiveLimits(
@@ -43,7 +45,7 @@ export async function getEffectiveLimits(
 ): Promise<EffectiveLimitsResult> {
   const { data: row, error } = await supabase
     .from("user_subscriptions")
-    .select("plan_id, subscription_status, renewal_at")
+    .select("plan_id, subscription_status, renewal_at, credits")
     .eq("user_id", userId)
     .limit(1)
     .maybeSingle();
@@ -54,24 +56,26 @@ export async function getEffectiveLimits(
   const status = typeof r.subscription_status === "string"
     ? r.subscription_status.trim().toLowerCase()
     : null;
+  const credits = typeof r.credits === "number" ? r.credits : 0;
 
   // renewal_at 단일 소스 기준 만료 여부 — subscription_status 값과 무관하게 판단
   const periodEnd = r.renewal_at as string | null;
   const isExpired = !periodEnd || new Date(periodEnd).getTime() < Date.now();
 
-  if (isExpired) return FREE_RESULT(status);
+  if (isExpired) return FREE_RESULT(status, credits);
 
   const planIdRaw = typeof row.plan_id === "string" ? row.plan_id.trim() : "";
   const basePlanId = PLAN_ID_TO_BASE[planIdRaw] ?? null;
-  if (!basePlanId) return FREE_RESULT(status);
+  if (!basePlanId) return FREE_RESULT(status, credits);
 
   const plan = BILLING_PLANS.find((p) => p.id === basePlanId);
-  if (!plan) return FREE_RESULT(status);
+  if (!plan) return FREE_RESULT(status, credits);
 
   return {
     planId: planIdRaw as EffectivePlanId,
     subscriptionStatus: status,
     channelLimit: plan.channels,
     monthlyAnalysisLimit: plan.monthlyAnalyses,
+    credits,
   };
 }
