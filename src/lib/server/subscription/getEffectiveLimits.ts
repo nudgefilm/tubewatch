@@ -1,7 +1,7 @@
 /**
  * 구독 기반 실제 사용 한도 계산.
- * user_subscriptions + BILLING_PLANS 기준. Admin 예외는 호출부에서 처리.
- * 유효 구독: active, trialing, manual, refunded + 만료 익일 이내.
+ * 플랜 판단 기준: current_period_end — subscription_status 값과 무관.
+ * 만료 시 무조건 free fallback. Admin 예외는 호출부에서 처리.
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -11,8 +11,6 @@ import {
   FREE_LIFETIME_ANALYSIS_LIMIT,
 } from "@/components/billing/types";
 
-// refunded 포함: 기간까지 서비스 이용 허용 (정책: 기간 유지 후 종료)
-const VALID_SUBSCRIPTION_STATUSES = ["active", "trialing", "manual", "refunded"] as const;
 const FREE_CHANNEL_LIMIT = 1;
 
 // 6개월 플랜 → 베이스 플랜 매핑
@@ -32,6 +30,13 @@ export type EffectiveLimitsResult = {
   monthlyAnalysisLimit: number;
 };
 
+const FREE_RESULT = (subscriptionStatus: string | null): EffectiveLimitsResult => ({
+  planId: "free",
+  subscriptionStatus,
+  channelLimit: FREE_CHANNEL_LIMIT,
+  monthlyAnalysisLimit: FREE_LIFETIME_ANALYSIS_LIMIT,
+});
+
 export async function getEffectiveLimits(
   supabase: SupabaseClient,
   userId: string
@@ -43,55 +48,25 @@ export async function getEffectiveLimits(
     .limit(1)
     .maybeSingle();
 
-  if (error || !row) {
-    return {
-      planId: "free",
-      subscriptionStatus: null,
-      channelLimit: FREE_CHANNEL_LIMIT,
-      monthlyAnalysisLimit: FREE_LIFETIME_ANALYSIS_LIMIT,
-    };
-  }
+  if (error || !row) return FREE_RESULT(null);
 
   const r = row as Record<string, unknown>;
-  const status = typeof r.subscription_status === "string" ? r.subscription_status.trim().toLowerCase() : "";
-  const isValidStatus = (VALID_SUBSCRIPTION_STATUSES as readonly string[]).includes(status);
+  const status = typeof r.subscription_status === "string"
+    ? r.subscription_status.trim().toLowerCase()
+    : null;
 
-  // 만료일 익일까지 이용 허용
+  // current_period_end 기준 만료 여부 — subscription_status 값과 무관하게 판단
   const periodEnd = r.current_period_end as string | null;
-  const isWithinGracePeriod = periodEnd
-    ? new Date(periodEnd).getTime() + 24 * 60 * 60 * 1000 > Date.now()
-    : false;
+  const isExpired = !periodEnd || new Date(periodEnd).getTime() < Date.now();
 
-  if (!isValidStatus || !isWithinGracePeriod) {
-    return {
-      planId: "free",
-      subscriptionStatus: status || null,
-      channelLimit: FREE_CHANNEL_LIMIT,
-      monthlyAnalysisLimit: FREE_LIFETIME_ANALYSIS_LIMIT,
-    };
-  }
+  if (isExpired) return FREE_RESULT(status);
 
   const planIdRaw = typeof row.plan_id === "string" ? row.plan_id.trim() : "";
   const basePlanId = PLAN_ID_TO_BASE[planIdRaw] ?? null;
-
-  if (!basePlanId) {
-    return {
-      planId: "free",
-      subscriptionStatus: status || null,
-      channelLimit: FREE_CHANNEL_LIMIT,
-      monthlyAnalysisLimit: FREE_LIFETIME_ANALYSIS_LIMIT,
-    };
-  }
+  if (!basePlanId) return FREE_RESULT(status);
 
   const plan = BILLING_PLANS.find((p) => p.id === basePlanId);
-  if (!plan) {
-    return {
-      planId: "free",
-      subscriptionStatus: status || null,
-      channelLimit: FREE_CHANNEL_LIMIT,
-      monthlyAnalysisLimit: FREE_LIFETIME_ANALYSIS_LIMIT,
-    };
-  }
+  if (!plan) return FREE_RESULT(status);
 
   return {
     planId: planIdRaw as EffectivePlanId,

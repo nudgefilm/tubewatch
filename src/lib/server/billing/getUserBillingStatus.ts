@@ -17,9 +17,6 @@ const PLAN_ID_TO_BASE: Record<string, "creator" | "pro"> = {
   pro_6m: "pro",
 };
 
-// refunded 포함: 기간까지 서비스 이용 허용 (정책: 기간 유지 후 종료)
-const VALID_STATUSES = ["active", "trialing", "manual", "refunded"];
-
 export async function getUserBillingStatus(
   supabase: SupabaseClient,
   userId: string
@@ -57,21 +54,14 @@ export async function getUserBillingStatus(
       ? sub.subscription_status.trim().toLowerCase()
       : null;
 
-  // 만료일 익일까지 이용 허용
+  // current_period_end 기준 만료 여부 — subscription_status 값과 무관하게 판단
   const periodEnd = sub?.current_period_end ?? null;
-  const isWithinGracePeriod = periodEnd
-    ? new Date(periodEnd).getTime() + 24 * 60 * 60 * 1000 > Date.now()
-    : false;
-
-  const isActive =
-    status !== null &&
-    VALID_STATUSES.includes(status) &&
-    isWithinGracePeriod;
+  const isExpired = !periodEnd || new Date(periodEnd).getTime() < Date.now();
 
   const planIdRaw = typeof sub?.plan_id === "string" ? sub.plan_id.trim() : "";
   const basePlanId = PLAN_ID_TO_BASE[planIdRaw] ?? null;
   const planId: "free" | "creator" | "pro" =
-    isActive && basePlanId ? basePlanId : "free";
+    !isExpired && basePlanId ? basePlanId : "free";
 
   return {
     planId,
