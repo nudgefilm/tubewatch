@@ -103,7 +103,7 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
   const [userEmail, setUserEmail] = React.useState<string | null>(null)
   const [userDisplayName, setUserDisplayName] = React.useState<string | null>(null)
   const [userAvatarUrl, setUserAvatarUrl] = React.useState<string | null>(null)
-  const [planLabel, setPlanLabel] = React.useState<string>("...")
+  const [planId, setPlanId] = React.useState<string | null>(null)
   const channelsFetchingRef = React.useRef(false)
 
   const activeChannel = React.useMemo(
@@ -205,7 +205,7 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
         setChannels([])
         setSelectedChannelId(null)
         setUserAvatarUrl(null)
-        setPlanLabel("Free Plan")
+        setPlanId(null)
         writeSelectedChannelIdToStorage(null)
         return
       }
@@ -218,20 +218,18 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
           .eq("user_id", session.user.id)
           .limit(1)
           .maybeSingle()
-        const validStatuses = ["active", "trialing"]
+        const validStatuses = ["active", "trialing", "manual", "refunded"]
         const rawStatus = data as { plan_id?: string; status?: string } | null
         const status = typeof rawStatus?.status === "string"
           ? rawStatus.status.trim().toLowerCase()
           : ""
         if (!data || !validStatuses.includes(status)) {
-          setPlanLabel("Free Plan")
+          setPlanId(null)
           return
         }
-        const planMap: Record<string, string> = {
-          creator: "Creator Plan",
-          pro: "Pro Plan",
-        }
-        setPlanLabel(planMap[data.plan_id as string] ?? "Free Plan")
+        // creator_6m → creator, pro_6m → pro
+        const base = (data.plan_id as string ?? "").replace("_6m", "")
+        setPlanId(base === "creator" || base === "pro" ? base : null)
       })()
     }
 
@@ -317,7 +315,15 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                     )}
                     <div className="grid flex-1 text-left text-sm leading-tight">
                       <span className="truncate font-semibold">{activeChannelLabel}</span>
-                      <span className="truncate text-xs text-muted-foreground">{planLabel}</span>
+                      {planId ? (
+                        <span className="mt-0.5">
+                          <span className="rounded px-1.5 py-0.5 text-[10px] font-semibold bg-primary text-primary-foreground capitalize">
+                            {planId}
+                          </span>
+                        </span>
+                      ) : (
+                        <span className="truncate text-xs text-muted-foreground">Free Plan</span>
+                      )}
                     </div>
                     <ChevronDown className="ml-auto size-4" />
                   </SidebarMenuButton>

@@ -34,6 +34,7 @@ export function Navigation() {
   const [userDisplayName, setUserDisplayName] = useState<string | null>(null);
   const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [planId, setPlanId] = useState<string | null>(null);
   const profileCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -55,10 +56,30 @@ export function Navigation() {
           null
         );
         setUserAvatarUrl((meta.avatar_url as string | undefined) ?? null);
+        // 구독 플랜 조회
+        void (async () => {
+          const { data } = await supabase
+            .from("user_subscriptions")
+            .select("plan_id, status")
+            .eq("user_id", session.user.id)
+            .limit(1)
+            .maybeSingle();
+          const validStatuses = ["active", "trialing", "manual", "refunded"];
+          const status = typeof (data as { status?: string } | null)?.status === "string"
+            ? ((data as { status?: string }).status ?? "").trim().toLowerCase()
+            : "";
+          if (data?.plan_id && validStatuses.includes(status)) {
+            const base = (data.plan_id as string).replace("_6m", "");
+            setPlanId(base === "creator" || base === "pro" ? base : null);
+          } else {
+            setPlanId(null);
+          }
+        })();
       } else {
         setIsLoggedIn(false);
         setUserDisplayName(null);
         setUserAvatarUrl(null);
+        setPlanId(null);
       }
     });
     return () => subscription.unsubscribe();
@@ -206,6 +227,11 @@ export function Navigation() {
                   <span className={`text-foreground/80 transition-all duration-500 ${isScrolled ? "text-xs" : "text-sm"}`}>
                     {userDisplayName}
                   </span>
+                  {planId && (
+                    <span className="rounded px-1.5 py-0.5 text-[10px] font-semibold bg-primary text-primary-foreground capitalize">
+                      {planId}
+                    </span>
+                  )}
                 </button>
 
                 {/* Hover Dropdown */}
