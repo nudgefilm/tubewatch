@@ -194,8 +194,16 @@ export async function POST(request: Request) {
 
   const { error: creditsUpdateError } = await supabaseAdmin
     .from("user_subscriptions")
-    .update({ credits: currentCredits + product.creditCount })
-    .eq("user_id", user.id);
+    .upsert(
+      {
+        user_id: user.id,
+        credits: currentCredits + product.creditCount,
+      },
+      {
+        onConflict: "user_id",
+        ignoreDuplicates: false,
+      }
+    );
 
   if (creditsUpdateError) {
     console.error("[portone/payment-complete] credits update error:", creditsUpdateError);
