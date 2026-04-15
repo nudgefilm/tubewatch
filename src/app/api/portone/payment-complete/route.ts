@@ -5,6 +5,10 @@
  * Body:
  *   { type: "subscription", paymentId: string, planId: BillingPlanId }
  *   { type: "credit",       paymentId: string, productId: CreditProductId }
+ *
+ * Idempotency:
+ *   - 구독: portone_payment_id + payment_status = 'paid' 체크로 중복 처리 방지
+ *   - 크레딧: user_credits에 paymentId 추적 컬럼 없음 → 향후 migration 필요 (TODO)
  */
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
@@ -62,7 +66,27 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
   }
 
-  // PortOne에서 결제 정보 조회
+  // ─── 구독: idempotency 체크 ───────────────────────────────────────────────
+  // 동일 paymentId + payment_status = 'paid' 이면 이미 처리된 결제 → 즉시 반환
+
+  if (type === "subscription") {
+    const { data: existingSub } = await supabaseAdmin
+      .from("user_subscriptions")
+      .select("payment_status, portone_payment_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (
+      existingSub?.portone_payment_id === paymentId &&
+      existingSub?.payment_status === "paid"
+    ) {
+      console.log("[portone/payment-complete] idempotency: already processed", paymentId);
+      return NextResponse.json({ ok: true });
+    }
+  }
+
+  // ─── PortOne 결제 정보 조회 + 상태 검증 ──────────────────────────────────
+
   let payment;
   try {
     payment = await getPortOnePayment(paymentId);
@@ -103,8 +127,9 @@ export async function POST(request: Request) {
 
     const now = new Date();
     const months = PLAN_PERIOD_MONTHS[planIdTyped];
-    const renewalAt = new Date(now);
-    renewalAt.setMonth(renewalAt.getMonth() + months);
+    const expiresAt = new Date(now);
+    expiresAt.setMonth(expiresAt.getMonth() + months);
+    const expiresAtIso = expiresAt.toISOString();
 
     const { error: upsertError } = await supabaseAdmin
       .from("user_subscriptions")
@@ -113,8 +138,9 @@ export async function POST(request: Request) {
           user_id: user.id,
           plan_id: planIdTyped,
           subscription_status: "active",
-          current_period_start: now.toISOString(),
-          renewal_at: renewalAt.toISOString(),
+          payment_status: "paid",
+          current_period_end: expiresAtIso,
+          renewal_at: expiresAtIso,
           portone_payment_id: paymentId,
           grant_type: "portone",
           updated_at: now.toISOString(),
