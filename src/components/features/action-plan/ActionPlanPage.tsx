@@ -90,7 +90,10 @@ export function ActionPlanPage({ channelId = "", channelContext, viewModel, isSt
 
           {/* Paywall — Starter 전용 */}
           {isStarterPlan && viewModel.hasAnalysis && (
-            <FeaturePaywallBlock ctaLabel="지금 실행 전략 전체 열기" />
+            <FeaturePaywallBlock
+              title="지금 채널에 맞는 다음 액션이 더 준비되어 있습니다."
+              ctaLabel="지금 실행 전략 전체 열기"
+            />
           )}
 
           {/* [2] 업로드 전 체크리스트 — Starter 차단 */}
