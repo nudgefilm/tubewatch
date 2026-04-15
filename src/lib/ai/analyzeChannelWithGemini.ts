@@ -408,7 +408,7 @@ function extractResponseText(data: unknown): string {
 
 // 재시도 1회 + 5s 대기: 25s(호출)+5s(대기)+25s(재시도) = 55s → Vercel 90s 이내 안전 마진 확보
 const GEMINI_RETRY_DELAYS_MS = [5000];
-const GEMINI_CALL_TIMEOUT_MS = 25_000; // 단일 호출 최대 25초
+const GEMINI_CALL_TIMEOUT_MS = 50_000; // 단일 호출 최대 50초
 
 async function callGeminiOnce(
   endpoint: string,
