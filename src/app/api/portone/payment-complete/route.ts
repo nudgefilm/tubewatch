@@ -176,9 +176,30 @@ export async function POST(request: Request) {
 
   try {
     await addPurchasedCredits(supabaseAdmin, user.id, product.creditCount);
-    return NextResponse.json({ ok: true, credits: product.creditCount });
   } catch (e) {
     console.error("[portone/payment-complete] addPurchasedCredits error:", e);
     return NextResponse.json({ error: "크레딧 지급에 실패했습니다." }, { status: 500 });
   }
+
+  // user_subscriptions.credits 누적 증가 (구독 여부와 무관하게 독립 처리)
+  const { data: subRow } = await supabaseAdmin
+    .from("user_subscriptions")
+    .select("credits")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  const currentCredits = (subRow?.credits as number | null) ?? 0;
+
+  const { error: creditsUpdateError } = await supabaseAdmin
+    .from("user_subscriptions")
+    .update({ credits: currentCredits + product.creditCount })
+    .eq("user_id", user.id);
+
+  if (creditsUpdateError) {
+    console.error("[portone/payment-complete] credits update error:", creditsUpdateError);
+    // 크레딧 증가 실패는 addPurchasedCredits 성공 후이므로 500 반환 (정합성 불일치 로깅)
+    return NextResponse.json({ error: "크레딧 반영에 실패했습니다." }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true, credits: product.creditCount });
 }
