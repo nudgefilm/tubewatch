@@ -27,7 +27,7 @@ export async function getUserBillingStatus(
   const [subRes, creditsRes] = await Promise.all([
     supabase
       .from("user_subscriptions")
-      .select("plan_id, status, renewal_at")
+      .select("plan_id, subscription_status, current_period_end")
       .eq("user_id", userId)
       .limit(1)
       .maybeSingle(),
@@ -42,8 +42,8 @@ export async function getUserBillingStatus(
 
   const sub = subRes.data as {
     plan_id: string | null;
-    status: string | null;
-    renewal_at: string | null;
+    subscription_status: string | null;
+    current_period_end: string | null;
   } | null;
 
   const credits = creditsRes.data as {
@@ -53,12 +53,12 @@ export async function getUserBillingStatus(
   } | null;
 
   const status =
-    typeof sub?.status === "string"
-      ? sub.status.trim().toLowerCase()
+    typeof sub?.subscription_status === "string"
+      ? sub.subscription_status.trim().toLowerCase()
       : null;
 
   // 만료일 익일까지 이용 허용
-  const periodEnd = sub?.renewal_at ?? null;
+  const periodEnd = sub?.current_period_end ?? null;
   const isWithinGracePeriod = periodEnd
     ? new Date(periodEnd).getTime() + 24 * 60 * 60 * 1000 > Date.now()
     : false;
