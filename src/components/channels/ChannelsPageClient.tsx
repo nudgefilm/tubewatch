@@ -218,7 +218,7 @@ export default function ChannelsPageClient({
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ channelId }),
     })
       .then(async (res) => {
         const result = await res.json().catch(() => ({})) as {
