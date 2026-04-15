@@ -17,7 +17,7 @@ export function PageFlowConnector({ message, ctaLabel, href }: PageFlowConnector
       <p className="text-sm font-medium leading-relaxed">{message}</p>
       <Button
         size="sm"
-        className="shrink-0"
+        className="rounded-lg shrink-0"
         onClick={() => router.push(href)}
       >
         {ctaLabel}
