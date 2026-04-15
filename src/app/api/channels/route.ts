@@ -227,7 +227,7 @@ export async function POST(request: Request) {
   };
   console.log("[Channels API] insert payload:", JSON.stringify(insertPayload));
 
-  const { data: inserted, error: insErr } = await supabase
+  const { data: inserted, error: insErr } = await supabaseAdmin
     .from("user_channels")
     .insert(insertPayload)
     .select()
@@ -246,7 +246,7 @@ export async function POST(request: Request) {
       );
     }
     return NextResponse.json(
-      { error: "채널 등록에 실패했습니다." },
+      { error: "불편을 드려 죄송합니다. 서비스 이용 중 오류가 발생할 경우, 메인페이지 하단의 'Tube Talk(텔레그램)'로 문의해 주세요. 개발팀 확인을 통해 빠르게 복구해 드리겠습니다." },
       { status: 500 }
     );
   }
