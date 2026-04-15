@@ -54,7 +54,26 @@ export async function GET(request: Request) {
     return NextResponse.json({ job: null });
   }
 
-  const d = data as { id: string; status: string; progress_step: string | null; retry_after: string | null; retry_count: number };
+  const d = data as { id: string; status: string; progress_step: string | null; started_at: string | null; retry_after: string | null; retry_count: number };
+
+  // Vercel 함수 강제 종료(90s timeout)로 job이 "running" 상태에 고착되는 경우 감지.
+  // maxDuration=90이므로 120s 이상 running이면 사실상 실패로 취급해 클라이언트가 재시도 안내를 표시할 수 있도록 함.
+  const STUCK_THRESHOLD_MS = 120 * 1000;
+  if (d.status === "running" && d.started_at) {
+    const elapsed = Date.now() - new Date(d.started_at).getTime();
+    if (elapsed > STUCK_THRESHOLD_MS) {
+      console.warn("[job-status] stuck job detected:", d.id, "elapsed:", Math.round(elapsed / 1000) + "s");
+      return NextResponse.json({
+        job: {
+          id: d.id,
+          status: "failed",
+          progress_step: "failed",
+          retry_after: null,
+        },
+      });
+    }
+  }
+
   return NextResponse.json({
     job: {
       id: d.id,

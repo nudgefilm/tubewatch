@@ -406,7 +406,9 @@ function extractResponseText(data: unknown): string {
   return texts.join("").trim();
 }
 
-const GEMINI_RETRY_DELAYS_MS = [5000, 12000, 25000]; // 3회 재시도: 5s, 12s, 25s (503/429 high demand 대응)
+// 재시도 1회 + 5s 대기: 25s(호출)+5s(대기)+25s(재시도) = 55s → Vercel 90s 이내 안전 마진 확보
+const GEMINI_RETRY_DELAYS_MS = [5000];
+const GEMINI_CALL_TIMEOUT_MS = 25_000; // 단일 호출 최대 25초
 
 async function callGeminiOnce(
   endpoint: string,
@@ -428,14 +430,37 @@ async function callGeminiOnce(
     generationConfig,
   };
 
-  const response = await fetch(`${endpoint}?key=${apiKey}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-    cache: "no-store",
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), GEMINI_CALL_TIMEOUT_MS);
+
+  let response: Response;
+  try {
+    response = await fetch(`${endpoint}?key=${apiKey}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      cache: "no-store",
+      signal: controller.signal,
+    });
+  } catch (fetchErr) {
+    clearTimeout(timeoutId);
+    const isTimeout = fetchErr instanceof Error && fetchErr.name === "AbortError";
+    const errMsg = isTimeout
+      ? `Gemini API timeout (${GEMINI_CALL_TIMEOUT_MS / 1000}s 초과)`
+      : `Gemini fetch 오류: ${fetchErr instanceof Error ? fetchErr.message : String(fetchErr)}`;
+    console.error("[Gemini] fetch error:", errMsg);
+    return {
+      ok: false as const,
+      rawText: "",
+      rawBody: "",
+      error: errMsg,
+      status: isTimeout ? 408 : 502,
+    };
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   const rawBody = await response.text();
 
