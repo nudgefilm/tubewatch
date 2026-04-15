@@ -485,6 +485,11 @@ function CurrentPlanCard({ status }: { status: UserBillingStatus }) {
                 <p>만료일: {nextBillingDate}</p>
               )}
               <p>이번 달 분석: {status.monthlyCreditsUsed}회 사용</p>
+              {status.purchasedCredits > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  + 추가 크레딧: {status.purchasedCredits}회
+                </p>
+              )}
             </div>
           </div>
         </div>
