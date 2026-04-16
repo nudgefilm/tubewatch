@@ -52,21 +52,25 @@ const mainNavItems = [
     title: "Channel Analysis",
     url: "/analysis",
     icon: BarChart3,
+    tooltip: "내 채널 어때?",
   },
   {
     title: "Channel DNA",
     url: "/channel-dna",
     icon: Target,
+    tooltip: "뭐가 잘 되고 있어?",
   },
   {
     title: "Action Plan",
     url: "/action-plan",
     icon: FileText,
+    tooltip: "오늘 뭐 해?",
   },
   {
     title: "Next Trend",
     url: "/next-trend",
     icon: TrendingUp,
+    tooltip: "다음에 뭐 찍어?",
   },
 ]
 
@@ -383,7 +387,7 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
-                    tooltip={item.title}
+                    tooltip={item.tooltip}
                     isActive={pathname === item.url || pathname.startsWith(`${item.url}/`)}
                   >
                     <Link href={hrefWithChannel(item.url)}>
