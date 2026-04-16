@@ -691,7 +691,7 @@ function ToolCard({ tool, index }: { tool: typeof tools[0]; index: number }) {
       style={{ transitionDelay: `${index * 100}ms` }}
     >
       <div className="relative h-full border border-foreground/10 rounded-2xl overflow-hidden transition-all duration-500 hover:border-foreground/20 hover:shadow-xl bg-background">
-        <div className="h-56 lg:h-60 border-b border-foreground/5 bg-foreground/[0.02]">
+        <div className="h-64 lg:h-72 border-b border-foreground/5 bg-foreground/[0.02]">
           <ToolPreview id={tool.id} />
         </div>
         <div className="p-4 lg:p-5">
@@ -1675,10 +1675,9 @@ function FinalCtaSection() {
                 href="https://forms.gle/cGMyEXQL1SDevpv7A"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 h-12 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="inline-flex items-center justify-center h-12 px-8 text-sm border border-foreground/30 rounded-xl hover:border-foreground transition-colors"
               >
                 베타 테스터 신청
-                <ArrowRight className="w-3.5 h-3.5" />
               </a>
             </div>
 
