@@ -15,10 +15,10 @@ import { createClient } from "@/lib/supabase/client";
 import { readSelectedChannelIdFromStorage } from "@/lib/channels/selectedChannelStorage";
 
 const navLinks = [
-  { name: "Channel Analysis", href: "/analysis", description: "내 채널, 지금 몇점일까?", loginRequired: true },
-  { name: "Channel DNA", href: "/channel-dna", description: "이 채널의 성과 구조, 패턴이 궁금해", loginRequired: true },
-  { name: "Action Plan", href: "/action-plan", description: "그래서 오늘 뭐하면 돼?", loginRequired: true },
-  { name: "Next Trend", href: "/next-trend", description: "다음 영상, 뭐 찍을건데 !", loginRequired: true },
+  { name: "Channel Analysis", href: "/analysis", description: "내 채널 어때?", loginRequired: true },
+  { name: "Channel DNA", href: "/channel-dna", description: "뭐가 잘 되고 있어?", loginRequired: true },
+  { name: "Action Plan", href: "/action-plan", description: "오늘 뭐 해?", loginRequired: true },
+  { name: "Next Trend", href: "/next-trend", description: "다음에 뭐 찍어?", loginRequired: true },
 ];
 
 export function Navigation() {
