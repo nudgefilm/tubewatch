@@ -17,5 +17,5 @@ ALTER TABLE user_subscriptions ADD COLUMN IF NOT EXISTS renewal_at timestamptz;
 ALTER TABLE user_subscriptions ADD COLUMN IF NOT EXISTS payment_status text
   CHECK (payment_status IN ('pending', 'paid', 'failed', 'canceled'));
 
-COMMENT ON COLUMN user_subscriptions.renewal_at IS 'PortOne 결제 기준 구독 만료일 (current_period_end와 병용)';
+COMMENT ON COLUMN user_subscriptions.renewal_at IS '구독 만료일 (단일 기준 컬럼, renewal_at 기준으로 권한 판단)';
 COMMENT ON COLUMN user_subscriptions.payment_status IS '결제 상태: pending(진행중) | paid(완료) | failed(실패) | canceled(취소)';
