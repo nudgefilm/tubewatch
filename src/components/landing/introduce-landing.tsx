@@ -751,53 +751,331 @@ function FeaturesSection() {
 
 // ─── 04. How It Works ───────────────────────────────────────────────────────
 
-const steps = [
-  { step: "01", title: "채널 등록", sub: "1분", desc: "유튜브 채널 URL 입력만으로 완료" },
-  { step: "02", title: "자동 분석", sub: "영상 50개+", desc: "AI가 데이터 시그널 80개+ 자동 처리" },
-  { step: "03", title: "4개 리포트", sub: "즉시 생성", desc: "Analysis · DNA · Action Plan · Next Trend" },
-  { step: "04", title: "실행 → 성장", sub: "반복 추적", desc: "업로드 후 재분석으로 성장 변화 확인" },
+const workSteps = [
+  { number: 1, title: "채널 연동",   description: "유튜브 채널 URL 입력", duration: "30초",    icon: "link"     as const },
+  { number: 2, title: "데이터 수집", description: "최근 영상 50개 분석", duration: "1분",     icon: "download" as const },
+  { number: 3, title: "AI 분석",    description: "80개+ 신호 처리",    duration: "2분",     icon: "brain"    as const },
+  { number: 4, title: "리포트 생성", description: "맞춤 전략 도출",     duration: "1분 30초", icon: "report"  as const },
 ];
 
-function HowItWorksSection() {
-  const { ref, visible } = useFadeIn();
-
+function WorkLinkIcon({ isActive, isComplete }: { isActive: boolean; isComplete: boolean }) {
+  const cls = `w-full h-full transition-colors duration-500 ${isComplete ? "text-emerald-500" : isActive ? "text-orange-500" : "text-foreground/30"}`;
   return (
-    <section className="relative py-6 lg:py-10 border-t border-foreground/10">
-      <div className="max-w-[1080px] mx-auto px-8 lg:px-20">
-        <div ref={ref} className={`mb-8 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-          <SectionLabel>How It Works</SectionLabel>
-          <h2 className="font-heading text-4xl lg:text-5xl font-medium tracking-[-0.03em] leading-[1.1]">
-            4단계,
-            <br />
-            <span className="text-muted-foreground">5분 안에 첫 결과</span>
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-px border border-foreground/10 bg-foreground/10">
-          {steps.map(({ step, title, sub, desc }, i) => (
-            <StepCard key={step} step={step} title={title} sub={sub} desc={desc} index={i} />
-          ))}
-        </div>
-      </div>
-    </section>
+    <svg viewBox="0 0 40 40" className={cls}>
+      <circle cx="14" cy="20" r="6" fill="none" stroke="currentColor" strokeWidth="2.5">
+        {isActive && <animate attributeName="r" values="6;7;6" dur="1s" repeatCount="indefinite" />}
+      </circle>
+      <circle cx="26" cy="20" r="6" fill="none" stroke="currentColor" strokeWidth="2.5">
+        {isActive && <animate attributeName="r" values="6;7;6" dur="1s" begin="0.2s" repeatCount="indefinite" />}
+      </circle>
+      <path d="M 18 20 L 22 20" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+        {isActive && <animate attributeName="stroke-dasharray" values="0 10;10 0;0 10" dur="1.5s" repeatCount="indefinite" />}
+      </path>
+      {isComplete && (
+        <path d="M 16 20 L 19 23 L 25 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      )}
+    </svg>
   );
 }
 
-function StepCard({ step, title, sub, desc, index }: { step: string; title: string; sub: string; desc: string; index: number }) {
-  const { ref, visible } = useFadeIn();
+function WorkDownloadIcon({ isActive, isComplete }: { isActive: boolean; isComplete: boolean }) {
+  const cls = `w-full h-full transition-colors duration-500 ${isComplete ? "text-emerald-500" : isActive ? "text-orange-500" : "text-foreground/30"}`;
   return (
-    <div
-      ref={ref}
-      className={`bg-background p-6 lg:p-8 flex flex-col gap-4 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
-      style={{ transitionDelay: `${index * 100}ms` }}
-    >
-      <span className="font-mono text-3xl font-medium tracking-[-0.03em] text-foreground/15">{step}</span>
-      <div>
-        <h3 className="font-heading text-xl font-medium tracking-[-0.02em]">{title}</h3>
-        <p className="font-mono text-xs text-muted-foreground mt-0.5">{sub}</p>
-        <p className="text-sm text-muted-foreground leading-relaxed mt-2">{desc}</p>
+    <svg viewBox="0 0 40 40" className={cls}>
+      <rect x="12" y="10" width="16" height="20" rx="2" fill="none" stroke="currentColor" strokeWidth="2" />
+      <path d="M 20 14 L 20 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+        {isActive && <animate attributeName="d" values="M 20 14 L 20 18;M 20 14 L 20 24;M 20 14 L 20 18" dur="1s" repeatCount="indefinite" />}
+      </path>
+      <path d="M 16 21 L 20 25 L 24 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none">
+        {isActive && <animate attributeName="opacity" values="0.3;1;0.3" dur="1s" repeatCount="indefinite" />}
+      </path>
+    </svg>
+  );
+}
+
+function WorkBrainIcon({ isActive, isComplete }: { isActive: boolean; isComplete: boolean }) {
+  const cls = `w-full h-full transition-colors duration-500 ${isComplete ? "text-emerald-500" : isActive ? "text-orange-500" : "text-foreground/30"}`;
+  const nodes = [
+    { cx: 16, cy: 16, delay: "0s" }, { cx: 24, cy: 16, delay: "0.2s" },
+    { cx: 20, cy: 22, delay: "0.4s" }, { cx: 14, cy: 26, delay: "0.6s" }, { cx: 26, cy: 26, delay: "0.3s" },
+  ];
+  return (
+    <svg viewBox="0 0 40 40" className={cls}>
+      <path d="M 20 8 Q 28 8 30 14 Q 34 16 32 22 Q 34 28 28 30 Q 26 34 20 32 Q 14 34 12 30 Q 6 28 8 22 Q 6 16 10 14 Q 12 8 20 8" fill="none" stroke="currentColor" strokeWidth="2" />
+      {nodes.map(({ cx, cy, delay }, i) => (
+        <circle key={i} cx={cx} cy={cy} r="2" fill="currentColor" opacity="0.5">
+          {isActive && <animate attributeName="opacity" values="0.3;1;0.3" dur="0.8s" begin={delay} repeatCount="indefinite" />}
+        </circle>
+      ))}
+      <line x1="16" y1="16" x2="24" y2="16" stroke="currentColor" strokeWidth="1" opacity="0.3" />
+      <line x1="16" y1="16" x2="20" y2="22" stroke="currentColor" strokeWidth="1" opacity="0.3" />
+      <line x1="24" y1="16" x2="20" y2="22" stroke="currentColor" strokeWidth="1" opacity="0.3" />
+      <line x1="20" y1="22" x2="14" y2="26" stroke="currentColor" strokeWidth="1" opacity="0.3" />
+      <line x1="20" y1="22" x2="26" y2="26" stroke="currentColor" strokeWidth="1" opacity="0.3" />
+    </svg>
+  );
+}
+
+function WorkReportIcon({ isActive, isComplete }: { isActive: boolean; isComplete: boolean }) {
+  const cls = `w-full h-full transition-colors duration-500 ${isComplete ? "text-emerald-500" : isActive ? "text-orange-500" : "text-foreground/30"}`;
+  return (
+    <svg viewBox="0 0 40 40" className={cls}>
+      <path d="M 12 8 L 24 8 L 28 12 L 28 32 L 12 32 Z" fill="none" stroke="currentColor" strokeWidth="2" />
+      <path d="M 24 8 L 24 12 L 28 12" fill="none" stroke="currentColor" strokeWidth="2" />
+      <rect x="15" y="24" width="3" height="5" fill="currentColor" opacity="0.4">
+        {isActive && <animate attributeName="height" values="2;5;2" dur="1s" repeatCount="indefinite" />}
+      </rect>
+      <rect x="19" y="20" width="3" height="9" fill="currentColor" opacity="0.4">
+        {isActive && <animate attributeName="height" values="4;9;4" dur="1s" begin="0.2s" repeatCount="indefinite" />}
+      </rect>
+      <rect x="23" y="22" width="3" height="7" fill="currentColor" opacity="0.4">
+        {isActive && <animate attributeName="height" values="3;7;3" dur="1s" begin="0.4s" repeatCount="indefinite" />}
+      </rect>
+      <line x1="15" y1="14" x2="25" y2="14" stroke="currentColor" strokeWidth="1.5" opacity="0.3" />
+      <line x1="15" y1="17" x2="22" y2="17" stroke="currentColor" strokeWidth="1.5" opacity="0.3" />
+    </svg>
+  );
+}
+
+function WorkStepIcon({ type, isActive, isComplete }: { type: typeof workSteps[0]["icon"]; isActive: boolean; isComplete: boolean }) {
+  const props = { isActive, isComplete };
+  if (type === "link") return <WorkLinkIcon {...props} />;
+  if (type === "download") return <WorkDownloadIcon {...props} />;
+  if (type === "brain") return <WorkBrainIcon {...props} />;
+  return <WorkReportIcon {...props} />;
+}
+
+function WorkTimerDisplay({ isRunning }: { isRunning: boolean }) {
+  const [elapsed, setElapsed] = useState(0);
+  const total = 300;
+
+  useEffect(() => {
+    if (!isRunning) { setElapsed(0); return; }
+    const id = setInterval(() => setElapsed(p => p >= total ? total : p + 1), 25);
+    return () => clearInterval(id);
+  }, [isRunning]);
+
+  const pct = (elapsed / total) * 100;
+  const circ = 2 * Math.PI * 45;
+  const min = Math.floor(elapsed / 60);
+  const sec = elapsed % 60;
+
+  return (
+    <div className="flex flex-col items-center shrink-0">
+      <div className="relative w-28 h-28 lg:w-32 lg:h-32">
+        <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="5" className="text-foreground/10" />
+          <circle
+            cx="50" cy="50" r="45"
+            fill="none" stroke="url(#timerGrad)"
+            strokeWidth="5" strokeLinecap="round"
+            strokeDasharray={circ}
+            strokeDashoffset={circ - (pct / 100) * circ}
+            style={{ transition: "stroke-dashoffset 0.02s linear" }}
+          />
+          {Array.from({ length: 60 }).map((_, i) => {
+            const a = (i * 6 - 90) * (Math.PI / 180);
+            const big = i % 5 === 0;
+            const r1 = big ? 36 : 38;
+            return (
+              <line key={i}
+                x1={50 + r1 * Math.cos(a)} y1={50 + r1 * Math.sin(a)}
+                x2={50 + 42 * Math.cos(a)} y2={50 + 42 * Math.sin(a)}
+                stroke="currentColor" strokeWidth={big ? "1.5" : "0.5"}
+                className={big ? "text-foreground/30" : "text-foreground/10"}
+              />
+            );
+          })}
+          <defs>
+            <linearGradient id="timerGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#f97316" />
+              <stop offset="100%" stopColor="#fb923c" />
+            </linearGradient>
+          </defs>
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-2xl lg:text-3xl font-mono font-medium tabular-nums">
+            {min}:{sec.toString().padStart(2, "0")}
+          </span>
+          <span className="text-[10px] text-muted-foreground mt-0.5">/ 5:00</span>
+        </div>
+        {isRunning && elapsed < total && (
+          <div className="absolute inset-0 rounded-full border-2 border-orange-500/20 animate-ping-slow pointer-events-none" />
+        )}
+      </div>
+      <div className="mt-3 flex items-center gap-1.5">
+        <svg viewBox="0 0 24 24" className="w-4 h-4 text-orange-500">
+          <path d="M 6 2 L 18 2 L 18 6 Q 18 10 12 12 Q 6 10 6 6 Z" fill="currentColor" opacity="0.3">
+            {isRunning && <animate attributeName="opacity" values="0.3;0.1;0.3" dur="1s" repeatCount="indefinite" />}
+          </path>
+          <path d="M 6 22 L 18 22 L 18 18 Q 18 14 12 12 Q 6 14 6 18 Z" fill="currentColor" opacity="0.5" />
+          <path d="M 6 2 L 18 2 L 18 6 Q 18 10 12 12 Q 6 10 6 6 L 6 2 M 6 22 L 18 22 L 18 18 Q 18 14 12 12 Q 6 14 6 18 L 6 22" fill="none" stroke="currentColor" strokeWidth="1.5" opacity="0.6" />
+        </svg>
+        <span className="text-sm font-medium text-orange-600 dark:text-orange-500">단 5분</span>
       </div>
     </div>
+  );
+}
+
+function WorkStepCard({
+  step, activeStep, completedSteps,
+}: {
+  step: typeof workSteps[0];
+  activeStep: number;
+  completedSteps: number[];
+}) {
+  const idx = step.number - 1;
+  const isActive = idx === activeStep;
+  const isComplete = completedSteps.includes(idx);
+
+  return (
+    <div className={`flex flex-col items-center transition-all duration-500 shrink-0 ${isActive ? "scale-105" : !isComplete ? "opacity-50" : ""}`}>
+      <div className={`relative w-16 h-16 lg:w-20 lg:h-20 rounded-full flex items-center justify-center transition-all duration-500 ${isComplete ? "bg-emerald-500/10 ring-2 ring-emerald-500/30" : isActive ? "bg-orange-500/10 ring-2 ring-orange-500/30" : "bg-foreground/5"}`}>
+        <div className="w-8 h-8 lg:w-10 lg:h-10">
+          <WorkStepIcon type={step.icon} isActive={isActive} isComplete={isComplete} />
+        </div>
+        <div className={`absolute -top-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-xs font-mono font-bold transition-all duration-300 ${isComplete ? "bg-emerald-500 text-white" : isActive ? "bg-orange-500 text-white" : "bg-foreground/10 text-foreground/50"}`}>
+          {isComplete ? (
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          ) : (
+            <span>{step.number}</span>
+          )}
+        </div>
+        {isActive && (
+          <div className="absolute inset-0 rounded-full border-2 border-orange-500/40 animate-ping-slow pointer-events-none" />
+        )}
+      </div>
+      <div className="text-center mt-3">
+        <h4 className={`font-heading text-sm lg:text-base font-medium mb-0.5 transition-colors duration-300 ${isComplete ? "text-emerald-600" : isActive ? "text-orange-600 dark:text-orange-500" : ""}`}>
+          {step.title}
+        </h4>
+        <p className="text-xs text-muted-foreground mb-1.5">{step.description}</p>
+        <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-mono ${isComplete ? "bg-emerald-500/10 text-emerald-600" : isActive ? "bg-orange-500/10 text-orange-600" : "bg-foreground/5 text-muted-foreground"}`}>
+          {step.duration}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function StepArrow({ active }: { active: boolean }) {
+  return (
+    <div className={`hidden lg:flex items-center shrink-0 px-1 transition-colors duration-700 ${active ? "text-orange-500" : "text-foreground/15"}`}>
+      <svg viewBox="0 0 48 12" className="w-8 lg:w-10 h-3">
+        <path d="M 2 6 L 36 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        <path d="M 32 2 L 40 6 L 32 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      </svg>
+    </div>
+  );
+}
+
+function HowItWorksSection() {
+  const { ref, visible } = useFadeIn(0.3);
+  const [activeStep, setActiveStep] = useState(0);
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  const [isRunning, setIsRunning] = useState(false);
+  const [timerKey, setTimerKey] = useState(0);
+
+  useEffect(() => {
+    if (!visible) return;
+    const t = setTimeout(() => setIsRunning(true), 600);
+    return () => clearTimeout(t);
+  }, [visible]);
+
+  useEffect(() => {
+    if (!isRunning) return;
+    const durations = [450, 900, 1800, 1350];
+    let stepIdx = 0;
+    let cancelled = false;
+    let tid: ReturnType<typeof setTimeout>;
+
+    const advance = () => {
+      if (cancelled) return;
+      if (stepIdx >= workSteps.length) {
+        tid = setTimeout(() => {
+          if (cancelled) return;
+          setActiveStep(0);
+          setCompletedSteps([]);
+          setTimerKey(k => k + 1);
+          stepIdx = 0;
+          advance();
+        }, 2000);
+        return;
+      }
+      setActiveStep(stepIdx);
+      tid = setTimeout(() => {
+        if (cancelled) return;
+        setCompletedSteps(prev => [...prev, stepIdx]);
+        stepIdx++;
+        advance();
+      }, durations[stepIdx] ?? 1000);
+    };
+
+    advance();
+    return () => { cancelled = true; clearTimeout(tid); };
+  }, [isRunning]);
+
+  return (
+    <section className="relative py-10 lg:py-20 border-t border-foreground/10 overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-orange-500/[0.02] to-transparent pointer-events-none" />
+      <div className="relative z-10 max-w-[1080px] mx-auto px-8 lg:px-20">
+        <div ref={ref} className={`mb-12 text-center transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+          <span className="inline-flex items-center gap-3 text-sm font-mono text-muted-foreground mb-6">
+            <span className="w-8 h-px bg-foreground/30 inline-block" />
+            Quick Start
+            <span className="w-8 h-px bg-foreground/30 inline-block" />
+          </span>
+          <h2 className="font-heading text-4xl lg:text-5xl font-medium tracking-[-0.03em] leading-[1.1] mt-2">
+            <span className="text-orange-600 dark:text-orange-500">4단계</span>,{" "}
+            <span className="text-muted-foreground">5분 안에 첫 결과</span>
+          </h2>
+          <p className={`mt-4 text-base text-muted-foreground transition-all duration-700 delay-100 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+            채널 등록부터 맞춤 전략 리포트까지, 커피 한 잔 마시기도 전에 완료됩니다
+          </p>
+        </div>
+
+        {/* Desktop: 1→2→timer→3→4 수평 플로우 */}
+        <div className={`hidden lg:flex items-center justify-center transition-all duration-700 delay-200 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
+          <WorkStepCard step={workSteps[0]} activeStep={activeStep} completedSteps={completedSteps} />
+          <StepArrow active={completedSteps.includes(0)} />
+          <WorkStepCard step={workSteps[1]} activeStep={activeStep} completedSteps={completedSteps} />
+          <StepArrow active={completedSteps.includes(1)} />
+          <WorkTimerDisplay key={timerKey} isRunning={isRunning} />
+          <StepArrow active={completedSteps.includes(1)} />
+          <WorkStepCard step={workSteps[2]} activeStep={activeStep} completedSteps={completedSteps} />
+          <StepArrow active={completedSteps.includes(2)} />
+          <WorkStepCard step={workSteps[3]} activeStep={activeStep} completedSteps={completedSteps} />
+        </div>
+
+        {/* Mobile: 타이머 + 2×2 그리드 */}
+        <div className={`lg:hidden flex flex-col items-center gap-8 transition-all duration-700 delay-200 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
+          <WorkTimerDisplay key={timerKey} isRunning={isRunning} />
+          <div className="grid grid-cols-2 gap-6 w-full max-w-sm">
+            {workSteps.map((step) => (
+              <WorkStepCard key={step.number} step={step} activeStep={activeStep} completedSteps={completedSteps} />
+            ))}
+          </div>
+          <div className="relative w-full h-1.5 bg-foreground/10 rounded-full overflow-hidden">
+            <div
+              className="absolute inset-y-0 left-0 bg-gradient-to-r from-orange-500 to-amber-500 rounded-full transition-all duration-500"
+              style={{ width: `${(completedSteps.length / workSteps.length) * 100}%` }}
+            />
+          </div>
+        </div>
+
+        <div className={`mt-12 text-center transition-all duration-700 delay-500 ${visible ? "opacity-100" : "opacity-0"}`}>
+          <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-foreground/5 border border-foreground/10">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+            <span className="text-sm">
+              <span className="font-medium">10,000+</span>
+              <span className="text-muted-foreground"> 크리에이터가 이미 경험했습니다</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
