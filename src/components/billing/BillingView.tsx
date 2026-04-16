@@ -107,7 +107,7 @@ function usePortOneRedirectReturn(onSuccess: () => void) {
           onSuccess();
         } else {
           setReturnState("error");
-          setReturnError(json.error ?? "결제 확인에 실패했습니다.");
+          setReturnError(json.error ?? "결제는 완료되었지만 적용에 실패했습니다. 새로고침 후 다시 확인해주세요.");
         }
       })
       .catch(() => {
@@ -143,6 +143,11 @@ function SubscriptionPlanCard({
   currentBillingPeriod,
   pendingPlanId,
   pendingBillingPeriod,
+  isLoading,
+  error,
+  onPaymentStart,
+  onPaymentSuccess,
+  onPaymentError,
 }: {
   plan: (typeof BILLING_PLANS)[number];
   isPopular?: boolean;
@@ -151,10 +156,12 @@ function SubscriptionPlanCard({
   currentBillingPeriod: "monthly" | "semiannual" | null;
   pendingPlanId: string | null;
   pendingBillingPeriod: "monthly" | "semiannual" | null;
+  isLoading: boolean;
+  error: string | null;
+  onPaymentStart: () => void;
+  onPaymentSuccess: () => void;
+  onPaymentError: (msg: string) => void;
 }) {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [agreed, setAgreed] = useState(false);
   const checkboxId = `agree-${plan.id}-${period}`;
 
@@ -181,7 +188,7 @@ function SubscriptionPlanCard({
 
   // 버튼 텍스트 결정
   function getButtonLabel(): string {
-    if (loading) return "처리 중...";
+    if (isLoading) return "결제 처리 중...";
     if (!isSubscribed) return "구독 시작하기";
     if (isDeferredChange) return "만료 후 변경 예약";
     return "지금 변경하기";
@@ -199,18 +206,17 @@ function SubscriptionPlanCard({
     try {
       response = await requestPortOnePayment({ paymentId, orderName, totalAmount: amountKrw, redirectUrl });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "결제 모듈 로드에 실패했습니다.");
+      onPaymentError(e instanceof Error ? e.message : "결제 모듈 로드에 실패했습니다.");
       return;
     }
 
     if (!response) return; // 리디렉트 → usePortOneRedirectReturn이 처리
     if ("code" in response && response.code) {
-      setError(("message" in response ? (response as { message?: string }).message : null) ?? "결제에 실패했습니다.");
+      onPaymentError(("message" in response ? (response as { message?: string }).message : null) ?? "결제에 실패했습니다.");
       return;
     }
 
     // 팝업 결제 성공 → 서버 검증
-    setLoading(true);
     try {
       const res = await fetch("/api/portone/payment-complete", {
         method: "POST",
@@ -220,27 +226,22 @@ function SubscriptionPlanCard({
       const json = (await res.json()) as { ok?: boolean; error?: string };
       if (json.ok) {
         fireAdsConversion(paymentId, amountKrw);
-        router.refresh();
+        onPaymentSuccess();
       } else {
-        setError(json.error ?? "결제 확인에 실패했습니다.");
+        onPaymentError(json.error ?? "결제는 완료되었지만 적용에 실패했습니다. 새로고침 후 다시 확인해주세요.");
       }
     } catch {
-      setError("결제 확인 중 오류가 발생했습니다.");
-    } finally {
-      setLoading(false);
+      onPaymentError("결제 확인 중 오류가 발생했습니다.");
     }
   }
 
   async function handleSubscribe() {
-    if (loading) return;
-    setError(null);
-    setLoading(true);
+    if (isLoading) return;
+    onPaymentStart();
     try {
       await handleSubscribePortOne();
     } catch {
-      setError("요청 중 오류가 발생했습니다.");
-    } finally {
-      setLoading(false);
+      onPaymentError("요청 중 오류가 발생했습니다.");
     }
   }
 
@@ -348,7 +349,7 @@ function SubscriptionPlanCard({
                 <span className="text-muted-foreground/50">(전자상거래법 제17조)</span>
               </span>
             </label>
-            <Button className="mt-auto w-full" onClick={handleSubscribe} disabled={loading || !agreed}>
+            <Button className="mt-auto w-full" onClick={handleSubscribe} disabled={isLoading || !agreed}>
               {getButtonLabel()}
             </Button>
             {!agreed && (
@@ -568,12 +569,19 @@ export default function BillingView({ initialData }: { initialData: UserBillingS
   const router = useRouter();
   const [period, setPeriod] = useState<BillingPeriod>("monthly");
   const [termsOpen, setTermsOpen] = useState(false);
+  const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
+  const [errorPlanId, setErrorPlanId] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const handlePaymentSuccess = useCallback(() => {
-    router.refresh();
+  const handleRedirectSuccess = useCallback(() => {
+    setSuccessMessage("구독이 정상적으로 적용되었습니다.");
+    setTimeout(() => {
+      router.refresh();
+    }, 2000);
   }, [router]);
 
-  const { returnState, returnError } = usePortOneRedirectReturn(handlePaymentSuccess);
+  const { returnState, returnError } = usePortOneRedirectReturn(handleRedirectSuccess);
 
   return (
     <div className="min-h-screen bg-background">
@@ -588,20 +596,20 @@ export default function BillingView({ initialData }: { initialData: UserBillingS
       </section>
 
       <div className="mx-auto max-w-5xl space-y-16 px-6 py-12 lg:px-12">
-        {/* 결제 리디렉트 복귀 상태 알림 */}
-        {returnState !== "idle" && (
-          <div
-            className={`rounded-lg border px-4 py-3 text-sm ${
-              returnState === "success"
-                ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-                : returnState === "verifying"
-                ? "border-blue-200 bg-blue-50 text-blue-800"
-                : "border-red-200 bg-red-50 text-red-800"
-            }`}
-          >
-            {returnState === "verifying" && "결제를 확인하는 중입니다..."}
-            {returnState === "success" && "결제가 완료되었습니다."}
-            {returnState === "error" && (returnError ?? "결제 확인에 실패했습니다.")}
+        {/* 결제 상태 알림 배너 */}
+        {returnState === "verifying" && (
+          <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+            결제를 확인하는 중입니다...
+          </div>
+        )}
+        {successMessage && (
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+            {successMessage}
+          </div>
+        )}
+        {returnState === "error" && (
+          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            {returnError ?? "결제 확인에 실패했습니다."}
           </div>
         )}
 
@@ -648,18 +656,39 @@ export default function BillingView({ initialData }: { initialData: UserBillingS
             </div>
           </div>
           <div className="grid gap-6 sm:grid-cols-2">
-            {BILLING_PLANS.map((plan, i) => (
-              <SubscriptionPlanCard
-                key={plan.id}
-                plan={plan}
-                isPopular={i === 1}
-                period={period}
-                currentPlanId={initialData.planId}
-                currentBillingPeriod={initialData.billingPeriod}
-                pendingPlanId={initialData.pendingPlanId}
-                pendingBillingPeriod={initialData.pendingBillingPeriod}
-              />
-            ))}
+            {BILLING_PLANS.map((plan, i) => {
+              const planKey = `${plan.id}_${period}`;
+              return (
+                <SubscriptionPlanCard
+                  key={plan.id}
+                  plan={plan}
+                  isPopular={i === 1}
+                  period={period}
+                  currentPlanId={initialData.planId}
+                  currentBillingPeriod={initialData.billingPeriod}
+                  pendingPlanId={initialData.pendingPlanId}
+                  pendingBillingPeriod={initialData.pendingBillingPeriod}
+                  isLoading={loadingPlanId === planKey}
+                  error={errorPlanId === planKey ? errorMessage : null}
+                  onPaymentStart={() => {
+                    setLoadingPlanId(planKey);
+                    setErrorPlanId(null);
+                    setErrorMessage(null);
+                    setSuccessMessage(null);
+                  }}
+                  onPaymentSuccess={() => {
+                    setLoadingPlanId(null);
+                    setSuccessMessage("구독이 정상적으로 적용되었습니다.");
+                    setTimeout(() => router.refresh(), 2000);
+                  }}
+                  onPaymentError={(msg: string) => {
+                    setLoadingPlanId(null);
+                    setErrorPlanId(planKey);
+                    setErrorMessage(msg);
+                  }}
+                />
+              );
+            })}
           </div>
         </section>
 
