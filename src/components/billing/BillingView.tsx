@@ -131,6 +131,13 @@ function getPendingPlanLabel(planId: string): string {
   }
 }
 
+// 플랜 ID → 그룹(creator / pro) 매핑
+function getPlanGroup(id: string): string {
+  if (id.startsWith("creator")) return "creator";
+  if (id.startsWith("pro")) return "pro";
+  return id;
+}
+
 // ─── Subscription plan card ───────────────────────────────────────────────────
 
 function SubscriptionPlanCard({
@@ -152,8 +159,19 @@ function SubscriptionPlanCard({
   const [agreed, setAgreed] = useState(false);
   const checkboxId = `agree-${plan.id}-${period}`;
 
-  // 현재 구독 중인 플랜 여부
-  const isCurrentPlan = plan.id === currentPlanId;
+  // planId 먼저 확정 (기간 포함한 실제 결제 대상 ID)
+  const isSemiannual = period === "semiannual";
+  const planId: BillingPlanId = isSemiannual ? plan.semiannualPlanId : plan.id;
+
+  // currentPlanId는 서버에서 base plan("creator" | "pro")으로 내려옴.
+  // 6m 카드의 planId("creator_6m") !== currentPlanId("creator") → 항상 false → 구매 허용.
+  // 월간 카드의 planId("creator") === currentPlanId("creator") → 차단.
+  const isExactSamePlan = planId === currentPlanId;
+
+  // 같은 플랜 그룹(creator ↔ creator_6m, pro ↔ pro_6m) 여부
+  const isSamePlanGroup =
+    getPlanGroup(plan.id) === getPlanGroup(currentPlanId);
+
   const isSubscribed = currentPlanId !== "free";
   // 이 카드의 플랜(월간/6개월 모두)이 예약된 플랜인지
   const thisPlanHasPending =
@@ -161,8 +179,8 @@ function SubscriptionPlanCard({
   // 다른 플랜이 예약된 상태인지
   const hasPendingPlan = !!pendingPlanId;
 
-  const isSemiannual = period === "semiannual";
-  const planId: BillingPlanId = isSemiannual ? plan.semiannualPlanId : plan.id;
+  // isSamePlanGroup은 향후 버튼 텍스트 분기 등에 활용 가능
+  void isSamePlanGroup;
 
   async function handleSubscribePortOne() {
     const amountKrw = isSemiannual ? plan.semiannualPriceKrw : plan.priceKrw;
@@ -278,8 +296,8 @@ function SubscriptionPlanCard({
             </div>
           ))}
         </div>
-        {/* 현재 플랜 */}
-        {isCurrentPlan ? (
+        {/* 기간 포함 동일 planId인 경우만 차단. 같은 그룹 다른 기간은 구매 허용 */}
+        {isExactSamePlan ? (
           <div className="mt-auto rounded-lg border border-foreground/10 bg-foreground/[0.03] px-4 py-3 text-center">
             <p className="text-sm font-medium text-primary">현재 이용 중인 플랜</p>
           </div>
