@@ -6,6 +6,11 @@
  *   { type: "subscription", paymentId: string, planId: BillingPlanId }
  *   { type: "credit",       paymentId: string, productId: CreditProductId }
  *
+ * 구독 정책:
+ *   - 현재 구독이 active 상태(renewal_at > now)이면 → pending_plan_id 예약만 저장
+ *   - 신규 구독 또는 만료 상태이면 → plan_id / renewal_at 즉시 적용
+ *   - 예약이 이미 존재하면(pending_plan_id != null) → 에러 반환
+ *
  * Idempotency:
  *   - 구독: portone_payment_id + payment_status = 'paid' 체크로 중복 처리 방지
  *   - 크레딧: user_credits에 paymentId 추적 컬럼 없음 → 향후 migration 필요 (TODO)
@@ -66,15 +71,25 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
   }
 
-  // ─── 구독: idempotency 체크 ───────────────────────────────────────────────
-  // 동일 paymentId + payment_status = 'paid' 이면 이미 처리된 결제 → 즉시 반환
+  // ─── 구독: idempotency 체크 + 기존 구독 상태 조회 ────────────────────────────
+  // (credit 처리와 분리 — credit 로직에 영향 없음)
+
+  let existingSub: {
+    payment_status: string | null;
+    portone_payment_id: string | null;
+    subscription_status: string | null;
+    renewal_at: string | null;
+    pending_plan_id: string | null;
+  } | null = null;
 
   if (type === "subscription") {
-    const { data: existingSub } = await supabaseAdmin
+    const { data } = await supabaseAdmin
       .from("user_subscriptions")
-      .select("payment_status, portone_payment_id")
+      .select("payment_status, portone_payment_id, subscription_status, renewal_at, pending_plan_id")
       .eq("user_id", user.id)
       .maybeSingle();
+
+    existingSub = data as typeof existingSub;
 
     if (
       existingSub?.portone_payment_id === paymentId &&
@@ -126,6 +141,43 @@ export async function POST(request: Request) {
     }
 
     const now = new Date();
+
+    // ── 현재 구독이 active(renewal_at > now)이면 → 예약 변경 ─────────────────
+    const isActiveSubscription =
+      existingSub?.subscription_status === "active" &&
+      !!existingSub.renewal_at &&
+      new Date(existingSub.renewal_at).getTime() > now.getTime();
+
+    if (isActiveSubscription) {
+      // 이미 예약된 플랜이 있으면 중복 예약 차단
+      if (existingSub!.pending_plan_id) {
+        return NextResponse.json(
+          { error: "이미 다음 플랜이 예약되어 있습니다." },
+          { status: 400 }
+        );
+      }
+
+      // pending_plan_id만 저장 — plan_id / renewal_at 변경 금지
+      const { error: updateError } = await supabaseAdmin
+        .from("user_subscriptions")
+        .update({
+          pending_plan_id: planIdTyped,
+          portone_payment_id: paymentId,
+          payment_status: "paid",
+          updated_at: now.toISOString(),
+        })
+        .eq("user_id", user.id);
+
+      if (updateError) {
+        console.error("[portone/payment-complete] pending plan update error:", updateError);
+        return NextResponse.json({ error: "예약 변경 저장에 실패했습니다." }, { status: 500 });
+      }
+
+      console.log("[portone/payment-complete] deferred plan saved:", planIdTyped, "for user:", user.id);
+      return NextResponse.json({ ok: true, planId: planIdTyped, deferred: true });
+    }
+
+    // ── 신규 구독 또는 만료 상태 → 즉시 적용 ────────────────────────────────
     const months = PLAN_PERIOD_MONTHS[planIdTyped];
     const expiresAt = new Date(now);
     expiresAt.setMonth(expiresAt.getMonth() + months);
@@ -142,6 +194,7 @@ export async function POST(request: Request) {
           renewal_at: expiresAtIso,
           portone_payment_id: paymentId,
           grant_type: "portone",
+          pending_plan_id: null,
           updated_at: now.toISOString(),
         },
         { onConflict: "user_id", ignoreDuplicates: false }
@@ -155,9 +208,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, planId: planIdTyped });
   }
 
-  console.log('type:', type);
-
   // ─── 단건 크레딧 처리 ─────────────────────────────────────────────────────
+  // (구독 로직과 완전 독립)
 
   const productId = typeof raw.productId === "string" ? raw.productId.trim() : "";
   if (!VALID_PRODUCT_IDS.includes(productId as CreditProductId)) {
@@ -207,7 +259,6 @@ export async function POST(request: Request) {
 
   if (creditsUpdateError) {
     console.error("[portone/payment-complete] credits update error:", creditsUpdateError);
-    // 크레딧 증가 실패는 addPurchasedCredits 성공 후이므로 500 반환 (정합성 불일치 로깅)
     return NextResponse.json({ error: "크레딧 반영에 실패했습니다." }, { status: 500 });
   }
 

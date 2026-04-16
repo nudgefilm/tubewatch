@@ -120,6 +120,17 @@ function usePortOneRedirectReturn(onSuccess: () => void) {
   return { returnState, returnError };
 }
 
+// 예약 플랜 ID를 표시용 레이블로 변환
+function getPendingPlanLabel(planId: string): string {
+  switch (planId) {
+    case "creator":    return "Creator (월간)";
+    case "creator_6m": return "Creator (6개월)";
+    case "pro":        return "Pro (월간)";
+    case "pro_6m":     return "Pro (6개월)";
+    default:           return planId;
+  }
+}
+
 // ─── Subscription plan card ───────────────────────────────────────────────────
 
 function SubscriptionPlanCard({
@@ -127,11 +138,13 @@ function SubscriptionPlanCard({
   isPopular,
   period,
   currentPlanId,
+  pendingPlanId,
 }: {
   plan: (typeof BILLING_PLANS)[number];
   isPopular?: boolean;
   period: BillingPeriod;
   currentPlanId: "free" | "creator" | "pro";
+  pendingPlanId: string | null;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -139,9 +152,14 @@ function SubscriptionPlanCard({
   const [agreed, setAgreed] = useState(false);
   const checkboxId = `agree-${plan.id}-${period}`;
 
-  // 현재 구독 중인 플랜 여부 + 전체 구독 중 여부 (구매 차단 기준)
+  // 현재 구독 중인 플랜 여부
   const isCurrentPlan = plan.id === currentPlanId;
   const isSubscribed = currentPlanId !== "free";
+  // 이 카드의 플랜(월간/6개월 모두)이 예약된 플랜인지
+  const thisPlanHasPending =
+    pendingPlanId === plan.id || pendingPlanId === plan.semiannualPlanId;
+  // 다른 플랜이 예약된 상태인지
+  const hasPendingPlan = !!pendingPlanId;
 
   const isSemiannual = period === "semiannual";
   const planId: BillingPlanId = isSemiannual ? plan.semiannualPlanId : plan.id;
@@ -260,17 +278,35 @@ function SubscriptionPlanCard({
             </div>
           ))}
         </div>
-        {/* 구독 중인 경우: 구매 차단 + 안내 표시 */}
-        {isSubscribed ? (
+        {/* 현재 플랜 */}
+        {isCurrentPlan ? (
           <div className="mt-auto rounded-lg border border-foreground/10 bg-foreground/[0.03] px-4 py-3 text-center">
-            {isCurrentPlan ? (
-              <p className="text-sm font-medium text-primary">현재 이용 중인 플랜</p>
-            ) : (
-              <p className="text-sm text-muted-foreground">구독 만료 후 변경 가능합니다.</p>
-            )}
+            <p className="text-sm font-medium text-primary">현재 이용 중인 플랜</p>
           </div>
+
+        /* 이 플랜이 이미 예약됨 */
+        ) : thisPlanHasPending ? (
+          <div className="mt-auto rounded-lg border border-primary/20 bg-primary/[0.03] px-4 py-3 text-center">
+            <p className="text-sm font-medium text-primary">다음 플랜으로 예약됨</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">현재 구독 만료 후 자동 전환됩니다</p>
+          </div>
+
+        /* 다른 플랜이 이미 예약된 경우 → 추가 예약 불가 */
+        ) : hasPendingPlan ? (
+          <div className="mt-auto rounded-lg border border-foreground/10 bg-foreground/[0.03] px-4 py-3 text-center">
+            <p className="text-sm text-muted-foreground">이미 다음 플랜이 예약되어 있습니다.</p>
+          </div>
+
+        /* 구독 중 + 예약 없음 → 만료 후 적용 예약 결제 가능 */
         ) : (
           <>
+            {isSubscribed && (
+              <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-center dark:border-amber-800/50 dark:bg-amber-950/30">
+                <p className="text-xs text-amber-700 dark:text-amber-400">
+                  결제 시 현재 구독 만료 후 적용됩니다
+                </p>
+              </div>
+            )}
             {/* 청약철회 불가 동의 체크박스 */}
             <label
               htmlFor={checkboxId}
@@ -291,7 +327,7 @@ function SubscriptionPlanCard({
               </span>
             </label>
             <Button className="mt-auto w-full" onClick={handleSubscribe} disabled={loading || !agreed}>
-              {loading ? "처리 중..." : "구독 시작하기"}
+              {loading ? "처리 중..." : isSubscribed ? "만료 후 구독 예약" : "구독 시작하기"}
             </Button>
             {!agreed && (
               <p className="mt-1.5 text-center text-[10px] text-muted-foreground/50">
@@ -490,6 +526,11 @@ function CurrentPlanCard({ status }: { status: UserBillingStatus }) {
                   + 추가 크레딧: {status.purchasedCredits}회
                 </p>
               )}
+              {status.pendingPlanId && (
+                <p className="text-xs font-medium text-amber-600 dark:text-amber-400">
+                  다음 플랜: {getPendingPlanLabel(status.pendingPlanId!)} (만료 후 적용)
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -585,7 +626,7 @@ export default function BillingView({ initialData }: { initialData: UserBillingS
           </div>
           <div className="grid gap-6 sm:grid-cols-2">
             {BILLING_PLANS.map((plan, i) => (
-              <SubscriptionPlanCard key={plan.id} plan={plan} isPopular={i === 1} period={period} currentPlanId={initialData.planId} />
+              <SubscriptionPlanCard key={plan.id} plan={plan} isPopular={i === 1} period={period} currentPlanId={initialData.planId} pendingPlanId={initialData.pendingPlanId} />
             ))}
           </div>
         </section>
