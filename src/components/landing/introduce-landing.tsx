@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Check, BarChart3, Dna, ClipboardList, TrendingUp } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Navigation } from "./navigation";
 import { FooterSection } from "./footer-section";
@@ -383,112 +383,320 @@ function PainPointsSection() {
 
 // ─── 03. Features ───────────────────────────────────────────────────────────
 
-const features = [
+const tools = [
   {
-    number: "01",
-    icon: BarChart3,
-    title: "Channel Analysis",
-    subtitle: "채널 건강검진 리포트",
-    description: "내 채널 상태를 한눈에 파악하고,\n지금 가장 큰 문제를 바로 찾습니다.",
-    points: [
-      "채널 종합 성장 점수 산출",
-      "상위 vs 하위 영상 패턴 비교",
-      "최적 업로드 요일·시간대 분석",
-      "썸네일·제목 클릭률 영향 분석",
-    ],
-    quote: "내 채널 점수 62점,\n업로드 일관성이 핵심 문제입니다.",
+    id: "channel-analysis",
+    title: "채널 분석",
+    subtitle: "Channel Analysis",
+    description: "채널 종합 점수로 지금 가장 큰 문제를 바로 찾습니다",
   },
   {
-    number: "02",
-    icon: Dna,
-    title: "Channel DNA",
-    subtitle: "성공 공식 추출기",
-    description: "잘된 영상의 공통점을 분석해\n내 채널의 '성공 공식'을 만들어줍니다.",
-    points: [
-      "성과 높은 영상의 공통 패턴 추출",
-      "채널 고유 강점과 약점 시각화",
-      "타겟 시청자층 자동 분석",
-      "콘텐츠 주제 일관성 진단",
-    ],
-    quote: "이 포맷에서\n평균 2.3배 높은 성과가 발생합니다.",
+    id: "action-plan",
+    title: "액션 플랜",
+    subtitle: "Action Plan",
+    description: "분석 결과를 오늘 바로 실행할 액션 리스트로 전환합니다",
   },
   {
-    number: "03",
-    icon: ClipboardList,
-    title: "Action Plan",
-    subtitle: "오늘 당장 할 일 리스트",
-    description: "분석 결과를\n\"지금 바로 실행할 행동\"으로 바꿔드립니다.",
-    points: [
-      "우선순위별 P1·P2·P3 실행 계획",
-      "SEO 키워드 진단 및 태그 개선",
-      "업로드 전 매번 확인할 체크리스트",
-      "즉시 수정 가능한 결손 항목 리포트",
-    ],
-    quote: "설명란 키워드 누락 —\n지금 수정하세요.",
+    id: "next-trend",
+    title: "넥스트 트렌드",
+    subtitle: "Next Trend",
+    description: "내 채널 흐름 기반 다음 영상 주제를 바로 제안합니다",
   },
   {
-    number: "04",
-    icon: TrendingUp,
-    title: "Next Trend",
-    subtitle: "내부 흐름 기반 다음 영상 방향",
-    description: "내 채널 데이터 흐름에서\n다음 영상 주제를 바로 제안합니다.",
-    points: [
-      "채널 내부 신호 기반 주제 후보 추천",
-      "1순위 주제 강조 + 근거 제시",
-      "최적 포맷 방향(길이·형식) 권장",
-      "제목·훅·썸네일 통합 실행 힌트",
-    ],
-    quote: "이 주제,\n최근 패턴에서 1.8배 높은 반응.",
+    id: "success-formula",
+    title: "채널 DNA",
+    subtitle: "Channel DNA",
+    description: "잘된 영상의 성공 공식과 스윗 스팟을 자동으로 추출합니다",
   },
 ];
 
-function FeatureBlock({ feature, index }: { feature: typeof features[0]; index: number }) {
-  const { ref, visible } = useFadeIn();
-  const isEven = index % 2 === 0;
-  const Icon = feature.icon;
+function ChannelAnalysisPreview() {
+  const [score, setScore] = useState(0);
+  const [started, setStarted] = useState(false);
+
+  useEffect(() => {
+    setStarted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!started) return;
+    const timer = setTimeout(() => {
+      const interval = setInterval(() => {
+        setScore((prev) => {
+          if (prev >= 78) { clearInterval(interval); return 78; }
+          return prev + 2;
+        });
+      }, 30);
+      return () => clearInterval(interval);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [started]);
+
+  const circumference = 2 * Math.PI * 54;
+  const strokeDashoffset = circumference - (score / 100) * circumference;
+
+  return (
+    <div className="relative w-full h-full flex flex-col items-center justify-center p-4">
+      <div className="relative w-32 h-32 lg:w-36 lg:h-36">
+        <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="54" fill="none" stroke="currentColor" strokeWidth="8" className="text-foreground/10" />
+          <circle
+            cx="60" cy="60" r="54"
+            fill="none" stroke="url(#scoreGradient)"
+            strokeWidth="8" strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={strokeDashoffset}
+            style={{ transition: "stroke-dashoffset 0.08s linear" }}
+          />
+          <defs>
+            <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#f97316" />
+              <stop offset="100%" stopColor="#fb923c" />
+            </linearGradient>
+          </defs>
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-3xl lg:text-4xl font-heading font-medium">{score}</span>
+          <span className="text-xs text-muted-foreground mt-1">/ 100점</span>
+        </div>
+      </div>
+      <div className="mt-4 flex items-center gap-2">
+        <span className="px-3 py-1 rounded-full bg-orange-500/10 text-orange-600 text-xs font-medium">B+ 등급</span>
+        <span className="text-xs text-muted-foreground">성장 가능성 높음</span>
+      </div>
+      <div className="mt-4 grid grid-cols-3 gap-3 w-full max-w-[200px]">
+        {[
+          { label: "콘텐츠", value: "82" },
+          { label: "참여도", value: "71" },
+          { label: "성장률", value: "85" },
+        ].map((stat) => (
+          <div key={stat.label} className="text-center">
+            <div className="text-sm font-medium">{stat.value}</div>
+            <div className="text-[10px] text-muted-foreground">{stat.label}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ActionPlanPreview() {
+  const [activeStep, setActiveStep] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveStep((prev) => (prev + 1) % 4);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const steps = [
+    { week: "1주차", task: "채널 브랜딩 정비" },
+    { week: "2주차", task: "콘텐츠 기획안 작성" },
+    { week: "3주차", task: "첫 영상 업로드" },
+    { week: "4주차", task: "성과 분석 & 개선" },
+  ];
+
+  return (
+    <div className="relative w-full h-full flex flex-col p-4 lg:p-5">
+      <div className="flex items-center justify-between mb-4">
+        <span className="text-xs font-mono text-muted-foreground">ROADMAP</span>
+        <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600">4주 플랜</span>
+      </div>
+      <div className="flex-1 flex flex-col justify-center space-y-3">
+        {steps.map((step, index) => {
+          const isActive = index === activeStep;
+          const isDone = index < activeStep;
+          return (
+            <div
+              key={step.week}
+              className={`flex items-center gap-3 transition-all duration-500 ${isActive ? "scale-[1.03] translate-x-1" : ""}`}
+            >
+              <div className="relative flex-shrink-0">
+                <div className={`w-3 h-3 rounded-full transition-all duration-300 ${isDone ? "bg-emerald-500" : isActive ? "bg-orange-500 ring-4 ring-orange-500/20" : "bg-foreground/20"}`} />
+                {index < steps.length - 1 && (
+                  <div className={`absolute top-3 left-1/2 w-0.5 h-6 -translate-x-1/2 transition-colors duration-300 ${isDone ? "bg-emerald-500" : "bg-foreground/10"}`} />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className={`text-[10px] font-mono ${isActive ? "text-orange-600" : "text-muted-foreground"}`}>{step.week}</span>
+                  {isDone && (
+                    <svg className="w-3 h-3 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                </div>
+                <p className={`text-sm truncate transition-colors duration-300 ${isActive ? "text-foreground font-medium" : "text-muted-foreground"}`}>
+                  {step.task}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function NextTrendPreview() {
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const trends = [
+    { topic: "AI 활용 브이로그", score: 94, change: "+12" },
+    { topic: "미니멀 라이프", score: 87, change: "+8" },
+    { topic: "1인 캠핑", score: 82, change: "+5" },
+    { topic: "홈카페 레시피", score: 79, change: "+3" },
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveIndex((prev) => (prev >= trends.length - 1 ? 0 : prev + 1));
+    }, 1500);
+    return () => clearInterval(interval);
+  }, [trends.length]);
+
+  return (
+    <div className="relative w-full h-full flex flex-col p-4 lg:p-5">
+      <div className="flex items-center justify-between mb-4">
+        <span className="text-xs font-mono text-muted-foreground">TRENDING NOW</span>
+        <div className="flex items-center gap-1">
+          <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+          <span className="text-[10px] text-red-500">LIVE</span>
+        </div>
+      </div>
+      <div className="flex-1 flex flex-col justify-center space-y-2">
+        {trends.map((trend, index) => (
+          <div
+            key={trend.topic}
+            className={`flex items-center gap-3 p-2 rounded-lg transition-all duration-300 ${index === activeIndex ? "bg-foreground/5 scale-[1.02]" : ""}`}
+          >
+            <span className={`w-5 h-5 rounded text-xs flex items-center justify-center font-mono shrink-0 transition-colors duration-300 ${index === 0 ? "bg-orange-500 text-white" : "bg-foreground/10 text-muted-foreground"}`}>
+              {index + 1}
+            </span>
+            <p className="flex-1 text-sm truncate">{trend.topic}</p>
+            <div className="w-16 h-1.5 bg-foreground/10 rounded-full overflow-hidden shrink-0">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${index === 0 ? "bg-orange-500" : "bg-foreground/30"}`}
+                style={{ width: `${trend.score}%` }}
+              />
+            </div>
+            <span className="text-[10px] text-emerald-500 font-mono w-8 text-right shrink-0">{trend.change}</span>
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 text-center">
+        <span className="text-[10px] text-muted-foreground">내 채널과 연관도 높은 주제 분석</span>
+      </div>
+    </div>
+  );
+}
+
+function SuccessFormulaPreview() {
+  const [animationPhase, setAnimationPhase] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setAnimationPhase((prev) => (prev + 1) % 3);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="relative w-full h-full flex flex-col p-4 lg:p-5">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-xs font-mono text-muted-foreground">SWEET SPOT</span>
+        <span className="text-[10px] px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-600">최적 구간 발견</span>
+      </div>
+      <div className="flex-1 relative">
+        <svg viewBox="0 0 200 140" className="w-full h-full">
+          <line x1="30" y1="120" x2="190" y2="120" stroke="currentColor" strokeWidth="1" opacity="0.15" />
+          <line x1="30" y1="20" x2="30" y2="120" stroke="currentColor" strokeWidth="1" opacity="0.15" />
+          {[40, 60, 80, 100].map((y) => (
+            <line key={y} x1="30" y1={y} x2="190" y2={y} stroke="currentColor" strokeWidth="1" strokeDasharray="2 2" opacity="0.07" />
+          ))}
+          <text x="110" y="135" textAnchor="middle" fontSize="8" fill="currentColor" opacity="0.35">영상 길이</text>
+          <text x="15" y="70" textAnchor="middle" fontSize="8" fill="currentColor" opacity="0.35" transform="rotate(-90, 15, 70)">조회수</text>
+          {[
+            { x: 50, y: 90 }, { x: 70, y: 75 }, { x: 90, y: 55 },
+            { x: 110, y: 40 }, { x: 130, y: 50 }, { x: 150, y: 70 }, { x: 170, y: 85 },
+          ].map((point, i) => (
+            <circle key={i} cx={point.x} cy={point.y} r="4" fill="currentColor" opacity="0.2">
+              <animate attributeName="r" values="3;5;3" dur="2s" begin={`${i * 0.2}s`} repeatCount="indefinite" />
+            </circle>
+          ))}
+          <path
+            d="M 50 90 Q 80 60 110 40 Q 140 55 170 85"
+            fill="none" stroke="url(#curveGradient)"
+            strokeWidth="2.5" strokeLinecap="round"
+            strokeDasharray="200"
+            strokeDashoffset={animationPhase === 0 ? 200 : 0}
+            style={{ transition: "stroke-dashoffset 1s ease" }}
+          />
+          <defs>
+            <linearGradient id="curveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#a855f7" stopOpacity="0.3" />
+              <stop offset="50%" stopColor="#f97316" />
+              <stop offset="100%" stopColor="#a855f7" stopOpacity="0.3" />
+            </linearGradient>
+          </defs>
+          <g opacity={animationPhase >= 1 ? 1 : 0} style={{ transition: "opacity 0.5s" }}>
+            <rect x="95" y="30" width="30" height="40" rx="4" fill="#f97316" opacity="0.1" />
+            <circle cx="110" cy="40" r="6" fill="#f97316">
+              <animate attributeName="r" values="5;7;5" dur="1.5s" repeatCount="indefinite" />
+            </circle>
+          </g>
+          <g opacity={animationPhase >= 2 ? 1 : 0} style={{ transition: "opacity 0.5s" }}>
+            <rect x="115" y="25" width="55" height="18" rx="3" className="fill-foreground" />
+            <text x="142" y="37" textAnchor="middle" fontSize="8" fontWeight="500" className="fill-background">
+              8~12분 최적
+            </text>
+          </g>
+        </svg>
+      </div>
+      <div className="flex items-center justify-center gap-2 mt-2">
+        <span className="w-2 h-2 rounded-full bg-orange-500" />
+        <span className="text-[10px] text-muted-foreground">내 채널의 최적 영상 길이 발견</span>
+      </div>
+    </div>
+  );
+}
+
+function ToolPreview({ id }: { id: string }) {
+  if (id === "channel-analysis") return <ChannelAnalysisPreview />;
+  if (id === "action-plan") return <ActionPlanPreview />;
+  if (id === "next-trend") return <NextTrendPreview />;
+  return <SuccessFormulaPreview />;
+}
+
+function ToolCard({ tool, index }: { tool: typeof tools[0]; index: number }) {
+  const { ref, visible } = useFadeIn(0.2);
 
   return (
     <div
       ref={ref}
-      className={`grid grid-cols-1 lg:grid-cols-2 gap-0 border border-foreground/10 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
-      style={{ transitionDelay: `${index * 80}ms` }}
+      className={`group relative transition-all duration-700 ${
+        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
+      }`}
+      style={{ transitionDelay: `${index * 100}ms` }}
     >
-      {/* Text block */}
-      <div className={`p-6 lg:p-10 flex flex-col justify-between ${isEven ? "lg:order-1" : "lg:order-2"}`}>
-        <div>
-          <div className="flex items-center gap-4 mb-6">
-            <span className="font-mono text-xs text-muted-foreground">{feature.number}</span>
-            <div className="flex items-center gap-2">
-              <div className="flex size-8 items-center justify-center rounded-md bg-foreground/5 border border-foreground/10">
-                <Icon className="size-4 text-foreground" />
-              </div>
-              <div>
-                <h3 className="font-heading text-xl lg:text-2xl font-medium tracking-[-0.02em]">{feature.title}</h3>
-                <p className="text-xs text-muted-foreground">{feature.subtitle}</p>
-              </div>
+      <div className="relative h-full border border-foreground/10 rounded-2xl overflow-hidden transition-all duration-500 hover:border-foreground/20 hover:shadow-xl bg-background">
+        <div className="h-56 lg:h-60 border-b border-foreground/5 bg-foreground/[0.02]">
+          <ToolPreview id={tool.id} />
+        </div>
+        <div className="p-4 lg:p-5">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="font-heading text-lg font-medium mb-0.5 group-hover:text-orange-600 transition-colors duration-300">
+                {tool.title}
+              </h3>
+              <p className="text-xs font-mono text-muted-foreground">{tool.subtitle}</p>
+            </div>
+            <div className="w-8 h-8 rounded-full bg-foreground/5 flex items-center justify-center shrink-0 group-hover:bg-orange-500 group-hover:text-white transition-all duration-300">
+              <ArrowRight className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-lg lg:text-xl font-heading font-medium leading-snug tracking-[-0.02em] mb-8 whitespace-pre-line">
-            {feature.description}
-          </p>
-          <ul className="space-y-2.5">
-            {feature.points.map((point) => (
-              <li key={point} className="flex items-start gap-2.5 text-sm text-muted-foreground">
-                <Check className="h-3.5 w-3.5 mt-0.5 shrink-0 text-foreground/40" />
-                {point}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      {/* Result quote block */}
-      <div className={`flex items-center justify-center bg-foreground/[0.02] border-t lg:border-t-0 ${isEven ? "lg:border-l lg:order-2" : "lg:border-r lg:order-1"} border-foreground/10 p-6 lg:p-10 min-h-[220px]`}>
-        <div className="space-y-3">
-          <p className="font-mono text-[10px] tracking-[0.12em] uppercase text-muted-foreground/50">실제 결과 예시</p>
-          <blockquote className="font-heading text-xl lg:text-2xl font-medium tracking-[-0.02em] leading-snug whitespace-pre-line">
-            {feature.quote}
-          </blockquote>
+          <p className="text-sm text-muted-foreground mt-2">{tool.description}</p>
         </div>
       </div>
     </div>
@@ -499,21 +707,42 @@ function FeaturesSection() {
   const { ref, visible } = useFadeIn();
 
   return (
-    <section id="features" className="relative py-6 lg:py-10 border-t border-foreground/10">
-      <div className="max-w-[1080px] mx-auto px-8 lg:px-20">
-        <div ref={ref} className={`mb-8 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-          <SectionLabel>Core Features</SectionLabel>
-          <h2 className="font-heading text-4xl lg:text-5xl font-medium tracking-[-0.03em] leading-[1.1]">
-            읽는 순간 이해되는
-            <br />
-            <span className="text-muted-foreground">4가지 분석 도구</span>
+    <section id="features" className="relative py-10 lg:py-20 border-t border-foreground/10 overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-orange-500/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-violet-500/5 rounded-full blur-3xl" />
+      </div>
+      <div className="relative z-10 max-w-[1080px] mx-auto px-8 lg:px-20">
+        <div ref={ref} className={`mb-10 text-center transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+          <span className="inline-flex items-center gap-3 text-sm font-mono text-muted-foreground mb-6">
+            <span className="w-8 h-px bg-foreground/30 inline-block" />
+            Core Tools
+            <span className="w-8 h-px bg-foreground/30 inline-block" />
+          </span>
+          <h2 className="font-heading text-4xl lg:text-5xl font-medium tracking-[-0.03em] leading-[1.1] mt-2">
+            읽는 순간 이해되는<br />
+            <span className="text-orange-600 dark:text-orange-500">4가지 분석 도구</span>
           </h2>
+          <p className={`mt-4 text-base text-muted-foreground transition-all duration-700 delay-100 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+            텍스트 설명 없이도 바로 이해되는 직관적인 분석 UI
+          </p>
         </div>
-
-        <div className="space-y-px">
-          {features.map((feature, index) => (
-            <FeatureBlock key={feature.number} feature={feature} index={index} />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 lg:gap-6">
+          {tools.map((tool, index) => (
+            <ToolCard key={tool.id} tool={tool} index={index} />
           ))}
+        </div>
+        <div className={`mt-10 text-center transition-all duration-700 delay-500 ${visible ? "opacity-100" : "opacity-0"}`}>
+          <p className="text-sm text-muted-foreground mb-3">모든 도구는 연결되어 더 강력한 인사이트를 제공합니다</p>
+          <div className="flex items-center justify-center gap-2">
+            {[0, 1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="w-2 h-2 rounded-full bg-foreground/20 animate-pulse"
+                style={{ animationDelay: `${i * 0.3}s` }}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </section>
