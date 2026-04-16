@@ -11,7 +11,7 @@ export async function getAdminUsersData(): Promise<AdminUsersData> {
       .select("user_id, lifetime_analyses_used, purchased_credits"),
     supabaseAdmin
       .from("user_subscriptions")
-      .select("user_id, plan_id, subscription_status, current_period_start, renewal_at, grant_type"),
+      .select("user_id, plan_id, billing_period, subscription_status, current_period_start, renewal_at, grant_type, pending_plan_id, pending_billing_period"),
     supabaseAdmin
       .from("analysis_jobs")
       .select("user_id")
@@ -40,10 +40,13 @@ export async function getAdminUsersData(): Promise<AdminUsersData> {
   type SubRow = {
     user_id: string;
     plan_id: string | null;
+    billing_period: string | null;
     subscription_status: string | null;
     current_period_start: string | null;
     renewal_at: string | null;
     grant_type: string | null;
+    pending_plan_id: string | null;
+    pending_billing_period: string | null;
   };
   const subsMap = new Map<string, SubRow>();
   for (const row of (subscriptionsRes.data ?? []) as SubRow[]) {
@@ -78,9 +81,14 @@ export async function getAdminUsersData(): Promise<AdminUsersData> {
       purchased_credits: credits?.purchased_credits ?? null,
       total_analyses_count: analysisCountMap.get(u.id) ?? 0,
       plan_id: sub?.plan_id ?? null,
+      billing_period: (sub?.billing_period === "monthly" || sub?.billing_period === "semiannual")
+        ? sub.billing_period : null,
       subscription_status: sub?.subscription_status ?? null,
       renewal_at: sub?.renewal_at ?? null,
       grant_type: sub?.grant_type ?? null,
+      pending_plan_id: sub?.pending_plan_id ?? null,
+      pending_billing_period: (sub?.pending_billing_period === "monthly" || sub?.pending_billing_period === "semiannual")
+        ? sub.pending_billing_period : null,
     };
   });
 

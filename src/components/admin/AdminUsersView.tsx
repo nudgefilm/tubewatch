@@ -9,13 +9,32 @@ import { FREE_LIFETIME_ANALYSIS_LIMIT } from "@/components/billing/types";
 
 const PAGE_SIZE = 100;
 
-type PlanOption = "free" | "creator" | "pro";
+// SetPlanButton용 옵션 (planId + billingPeriod 조합)
+type SetPlanKey = "free" | "creator_monthly" | "creator_semiannual" | "pro_monthly" | "pro_semiannual";
 
-const PLAN_OPTIONS: { id: PlanOption; label: string; className: string }[] = [
-  { id: "free",    label: "Free",    className: "bg-foreground/10 text-foreground/60" },
-  { id: "creator", label: "Creator", className: "bg-blue-100 text-blue-700" },
-  { id: "pro",     label: "Pro",     className: "bg-violet-100 text-violet-700" },
+type SetPlanOpt = {
+  key: SetPlanKey;
+  planId: "free" | "creator" | "pro";
+  billingPeriod: "monthly" | "semiannual" | null;
+  label: string;
+  className: string;
+};
+
+const SET_PLAN_OPTS: SetPlanOpt[] = [
+  { key: "free",               planId: "free",    billingPeriod: null,         label: "Free",          className: "bg-foreground/10 text-foreground/60" },
+  { key: "creator_monthly",    planId: "creator", billingPeriod: "monthly",    label: "Creator 월간",  className: "bg-blue-100 text-blue-700" },
+  { key: "creator_semiannual", planId: "creator", billingPeriod: "semiannual", label: "Creator 6개월", className: "bg-blue-100 text-blue-700" },
+  { key: "pro_monthly",        planId: "pro",     billingPeriod: "monthly",    label: "Pro 월간",      className: "bg-violet-100 text-violet-700" },
+  { key: "pro_semiannual",     planId: "pro",     billingPeriod: "semiannual", label: "Pro 6개월",     className: "bg-violet-100 text-violet-700" },
 ];
+
+function toSetPlanKey(planId: string | null, billingPeriod: string | null): SetPlanKey {
+  if (!planId || planId === "free") return "free";
+  if (planId === "creator" && billingPeriod === "semiannual") return "creator_semiannual";
+  if (planId === "creator") return "creator_monthly";
+  if (planId === "pro" && billingPeriod === "semiannual") return "pro_semiannual";
+  return "pro_monthly";
+}
 
 const GRANT_PLANS = [
   { id: "creator", label: "Creator" },
@@ -63,13 +82,11 @@ function isExpired(isoString: string | null): boolean {
   return new Date(isoString).getTime() + 24 * 60 * 60 * 1000 < Date.now();
 }
 
-function getPlanLabel(planId: string | null): string {
+function getPlanDisplayLabel(planId: string | null, billingPeriod: string | null): string {
   if (!planId) return "";
-  const base: Record<string, string> = {
-    creator: "Creator",
-    pro: "Pro",
-  };
-  return base[planId] ?? planId;
+  const name = planId === "creator" ? "Creator" : planId === "pro" ? "Pro" : planId;
+  const period = billingPeriod === "semiannual" ? " (6개월)" : " (월간)";
+  return name + period;
 }
 
 function getPlanClass(planId: string | null): string {
@@ -91,61 +108,71 @@ function getStatusBadge(status: string | null, expiresAt: string | null) {
 
 // ─── 서브 컴포넌트: SetPlanButton ─────────────────────────────────────────────
 
-function SetPlanButton({ userId, currentPlan }: { userId: string; currentPlan: PlanOption }) {
+function SetPlanButton({
+  userId,
+  currentPlanId,
+  currentBillingPeriod,
+}: {
+  userId: string;
+  currentPlanId: string | null;
+  currentBillingPeriod: string | null;
+}) {
   const [open, setOpen] = useState(false);
-  const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
-  const [applied, setApplied] = useState<PlanOption>(currentPlan);
+  const [reqStatus, setReqStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [applied, setApplied] = useState<SetPlanKey>(() =>
+    toSetPlanKey(currentPlanId, currentBillingPeriod)
+  );
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  async function handleSelect(planId: PlanOption) {
-    if (planId === applied || status === "loading") return;
+  async function handleSelect(opt: SetPlanOpt) {
+    if (opt.key === applied || reqStatus === "loading") return;
     setOpen(false);
-    setStatus("loading");
+    setReqStatus("loading");
     setErrorMsg(null);
     try {
       const res = await fetch("/api/admin/set-user-plan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, planId }),
+        body: JSON.stringify({ userId, planId: opt.planId, billingPeriod: opt.billingPeriod }),
       });
       const body = await res.json().catch(() => ({})) as { ok?: boolean; error?: string };
       if (res.ok && body.ok) {
-        setApplied(planId);
-        setStatus("done");
-        setTimeout(() => setStatus("idle"), 2000);
+        setApplied(opt.key);
+        setReqStatus("done");
+        setTimeout(() => setReqStatus("idle"), 2000);
       } else {
         setErrorMsg(body.error ?? `HTTP ${res.status}`);
-        setStatus("error");
-        setTimeout(() => { setStatus("idle"); setErrorMsg(null); }, 5000);
+        setReqStatus("error");
+        setTimeout(() => { setReqStatus("idle"); setErrorMsg(null); }, 5000);
       }
     } catch (e) {
       setErrorMsg(e instanceof Error ? e.message : "네트워크 오류");
-      setStatus("error");
-      setTimeout(() => { setStatus("idle"); setErrorMsg(null); }, 5000);
+      setReqStatus("error");
+      setTimeout(() => { setReqStatus("idle"); setErrorMsg(null); }, 5000);
     }
   }
 
-  const current = PLAN_OPTIONS.find((p) => p.id === applied) ?? PLAN_OPTIONS[0];
+  const current = SET_PLAN_OPTS.find((o) => o.key === applied) ?? SET_PLAN_OPTS[0];
 
   return (
     <div className="relative inline-block">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        disabled={status === "loading"}
-        className={`rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase transition-colors disabled:opacity-50 ${current.className}`}
+        disabled={reqStatus === "loading"}
+        className={`rounded px-1.5 py-0.5 text-[10px] font-semibold transition-colors disabled:opacity-50 ${current.className}`}
       >
-        {status === "loading" ? "..." : status === "done" ? "✓ " + current.label : current.label}
+        {reqStatus === "loading" ? "..." : reqStatus === "done" ? "✓ " + current.label : current.label}
       </button>
       {open && (
-        <div className="absolute left-0 top-full z-10 mt-1 w-24 rounded-lg border border-foreground/10 bg-background shadow-lg">
-          {PLAN_OPTIONS.map((opt) => (
+        <div className="absolute left-0 top-full z-10 mt-1 w-36 rounded-lg border border-foreground/10 bg-background shadow-lg">
+          {SET_PLAN_OPTS.map((opt) => (
             <button
-              key={opt.id}
+              key={opt.key}
               type="button"
-              onClick={() => handleSelect(opt.id)}
+              onClick={() => handleSelect(opt)}
               className={`w-full px-2.5 py-1.5 text-left text-[11px] font-medium hover:bg-foreground/5 transition-colors first:rounded-t-lg last:rounded-b-lg ${
-                opt.id === applied ? "opacity-40 cursor-default" : ""
+                opt.key === applied ? "opacity-40 cursor-default" : ""
               }`}
             >
               {opt.label}
@@ -153,7 +180,7 @@ function SetPlanButton({ userId, currentPlan }: { userId: string; currentPlan: P
           ))}
         </div>
       )}
-      {status === "error" && (
+      {reqStatus === "error" && (
         <span className="ml-1 text-[10px] text-red-500" title={errorMsg ?? ""}>
           실패
         </span>
@@ -203,6 +230,7 @@ function ManualGrantModal({
   userId,
   userEmail,
   defaultPlanId,
+  defaultBillingPeriod,
   currentPeriodEnd,
   onClose,
   onSuccess,
@@ -210,11 +238,13 @@ function ManualGrantModal({
   userId: string;
   userEmail: string | null;
   defaultPlanId: string;
+  defaultBillingPeriod: "monthly" | "semiannual";
   currentPeriodEnd: string | null;
   onClose: () => void;
   onSuccess: (newExpiresAt: string) => void;
 }) {
   const planId = defaultPlanId;
+  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "semiannual">(defaultBillingPeriod);
   const [durationDays, setDurationDays] = useState<number>(30);
   const [reason, setReason] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
@@ -238,7 +268,7 @@ function ManualGrantModal({
       const res = await fetch("/api/admin/manual-grant", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, planId, durationDays, reason: reason.trim() }),
+        body: JSON.stringify({ userId, planId, billingPeriod, durationDays, reason: reason.trim() }),
       });
       const body = await res.json().catch(() => ({})) as { ok?: boolean; newExpiresAt?: string; error?: string };
       if (res.ok && body.ok && body.newExpiresAt) {
@@ -279,6 +309,27 @@ function ManualGrantModal({
           </div>
         ) : (
           <>
+            {/* 결제 주기 선택 */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-foreground/70">결제 주기</label>
+              <div className="flex gap-1.5">
+                {(["monthly", "semiannual"] as const).map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setBillingPeriod(p)}
+                    className={`flex-1 rounded-lg border px-3 py-2 text-xs font-medium transition-all ${
+                      billingPeriod === p
+                        ? "border-foreground bg-foreground text-background shadow-sm"
+                        : "border-foreground/15 text-muted-foreground hover:border-foreground/40 hover:text-foreground"
+                    }`}
+                  >
+                    {p === "monthly" ? "월간" : "6개월"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* 기간 선택 */}
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-foreground/70">부여 기간</label>
@@ -569,7 +620,7 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [grantModal, setGrantModal] = useState<{ userId: string; email: string | null; periodEnd: string | null; planId: string | null } | null>(null);
+  const [grantModal, setGrantModal] = useState<{ userId: string; email: string | null; periodEnd: string | null; planId: string | null; billingPeriod: string | null } | null>(null);
   const [historyPanel, setHistoryPanel] = useState<{ userId: string; email: string | null } | null>(null);
   const [refundModal, setRefundModal] = useState<{ userId: string; email: string | null; periodEnd: string | null } | null>(null);
   // 로컬 만료일 업데이트 (수동부여 성공 시)
@@ -600,6 +651,7 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
           userId={grantModal.userId}
           userEmail={grantModal.email}
           defaultPlanId={grantModal.planId ?? "creator"}
+          defaultBillingPeriod={(grantModal.billingPeriod === "semiannual") ? "semiannual" : "monthly"}
           currentPeriodEnd={localExpiry[grantModal.userId] ?? grantModal.periodEnd}
           onClose={() => setGrantModal(null)}
           onSuccess={(newExpiry) => {
@@ -677,14 +729,11 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
                   const totalAnalyses = row.total_analyses_count;
 
                   const statusBadge = getStatusBadge(row.subscription_status, effectivePeriodEnd);
-                  const planLabel = row.plan_id ? getPlanLabel(row.plan_id) : null;
+                  const planLabel = row.plan_id && !isExpired(effectivePeriodEnd)
+                    ? getPlanDisplayLabel(row.plan_id, row.billing_period)
+                    : null;
                   const isPaid = row.subscription_status === "active" || row.subscription_status === "trialing" || row.subscription_status === "manual";
                   const isRefunded = row.subscription_status === "refunded";
-
-                  const currentPlan: PlanOption =
-                    isPaid && !isExpired(effectivePeriodEnd) && (row.plan_id === "creator" || row.plan_id === "pro")
-                      ? row.plan_id
-                      : "free";
 
                   return (
                     <tr key={row.id} className="hover:bg-foreground/[0.02] transition-colors">
@@ -710,9 +759,13 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
                       {/* 플랜 */}
                       <td className="px-4 py-2.5">
                         <div className="flex flex-col gap-1">
-                          <SetPlanButton userId={row.id} currentPlan={currentPlan} />
+                          <SetPlanButton
+                            userId={row.id}
+                            currentPlanId={row.plan_id}
+                            currentBillingPeriod={row.billing_period}
+                          />
                           <div className="flex items-center gap-1 flex-wrap">
-                            {planLabel && !isExpired(effectivePeriodEnd) && (
+                            {planLabel && (
                               <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${getPlanClass(row.plan_id)}`}>
                                 {planLabel}
                               </span>
@@ -726,6 +779,12 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
                               <span className="rounded px-1.5 py-0.5 text-[10px] text-amber-600 bg-amber-50">수동</span>
                             )}
                           </div>
+                          {/* pending 플랜 표시 */}
+                          {row.pending_plan_id && (
+                            <p className="text-[10px] text-amber-600">
+                              → {getPlanDisplayLabel(row.pending_plan_id, row.pending_billing_period)} (만료 후 적용)
+                            </p>
+                          )}
                         </div>
                       </td>
 
@@ -765,7 +824,7 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
                         <div className="flex items-center gap-1">
                           <button
                             type="button"
-                            onClick={() => setGrantModal({ userId: row.id, email: row.email, periodEnd: effectivePeriodEnd, planId: row.plan_id })}
+                            onClick={() => setGrantModal({ userId: row.id, email: row.email, periodEnd: effectivePeriodEnd, planId: row.plan_id, billingPeriod: row.billing_period })}
                             className="rounded px-1.5 py-0.5 text-[10px] font-medium bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
                           >
                             부여

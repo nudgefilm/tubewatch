@@ -9,6 +9,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { isAdminUser } from "@/lib/server/isAdminUser";
+import type { BillingPeriod } from "@/components/billing/types";
 
 const VALID_PLAN_IDS = ["creator", "pro"] as const;
 type GrantPlanId = (typeof VALID_PLAN_IDS)[number];
@@ -39,6 +40,8 @@ export async function POST(request: Request) {
     const planId = typeof body.planId === "string" ? body.planId.trim() as GrantPlanId : "";
     const durationDays = typeof body.durationDays === "number" ? body.durationDays as DurationDays : 0;
     const reason = typeof body.reason === "string" ? body.reason.trim() : "";
+    const billingPeriod: BillingPeriod =
+      body.billingPeriod === "semiannual" ? "semiannual" : "monthly";
 
     if (!targetUserId) return NextResponse.json({ error: "userId가 필요합니다." }, { status: 400 });
     if (!VALID_PLAN_IDS.includes(planId as GrantPlanId)) {
@@ -66,7 +69,7 @@ export async function POST(request: Request) {
     const upsertRow = {
       user_id: targetUserId,
       plan_id: planId,
-      billing_period: "monthly" as const,
+      billing_period: billingPeriod,
       subscription_status: "manual",
       grant_type: "manual",
       manual_grant_reason: reason,

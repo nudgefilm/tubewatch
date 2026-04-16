@@ -42,9 +42,12 @@ export type AdminUserRow = {
   lifetime_analyses_used: number | null;
   purchased_credits: number | null;
   plan_id: string | null;
+  billing_period: "monthly" | "semiannual" | null;
   subscription_status: string | null;
   renewal_at: string | null;
   grant_type: string | null;
+  pending_plan_id: string | null;
+  pending_billing_period: "monthly" | "semiannual" | null;
   total_analyses_count: number;
 };
 
