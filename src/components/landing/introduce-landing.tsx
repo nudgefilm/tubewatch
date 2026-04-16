@@ -43,7 +43,7 @@ function HeroSection() {
   }, []);
 
   return (
-    <section className="relative flex flex-col justify-center py-12 lg:py-16 overflow-hidden">
+    <section className="relative flex flex-col justify-center pt-20 pb-12 lg:pt-28 lg:pb-16 overflow-hidden">
       {/* Background grid */}
       <div
         className="absolute inset-0 pointer-events-none"
