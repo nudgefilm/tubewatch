@@ -1081,64 +1081,392 @@ function HowItWorksSection() {
 
 // ─── 05. Why TubeWatch ──────────────────────────────────────────────────────
 
-const whyItems = [
+const comparisonItems = [
   {
-    title: "감이 아닌 근거",
-    desc: "모든 제안은 내 채널 데이터 기반입니다. 다른 채널 평균이나 외부 트렌드가 아닌, 내 채널 안의 패턴에서만 찾습니다.",
+    category: "데이터 분석",
+    features: [
+      { name: "조회수·구독자 수치 제공", others: true, tubewatch: true, highlight: false },
+      { name: "성과 원인 분석 (왜 떴는지)", others: false, tubewatch: true, highlight: true },
+      { name: "31개 성장 신호 종합 진단", others: false, tubewatch: true, highlight: true },
+    ],
   },
   {
-    title: "분석에서 끝나지 않습니다",
-    desc: "숫자를 보여주고 끝내지 않습니다. 바로 실행 가능한 액션을 제공합니다.",
+    category: "콘텐츠 기획",
+    features: [
+      { name: "인기 키워드 리스트 제공", others: true, tubewatch: true, highlight: false },
+      { name: "내 채널 맞춤 주제 추천", others: false, tubewatch: true, highlight: true },
+      { name: "구체적 기획안 자동 생성", others: false, tubewatch: true, highlight: true },
+    ],
   },
   {
-    title: "내 채널 전용 전략",
-    desc: "일반적인 유튜브 성장 팁이 아닙니다. 다른 채널이 아닌 '내 데이터' 기준으로 전략을 설계합니다.",
+    category: "실행 가이드",
+    features: [
+      { name: "일반적인 성장 팁 제공", others: true, tubewatch: true, highlight: false },
+      { name: "단계별 실행 로드맵 제공", others: false, tubewatch: true, highlight: true },
+      { name: "주간 액션 플랜 자동 생성", others: false, tubewatch: true, highlight: true },
+    ],
   },
   {
-    title: "복잡함 없이 바로 이해",
-    desc: "핵심만, 바로 실행 가능하게. 분석 전문가가 아니어도 읽는 순간 무엇을 해야 할지 알 수 있습니다.",
+    category: "성공 공식",
+    features: [
+      { name: "업계 평균 벤치마크 제공", others: true, tubewatch: true, highlight: false },
+      { name: "스윗 스팟 영역 발견", others: false, tubewatch: true, highlight: true },
+      { name: "나만의 성공 패턴 도출", others: false, tubewatch: true, highlight: true },
+    ],
   },
 ];
+
+function CheckIcon({ checked, highlight }: { checked: boolean; highlight: boolean }) {
+  if (!checked) {
+    return (
+      <div className="w-8 h-8 rounded-full bg-foreground/5 flex items-center justify-center">
+        <svg viewBox="0 0 24 24" className="w-5 h-5 text-foreground/20">
+          <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      </div>
+    );
+  }
+  return (
+    <div
+      className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+        highlight
+          ? "bg-orange-500 text-white shadow-lg shadow-orange-500/30"
+          : "bg-emerald-500/10 text-emerald-600"
+      }`}
+    >
+      <svg viewBox="0 0 24 24" className="w-5 h-5">
+        <path
+          d="M5 12l5 5L19 7"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </div>
+  );
+}
+
+function AnimatedRow({
+  feature,
+  index,
+  isVisible,
+}: {
+  feature: (typeof comparisonItems)[0]["features"][0];
+  index: number;
+  isVisible: boolean;
+}) {
+  const [showCheck, setShowCheck] = useState(false);
+
+  useEffect(() => {
+    if (isVisible) {
+      const timer = setTimeout(() => setShowCheck(true), 300 + index * 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible, index]);
+
+  return (
+    <div
+      className={`grid grid-cols-[1fr_80px_80px] lg:grid-cols-[1fr_120px_120px] items-center py-4 border-b border-foreground/5 transition-all duration-500 ${
+        isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"
+      } ${feature.highlight ? "bg-orange-500/[0.02]" : ""}`}
+      style={{ transitionDelay: `${index * 80}ms` }}
+    >
+      <div className="flex items-center gap-3">
+        {feature.highlight && (
+          <span className="w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0" />
+        )}
+        <span
+          className={`text-sm lg:text-base ${
+            feature.highlight ? "font-medium" : "text-muted-foreground"
+          }`}
+        >
+          {feature.name}
+        </span>
+      </div>
+      <div className="flex justify-center">
+        <div
+          className={`transition-all duration-300 ${
+            showCheck ? "scale-100 opacity-100" : "scale-50 opacity-0"
+          }`}
+          style={{ transitionDelay: `${index * 80 + 100}ms` }}
+        >
+          <CheckIcon checked={feature.others} highlight={false} />
+        </div>
+      </div>
+      <div className="flex justify-center">
+        <div
+          className={`transition-all duration-500 ${
+            showCheck ? "scale-100 opacity-100" : "scale-50 opacity-0"
+          }`}
+          style={{ transitionDelay: `${index * 80 + 200}ms` }}
+        >
+          <CheckIcon checked={feature.tubewatch} highlight={feature.highlight} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CategoryBlock({
+  category,
+  categoryIndex,
+  isVisible,
+}: {
+  category: (typeof comparisonItems)[0];
+  categoryIndex: number;
+  isVisible: boolean;
+}) {
+  return (
+    <div
+      className={`transition-all duration-700 ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+      }`}
+      style={{ transitionDelay: `${categoryIndex * 150}ms` }}
+    >
+      <div className="flex items-center gap-3 mb-2 pt-6 first:pt-0">
+        <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">
+          {String(categoryIndex + 1).padStart(2, "0")}
+        </span>
+        <span className="text-sm font-medium text-orange-600 dark:text-orange-500">{category.category}</span>
+        <span className="flex-1 h-px bg-foreground/10" />
+      </div>
+      {category.features.map((feature, featureIndex) => (
+        <AnimatedRow
+          key={feature.name}
+          feature={feature}
+          index={categoryIndex * 3 + featureIndex}
+          isVisible={isVisible}
+        />
+      ))}
+    </div>
+  );
+}
+
+function ScoreComparison({ isVisible }: { isVisible: boolean }) {
+  const [othersScore, setOthersScore] = useState(0);
+  const [tubewatchScore, setTubewatchScore] = useState(0);
+
+  useEffect(() => {
+    if (!isVisible) return;
+    const timer = setTimeout(() => {
+      const othersInterval = setInterval(() => {
+        setOthersScore((prev) => {
+          if (prev >= 4) { clearInterval(othersInterval); return 4; }
+          return prev + 1;
+        });
+      }, 150);
+      const tubewatchInterval = setInterval(() => {
+        setTubewatchScore((prev) => {
+          if (prev >= 12) { clearInterval(tubewatchInterval); return 12; }
+          return prev + 1;
+        });
+      }, 100);
+      return () => {
+        clearInterval(othersInterval);
+        clearInterval(tubewatchInterval);
+      };
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [isVisible]);
+
+  return (
+    <div
+      className={`mt-8 p-6 rounded-2xl bg-foreground/[0.02] border border-foreground/10 transition-all duration-700 delay-500 ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+      }`}
+    >
+      <div className="grid grid-cols-2 gap-8">
+        <div className="text-center">
+          <div className="text-3xl lg:text-4xl font-heading mb-2">
+            <span className="text-foreground/30">{othersScore}</span>
+            <span className="text-foreground/20 text-xl">/12</span>
+          </div>
+          <div className="text-sm text-muted-foreground">기존 분석 도구</div>
+          <div className="mt-3 h-2 bg-foreground/10 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-foreground/20 rounded-full transition-all duration-500"
+              style={{ width: `${(othersScore / 12) * 100}%` }}
+            />
+          </div>
+        </div>
+        <div className="text-center">
+          <div className="text-3xl lg:text-4xl font-heading mb-2">
+            <span className="text-orange-600 dark:text-orange-500">{tubewatchScore}</span>
+            <span className="text-orange-400 text-xl">/12</span>
+          </div>
+          <div className="text-sm font-medium">튜브워치</div>
+          <div className="mt-3 h-2 bg-orange-500/20 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-orange-500 to-amber-500 rounded-full transition-all duration-500"
+              style={{ width: `${(tubewatchScore / 12) * 100}%` }}
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className={`mt-6 text-center transition-all duration-500 delay-1000 ${
+          tubewatchScore === 12 ? "opacity-100" : "opacity-0"
+        }`}
+      >
+        <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-500 text-sm font-medium">
+          <svg viewBox="0 0 24 24" className="w-4 h-4">
+            <path
+              d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+              fill="currentColor"
+            />
+          </svg>
+          8가지 실행 중심 기능 차별화
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function VsGraphic({ isVisible }: { isVisible: boolean }) {
+  return (
+    <div
+      className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-all duration-700 delay-300 ${
+        isVisible ? "opacity-100 scale-100" : "opacity-0 scale-50"
+      }`}
+    >
+      <div className="relative w-16 h-16 lg:w-20 lg:h-20">
+        <div className="absolute inset-0 bg-orange-500/20 rounded-full blur-xl" />
+        <div className="relative w-full h-full rounded-full bg-background border-2 border-orange-500/30 flex items-center justify-center">
+          <span className="text-lg lg:text-xl font-heading font-bold text-orange-600 dark:text-orange-500">VS</span>
+        </div>
+        <div className="absolute inset-0 animate-spin-slow">
+          {[0, 90, 180, 270].map((angle) => (
+            <div
+              key={angle}
+              className="absolute w-2 h-2 rounded-full bg-orange-500"
+              style={{
+                top: "50%",
+                left: "50%",
+                transform: `rotate(${angle}deg) translateY(-32px) translateX(-50%)`,
+              }}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function WhySection() {
   const { ref, visible } = useFadeIn();
 
   return (
-    <section className="relative py-6 lg:py-10 border-t border-foreground/10">
-      <div className="max-w-[1080px] mx-auto px-8 lg:px-20">
-        <div ref={ref} className={`mb-8 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-          <SectionLabel>Why TubeWatch</SectionLabel>
-          <h2 className="font-heading text-4xl lg:text-5xl font-medium tracking-[-0.03em] leading-[1.1]">
+    <section className="relative py-10 lg:py-20 overflow-hidden border-t border-foreground/10">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-1/4 left-0 w-96 h-96 bg-foreground/[0.02] rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-orange-500/5 rounded-full blur-3xl" />
+      </div>
+
+      <div ref={ref} className="relative z-10 max-w-[1080px] mx-auto px-8 lg:px-20">
+        {/* Header */}
+        <div className="text-center mb-12 lg:mb-16">
+          <SectionLabel>Why Different</SectionLabel>
+          <h2
+            className={`font-heading text-4xl lg:text-5xl font-medium tracking-[-0.03em] leading-[1.1] mb-6 transition-all duration-700 ${
+              visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+            }`}
+          >
             다른 분석 도구와
             <br />
-            <span className="text-muted-foreground">무엇이 다른가요?</span>
+            <span className="text-orange-600 dark:text-orange-500">무엇이 다른가요?</span>
           </h2>
+          <p
+            className={`text-base lg:text-lg text-muted-foreground max-w-2xl mx-auto transition-all duration-700 delay-100 ${
+              visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+            }`}
+          >
+            숫자만 보여주는 도구는 많습니다
+            <br className="lg:hidden" />
+            <span className="hidden lg:inline"> — </span>
+            튜브워치는 &ldquo;그래서 뭘 해야 하는지&rdquo;까지 알려드립니다
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-px border border-foreground/10 bg-foreground/10">
-          {whyItems.map(({ title, desc }, i) => (
-            <WhyCard key={title} title={title} desc={desc} index={i} />
-          ))}
+        {/* Comparison Table */}
+        <div
+          className={`relative bg-background rounded-3xl border border-foreground/10 overflow-hidden transition-all duration-700 delay-200 ${
+            visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          }`}
+        >
+          {/* Table header */}
+          <div className="grid grid-cols-[1fr_80px_80px] lg:grid-cols-[1fr_120px_120px] items-center px-6 py-4 bg-foreground/[0.02] border-b border-foreground/10">
+            <div className="text-sm font-mono text-muted-foreground">기능 비교</div>
+            <div className="text-center">
+              <div className="text-xs font-mono text-muted-foreground mb-1">기존 도구</div>
+              <div className="flex items-center justify-center">
+                <div className="w-5 h-5 rounded bg-foreground/10 flex items-center justify-center">
+                  <svg viewBox="0 0 24 24" className="w-3 h-3 text-foreground/30">
+                    <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="text-xs font-mono text-orange-600 dark:text-orange-500 mb-1">튜브워치</div>
+              <div className="flex items-center justify-center">
+                <div className="w-5 h-5 rounded bg-orange-500/10 flex items-center justify-center">
+                  <svg viewBox="0 0 24 24" className="w-3 h-3 text-orange-500">
+                    <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="2" fill="none" />
+                    <circle cx="12" cy="12" r="3" fill="currentColor" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* VS graphic (desktop only) */}
+          <div className="hidden lg:block">
+            <VsGraphic isVisible={visible} />
+          </div>
+
+          {/* Table body */}
+          <div className="px-6 pb-6">
+            {comparisonItems.map((category, index) => (
+              <CategoryBlock
+                key={category.category}
+                category={category}
+                categoryIndex={index}
+                isVisible={visible}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Score comparison */}
+        <ScoreComparison isVisible={visible} />
+
+        {/* Bottom message */}
+        <div
+          className={`mt-12 text-center transition-all duration-700 delay-700 ${
+            visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+          }`}
+        >
+          <p className="text-sm text-muted-foreground">
+            <span className="inline-flex items-center gap-2">
+              <svg viewBox="0 0 24 24" className="w-4 h-4 text-orange-500">
+                <path
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              분석에서 끝나지 않고, 실행까지 이어지는 유일한 솔루션
+            </span>
+          </p>
         </div>
       </div>
     </section>
-  );
-}
-
-function WhyCard({ title, desc, index }: { title: string; desc: string; index: number }) {
-  const { ref, visible } = useFadeIn();
-  return (
-    <div
-      ref={ref}
-      className={`bg-background p-6 lg:p-8 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
-      style={{ transitionDelay: `${index * 100}ms` }}
-    >
-      <div className="flex items-start gap-3 mb-3">
-        <div className="mt-2 w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
-        <h3 className="font-heading text-xl lg:text-2xl font-medium tracking-[-0.02em]">{title}</h3>
-      </div>
-      <p className="text-base text-muted-foreground leading-relaxed pl-4">{desc}</p>
-    </div>
   );
 }
 
