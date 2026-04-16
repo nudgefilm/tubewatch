@@ -71,6 +71,23 @@ export function ActionPlanPage({ channelId = "", channelContext, viewModel, isSt
             </div>
           )}
 
+          {/* 지금 당장 이것만 — P1 핵심 요약 */}
+          {viewModel.hasAnalysis && cardsData.length > 0 && cardsData[0].priority === "P1" && (
+            <div className="rounded-xl border-2 border-primary/25 bg-primary/[0.04] px-5 py-4">
+              <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-primary">
+                지금 당장 이것만
+              </p>
+              <p className="text-lg font-bold leading-snug text-foreground">
+                {cardsData[0].title}
+              </p>
+              {cardsData[0].expectedEffect && (
+                <p className="mt-1.5 text-sm text-muted-foreground line-clamp-2">
+                  {cardsData[0].expectedEffect}
+                </p>
+              )}
+            </div>
+          )}
+
           {/* [1] 우선순위별 실행 계획 */}
           {viewModel.hasAnalysis && (
             <section className="space-y-4">
@@ -111,7 +128,7 @@ export function ActionPlanPage({ channelId = "", channelContext, viewModel, isSt
           {!isStarterPlan && seoKeywordsData && (seoKeywordsData.hasTagData || seoKeywordsData.descriptionStats != null) && (
             <section className="space-y-4">
               <div className="border-l-4 border-primary pl-3">
-                <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><Search className="size-5 shrink-0 text-primary" />SEO 키워드 진단</h2>
+                <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><Search className="size-5 shrink-0 text-primary" />검색 키워드 진단</h2>
                 <p className="text-xs text-muted-foreground mt-0.5">태그와 설명란을 점검하고 바로 수정하세요</p>
               </div>
               <ActionPlanKeywordSection data={seoKeywordsData} />

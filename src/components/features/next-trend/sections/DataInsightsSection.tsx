@@ -64,7 +64,7 @@ export function NextTrendDataInsightsSection({
           <div>
             <div className="flex items-center gap-2 mb-1">
               <Timer className="size-4 text-primary" />
-              <h3 className="text-base font-semibold">최적 영상 길이 (Sweet Spot)</h3>
+              <h3 className="text-base font-semibold">시청자가 가장 많이 본 영상 길이</h3>
             </div>
             <p className="text-xs text-muted-foreground">
               Shorts 제외, 조회수 상위 {watchTimeCatalyst.topSampleCount}편의 영상 길이를 분석했습니다.

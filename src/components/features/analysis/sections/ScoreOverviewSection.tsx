@@ -81,7 +81,7 @@ const SECTION_DISPLAY: { key: SectionKey; label: string }[] = [
   { key: "channelActivity",       label: "활동" },
   { key: "audienceResponse",      label: "반응" },
   { key: "contentStructure",      label: "구조" },
-  { key: "seoOptimization",       label: "SEO" },
+  { key: "seoOptimization",       label: "검색" },
   { key: "growthMomentum",        label: "성장" },
   { key: "subscriptionConversion", label: "구독" },
 ]
