@@ -122,53 +122,259 @@ function HeroSection() {
   );
 }
 
-// ─── 02. Pain Points ────────────────────────────────────────────────────────
+// ─── 02. For You (Persona Cards) ────────────────────────────────────────────
 
-const painPoints = [
+const personas = [
   {
-    situation: "꾸준히 올리는데 구독자가 안 늘어요",
+    id: "beginner",
+    icon: "seedling" as const,
+    label: "기획이 힘든 초보",
+    pain: "꾸준히 올리는데\n구독자가 안 늘어요",
     solution: "성장을 막는 패턴을 데이터로 찾아드립니다",
+    gradient: "from-emerald-500/20 to-emerald-500/5",
+    hoverBorder: "group-hover:border-emerald-500/40",
+    accent: "text-emerald-600",
   },
   {
-    situation: "어떤 주제를 올려야 할지 모르겠어요",
+    id: "growth",
+    icon: "chart" as const,
+    label: "조회수가 멈춘 성장기",
+    pain: "어떤 주제를 올려야\n할지 모르겠어요",
     solution: "내 채널 흐름 기반 '다음 주제'를 바로 제안합니다",
+    gradient: "from-amber-500/20 to-amber-500/5",
+    hoverBorder: "group-hover:border-amber-500/40",
+    accent: "text-amber-600",
   },
   {
-    situation: "잘된 영상이 왜 잘됐는지 모르겠어요",
+    id: "pattern",
+    icon: "pattern" as const,
+    label: "성공 공식을 찾는 중급자",
+    pain: "잘된 영상이 왜\n잘됐는지 모르겠어요",
     solution: "반복되는 성공 공식을 자동으로 추출합니다",
+    gradient: "from-violet-500/20 to-violet-500/5",
+    hoverBorder: "group-hover:border-violet-500/40",
+    accent: "text-violet-600",
   },
   {
-    situation: "다음에 뭘 해야 할지 막막해요",
+    id: "operator",
+    icon: "analytics" as const,
+    label: "데이터가 어려운 운영자",
+    pain: "다음에 뭘 해야\n할지 막막해요",
     solution: "오늘 바로 실행할 액션 리스트를 제공합니다",
+    gradient: "from-blue-500/20 to-blue-500/5",
+    hoverBorder: "group-hover:border-blue-500/40",
+    accent: "text-blue-600",
   },
 ];
+
+function SeedlingIcon() {
+  return (
+    <svg viewBox="0 0 80 80" className="w-full h-full">
+      <path d="M 25 55 L 30 70 L 50 70 L 55 55 Z" fill="currentColor" opacity="0.2" />
+      <path d="M 25 55 L 30 70 L 50 70 L 55 55" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M 27 55 L 53 55" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M 40 55 Q 40 45 40 38" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+        <animate attributeName="d" values="M 40 55 Q 40 50 40 48;M 40 55 Q 40 45 40 38;M 40 55 Q 40 50 40 48" dur="3s" repeatCount="indefinite" />
+      </path>
+      <path d="M 40 40 Q 28 35 25 25 Q 35 28 40 40" fill="currentColor" opacity="0.3">
+        <animate attributeName="d" values="M 40 42 Q 32 40 30 35 Q 35 38 40 42;M 40 40 Q 28 35 25 25 Q 35 28 40 40;M 40 42 Q 32 40 30 35 Q 35 38 40 42" dur="3s" repeatCount="indefinite" />
+      </path>
+      <path d="M 40 40 Q 28 35 25 25 Q 35 28 40 40" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <animate attributeName="d" values="M 40 42 Q 32 40 30 35 Q 35 38 40 42;M 40 40 Q 28 35 25 25 Q 35 28 40 40;M 40 42 Q 32 40 30 35 Q 35 38 40 42" dur="3s" repeatCount="indefinite" />
+      </path>
+      <path d="M 40 40 Q 52 35 55 25 Q 45 28 40 40" fill="currentColor" opacity="0.3">
+        <animate attributeName="d" values="M 40 42 Q 48 40 50 35 Q 45 38 40 42;M 40 40 Q 52 35 55 25 Q 45 28 40 40;M 40 42 Q 48 40 50 35 Q 45 38 40 42" dur="3s" repeatCount="indefinite" />
+      </path>
+      <path d="M 40 40 Q 52 35 55 25 Q 45 28 40 40" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <animate attributeName="d" values="M 40 42 Q 48 40 50 35 Q 45 38 40 42;M 40 40 Q 52 35 55 25 Q 45 28 40 40;M 40 42 Q 48 40 50 35 Q 45 38 40 42" dur="3s" repeatCount="indefinite" />
+      </path>
+      <circle cx="58" cy="20" r="2" fill="currentColor" opacity="0">
+        <animate attributeName="opacity" values="0;0.6;0" dur="2s" repeatCount="indefinite" />
+        <animate attributeName="r" values="1;3;1" dur="2s" repeatCount="indefinite" />
+      </circle>
+    </svg>
+  );
+}
+
+function ChartIcon() {
+  return (
+    <svg viewBox="0 0 80 80" className="w-full h-full">
+      <line x1="15" y1="65" x2="65" y2="65" stroke="currentColor" strokeWidth="1.5" opacity="0.3" />
+      <line x1="15" y1="50" x2="65" y2="50" stroke="currentColor" strokeWidth="1" opacity="0.15" strokeDasharray="2 2" />
+      <line x1="15" y1="35" x2="65" y2="35" stroke="currentColor" strokeWidth="1" opacity="0.15" strokeDasharray="2 2" />
+      <line x1="15" y1="20" x2="65" y2="20" stroke="currentColor" strokeWidth="1" opacity="0.15" strokeDasharray="2 2" />
+      <path
+        d="M 15 60 Q 25 55 30 45 Q 35 35 40 32 L 50 32 L 65 32"
+        fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+        strokeDasharray="100" strokeDashoffset="100"
+      >
+        <animate attributeName="stroke-dashoffset" values="100;0;0;100" dur="4s" repeatCount="indefinite" />
+      </path>
+      <rect x="40" y="28" width="25" height="10" rx="2" fill="currentColor" opacity="0">
+        <animate attributeName="opacity" values="0;0;0.15;0.15;0" dur="4s" repeatCount="indefinite" />
+      </rect>
+      <g transform="translate(55, 22)">
+        <circle r="8" fill="currentColor" opacity="0">
+          <animate attributeName="opacity" values="0;0;0.2;0.2;0" dur="4s" repeatCount="indefinite" />
+        </circle>
+        <text textAnchor="middle" dominantBaseline="middle" fontSize="10" fontWeight="bold" fill="currentColor" opacity="0">
+          ?
+          <animate attributeName="opacity" values="0;0;1;1;0" dur="4s" repeatCount="indefinite" />
+        </text>
+      </g>
+      <circle cx="40" cy="32" r="3" fill="currentColor" opacity="0">
+        <animate attributeName="opacity" values="0;0;0.8;0" dur="4s" repeatCount="indefinite" />
+        <animate attributeName="r" values="3;3;6;3" dur="4s" repeatCount="indefinite" />
+      </circle>
+    </svg>
+  );
+}
+
+function PatternIcon() {
+  return (
+    <svg viewBox="0 0 80 80" className="w-full h-full">
+      <rect x="12" y="50" width="8" height="20" rx="1.5" fill="currentColor" opacity="0.15" />
+      <rect x="24" y="42" width="8" height="28" rx="1.5" fill="currentColor" opacity="0.2" />
+      <rect x="36" y="34" width="8" height="36" rx="1.5" fill="currentColor" opacity="0.25">
+        <animate attributeName="opacity" values="0.25;0.55;0.25" dur="2s" repeatCount="indefinite" />
+      </rect>
+      <rect x="48" y="44" width="8" height="26" rx="1.5" fill="currentColor" opacity="0.15" />
+      <path
+        d="M 40 29 L 41.5 32 L 45 32 L 42 34 L 43.5 37.5 L 40 35.5 L 36.5 37.5 L 38 34 L 35 32 L 38.5 32 Z"
+        fill="currentColor" opacity="0.5"
+      >
+        <animate attributeName="opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite" />
+      </path>
+      <circle cx="55" cy="30" r="11" fill="none" stroke="currentColor" strokeWidth="2.5" opacity="0.7" />
+      <circle cx="55" cy="30" r="11" fill="currentColor" opacity="0.04" />
+      <line x1="63" y1="38" x2="70" y2="46" stroke="currentColor" strokeWidth="3" strokeLinecap="round" opacity="0.7" />
+      <line x1="48" y1="30" x2="62" y2="30" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0">
+        <animate attributeName="opacity" values="0;0.7;0.7;0" dur="3s" repeatCount="indefinite" />
+        <animate attributeName="y1" values="24;30;36;36" dur="3s" repeatCount="indefinite" />
+        <animate attributeName="y2" values="24;30;36;36" dur="3s" repeatCount="indefinite" />
+      </line>
+      <circle cx="44" cy="19" r="2" fill="currentColor" opacity="0">
+        <animate attributeName="opacity" values="0;0.5;0" dur="2.5s" begin="0.5s" repeatCount="indefinite" />
+      </circle>
+    </svg>
+  );
+}
+
+function AnalyticsIcon() {
+  return (
+    <svg viewBox="0 0 80 80" className="w-full h-full">
+      <rect x="12" y="15" width="56" height="42" rx="3" fill="none" stroke="currentColor" strokeWidth="2" />
+      <rect x="12" y="15" width="56" height="42" rx="3" fill="currentColor" opacity="0.05" />
+      <path d="M 35 57 L 35 65 L 30 65" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M 45 57 L 45 65 L 50 65" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <rect x="18" y="22" width="12" height="8" rx="1" fill="currentColor" opacity="0.2">
+        <animate attributeName="opacity" values="0.2;0.5;0.2" dur="2s" begin="0s" repeatCount="indefinite" />
+      </rect>
+      <rect x="34" y="22" width="12" height="8" rx="1" fill="currentColor" opacity="0.2">
+        <animate attributeName="opacity" values="0.2;0.5;0.2" dur="2s" begin="0.3s" repeatCount="indefinite" />
+      </rect>
+      <rect x="50" y="22" width="12" height="8" rx="1" fill="currentColor" opacity="0.2">
+        <animate attributeName="opacity" values="0.2;0.5;0.2" dur="2s" begin="0.6s" repeatCount="indefinite" />
+      </rect>
+      <rect x="20" y="42" width="6" height="10" rx="1" fill="currentColor" opacity="0.3">
+        <animate attributeName="height" values="10;14;10" dur="3s" repeatCount="indefinite" />
+        <animate attributeName="y" values="42;38;42" dur="3s" repeatCount="indefinite" />
+      </rect>
+      <rect x="29" y="38" width="6" height="14" rx="1" fill="currentColor" opacity="0.4">
+        <animate attributeName="height" values="14;8;14" dur="3s" begin="0.5s" repeatCount="indefinite" />
+        <animate attributeName="y" values="38;44;38" dur="3s" begin="0.5s" repeatCount="indefinite" />
+      </rect>
+      <rect x="38" y="36" width="6" height="16" rx="1" fill="currentColor" opacity="0.5">
+        <animate attributeName="height" values="16;20;16" dur="3s" begin="1s" repeatCount="indefinite" />
+        <animate attributeName="y" values="36;32;36" dur="3s" begin="1s" repeatCount="indefinite" />
+      </rect>
+      <rect x="47" y="40" width="6" height="12" rx="1" fill="currentColor" opacity="0.35">
+        <animate attributeName="height" values="12;6;12" dur="3s" begin="1.5s" repeatCount="indefinite" />
+        <animate attributeName="y" values="40;46;40" dur="3s" begin="1.5s" repeatCount="indefinite" />
+      </rect>
+      <rect x="56" y="34" width="6" height="18" rx="1" fill="currentColor" opacity="0.45">
+        <animate attributeName="height" values="18;12;18" dur="3s" begin="2s" repeatCount="indefinite" />
+        <animate attributeName="y" values="34;40;34" dur="3s" begin="2s" repeatCount="indefinite" />
+      </rect>
+    </svg>
+  );
+}
+
+function PersonaIcon({ type }: { type: typeof personas[0]["icon"] }) {
+  if (type === "seedling") return <SeedlingIcon />;
+  if (type === "chart") return <ChartIcon />;
+  if (type === "pattern") return <PatternIcon />;
+  return <AnalyticsIcon />;
+}
+
+function PersonaCard({ persona, index }: { persona: typeof personas[0]; index: number }) {
+  const { ref, visible } = useFadeIn(0.2);
+
+  return (
+    <div
+      ref={ref}
+      className={`group relative transition-all duration-700 ${
+        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
+      }`}
+      style={{ transitionDelay: `${index * 150}ms` }}
+    >
+      <div className={`relative h-full border border-foreground/10 rounded-2xl p-6 lg:p-8 transition-all duration-500 ${persona.hoverBorder} hover:shadow-lg overflow-hidden cursor-default`}>
+        <div className={`absolute inset-0 bg-gradient-to-b ${persona.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+        <div className="relative z-10 flex flex-col h-full">
+          <div className={`w-16 h-16 mb-5 ${persona.accent} transition-transform duration-500 group-hover:scale-110`}>
+            <PersonaIcon type={persona.icon} />
+          </div>
+          <div className="mb-4">
+            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-foreground/5 ${persona.accent}`}>
+              {persona.label}
+            </span>
+          </div>
+          <h3 className="font-heading text-xl lg:text-2xl font-medium tracking-[-0.02em] mb-3 leading-tight whitespace-pre-line">
+            &ldquo;{persona.pain}&rdquo;
+          </h3>
+          <p className="text-sm text-muted-foreground leading-relaxed mt-auto">
+            {persona.solution}
+          </p>
+          <div className={`mt-5 flex items-center gap-1.5 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${persona.accent}`}>
+            <span>이런 분들을 위한 솔루션</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function PainPointsSection() {
   const { ref, visible } = useFadeIn();
 
   return (
-    <section ref={ref} className="relative py-6 lg:py-10 border-t border-foreground/10">
+    <section className="relative py-6 lg:py-10 border-t border-foreground/10">
       <div className="max-w-[1080px] mx-auto px-8 lg:px-20">
-        <div className={`mb-8 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-          <SectionLabel>For Creators</SectionLabel>
-          <h2 className="font-heading text-4xl lg:text-5xl font-medium tracking-[-0.03em] leading-[1.1]">
+        <div ref={ref} className={`mb-10 text-center transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+          <span className="inline-flex items-center gap-3 text-sm font-mono text-muted-foreground mb-6">
+            <span className="w-8 h-px bg-foreground/30 inline-block" />
+            For Creators
+            <span className="w-8 h-px bg-foreground/30 inline-block" />
+          </span>
+          <h2 className="font-heading text-4xl lg:text-5xl font-medium tracking-[-0.03em] leading-[1.1] mt-2">
             이런 분께<br />
             <span className="text-muted-foreground">꼭 필요합니다</span>
           </h2>
+          <p className={`mt-4 text-base text-muted-foreground transition-all duration-700 delay-100 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+            어느 단계에 계시든, 튜브워치가 다음 성장을 함께합니다
+          </p>
         </div>
-
-        <div className={`grid grid-cols-1 md:grid-cols-2 gap-px border border-foreground/10 bg-foreground/10 transition-all duration-700 delay-150 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
-          {painPoints.map(({ situation, solution }, i) => (
-            <div key={i} className="bg-background p-6 lg:p-8 flex flex-col gap-4">
-              <p className="text-base text-foreground/50 leading-snug">
-                &ldquo;{situation}&rdquo;
-              </p>
-              <div className="flex items-start gap-3">
-                <ArrowRight className="w-4 h-4 mt-0.5 shrink-0 text-foreground" />
-                <p className="text-base font-medium leading-snug">{solution}</p>
-              </div>
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 lg:gap-6">
+          {personas.map((persona, index) => (
+            <PersonaCard key={persona.id} persona={persona} index={index} />
           ))}
+        </div>
+        <div className={`mt-10 text-center transition-all duration-700 delay-700 ${visible ? "opacity-100" : "opacity-0"}`}>
+          <p className="text-sm text-muted-foreground">
+            <span className="inline-block w-2 h-2 rounded-full bg-orange-500 mr-2 animate-pulse" />
+            지금 무료로 채널 진단을 시작해보세요
+          </p>
         </div>
       </div>
     </section>
