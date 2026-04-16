@@ -3,12 +3,13 @@
  * PortOne 결제 완료 후 서버에서 검증 + DB 반영.
  *
  * Body:
- *   { type: "subscription", paymentId: string, planId: BillingPlanId }
+ *   { type: "subscription", paymentId: string, planId: BillingPlanId, billingPeriod: BillingPeriod }
  *   { type: "credit",       paymentId: string, productId: CreditProductId }
  *
  * 구독 정책:
- *   - 현재 구독이 active 상태(renewal_at > now)이면 → pending_plan_id 예약만 저장
- *   - 신규 구독 또는 만료 상태이면 → plan_id / renewal_at 즉시 적용
+ *   - 신규/만료 상태: plan_id / billing_period / renewal_at 즉시 적용
+ *   - 활성 구독 중 업그레이드(pro >= creator) 또는 기간 변경: 즉시 적용, renewal_at = 기존_renewal_at + 새 기간
+ *   - 활성 구독 중 다운그레이드(creator < pro): pending_plan_id / pending_billing_period 예약
  *   - 예약이 이미 존재하면(pending_plan_id != null) → 에러 반환
  *
  * Idempotency:
@@ -24,26 +25,37 @@ import {
   BILLING_PLANS,
   CREDIT_PRODUCTS,
   type BillingPlanId,
+  type BillingPeriod,
   type CreditProductId,
 } from "@/components/billing/types";
 
-const VALID_PLAN_IDS: BillingPlanId[] = ["creator", "pro", "creator_6m", "pro_6m"];
-const VALID_PRODUCT_IDS: CreditProductId[] = ["single", "triple"];
-
-const PLAN_PERIOD_MONTHS: Record<BillingPlanId, number> = {
-  creator: 1,
-  pro: 1,
-  creator_6m: 6,
-  pro_6m: 6,
+type ExistingSubRow = {
+  plan_id: string | null;
+  subscription_status: string | null;
+  payment_status: string | null;
+  renewal_at: string | null;
+  portone_payment_id: string | null;
+  pending_plan_id: string | null;
 };
 
-function getPlanKrwPrice(planId: BillingPlanId): number {
-  const base = BILLING_PLANS.find(
-    (p) => p.id === planId || p.semiannualPlanId === planId
-  );
-  if (!base) throw new Error(`알 수 없는 플랜: ${planId}`);
-  const isSemiannual = planId === "creator_6m" || planId === "pro_6m";
-  return isSemiannual ? base.semiannualPriceKrw : base.priceKrw;
+const VALID_PLAN_IDS: BillingPlanId[] = ["creator", "pro"];
+const VALID_PERIODS: BillingPeriod[] = ["monthly", "semiannual"];
+const VALID_PRODUCT_IDS: CreditProductId[] = ["single", "triple"];
+
+const PERIOD_MONTHS: Record<BillingPeriod, number> = {
+  monthly: 1,
+  semiannual: 6,
+};
+
+const PLAN_RANK: Record<BillingPlanId, number> = {
+  creator: 1,
+  pro: 2,
+};
+
+function getPlanKrwPrice(planId: BillingPlanId, billingPeriod: BillingPeriod): number {
+  const plan = BILLING_PLANS.find((p) => p.id === planId);
+  if (!plan) throw new Error(`알 수 없는 플랜: ${planId}`);
+  return billingPeriod === "semiannual" ? plan.semiannualPriceKrw : plan.priceKrw;
 }
 
 export async function POST(request: Request) {
@@ -74,22 +86,16 @@ export async function POST(request: Request) {
   // ─── 구독: idempotency 체크 + 기존 구독 상태 조회 ────────────────────────────
   // (credit 처리와 분리 — credit 로직에 영향 없음)
 
-  let existingSub: {
-    payment_status: string | null;
-    portone_payment_id: string | null;
-    subscription_status: string | null;
-    renewal_at: string | null;
-    pending_plan_id: string | null;
-  } | null = null;
+  let existingSub: ExistingSubRow | null = null;
 
   if (type === "subscription") {
     const { data } = await supabaseAdmin
       .from("user_subscriptions")
-      .select("payment_status, portone_payment_id, subscription_status, renewal_at, pending_plan_id")
+      .select("payment_status, portone_payment_id, subscription_status, renewal_at, plan_id, pending_plan_id")
       .eq("user_id", user.id)
       .maybeSingle();
 
-    existingSub = data as typeof existingSub;
+    existingSub = data as ExistingSubRow | null;
 
     if (
       existingSub?.portone_payment_id === paymentId &&
@@ -121,14 +127,21 @@ export async function POST(request: Request) {
 
   if (type === "subscription") {
     const planId = typeof raw.planId === "string" ? raw.planId.trim() : "";
+    const billingPeriod = typeof raw.billingPeriod === "string" ? raw.billingPeriod.trim() : "";
+
     if (!VALID_PLAN_IDS.includes(planId as BillingPlanId)) {
       return NextResponse.json({ error: "유효하지 않은 플랜입니다." }, { status: 400 });
     }
+    if (!VALID_PERIODS.includes(billingPeriod as BillingPeriod)) {
+      return NextResponse.json({ error: "유효하지 않은 결제 주기입니다." }, { status: 400 });
+    }
+
     const planIdTyped = planId as BillingPlanId;
+    const billingPeriodTyped = billingPeriod as BillingPeriod;
 
     let expectedKrw: number;
     try {
-      expectedKrw = getPlanKrwPrice(planIdTyped);
+      expectedKrw = getPlanKrwPrice(planIdTyped, billingPeriodTyped);
     } catch {
       return NextResponse.json({ error: "플랜 가격 조회에 실패했습니다." }, { status: 400 });
     }
@@ -142,43 +155,78 @@ export async function POST(request: Request) {
 
     const now = new Date();
 
-    // ── 현재 구독이 active(renewal_at > now)이면 → 예약 변경 ─────────────────
+    // ── 현재 구독이 active(renewal_at > now)인지 판단 ────────────────────────
     const isActiveSubscription =
       existingSub?.subscription_status === "active" &&
       !!existingSub.renewal_at &&
       new Date(existingSub.renewal_at).getTime() > now.getTime();
 
     if (isActiveSubscription) {
-      // 이미 예약된 플랜이 있으면 중복 예약 차단
-      if (existingSub!.pending_plan_id) {
-        return NextResponse.json(
-          { error: "이미 다음 플랜이 예약되어 있습니다." },
-          { status: 400 }
-        );
+      const currentPlanId = (existingSub!.plan_id ?? "") as BillingPlanId;
+      const currentRank = PLAN_RANK[currentPlanId] ?? 0;
+      const targetRank = PLAN_RANK[planIdTyped];
+      const isUpgradeOrSamePlan = targetRank >= currentRank;
+
+      if (isUpgradeOrSamePlan) {
+        // ── 업그레이드 또는 기간 변경 → 즉시 적용, renewal_at = 기존 + 새 기간 ─
+        const months = PERIOD_MONTHS[billingPeriodTyped];
+        const baseDate = new Date(existingSub!.renewal_at!);
+        const newRenewalAt = new Date(baseDate);
+        newRenewalAt.setMonth(newRenewalAt.getMonth() + months);
+
+        const { error: updateError } = await supabaseAdmin
+          .from("user_subscriptions")
+          .update({
+            plan_id: planIdTyped,
+            billing_period: billingPeriodTyped,
+            renewal_at: newRenewalAt.toISOString(),
+            portone_payment_id: paymentId,
+            payment_status: "paid",
+            pending_plan_id: null,
+            pending_billing_period: null,
+            updated_at: now.toISOString(),
+          })
+          .eq("user_id", user.id);
+
+        if (updateError) {
+          console.error("[portone/payment-complete] upgrade update error:", updateError);
+          return NextResponse.json({ error: "구독 변경 저장에 실패했습니다." }, { status: 500 });
+        }
+
+        console.log("[portone/payment-complete] immediate upgrade:", planIdTyped, billingPeriodTyped, "for user:", user.id);
+        return NextResponse.json({ ok: true, planId: planIdTyped, billingPeriod: billingPeriodTyped, deferred: false });
+      } else {
+        // ── 다운그레이드 → 만료 후 예약 변경 ────────────────────────────────
+        if (existingSub!.pending_plan_id) {
+          return NextResponse.json(
+            { error: "이미 다음 플랜이 예약되어 있습니다." },
+            { status: 400 }
+          );
+        }
+
+        const { error: updateError } = await supabaseAdmin
+          .from("user_subscriptions")
+          .update({
+            pending_plan_id: planIdTyped,
+            pending_billing_period: billingPeriodTyped,
+            portone_payment_id: paymentId,
+            payment_status: "paid",
+            updated_at: now.toISOString(),
+          })
+          .eq("user_id", user.id);
+
+        if (updateError) {
+          console.error("[portone/payment-complete] downgrade pending update error:", updateError);
+          return NextResponse.json({ error: "예약 변경 저장에 실패했습니다." }, { status: 500 });
+        }
+
+        console.log("[portone/payment-complete] deferred downgrade:", planIdTyped, billingPeriodTyped, "for user:", user.id);
+        return NextResponse.json({ ok: true, planId: planIdTyped, billingPeriod: billingPeriodTyped, deferred: true });
       }
-
-      // pending_plan_id만 저장 — plan_id / renewal_at 변경 금지
-      const { error: updateError } = await supabaseAdmin
-        .from("user_subscriptions")
-        .update({
-          pending_plan_id: planIdTyped,
-          portone_payment_id: paymentId,
-          payment_status: "paid",
-          updated_at: now.toISOString(),
-        })
-        .eq("user_id", user.id);
-
-      if (updateError) {
-        console.error("[portone/payment-complete] pending plan update error:", updateError);
-        return NextResponse.json({ error: "예약 변경 저장에 실패했습니다." }, { status: 500 });
-      }
-
-      console.log("[portone/payment-complete] deferred plan saved:", planIdTyped, "for user:", user.id);
-      return NextResponse.json({ ok: true, planId: planIdTyped, deferred: true });
     }
 
     // ── 신규 구독 또는 만료 상태 → 즉시 적용 ────────────────────────────────
-    const months = PLAN_PERIOD_MONTHS[planIdTyped];
+    const months = PERIOD_MONTHS[billingPeriodTyped];
     const expiresAt = new Date(now);
     expiresAt.setMonth(expiresAt.getMonth() + months);
     const expiresAtIso = expiresAt.toISOString();
@@ -189,12 +237,14 @@ export async function POST(request: Request) {
         {
           user_id: user.id,
           plan_id: planIdTyped,
+          billing_period: billingPeriodTyped,
           subscription_status: "active",
           payment_status: "paid",
           renewal_at: expiresAtIso,
           portone_payment_id: paymentId,
           grant_type: "portone",
           pending_plan_id: null,
+          pending_billing_period: null,
           updated_at: now.toISOString(),
         },
         { onConflict: "user_id", ignoreDuplicates: false }
@@ -205,7 +255,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "구독 정보 저장에 실패했습니다." }, { status: 500 });
     }
 
-    return NextResponse.json({ ok: true, planId: planIdTyped });
+    return NextResponse.json({ ok: true, planId: planIdTyped, billingPeriod: billingPeriodTyped });
   }
 
   // ─── 단건 크레딧 처리 ─────────────────────────────────────────────────────

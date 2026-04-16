@@ -13,12 +13,9 @@ import {
 
 const FREE_CHANNEL_LIMIT = 1;
 
-// 6개월 플랜 → 베이스 플랜 매핑
 const PLAN_ID_TO_BASE: Record<string, Extract<BillingPlanId, "creator" | "pro">> = {
   creator: "creator",
-  creator_6m: "creator",
   pro: "pro",
-  pro_6m: "pro",
 };
 
 export type EffectivePlanId = BillingPlanId | "free";

@@ -10,7 +10,7 @@ import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { isAdminUser } from "@/lib/server/isAdminUser";
 
-const VALID_PLAN_IDS = ["creator", "creator_6m", "pro", "pro_6m"] as const;
+const VALID_PLAN_IDS = ["creator", "pro"] as const;
 type GrantPlanId = (typeof VALID_PLAN_IDS)[number];
 
 const VALID_DURATIONS = [30, 90, 180] as const;
@@ -66,6 +66,7 @@ export async function POST(request: Request) {
     const upsertRow = {
       user_id: targetUserId,
       plan_id: planId,
+      billing_period: "monthly" as const,
       subscription_status: "manual",
       grant_type: "manual",
       manual_grant_reason: reason,

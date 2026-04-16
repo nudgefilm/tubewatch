@@ -84,6 +84,7 @@ export async function POST(request: Request) {
       .upsert({
         user_id: targetUserId,
         plan_id: planId,
+        billing_period: "monthly" as const,
         subscription_status: "active",
         grant_type: "manual",
         manual_grant_reason: "어드민 직접 플랜 설정",

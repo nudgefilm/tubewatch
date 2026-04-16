@@ -31,20 +31,20 @@ export async function POST(request: Request) {
 
     const { data: existing, error: fetchError } = await supabaseAdmin
       .from("user_subscriptions")
-      .select("plan_id, status, renewal_at")
+      .select("plan_id, subscription_status, renewal_at")
       .eq("user_id", targetUserId)
       .maybeSingle();
 
     if (fetchError) return NextResponse.json({ error: fetchError.message }, { status: 500 });
     if (!existing) return NextResponse.json({ error: "활성 구독이 없습니다." }, { status: 404 });
-    if (existing.status === "refunded") {
+    if ((existing as { subscription_status?: string }).subscription_status === "refunded") {
       return NextResponse.json({ error: "이미 환불 처리된 구독입니다." }, { status: 409 });
     }
 
     const { error: updateError } = await supabaseAdmin
       .from("user_subscriptions")
       .update({
-        status: "refunded",
+        subscription_status: "refunded",
         last_plan_id: existing.plan_id,
         updated_at: new Date().toISOString(),
       })

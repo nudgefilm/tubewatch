@@ -18,16 +18,14 @@ const PLAN_OPTIONS: { id: PlanOption; label: string; className: string }[] = [
 ];
 
 const GRANT_PLANS = [
-  { id: "creator",    label: "Creator (월간)" },
-  { id: "creator_6m", label: "Creator 6개월" },
-  { id: "pro",        label: "Pro (월간)" },
-  { id: "pro_6m",     label: "Pro 6개월" },
+  { id: "creator", label: "Creator" },
+  { id: "pro",     label: "Pro" },
 ] as const;
 
 function grantPlanBadge(id: string): { label: string; cls: string } {
   const p = GRANT_PLANS.find((g) => g.id === id);
-  const cls = id.startsWith("creator") ? "bg-blue-100 text-blue-700"
-    : id.startsWith("pro") ? "bg-violet-100 text-violet-700"
+  const cls = id === "creator" ? "bg-blue-100 text-blue-700"
+    : id === "pro" ? "bg-violet-100 text-violet-700"
     : "bg-foreground/10 text-foreground/60";
   return { label: p?.label ?? id, cls };
 }
@@ -65,21 +63,18 @@ function isExpired(isoString: string | null): boolean {
   return new Date(isoString).getTime() + 24 * 60 * 60 * 1000 < Date.now();
 }
 
-function getPlanLabel(planId: string | null, status: string | null): string {
-  if (!planId || isExpired(null)) return "";
+function getPlanLabel(planId: string | null): string {
+  if (!planId) return "";
   const base: Record<string, string> = {
     creator: "Creator",
-    creator_6m: "Creator 6M",
     pro: "Pro",
-    pro_6m: "Pro 6M",
   };
   return base[planId] ?? planId;
 }
 
 function getPlanClass(planId: string | null): string {
-  if (!planId) return "bg-foreground/10 text-foreground/60";
-  if (planId.startsWith("pro")) return "bg-violet-100 text-violet-700";
-  if (planId.startsWith("creator")) return "bg-blue-100 text-blue-700";
+  if (planId === "pro") return "bg-violet-100 text-violet-700";
+  if (planId === "creator") return "bg-blue-100 text-blue-700";
   return "bg-foreground/10 text-foreground/60";
 }
 
@@ -682,7 +677,7 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
                   const totalAnalyses = row.total_analyses_count;
 
                   const statusBadge = getStatusBadge(row.subscription_status, effectivePeriodEnd);
-                  const planLabel = row.plan_id ? getPlanLabel(row.plan_id, row.subscription_status) : null;
+                  const planLabel = row.plan_id ? getPlanLabel(row.plan_id) : null;
                   const isPaid = row.subscription_status === "active" || row.subscription_status === "trialing" || row.subscription_status === "manual";
                   const isRefunded = row.subscription_status === "refunded";
 

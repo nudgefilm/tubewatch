@@ -4,12 +4,12 @@
 
 // ─── Subscription plans ───────────────────────────────────────────────────────
 
-export type BillingPlanId = "creator" | "pro" | "creator_6m" | "pro_6m";
+export type BillingPlanId = "creator" | "pro";
 
 export type BillingPeriod = "monthly" | "semiannual";
 
 export interface BillingPlan {
-  id: Extract<BillingPlanId, "creator" | "pro">;
+  id: BillingPlanId;
   name: string;
   priceUsd: number;
   /** 6개월 결제 총액 (USD) */
@@ -18,8 +18,6 @@ export interface BillingPlan {
   priceKrw: number;
   /** 6개월 결제 원화 (PortOne/TossPayments용) */
   semiannualPriceKrw: number;
-  /** 6개월 플랜 ID */
-  semiannualPlanId: Extract<BillingPlanId, "creator_6m" | "pro_6m">;
   /** 6개월 절약 문구 */
   semiannualBadge: string;
   /** 채널 수 */
@@ -40,7 +38,6 @@ export const BILLING_PLANS: BillingPlan[] = [
     semiannualPriceUsd: 49,
     priceKrw: 9900,
     semiannualPriceKrw: 49000,
-    semiannualPlanId: "creator_6m",
     semiannualBadge: "한 달이 공짜",
     channels: 3,
     monthlyAnalyses: 90,
@@ -54,7 +51,6 @@ export const BILLING_PLANS: BillingPlan[] = [
     semiannualPriceUsd: 149,
     priceKrw: 29900,
     semiannualPriceKrw: 149000,
-    semiannualPlanId: "pro_6m",
     semiannualBadge: "약 17% 할인",
     channels: 10,
     monthlyAnalyses: 300,

@@ -69,6 +69,7 @@ function usePortOneRedirectReturn(onSuccess: () => void) {
 
     const type = searchParams.get("po_type") as "subscription" | "credit" | null;
     const planId = searchParams.get("po_plan");
+    const billingPeriod = searchParams.get("po_period") as "monthly" | "semiannual" | null;
     const productId = searchParams.get("po_product");
     if (!type) return;
 
@@ -76,18 +77,17 @@ function usePortOneRedirectReturn(onSuccess: () => void) {
 
     const body =
       type === "subscription"
-        ? { paymentId, type, planId }
+        ? { paymentId, type, planId, billingPeriod }
         : { paymentId, type, productId };
 
     // 금액 역산 (ROAS 측정용)
     let redirectAmount: number | undefined;
     if (type === "subscription" && planId) {
-      const matchedPlan = BILLING_PLANS.find(
-        (p) => p.id === planId || p.semiannualPlanId === planId
-      );
+      const matchedPlan = BILLING_PLANS.find((p) => p.id === planId);
       if (matchedPlan) {
-        const isSemiannual = planId === "creator_6m" || planId === "pro_6m";
-        redirectAmount = isSemiannual ? matchedPlan.semiannualPriceKrw : matchedPlan.priceKrw;
+        redirectAmount = billingPeriod === "semiannual"
+          ? matchedPlan.semiannualPriceKrw
+          : matchedPlan.priceKrw;
       }
     } else if (type === "credit" && productId) {
       const matchedProduct = CREDIT_PRODUCTS.find((p) => p.id === productId);
@@ -120,23 +120,18 @@ function usePortOneRedirectReturn(onSuccess: () => void) {
   return { returnState, returnError };
 }
 
-// 예약 플랜 ID를 표시용 레이블로 변환
-function getPendingPlanLabel(planId: string): string {
-  switch (planId) {
-    case "creator":    return "Creator (월간)";
-    case "creator_6m": return "Creator (6개월)";
-    case "pro":        return "Pro (월간)";
-    case "pro_6m":     return "Pro (6개월)";
-    default:           return planId;
-  }
+// 플랜 + 결제 주기 → 표시용 레이블
+function getPlanDisplayLabel(planId: string, billingPeriod: "monthly" | "semiannual" | null): string {
+  const periodLabel = billingPeriod === "semiannual" ? " (6개월)" : " (월간)";
+  if (planId === "creator") return `Creator${periodLabel}`;
+  if (planId === "pro") return `Pro${periodLabel}`;
+  return planId;
 }
 
-// 플랜 ID → 그룹(creator / pro) 매핑
-function getPlanGroup(id: string): string {
-  if (id.startsWith("creator")) return "creator";
-  if (id.startsWith("pro")) return "pro";
-  return id;
-}
+const PLAN_RANK: Record<string, number> = {
+  creator: 1,
+  pro: 2,
+};
 
 // ─── Subscription plan card ───────────────────────────────────────────────────
 
@@ -145,13 +140,17 @@ function SubscriptionPlanCard({
   isPopular,
   period,
   currentPlanId,
+  currentBillingPeriod,
   pendingPlanId,
+  pendingBillingPeriod,
 }: {
   plan: (typeof BILLING_PLANS)[number];
   isPopular?: boolean;
   period: BillingPeriod;
   currentPlanId: "free" | "creator" | "pro";
+  currentBillingPeriod: "monthly" | "semiannual" | null;
   pendingPlanId: string | null;
+  pendingBillingPeriod: "monthly" | "semiannual" | null;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -159,37 +158,42 @@ function SubscriptionPlanCard({
   const [agreed, setAgreed] = useState(false);
   const checkboxId = `agree-${plan.id}-${period}`;
 
-  // planId 먼저 확정 (기간 포함한 실제 결제 대상 ID)
   const isSemiannual = period === "semiannual";
-  const planId: BillingPlanId = isSemiannual ? plan.semiannualPlanId : plan.id;
-
-  // currentPlanId는 서버에서 base plan("creator" | "pro")으로 내려옴.
-  // 6m 카드의 planId("creator_6m") !== currentPlanId("creator") → 항상 false → 구매 허용.
-  // 월간 카드의 planId("creator") === currentPlanId("creator") → 차단.
-  const isExactSamePlan = planId === currentPlanId;
-
-  // 같은 플랜 그룹(creator ↔ creator_6m, pro ↔ pro_6m) 여부
-  const isSamePlanGroup =
-    getPlanGroup(plan.id) === getPlanGroup(currentPlanId);
+  const amountKrw = isSemiannual ? plan.semiannualPriceKrw : plan.priceKrw;
 
   const isSubscribed = currentPlanId !== "free";
-  // 이 카드의 플랜(월간/6개월 모두)이 예약된 플랜인지
-  const thisPlanHasPending =
-    pendingPlanId === plan.id || pendingPlanId === plan.semiannualPlanId;
+
+  // plan.id + period가 모두 동일한 경우에만 현재 플랜으로 차단
+  const isExactSamePlan =
+    plan.id === currentPlanId && period === currentBillingPeriod;
+
+  // 다운그레이드 여부 (pro → creator): pending으로 처리
+  const isDeferredChange =
+    isSubscribed &&
+    (PLAN_RANK[plan.id] ?? 0) < (PLAN_RANK[currentPlanId] ?? 0);
+
+  // 이 카드(plan.id + period)가 예약된 플랜인지
+  const thisPlanIsPending =
+    pendingPlanId === plan.id && pendingBillingPeriod === period;
+
   // 다른 플랜이 예약된 상태인지
   const hasPendingPlan = !!pendingPlanId;
 
-  // isSamePlanGroup은 향후 버튼 텍스트 분기 등에 활용 가능
-  void isSamePlanGroup;
+  // 버튼 텍스트 결정
+  function getButtonLabel(): string {
+    if (loading) return "처리 중...";
+    if (!isSubscribed) return "구독 시작하기";
+    if (isDeferredChange) return "만료 후 변경 예약";
+    return "지금 변경하기";
+  }
 
   async function handleSubscribePortOne() {
-    const amountKrw = isSemiannual ? plan.semiannualPriceKrw : plan.priceKrw;
     const orderName = `TubeWatch ${plan.name} ${isSemiannual ? "6개월" : "1개월"}`;
     const paymentId = `tw_sub_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
     const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
     const redirectUrl =
-      `${baseUrl}/billing?po_payment_id=${paymentId}&po_type=subscription&po_plan=${planId}`;
+      `${baseUrl}/billing?po_payment_id=${paymentId}&po_type=subscription&po_plan=${plan.id}&po_period=${period}`;
 
     let response;
     try {
@@ -199,7 +203,6 @@ function SubscriptionPlanCard({
       return;
     }
 
-    // 팝업 결제 완료 시 응답 수신 (리디렉트 시에는 undefined)
     if (!response) return; // 리디렉트 → usePortOneRedirectReturn이 처리
     if ("code" in response && response.code) {
       setError(("message" in response ? (response as { message?: string }).message : null) ?? "결제에 실패했습니다.");
@@ -212,7 +215,7 @@ function SubscriptionPlanCard({
       const res = await fetch("/api/portone/payment-complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ paymentId, type: "subscription", planId }),
+        body: JSON.stringify({ paymentId, type: "subscription", planId: plan.id, billingPeriod: period }),
       });
       const json = (await res.json()) as { ok?: boolean; error?: string };
       if (json.ok) {
@@ -296,14 +299,15 @@ function SubscriptionPlanCard({
             </div>
           ))}
         </div>
-        {/* 기간 포함 동일 planId인 경우만 차단. 같은 그룹 다른 기간은 구매 허용 */}
+
+        {/* 현재 이용 중인 플랜 */}
         {isExactSamePlan ? (
           <div className="mt-auto rounded-lg border border-foreground/10 bg-foreground/[0.03] px-4 py-3 text-center">
             <p className="text-sm font-medium text-primary">현재 이용 중인 플랜</p>
           </div>
 
         /* 이 플랜이 이미 예약됨 */
-        ) : thisPlanHasPending ? (
+        ) : thisPlanIsPending ? (
           <div className="mt-auto rounded-lg border border-primary/20 bg-primary/[0.03] px-4 py-3 text-center">
             <p className="text-sm font-medium text-primary">다음 플랜으로 예약됨</p>
             <p className="mt-0.5 text-xs text-muted-foreground">현재 구독 만료 후 자동 전환됩니다</p>
@@ -315,10 +319,10 @@ function SubscriptionPlanCard({
             <p className="text-sm text-muted-foreground">이미 다음 플랜이 예약되어 있습니다.</p>
           </div>
 
-        /* 구독 중 + 예약 없음 → 만료 후 적용 예약 결제 가능 */
+        /* 구매 가능한 상태 */
         ) : (
           <>
-            {isSubscribed && (
+            {isDeferredChange && (
               <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-center dark:border-amber-800/50 dark:bg-amber-950/30">
                 <p className="text-xs text-amber-700 dark:text-amber-400">
                   결제 시 현재 구독 만료 후 적용됩니다
@@ -345,7 +349,7 @@ function SubscriptionPlanCard({
               </span>
             </label>
             <Button className="mt-auto w-full" onClick={handleSubscribe} disabled={loading || !agreed}>
-              {loading ? "처리 중..." : isSubscribed ? "만료 후 구독 예약" : "구독 시작하기"}
+              {getButtonLabel()}
             </Button>
             {!agreed && (
               <p className="mt-1.5 text-center text-[10px] text-muted-foreground/50">
@@ -517,7 +521,8 @@ function CurrentPlanCard({ status }: { status: UserBillingStatus }) {
     );
   }
 
-  const planLabel = status.planId === "pro" ? "Pro" : "Creator";
+  const planName = status.planId === "pro" ? "Pro" : "Creator";
+  const periodLabel = status.billingPeriod === "semiannual" ? " · 6개월" : " · 월간";
   const statusLabel =
     status.subscriptionStatus === "trialing" ? "체험 중" :
     status.subscriptionStatus === "active" ? "활성" :
@@ -531,7 +536,7 @@ function CurrentPlanCard({ status }: { status: UserBillingStatus }) {
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-semibold">현재 플랜</h2>
-              <Badge className="bg-primary text-primary-foreground">{planLabel}</Badge>
+              <Badge className="bg-primary text-primary-foreground">{planName}{periodLabel}</Badge>
               <Badge variant="outline" className="text-xs">{statusLabel}</Badge>
             </div>
             <div className="mt-1 space-y-0.5 text-sm text-muted-foreground">
@@ -546,7 +551,7 @@ function CurrentPlanCard({ status }: { status: UserBillingStatus }) {
               )}
               {status.pendingPlanId && (
                 <p className="text-xs font-medium text-amber-600 dark:text-amber-400">
-                  다음 플랜: {getPendingPlanLabel(status.pendingPlanId!)} (만료 후 적용)
+                  다음 플랜: {getPlanDisplayLabel(status.pendingPlanId, status.pendingBillingPeriod)} (만료 후 적용)
                 </p>
               )}
             </div>
@@ -644,7 +649,16 @@ export default function BillingView({ initialData }: { initialData: UserBillingS
           </div>
           <div className="grid gap-6 sm:grid-cols-2">
             {BILLING_PLANS.map((plan, i) => (
-              <SubscriptionPlanCard key={plan.id} plan={plan} isPopular={i === 1} period={period} currentPlanId={initialData.planId} pendingPlanId={initialData.pendingPlanId} />
+              <SubscriptionPlanCard
+                key={plan.id}
+                plan={plan}
+                isPopular={i === 1}
+                period={period}
+                currentPlanId={initialData.planId}
+                currentBillingPeriod={initialData.billingPeriod}
+                pendingPlanId={initialData.pendingPlanId}
+                pendingBillingPeriod={initialData.pendingBillingPeriod}
+              />
             ))}
           </div>
         </section>
