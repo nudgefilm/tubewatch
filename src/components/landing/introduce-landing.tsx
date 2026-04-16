@@ -34,6 +34,13 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 // ─── 01. Hero ───────────────────────────────────────────────────────────────
 
+const heroStats = [
+  { value: "4", unit: "개", label: "핵심 분석 모듈" },
+  { value: "50", unit: "개", label: "영상 심층 분석" },
+  { value: "31", unit: "개+", label: "성장 신호 진단" },
+  { value: "무료", unit: "", label: "로 시작 가능", isFree: true },
+];
+
 function HeroSection() {
   const [visible, setVisible] = useState(false);
   const [iframeSrc, setIframeSrc] = useState("https://www.youtube.com/embed/NSXkMdEBSwo?rel=0");
@@ -49,14 +56,20 @@ function HeroSection() {
         className="absolute inset-0 pointer-events-none"
         style={{ backgroundImage: "radial-gradient(circle, hsl(var(--foreground)/0.04) 1px, transparent 1px)", backgroundSize: "32px 32px" }}
       />
+      {/* Subtle orange glow */}
+      <div className="absolute top-0 right-1/4 w-[500px] h-[300px] bg-orange-500/[0.04] rounded-full blur-3xl pointer-events-none" />
 
-      <div className="relative z-10 max-w-[1400px] mx-auto px-6 lg:px-12">
+      <div className="relative z-10 max-w-[1080px] mx-auto px-8 lg:px-20">
         <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
 
           {/* Left: 텍스트 + 배너 + 스탯 */}
           <div className="flex-1 min-w-0">
             <div className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-              <SectionLabel>TubeWatch™ Platform Introduction</SectionLabel>
+              <span className="inline-flex items-center gap-3 text-sm font-mono text-muted-foreground mb-6">
+                <span className="w-8 h-px bg-foreground/30 inline-block" />
+                YouTube Channel Analytics
+                <span className="w-8 h-px bg-foreground/30 inline-block" />
+              </span>
             </div>
 
             <h1 className={`font-heading font-medium leading-[1.15] tracking-[-0.03em] transition-all duration-1000 delay-100 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
@@ -64,11 +77,11 @@ function HeroSection() {
                 당신의 데이터는 이미<br />다음 전략을 말하고 있습니다.
               </span>
               <span className="block text-[clamp(1rem,2.4vw,1.9rem)] text-muted-foreground mt-2">
-                유튜브 스튜디오가 보여주지 않는 1% 시그널,<br />튜브워치가 설계합니다.
+                유튜브 스튜디오가 보여주지 않는 성장 신호,<br />튜브워치가 찾아드립니다.
               </span>
             </h1>
 
-            <div className={`mt-6 transition-all duration-700 delay-300 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+            <div className={`mt-6 flex items-center gap-4 transition-all duration-700 delay-300 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
               <a
                 href="https://forms.gle/cGMyEXQL1SDevpv7A"
                 target="_blank"
@@ -78,23 +91,20 @@ function HeroSection() {
                 베타 테스터 신청하기
                 <ArrowRight className="w-4 h-4" />
               </a>
+              <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                무료로 시작
+              </span>
             </div>
 
             {/* Stats row */}
-            <div className={`mt-7 flex flex-wrap gap-x-8 gap-y-4 border-t border-foreground/10 pt-6 transition-all duration-700 delay-500 ${visible ? "opacity-100" : "opacity-0"}`}>
-              {[
-                { value: "4개", label: "핵심 분석 모듈" },
-                { value: "50개", label: "영상 심층 분석" },
-                { value: "31개+", label: "성장 신호 진단" },
-                { value: "무료", label: "로 시작 가능", highlight: true },
-              ].map(({ value, label, highlight }) => (
-                <div key={label}>
-                  <p className={`font-heading text-2xl lg:text-3xl font-medium tracking-[-0.03em] ${highlight ? "text-foreground" : ""}`}>
-                    {value}
+            <div className={`mt-8 grid grid-cols-4 gap-3 border-t border-foreground/10 pt-6 transition-all duration-700 delay-500 ${visible ? "opacity-100" : "opacity-0"}`}>
+              {heroStats.map(({ value, unit, label, isFree }) => (
+                <div key={label} className="flex flex-col">
+                  <p className={`font-heading text-xl lg:text-2xl font-medium tracking-[-0.03em] leading-none ${isFree ? "text-orange-600 dark:text-orange-500" : ""}`}>
+                    {value}<span className="text-sm lg:text-base font-normal">{unit}</span>
                   </p>
-                  <p className={`text-xs mt-0.5 ${highlight ? "text-foreground font-medium" : "text-muted-foreground"}`}>
-                    {highlight ? <span className="underline underline-offset-4">{label}</span> : label}
-                  </p>
+                  <p className="text-[10px] lg:text-xs text-muted-foreground mt-1.5 leading-tight">{label}</p>
                 </div>
               ))}
             </div>
@@ -102,16 +112,19 @@ function HeroSection() {
 
           {/* Right: YouTube Shorts 영상 */}
           <div className={`shrink-0 self-end transition-all duration-700 delay-400 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
-            <div className="relative w-[220px] lg:w-[255px] rounded-2xl overflow-hidden border border-foreground/10 shadow-xl">
-              {/* 9:16 비율 컨테이너 */}
-              <div className="relative" style={{ paddingBottom: "177.78%" }}>
-                <iframe
-                  src={iframeSrc}
-                  className="absolute inset-0 w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  title="TubeWatch 소개 영상"
-                />
+            <div className="relative">
+              {/* Glow behind video */}
+              <div className="absolute -inset-4 bg-orange-500/10 rounded-3xl blur-2xl" />
+              <div className="relative w-[200px] lg:w-[235px] rounded-2xl overflow-hidden border border-foreground/10 shadow-2xl">
+                <div className="relative" style={{ paddingBottom: "177.78%" }}>
+                  <iframe
+                    src={iframeSrc}
+                    className="absolute inset-0 w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    title="TubeWatch 소개 영상"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -1469,32 +1482,106 @@ function WhySection() {
 const plans = [
   {
     name: "Free",
+    tier: "free" as const,
     price: "무료",
     note: "신용카드 없이 바로 시작",
     features: ["채널 1개", "기본 분석 횟수 제공", "Channel Analysis", "Channel DNA 핵심 항목", "Action Plan P1 항목", "Next Trend 1순위 주제"],
-    cta: "무료로 내 채널 분석하기",
+    cta: "무료로 시작하기",
     href: "/channels",
-    highlight: false,
   },
   {
     name: "Creator",
+    tier: "creator" as const,
     price: "월 구독",
     note: "성장을 원하는 크리에이터",
     features: ["채널 복수 등록", "월 정기 분석 제공", "Channel Analysis 전체", "Channel DNA 전체", "Action Plan 전체", "Next Trend 전체 + 실행 힌트"],
-    cta: "지금 성장 시작하기",
+    cta: "성장 시작하기",
     href: "/billing",
-    highlight: false,
   },
   {
     name: "Pro",
+    tier: "pro" as const,
     price: "월 구독",
     note: "진지하게 성장을 원하는 분",
     features: ["채널 더 많이 등록 가능", "월 분석 횟수 대폭 확대", "모든 기능 이용 가능", "원페이퍼 리포트 제공", "성장 전략 실행 플랜", "우선 지원"],
-    cta: "지금 성장 시작하기",
+    cta: "Pro로 시작하기",
     href: "/billing",
-    highlight: true,
   },
 ];
+
+function PlanIcon({ tier }: { tier: "free" | "creator" | "pro" }) {
+  if (tier === "free") return (
+    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+  if (tier === "creator") return (
+    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+  return (
+    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function PlanCard({ plan, index, visible }: { plan: typeof plans[0]; index: number; visible: boolean }) {
+  const isPro = plan.tier === "pro";
+  const isFree = plan.tier === "free";
+
+  return (
+    <div
+      className={`flex flex-col transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"} ${isPro ? "bg-foreground text-background" : "bg-background"}`}
+      style={{ transitionDelay: `${150 + index * 100}ms` }}
+    >
+      <div className={`p-6 lg:p-8 flex-1 flex flex-col`}>
+        {/* Plan header */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isPro ? "bg-orange-500 text-white" : isFree ? "bg-foreground/5 text-foreground/50" : "bg-foreground/5 text-foreground/70"}`}>
+              <PlanIcon tier={plan.tier} />
+            </div>
+            {isPro && (
+              <span className="font-mono text-[10px] tracking-[0.1em] uppercase bg-orange-500 text-white px-2 py-0.5 rounded">추천</span>
+            )}
+          </div>
+          <p className={`font-mono text-xs tracking-[0.1em] uppercase mb-2 ${isPro ? "opacity-50" : "text-muted-foreground"}`}>{plan.name}</p>
+          <p className="font-heading text-3xl font-medium tracking-[-0.03em]">{plan.price}</p>
+          <p className={`mt-1 text-xs ${isPro ? "opacity-50" : "text-muted-foreground"}`}>{plan.note}</p>
+        </div>
+
+        {/* Divider */}
+        <div className={`h-px mb-6 ${isPro ? "bg-background/10" : "bg-foreground/8"}`} />
+
+        {/* Features */}
+        <ul className="space-y-2.5 flex-1 mb-8">
+          {plan.features.map((f) => (
+            <li key={f} className={`flex items-start gap-2 text-sm ${isPro ? "opacity-80" : "text-muted-foreground"}`}>
+              <Check className={`h-3.5 w-3.5 mt-0.5 shrink-0 ${isPro ? "text-orange-400" : isFree ? "text-foreground/30" : "text-emerald-500"}`} />
+              {f}
+            </li>
+          ))}
+        </ul>
+
+        {/* CTA */}
+        <a
+          href={plan.href}
+          className={`block w-full text-center py-2.5 text-sm font-medium rounded-lg transition-colors ${
+            isPro
+              ? "bg-orange-500 text-white hover:bg-orange-600"
+              : isFree
+              ? "border border-foreground/15 hover:bg-foreground/[0.04]"
+              : "bg-foreground/5 hover:bg-foreground/10"
+          }`}
+        >
+          {plan.cta}
+        </a>
+      </div>
+    </div>
+  );
+}
 
 function PricingPreviewSection() {
   const { ref, visible } = useFadeIn();
@@ -1502,8 +1589,12 @@ function PricingPreviewSection() {
   return (
     <section className="relative py-10 lg:py-20 border-t border-foreground/10">
       <div className="max-w-[1080px] mx-auto px-8 lg:px-20">
-        <div ref={ref} className={`mb-8 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-          <SectionLabel>Pricing</SectionLabel>
+        <div ref={ref} className={`mb-10 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+          <span className="inline-flex items-center gap-3 text-sm font-mono text-muted-foreground mb-6">
+            <span className="w-8 h-px bg-foreground/30 inline-block" />
+            Pricing
+            <span className="w-8 h-px bg-foreground/30 inline-block" />
+          </span>
           <h2 className="font-heading text-4xl lg:text-5xl font-medium tracking-[-0.03em] leading-[1.1]">
             필요한 만큼만
             <br />
@@ -1514,36 +1605,9 @@ function PricingPreviewSection() {
           </p>
         </div>
 
-        <div className={`grid grid-cols-1 md:grid-cols-3 gap-px border border-foreground/10 bg-foreground/10 transition-all duration-700 delay-150 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
-          {plans.map(({ name, price, note, features, cta, href, highlight }) => (
-            <div key={name} className={`p-6 lg:p-8 flex flex-col ${highlight ? "bg-foreground text-background" : "bg-background"}`}>
-              <div className="mb-6">
-                {highlight && (
-                  <span className="inline-block font-mono text-[10px] tracking-[0.1em] uppercase bg-background/10 px-2 py-0.5 mb-3">추천</span>
-                )}
-                <p className={`font-mono text-xs tracking-[0.1em] uppercase mb-2 ${highlight ? "opacity-60" : "text-muted-foreground"}`}>{name}</p>
-                <p className="font-heading text-3xl font-medium tracking-[-0.03em]">{price}</p>
-                <p className={`mt-1 text-xs ${highlight ? "opacity-60" : "text-muted-foreground"}`}>{note}</p>
-              </div>
-              <ul className="space-y-2.5 flex-1 mb-8">
-                {features.map((f) => (
-                  <li key={f} className={`flex items-start gap-2 text-sm ${highlight ? "opacity-80" : "text-muted-foreground"}`}>
-                    <Check className={`h-3.5 w-3.5 mt-0.5 shrink-0 ${highlight ? "" : "text-foreground/40"}`} />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <a
-                href={href}
-                className={`block w-full text-center py-2.5 text-sm font-medium transition-colors ${
-                  highlight
-                    ? "bg-background text-foreground hover:bg-background/90"
-                    : "border border-foreground/20 hover:bg-foreground/[0.04]"
-                }`}
-              >
-                {cta}
-              </a>
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-px border border-foreground/10 bg-foreground/10">
+          {plans.map((plan, index) => (
+            <PlanCard key={plan.name} plan={plan} index={index} visible={visible} />
           ))}
         </div>
       </div>
@@ -1556,30 +1620,71 @@ function PricingPreviewSection() {
 function FinalCtaSection() {
   const { ref, visible } = useFadeIn(0.2);
 
+  const chips = ["채널 분석", "액션 플랜", "채널 DNA", "넥스트 트렌드"];
+
   return (
-    <section className="relative py-10 lg:py-20 border-t border-foreground/10">
-      <div className="max-w-[1080px] mx-auto px-8 lg:px-20">
+    <section className="relative py-10 lg:py-20 border-t border-foreground/10 overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute bottom-0 left-1/3 w-[600px] h-[300px] bg-orange-500/[0.05] rounded-full blur-3xl" />
+        <div className="absolute top-0 right-0 w-[400px] h-[200px] bg-foreground/[0.02] rounded-full blur-3xl" />
+      </div>
+
+      <div className="relative z-10 max-w-[1080px] mx-auto px-8 lg:px-20">
         <div
           ref={ref}
-          className={`relative border border-foreground px-8 lg:px-14 py-10 lg:py-16 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+          className={`relative border border-foreground/15 rounded-2xl px-8 lg:px-14 py-10 lg:py-16 transition-all duration-700 bg-foreground/[0.01] ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
         >
           {/* Corner decorations */}
-          <div className="absolute top-0 right-0 w-24 h-24 border-b border-l border-foreground/10" />
-          <div className="absolute bottom-0 left-0 w-24 h-24 border-t border-r border-foreground/10" />
+          <div className="absolute top-0 right-0 w-24 h-24 border-b border-l border-foreground/10 rounded-tr-2xl" />
+          <div className="absolute bottom-0 left-0 w-24 h-24 border-t border-r border-foreground/10 rounded-bl-2xl" />
 
           <div className="relative z-10">
-            <p className="font-mono text-xs tracking-[0.15em] uppercase text-muted-foreground mb-6">Get Started</p>
-            <h2 className="font-heading text-4xl lg:text-6xl font-medium tracking-[-0.03em] leading-[1.1] mb-6 break-keep">
+            {/* Chips */}
+            <div
+              className={`flex flex-wrap gap-2 mb-8 transition-all duration-700 delay-100 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+            >
+              {chips.map((chip, i) => (
+                <span
+                  key={chip}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-foreground/10 text-xs font-mono text-muted-foreground bg-background"
+                  style={{ transitionDelay: `${i * 60}ms` }}
+                >
+                  <span className="w-1 h-1 rounded-full bg-orange-500" />
+                  {chip}
+                </span>
+              ))}
+            </div>
+
+            <p className="font-mono text-xs tracking-[0.15em] uppercase text-muted-foreground mb-4">Get Started</p>
+            <h2
+              className={`font-heading text-4xl lg:text-6xl font-medium tracking-[-0.03em] leading-[1.1] mb-6 break-keep transition-all duration-700 delay-200 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+            >
               지금 채널을 등록하면<br />
               5분 안에 첫 성장 인사이트를<br />
-              확인할 수 있습니다.
+              <span className="text-orange-600 dark:text-orange-500">확인할 수 있습니다.</span>
             </h2>
-            <div className="flex flex-col sm:flex-row items-start gap-4 mt-8">
-              <Button size="lg" className="bg-black hover:bg-neutral-800 text-white px-8 h-12 text-base rounded-lg shadow-lg" asChild>
+
+            <div
+              className={`flex flex-col sm:flex-row items-start gap-4 mt-8 transition-all duration-700 delay-300 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+            >
+              <Button size="lg" className="bg-foreground hover:bg-foreground/90 text-background px-8 h-12 text-base rounded-xl shadow-lg" asChild>
                 <a href="/channels">내 채널 분석하기</a>
               </Button>
+              <a
+                href="https://forms.gle/cGMyEXQL1SDevpv7A"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 h-12 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                베타 테스터 신청
+                <ArrowRight className="w-3.5 h-3.5" />
+              </a>
             </div>
-            <p className="mt-8 font-mono text-xs text-muted-foreground/50">
+
+            <p
+              className={`mt-8 font-mono text-xs text-muted-foreground/40 transition-all duration-700 delay-400 ${visible ? "opacity-100" : "opacity-0"}`}
+            >
               tubewatch.kr — 감이 아닌 데이터로 성장하는 유튜버를 위해
             </p>
           </div>
