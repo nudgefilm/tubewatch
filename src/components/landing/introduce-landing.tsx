@@ -84,8 +84,8 @@ function HeroSection() {
             <div className={`mt-7 flex flex-wrap gap-x-8 gap-y-4 border-t border-foreground/10 pt-6 transition-all duration-700 delay-500 ${visible ? "opacity-100" : "opacity-0"}`}>
               {[
                 { value: "4개", label: "핵심 분석 모듈" },
-                { value: "50개+", label: "영상 심층 분석" },
-                { value: "80개+", label: "데이터 시그널 기반" },
+                { value: "50개", label: "영상 심층 분석" },
+                { value: "31개+", label: "성장 신호 진단" },
                 { value: "무료", label: "로 시작 가능", highlight: true },
               ].map(({ value, label, highlight }) => (
                 <div key={label}>
@@ -349,7 +349,7 @@ function PainPointsSection() {
   const { ref, visible } = useFadeIn();
 
   return (
-    <section className="relative py-6 lg:py-10 border-t border-foreground/10">
+    <section className="relative py-10 lg:py-20 border-t border-foreground/10">
       <div className="max-w-[1080px] mx-auto px-8 lg:px-20">
         <div ref={ref} className={`mb-10 text-center transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
           <span className="inline-flex items-center gap-3 text-sm font-mono text-muted-foreground mb-6">
@@ -493,7 +493,7 @@ function ActionPlanPreview() {
   const steps = [
     { week: "1주차", task: "채널 브랜딩 정비" },
     { week: "2주차", task: "콘텐츠 기획안 작성" },
-    { week: "3주차", task: "첫 영상 업로드" },
+    { week: "3주차", task: "키워드 최적화 적용" },
     { week: "4주차", task: "성과 분석 & 개선" },
   ];
 
@@ -543,10 +543,10 @@ function NextTrendPreview() {
   const [activeIndex, setActiveIndex] = useState(0);
 
   const trends = [
-    { topic: "AI 활용 브이로그", score: 94, change: "+12" },
-    { topic: "미니멀 라이프", score: 87, change: "+8" },
-    { topic: "1인 캠핑", score: 82, change: "+5" },
-    { topic: "홈카페 레시피", score: 79, change: "+3" },
+    { topic: "AI 활용 브이로그", score: 94, badge: "추천 1순위" },
+    { topic: "미니멀 라이프", score: 87, badge: "채널 연관" },
+    { topic: "1인 캠핑", score: 82, badge: "성장 중" },
+    { topic: "홈카페 레시피", score: 79, badge: "참여 높음" },
   ];
 
   useEffect(() => {
@@ -559,11 +559,8 @@ function NextTrendPreview() {
   return (
     <div className="relative w-full h-full flex flex-col p-4 lg:p-5">
       <div className="flex items-center justify-between mb-4">
-        <span className="text-xs font-mono text-muted-foreground">TRENDING NOW</span>
-        <div className="flex items-center gap-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-          <span className="text-[10px] text-red-500">LIVE</span>
-        </div>
+        <span className="text-xs font-mono text-muted-foreground">NEXT TOPIC</span>
+        <span className="text-[10px] px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-600">내 채널 기반</span>
       </div>
       <div className="flex-1 flex flex-col justify-center space-y-2">
         {trends.map((trend, index) => (
@@ -581,12 +578,12 @@ function NextTrendPreview() {
                 style={{ width: `${trend.score}%` }}
               />
             </div>
-            <span className="text-[10px] text-emerald-500 font-mono w-8 text-right shrink-0">{trend.change}</span>
+            <span className="text-[10px] text-orange-500 font-mono shrink-0 text-right w-14">{trend.badge}</span>
           </div>
         ))}
       </div>
       <div className="mt-3 text-center">
-        <span className="text-[10px] text-muted-foreground">내 채널과 연관도 높은 주제 분석</span>
+        <span className="text-[10px] text-muted-foreground">내 채널 흐름 기반 다음 주제 추천</span>
       </div>
     </div>
   );
@@ -754,7 +751,7 @@ function FeaturesSection() {
 const workSteps = [
   { number: 1, title: "채널 연동",   description: "유튜브 채널 URL 입력", duration: "30초",    icon: "link"     as const },
   { number: 2, title: "데이터 수집", description: "최근 영상 50개 분석", duration: "1분",     icon: "download" as const },
-  { number: 3, title: "AI 분석",    description: "80개+ 신호 처리",    duration: "2분",     icon: "brain"    as const },
+  { number: 3, title: "AI 분석",    description: "31개+ 성장 신호 처리", duration: "2분",     icon: "brain"    as const },
   { number: 4, title: "리포트 생성", description: "맞춤 전략 도출",     duration: "1분 30초", icon: "report"  as const },
 ];
 
@@ -1067,11 +1064,8 @@ function HowItWorksSection() {
 
         <div className={`mt-12 text-center transition-all duration-700 delay-500 ${visible ? "opacity-100" : "opacity-0"}`}>
           <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-foreground/5 border border-foreground/10">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-            <span className="text-sm">
-              <span className="font-medium">10,000+</span>
-              <span className="text-muted-foreground"> 크리에이터가 이미 경험했습니다</span>
-            </span>
+            <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse shrink-0" />
+            <span className="text-sm text-muted-foreground">채널 URL만 입력하면 바로 시작됩니다</span>
           </div>
         </div>
       </div>
@@ -1226,7 +1220,7 @@ function CategoryBlock({
       }`}
       style={{ transitionDelay: `${categoryIndex * 150}ms` }}
     >
-      <div className="flex items-center gap-3 mb-2 pt-6 first:pt-0">
+      <div className={`flex items-center gap-3 mb-2 ${categoryIndex === 0 ? "pt-0" : "pt-6"}`}>
         <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">
           {String(categoryIndex + 1).padStart(2, "0")}
         </span>
@@ -1461,7 +1455,7 @@ function WhySection() {
                   strokeLinejoin="round"
                 />
               </svg>
-              분석에서 끝나지 않고, 실행까지 이어지는 유일한 솔루션
+              분석에서 끝나지 않고, 실행까지 설계하는 분석 도구
             </span>
           </p>
         </div>
@@ -1477,7 +1471,7 @@ const plans = [
     name: "Free",
     price: "무료",
     note: "신용카드 없이 바로 시작",
-    features: ["채널 1개", "생애 기본 분석 횟수 제공", "Channel Analysis", "Channel DNA 핵심 항목", "Action Plan P1 항목", "Next Trend 1순위 주제"],
+    features: ["채널 1개", "기본 분석 횟수 제공", "Channel Analysis", "Channel DNA 핵심 항목", "Action Plan P1 항목", "Next Trend 1순위 주제"],
     cta: "무료로 내 채널 분석하기",
     href: "/channels",
     highlight: false,
@@ -1495,7 +1489,7 @@ const plans = [
     name: "Pro",
     price: "월 구독",
     note: "진지하게 성장을 원하는 분",
-    features: ["채널 더 많이 등록 가능", "월 분석 횟수 대폭 확대", "모든 기능 무제한", "원페이퍼 리포트 제공", "성장 전략 실행 플랜", "우선 지원"],
+    features: ["채널 더 많이 등록 가능", "월 분석 횟수 대폭 확대", "모든 기능 이용 가능", "원페이퍼 리포트 제공", "성장 전략 실행 플랜", "우선 지원"],
     cta: "지금 성장 시작하기",
     href: "/billing",
     highlight: true,
@@ -1506,7 +1500,7 @@ function PricingPreviewSection() {
   const { ref, visible } = useFadeIn();
 
   return (
-    <section className="relative py-6 lg:py-10 border-t border-foreground/10">
+    <section className="relative py-10 lg:py-20 border-t border-foreground/10">
       <div className="max-w-[1080px] mx-auto px-8 lg:px-20">
         <div ref={ref} className={`mb-8 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
           <SectionLabel>Pricing</SectionLabel>
@@ -1563,7 +1557,7 @@ function FinalCtaSection() {
   const { ref, visible } = useFadeIn(0.2);
 
   return (
-    <section className="relative py-6 lg:py-10 border-t border-foreground/10">
+    <section className="relative py-10 lg:py-20 border-t border-foreground/10">
       <div className="max-w-[1080px] mx-auto px-8 lg:px-20">
         <div
           ref={ref}
