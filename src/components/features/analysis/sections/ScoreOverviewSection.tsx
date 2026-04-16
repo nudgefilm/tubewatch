@@ -86,6 +86,12 @@ const SECTION_DISPLAY: { key: SectionKey; label: string }[] = [
   { key: "subscriptionConversion", label: "구독" },
 ]
 
+function getSectionScoreLabel(score: number): string {
+  if (score >= 80) return "양호"
+  if (score >= 60) return "보통"
+  return "취약"
+}
+
 function tierOf(score: number): 0 | 1 | 2 {
   if (score >= 80) return 0
   if (score >= 60) return 1
@@ -178,6 +184,9 @@ export function AnalysisScoreOverview({ score, sectionScores }: AnalysisScoreOve
                   </div>
                   <span className="w-5 text-right text-[10px] tabular-nums text-muted-foreground">
                     {Math.round(val)}
+                  </span>
+                  <span className={`w-[22px] shrink-0 text-[10px] font-medium ${getScoreColor(val)}`}>
+                    {getSectionScoreLabel(val)}
                   </span>
                 </div>
               )

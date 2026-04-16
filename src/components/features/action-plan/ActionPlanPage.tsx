@@ -103,7 +103,7 @@ export function ActionPlanPage({ channelId = "", channelContext, viewModel, isSt
                 <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><ClipboardList className="size-5 shrink-0 text-primary" />업로드 전 체크리스트</h2>
                 <p className="text-xs text-muted-foreground mt-0.5">영상을 올리기 전 매번 확인할 항목</p>
               </div>
-              <ActionPlanChecklistSection items={checklistData} />
+              <ActionPlanChecklistSection items={checklistData} storageKey={viewModel.selectedChannelId ?? undefined} />
             </section>
           )}
 

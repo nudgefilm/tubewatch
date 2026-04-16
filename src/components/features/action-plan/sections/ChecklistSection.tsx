@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Check, Minus, X, Clock } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -29,6 +29,7 @@ export interface FlatChecklistItem {
 interface ActionPlanChecklistProps {
   data?: ChecklistData
   items?: FlatChecklistItem[]
+  storageKey?: string
 }
 
 const difficultyLabel: Record<FlatChecklistItem["difficulty"], string> = {
@@ -43,14 +44,27 @@ const difficultyColor: Record<FlatChecklistItem["difficulty"], string> = {
   hard: "text-muted-foreground",
 }
 
-export function ActionPlanChecklistSection({ data, items }: ActionPlanChecklistProps) {
+export function ActionPlanChecklistSection({ data, items, storageKey }: ActionPlanChecklistProps) {
+  const lsKey = storageKey ? `ap_checklist_${storageKey}` : null
   const [checked, setChecked] = useState<Set<string>>(new Set())
+
+  // localStorage에서 저장된 체크 상태 복원
+  useEffect(() => {
+    if (!lsKey) return
+    try {
+      const stored = localStorage.getItem(lsKey)
+      if (stored) setChecked(new Set(JSON.parse(stored) as string[]))
+    } catch {}
+  }, [lsKey])
 
   function toggle(id: string) {
     setChecked((prev) => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
       else next.add(id)
+      if (lsKey) {
+        try { localStorage.setItem(lsKey, JSON.stringify([...next])) } catch {}
+      }
       return next
     })
   }
