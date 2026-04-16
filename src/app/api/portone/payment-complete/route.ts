@@ -129,6 +129,12 @@ export async function POST(request: Request) {
     const planId = typeof raw.planId === "string" ? raw.planId.trim() : "";
     const billingPeriod = typeof raw.billingPeriod === "string" ? raw.billingPeriod.trim() : "";
 
+    console.log("[portone/payment-complete] incoming subscription params:", {
+      planId: raw.planId,
+      billingPeriod: raw.billingPeriod,
+      parsed: { planId, billingPeriod },
+    });
+
     if (!VALID_PLAN_IDS.includes(planId as BillingPlanId)) {
       return NextResponse.json({ error: "유효하지 않은 플랜입니다." }, { status: 400 });
     }
@@ -138,6 +144,10 @@ export async function POST(request: Request) {
 
     const planIdTyped = planId as BillingPlanId;
     const billingPeriodTyped = billingPeriod as BillingPeriod;
+
+    if (!billingPeriodTyped) {
+      return NextResponse.json({ error: "billing_period missing" }, { status: 400 });
+    }
 
     let expectedKrw: number;
     try {
@@ -251,7 +261,14 @@ export async function POST(request: Request) {
       );
 
     if (upsertError) {
-      console.error("[portone/payment-complete] upsert error:", upsertError);
+      console.error("[portone/payment-complete] upsert error:", {
+        message: upsertError.message,
+        code: upsertError.code,
+        details: upsertError.details,
+        hint: upsertError.hint,
+        billingPeriodTyped,
+        planIdTyped,
+      });
       return NextResponse.json({ error: "구독 정보 저장에 실패했습니다." }, { status: 500 });
     }
 
