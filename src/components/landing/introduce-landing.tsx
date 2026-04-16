@@ -36,10 +36,10 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 function HeroSection() {
   const [visible, setVisible] = useState(false);
-  const [iframeSrc, setIframeSrc] = useState("https://www.youtube.com/embed/DyoQs-ZHRgU?rel=0");
+  const [iframeSrc, setIframeSrc] = useState("https://www.youtube.com/embed/NSXkMdEBSwo?rel=0");
   useEffect(() => {
     setVisible(true);
-    setIframeSrc(`https://www.youtube.com/embed/DyoQs-ZHRgU?rel=0&enablejsapi=1&origin=${window.location.origin}`);
+    setIframeSrc(`https://www.youtube.com/embed/NSXkMdEBSwo?rel=0&enablejsapi=1&origin=${window.location.origin}`);
   }, []);
 
   return (
