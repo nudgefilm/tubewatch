@@ -82,14 +82,50 @@ function toCandidates(vms: NextTrendCandidateVm[]) {
   }))
 }
 
+function parseDurationFromHint(s: string): { seconds: number; minutes: number } {
+  const secMatch = s.match(/약\s*([\d,]+)\s*초/)
+  const minMatch = s.match(/약\s*(\d+)\s*분/)
+  const seconds = secMatch ? parseInt(secMatch[1].replace(/,/g, "")) : 0
+  const minutes = minMatch ? parseInt(minMatch[1]) : seconds > 0 ? Math.round(seconds / 60) : 0
+  return { seconds, minutes }
+}
+
+function deriveShortLongPct(headline: string): { short: number; long: number } {
+  const h = headline.toLowerCase()
+  if (h.includes("짧은") || h.includes("숏폼")) return { short: 60, long: 40 }
+  if (h.includes("긴") || h.includes("롱폼")) return { short: 25, long: 75 }
+  return { short: 35, long: 65 }
+}
+
+function extractApproachKeywords(text: string): { text: string; type: "signal" | "action" }[] {
+  const result: { text: string; type: "signal" | "action" }[] = []
+  const signals = ["신호", "반복", "편차", "상승", "하락", "흐름"]
+  const actions = ["시리즈로 명시화", "회차 표기", "시리즈", "테스트", "실험", "바로 제작", "전환하세요"]
+  for (const w of signals) {
+    if (text.includes(w) && !result.find(k => k.text === w)) result.push({ text: w, type: "signal" })
+  }
+  for (const w of actions) {
+    if (text.includes(w) && !result.find(k => k.text === w)) result.push({ text: w, type: "action" })
+  }
+  return result
+}
+
 function toFormatRecommendations(vm: NextTrendFormatVm) {
+  const { seconds, minutes } = parseDurationFromHint(vm.suggestedLength)
+  const { short, long } = deriveShortLongPct(vm.recommendedFormat)
   return [
     {
       id: "format-1",
       format: vm.recommendedFormat,
+      headline: vm.recommendedFormat,
       seriesPotential: vm.seriesPotential.includes("시리즈") || vm.seriesPotential.includes("반복"),
       recommendedLength: vm.suggestedLength,
+      seconds,
+      minutes,
+      shortPct: short,
+      longPct: long,
       approach: vm.seriesPotential,
+      approachKeywords: extractApproachKeywords(vm.seriesPotential),
       internalFit: 70,
       basedOn: "스냅샷 기반 포맷 분석",
     },
