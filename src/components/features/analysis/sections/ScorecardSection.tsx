@@ -93,7 +93,7 @@ export function ScorecardSection({ score, sectionScores }: ScorecardSectionProps
   const interpretation = weakestInterpretation(sectionScores)
 
   return (
-    <Card className="border-0 shadow-sm">
+    <Card className="shadow-sm">
       <CardContent className="p-6">
         <div className="grid grid-cols-[144px_1fr] gap-6 items-center">
           {/* Donut gauge */}

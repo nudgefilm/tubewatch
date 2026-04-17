@@ -33,7 +33,7 @@ interface MetricCardProps {
 function MetricCard({ title, score, meta, interpretation }: MetricCardProps) {
   const { text: statusText, cls: statusCls } = scoreStyle(score)
   return (
-    <div className="rounded-lg bg-card p-4 shadow-sm space-y-2.5">
+    <div className="rounded-lg border bg-card p-4 shadow-sm space-y-2.5">
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium">{title}</span>
         <span className="text-sm tabular-nums">
@@ -154,7 +154,7 @@ export function EngagementGridSection({ sectionScores, diagnosisCards, kpiData }
         />
       )}
       {hasBenchmark && (
-        <div className="rounded-lg bg-card p-4 shadow-sm space-y-2.5">
+        <div className="rounded-lg border bg-card p-4 shadow-sm space-y-2.5">
           <span className="text-sm font-medium">기준 성과선</span>
           <div className="space-y-1.5 pt-0.5">
             <div className="flex items-center justify-between text-xs">
