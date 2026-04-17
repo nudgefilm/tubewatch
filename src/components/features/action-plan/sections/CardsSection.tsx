@@ -179,11 +179,11 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                           <div className="grid grid-cols-3 gap-3">
                             <div className="p-3 bg-muted/50 rounded-lg">
                               <p className="text-xs text-muted-foreground">현재 수치</p>
-                              <p className="font-medium">{action.evidenceData.current}</p>
+                              <p className="font-semibold text-sky-600 dark:text-sky-400">{action.evidenceData.current}</p>
                             </div>
                             <div className="p-3 bg-muted/50 rounded-lg">
                               <p className="text-xs text-muted-foreground">기준점</p>
-                              <p className="font-medium">{action.evidenceData.benchmark}</p>
+                              <p className="font-semibold text-amber-600 dark:text-amber-400">{action.evidenceData.benchmark}</p>
                             </div>
                             <div className="p-3 bg-muted/50 rounded-lg">
                               <p className="text-xs text-muted-foreground">표본</p>
@@ -236,7 +236,7 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                           <div className="flex items-center gap-2 text-sm flex-wrap">
                             <span className="text-muted-foreground">{action.performancePrediction!.current}</span>
                             <ArrowRight className="h-3 w-3 text-muted-foreground shrink-0" />
-                            <span className="font-medium">{action.performancePrediction!.targetRange}</span>
+                            <span className="font-semibold text-emerald-600 dark:text-emerald-400">{action.performancePrediction!.targetRange}</span>
                           </div>
                           {action.performancePrediction!.predictionBasis && (
                             <p className="text-xs text-muted-foreground">

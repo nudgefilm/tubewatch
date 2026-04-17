@@ -41,29 +41,29 @@ export function ActionPlanSummarySection({ data }: ActionPlanSummaryProps) {
                 <AlertTriangle className="h-4 w-4" />
                 <span className="text-sm font-medium">핵심 문제</span>
               </div>
-              <p className="text-sm text-foreground leading-relaxed">
+              <p className="text-sm leading-relaxed text-rose-700 dark:text-rose-400">
                 {data.coreProblem}
               </p>
             </div>
 
             {/* 권장 전략 */}
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-primary">
+              <div className="flex items-center gap-2 text-sky-600 dark:text-sky-400">
                 <Target className="h-4 w-4" />
                 <span className="text-sm font-medium">권장 전략</span>
               </div>
-              <p className="text-sm text-foreground leading-relaxed">
+              <p className="text-sm leading-relaxed text-sky-700 dark:text-sky-400">
                 {data.recommendedStrategy}
               </p>
             </div>
 
             {/* 기대 변화 */}
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-emerald-600">
+              <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
                 <TrendingUp className="h-4 w-4" />
                 <span className="text-sm font-medium">기대 변화</span>
               </div>
-              <p className="text-sm text-foreground leading-relaxed">
+              <p className="text-sm leading-relaxed text-emerald-700 dark:text-emerald-400">
                 {data.expectedChange}
               </p>
             </div>
@@ -74,7 +74,7 @@ export function ActionPlanSummarySection({ data }: ActionPlanSummaryProps) {
                 <Calendar className="h-4 w-4" />
                 <span className="text-sm font-medium">적용 기간</span>
               </div>
-              <p className="text-sm text-foreground leading-relaxed">
+              <p className="text-sm leading-relaxed text-muted-foreground">
                 {data.applicationPeriod}
               </p>
             </div>
