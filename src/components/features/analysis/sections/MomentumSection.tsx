@@ -49,7 +49,8 @@ export function MomentumSection({ uploadDates }: MomentumSectionProps) {
           {dots.map((active, idx) => (
             <div
               key={idx}
-              className={`h-2.5 w-full rounded-[2px] transition-colors ${active ? "bg-primary/70" : "bg-muted/60"}`}
+              style={{ height: "10px" }}
+              className={`rounded-[2px] transition-colors ${active ? "bg-primary/70" : "bg-slate-200 dark:bg-slate-700"}`}
             />
           ))}
         </div>
