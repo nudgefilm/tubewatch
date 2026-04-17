@@ -586,8 +586,8 @@ function buildContextSection(ctx: AnalysisContext): string {
   const m = ctx.metrics;
   const metricsBlock = [
     `[사전 분석 메트릭]`,
-    `avg_view_count: ${formatNumber(m.avgViewCount)}`,
-    `median_view_count: ${formatNumber(m.medianViewCount)}`,
+    `avg_view_count: ${formatNumber(m.avgViewCount != null ? Math.round(m.avgViewCount) : null)}`,
+    `median_view_count: ${formatNumber(m.medianViewCount != null ? Math.round(m.medianViewCount) : null)}`,
     `avg_like_ratio: ${formatRatio(m.avgLikeRatio)}`,
     `avg_comment_ratio: ${formatRatio(m.avgCommentRatio)}`,
     `avg_video_duration: ${formatSeconds(m.avgVideoDuration)}`,
