@@ -71,23 +71,6 @@ export function ActionPlanPage({ channelId = "", channelContext, viewModel, isSt
             </div>
           )}
 
-          {/* 지금 당장 이것만 — P1 핵심 요약 */}
-          {viewModel.hasAnalysis && cardsData.length > 0 && cardsData[0].priority === "P1" && (
-            <div className="rounded-xl border-2 border-primary/25 bg-primary/[0.04] px-5 py-4">
-              <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-primary">
-                지금 당장 이것만
-              </p>
-              <p className="text-lg font-bold leading-snug text-foreground">
-                {cardsData[0].title}
-              </p>
-              {cardsData[0].expectedEffect && (
-                <p className="mt-1.5 text-sm text-muted-foreground line-clamp-2">
-                  {cardsData[0].expectedEffect}
-                </p>
-              )}
-            </div>
-          )}
-
           {/* [1] 우선순위별 실행 계획 */}
           {viewModel.hasAnalysis && (
             <section className="space-y-4">
