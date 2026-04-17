@@ -11,8 +11,8 @@ const INITIAL_SHOW = 3
 
 /** 진단 수치나 긴 raw 문장은 null 반환 → 렌더 생략 */
 function sanitizeDescription(desc: string): string | null {
-  if (/\d+\.?\d*\s*%/.test(desc) || desc.length > 60) return null
-  return desc
+  if (/\d+\.?\d*\s*%/.test(desc)) return null
+  return desc.trim() || null
 }
 
 interface DnaCardsSectionProps {
@@ -62,7 +62,7 @@ export function DnaCardsSection({ data }: DnaCardsSectionProps) {
                   weaknessLabel="약점"
                 />
                 {sanitizeDescription(item.description) && (
-                  <p className="text-xs text-muted-foreground">{sanitizeDescription(item.description)}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-2">{sanitizeDescription(item.description)}</p>
                 )}
                 {item.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1">
@@ -114,7 +114,7 @@ export function DnaCardsSection({ data }: DnaCardsSectionProps) {
                   weaknessLabel="약점"
                 />
                 {sanitizeDescription(item.description) && (
-                  <p className="text-xs text-muted-foreground">{sanitizeDescription(item.description)}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-2">{sanitizeDescription(item.description)}</p>
                 )}
                 {item.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1">
