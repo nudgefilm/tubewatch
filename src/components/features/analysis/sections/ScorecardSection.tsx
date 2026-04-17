@@ -94,7 +94,7 @@ export function ScorecardSection({ score, sectionScores }: ScorecardSectionProps
 
   return (
     <Card className="shadow-sm">
-      <CardContent className="p-6">
+      <CardContent className="p-6 pt-6">
         <div className="grid grid-cols-[144px_1fr] gap-6 items-center">
           {/* Donut gauge */}
           <div className="flex flex-col items-center gap-2">

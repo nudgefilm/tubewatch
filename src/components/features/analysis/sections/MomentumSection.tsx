@@ -57,7 +57,7 @@ export function MomentumSection({ uploadDates }: MomentumSectionProps) {
 
   return (
     <Card className="shadow-sm">
-      <CardContent className="p-6">
+      <CardContent className="p-6 pt-6">
         <div className="mb-3 flex items-center justify-between">
           <div>
             <span className="text-xs font-medium text-muted-foreground">최근 12주 업로드 활동</span>
