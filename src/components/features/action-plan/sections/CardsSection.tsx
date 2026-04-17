@@ -125,7 +125,7 @@ function DonutChart({ counts, total }: { counts: Record<string, number>; total: 
 
   return (
     <div className="flex flex-col items-center gap-3">
-      <svg viewBox="0 0 110 110" className="w-36 h-36">
+      <svg viewBox="0 0 110 110" className="w-44 h-44">
         <g transform="rotate(-90 55 55)">
           <circle cx="55" cy="55" r="40" fill="none" strokeWidth="16" className="stroke-muted/20" />
           {arcs.map(({ priority, arcLength, dashOffset }) => {
@@ -195,12 +195,12 @@ function PlanSummaryBlock({ data }: { data: ActionCard[] }) {
     <div className="rounded-xl border bg-card overflow-hidden">
       <div className="grid grid-cols-12 divide-x divide-border">
         {/* 도넛 차트 */}
-        <div className="col-span-4 p-4 flex items-center justify-center">
+        <div className="col-span-5 p-4 flex items-center justify-center">
           <DonutChart counts={priorityCounts} total={total} />
         </div>
 
         {/* 카테고리 스택 바 */}
-        <div className="col-span-4 p-4">
+        <div className="col-span-3 p-4">
           <div className="flex items-center gap-1.5 mb-3">
             <Layers className="h-3.5 w-3.5 text-muted-foreground" />
             <p className="text-xs font-medium text-muted-foreground">카테고리별 분포</p>
@@ -211,8 +211,8 @@ function PlanSummaryBlock({ data }: { data: ActionCard[] }) {
               const barWidthPct = total > 0 ? (count / total) * 100 : 0
               const breakdown = categoryBreakdown[cat] ?? {}
               return (
-                <div key={cat} className="flex items-center gap-2">
-                  <span className="w-8 text-xs text-muted-foreground shrink-0">{CATEGORY_LABELS[cat]}</span>
+                <div key={cat} className="flex items-center gap-1.5">
+                  <span className="w-7 text-xs text-muted-foreground shrink-0">{CATEGORY_LABELS[cat]}</span>
                   <div className="flex-1 h-5 bg-muted/20 rounded overflow-hidden">
                     <div className="flex h-full" style={{ width: `${barWidthPct}%` }}>
                       {["P1", "P2", "P3"].map((p) => {
@@ -228,7 +228,7 @@ function PlanSummaryBlock({ data }: { data: ActionCard[] }) {
                       })}
                     </div>
                   </div>
-                  <span className="text-xs font-medium tabular-nums shrink-0 w-8 text-right">{count}건</span>
+                  <span className="text-xs font-medium tabular-nums shrink-0">{count}건</span>
                 </div>
               )
             })}
