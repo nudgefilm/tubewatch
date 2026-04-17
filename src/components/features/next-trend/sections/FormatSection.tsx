@@ -35,7 +35,7 @@ function TimeGauge({ minutes, seconds }: { minutes: number; seconds: number }) {
             cx="48" cy="48" r="38"
             fill="none"
             strokeWidth="7"
-            style={{ stroke: "var(--muted-foreground)", opacity: 0.2 }}
+            style={{ stroke: "oklch(var(--muted-foreground))", opacity: 0.2 }}
           />
           <circle
             cx="48" cy="48" r="38"
@@ -43,7 +43,7 @@ function TimeGauge({ minutes, seconds }: { minutes: number; seconds: number }) {
             strokeWidth="7"
             strokeDasharray={strokeDasharray}
             strokeLinecap="round"
-            style={{ stroke: "var(--foreground)", transform: "rotate(-90deg)", transformOrigin: "center" }}
+            style={{ stroke: "oklch(var(--foreground))", transform: "rotate(-90deg)", transformOrigin: "center" }}
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">

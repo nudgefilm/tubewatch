@@ -27,7 +27,7 @@ interface AnalysisViewTrendChartProps {
 const chartConfig = {
   views: {
     label: "조회수",
-    color: "var(--chart-1)",
+    color: "oklch(var(--chart-1))",
   },
 } satisfies ChartConfig
 
