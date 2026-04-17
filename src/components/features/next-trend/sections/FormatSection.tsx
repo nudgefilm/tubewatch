@@ -54,11 +54,11 @@ function TimeGauge({ minutes, seconds }: { minutes: number; seconds: number }) {
           <span className="text-[10px] text-muted-foreground mt-0.5">분</span>
         </div>
       </div>
-      <div className="text-center">
+      <div className="text-center space-y-0.5">
         <p className="text-[10px] text-muted-foreground">권장 길이</p>
         {seconds > 0 && (
           <p className="text-sm font-semibold tabular-nums text-foreground/80">
-            {seconds.toLocaleString("ko-KR")}초
+            {seconds.toLocaleString()}<span className="text-xs font-normal ml-0.5">초</span>
           </p>
         )}
       </div>
@@ -69,8 +69,8 @@ function TimeGauge({ minutes, seconds }: { minutes: number; seconds: number }) {
 // ── 포맷 분포 바 ─────────────────────────────────────────────────────────────
 function LengthDistributionBar({ short, long }: { short: number; long: number }) {
   return (
-    <div className="space-y-1.5">
-      <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
         <Play className="h-3 w-3 fill-current" />
         <span className="font-medium">포맷 분포</span>
       </div>
@@ -94,10 +94,11 @@ function LengthDistributionBar({ short, long }: { short: number; long: number })
 
 // ── 내부 적합도 게이지 ───────────────────────────────────────────────────────
 function FitScoreGauge({ score }: { score: number }) {
-  const filled = Math.round(score / 10)
+  const filledSegments = Math.round(score / 10)
+
   return (
-    <div className="space-y-1.5">
-      <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
         <Zap className="h-3 w-3" />
         <span className="font-medium">내부 적합도</span>
       </div>
@@ -108,7 +109,7 @@ function FitScoreGauge({ score }: { score: number }) {
               key={idx}
               className={cn(
                 "w-4 h-5 rounded-sm transition-all duration-300",
-                idx < filled
+                idx < filledSegments
                   ? "bg-foreground/80 dark:bg-foreground/70"
                   : "bg-muted/50 dark:bg-muted/30"
               )}
@@ -122,53 +123,48 @@ function FitScoreGauge({ score }: { score: number }) {
 }
 
 // ── 전개 방식 키워드 하이라이트 ──────────────────────────────────────────────
-function ApproachText({ text, keywords }: {
+function ApproachText({
+  text,
+  keywords,
+}: {
   text: string
   keywords: { text: string; type: "signal" | "action" }[]
 }) {
-  if (keywords.length === 0) return <>{text}</>
+  if (!keywords.length) return <>{text}</>
 
-  const parts: { content: string; type: "normal" | "signal" | "action" }[] = []
-  let remaining = text
-  let offset = 0
-
-  // 키워드를 텍스트 내 위치 순으로 정렬
   const sorted = [...keywords]
-    .map(kw => ({ ...kw, index: text.indexOf(kw.text) }))
-    .filter(kw => kw.index !== -1)
-    .sort((a, b) => a.index - b.index)
+    .map(kw => ({ ...kw, pos: text.indexOf(kw.text) }))
+    .filter(kw => kw.pos >= 0)
+    .sort((a, b) => a.pos - b.pos)
+
+  const nodes: React.ReactNode[] = []
+  let cursor = 0
 
   for (const kw of sorted) {
-    const relIdx = kw.index - offset
-    if (relIdx < 0) continue
-    if (relIdx > 0) parts.push({ content: remaining.slice(0, relIdx), type: "normal" })
-    parts.push({ content: kw.text, type: kw.type })
-    remaining = remaining.slice(relIdx + kw.text.length)
-    offset = kw.index + kw.text.length
+    if (kw.pos < cursor) continue
+    if (kw.pos > cursor) {
+      nodes.push(<span key={`t-${cursor}`}>{text.slice(cursor, kw.pos)}</span>)
+    }
+    nodes.push(
+      <span
+        key={`k-${kw.pos}`}
+        className={cn(
+          "px-1.5 py-0.5 rounded font-medium",
+          kw.type === "signal"
+            ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400"
+            : "bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400"
+        )}
+      >
+        {kw.text}
+      </span>
+    )
+    cursor = kw.pos + kw.text.length
   }
-  if (remaining) parts.push({ content: remaining, type: "normal" })
+  if (cursor < text.length) {
+    nodes.push(<span key="t-end">{text.slice(cursor)}</span>)
+  }
 
-  return (
-    <>
-      {parts.map((p, i) =>
-        p.type === "normal" ? (
-          <span key={i}>{p.content}</span>
-        ) : (
-          <span
-            key={i}
-            className={cn(
-              "px-1.5 py-0.5 rounded font-medium",
-              p.type === "signal"
-                ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400"
-                : "bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400"
-            )}
-          >
-            {p.content}
-          </span>
-        )
-      )}
-    </>
-  )
+  return <>{nodes}</>
 }
 
 // ── 메인 컴포넌트 ────────────────────────────────────────────────────────────
@@ -177,20 +173,21 @@ export function NextTrendFormatSection({ data }: NextTrendFormatSectionProps) {
     <div className="space-y-3">
       {data.map((fmt) => (
         <div key={fmt.id} className="rounded-xl border border-border overflow-hidden">
-          {/* 헤드라인 + 배지 */}
-          <div className="flex items-center justify-between gap-4 px-5 py-4">
+
+          {/* 헤드라인 + 시리즈 배지 */}
+          <div className="flex items-center justify-between gap-4 px-5 py-4 border-b border-border">
             <p className="text-sm font-medium leading-snug">{fmt.headline}</p>
             {fmt.seriesPotential && (
-              <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-slate-50 dark:bg-slate-950/30 px-2.5 py-1 text-xs font-medium text-slate-600 dark:text-slate-400 shrink-0">
+              <span className="inline-flex items-center gap-1.5 shrink-0 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950/30 px-2.5 py-1 text-xs font-medium text-slate-600 dark:text-slate-400">
                 <RefreshCw className="h-3 w-3" />
                 시리즈 가능
               </span>
             )}
           </div>
 
-          {/* 시간 게이지 + 분포·적합도 */}
-          <div className="grid grid-cols-12 divide-x divide-border border-t border-b border-border">
-            <div className="col-span-4 flex items-center justify-center py-5">
+          {/* 시간 게이지 | 포맷 분포 + 적합도 */}
+          <div className="grid grid-cols-12 divide-x divide-border">
+            <div className="col-span-4 flex items-center justify-center py-6">
               <TimeGauge minutes={fmt.minutes} seconds={fmt.seconds} />
             </div>
             <div className="col-span-8 flex flex-col justify-center gap-5 px-5 py-5">
@@ -200,7 +197,7 @@ export function NextTrendFormatSection({ data }: NextTrendFormatSectionProps) {
           </div>
 
           {/* 전개 방식 */}
-          <div className="bg-muted/20 px-5 py-4">
+          <div className="bg-muted/20 px-5 py-4 border-t border-border">
             <p className="text-[10px] font-medium text-muted-foreground mb-1.5">전개 방식</p>
             <p className="text-sm leading-relaxed">
               <ApproachText text={fmt.approach} keywords={fmt.approachKeywords} />
@@ -212,6 +209,7 @@ export function NextTrendFormatSection({ data }: NextTrendFormatSectionProps) {
             <ExternalLink className="h-3 w-3 text-muted-foreground" />
             <span className="text-xs text-muted-foreground">{fmt.basedOn}</span>
           </div>
+
         </div>
       ))}
     </div>

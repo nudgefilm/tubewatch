@@ -99,8 +99,13 @@ function deriveShortLongPct(headline: string): { short: number; long: number } {
 
 function extractApproachKeywords(text: string): { text: string; type: "signal" | "action" }[] {
   const result: { text: string; type: "signal" | "action" }[] = []
-  const signals = ["신호", "반복", "편차", "상승", "하락", "흐름"]
-  const actions = ["시리즈로 명시화", "회차 표기", "시리즈", "테스트", "실험", "바로 제작", "전환하세요"]
+  // 신호 식별어: 관찰된 사실을 나타내는 핵심 단어
+  const signals = ["신호", "패턴", "편차"]
+  // 실행 지시 구문: 구체적인 행동 문구 (긴 것 먼저 — 부분 겹침 방지)
+  const actions = [
+    "시리즈로 명시화", "회차 표기", "테스트 후 확장", "1편 테스트",
+    "바로 제작하세요", "기획하세요", "실험하세요", "전환하세요",
+  ]
   for (const w of signals) {
     if (text.includes(w) && !result.find(k => k.text === w)) result.push({ text: w, type: "signal" })
   }
