@@ -66,7 +66,7 @@ export function TopicCandidatesSection({ data, growthMomentum }: TopicCandidates
             className={cn(
               "rounded-xl border overflow-hidden transition-colors",
               isExpanded
-                ? "border-amber-200 dark:border-amber-800/50 bg-amber-50/30 dark:bg-amber-950/10"
+                ? "border-border bg-muted/20"
                 : "border-border bg-background hover:border-muted-foreground/20"
             )}
           >
