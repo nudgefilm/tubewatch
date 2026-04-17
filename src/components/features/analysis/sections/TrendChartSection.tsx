@@ -113,7 +113,7 @@ export function AnalysisViewTrendChart({ data, interpretation, channelId }: Anal
       return (
         <g key="dot-min">
           <circle cx={cx} cy={cy} r={5} fill="#f43f5e" stroke="white" strokeWidth={2} />
-          <text x={cx} y={cy + 16} textAnchor="middle" fontSize={10} fill="#f43f5e" fontWeight="600">
+          <text x={cx} y={cy - 10} textAnchor="middle" fontSize={10} fill="#f43f5e" fontWeight="600">
             {formatViews(data[index].views)}
           </text>
         </g>
