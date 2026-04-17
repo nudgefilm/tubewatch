@@ -34,17 +34,16 @@ function TimeGauge({ minutes, seconds }: { minutes: number; seconds: number }) {
           <circle
             cx="48" cy="48" r="38"
             fill="none"
-            className="stroke-muted/40"
-            strokeWidth="6"
+            strokeWidth="7"
+            style={{ stroke: "var(--muted-foreground)", opacity: 0.2 }}
           />
           <circle
             cx="48" cy="48" r="38"
             fill="none"
-            className="stroke-foreground/70 dark:stroke-foreground/60"
-            strokeWidth="6"
+            strokeWidth="7"
             strokeDasharray={strokeDasharray}
             strokeLinecap="round"
-            style={{ transform: "rotate(-90deg)", transformOrigin: "center" }}
+            style={{ stroke: "var(--foreground)", transform: "rotate(-90deg)", transformOrigin: "center" }}
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -74,13 +73,13 @@ function LengthDistributionBar({ short, long }: { short: number; long: number })
         <Play className="h-3 w-3 fill-current" />
         <span className="font-medium">포맷 분포</span>
       </div>
-      <div className="flex h-2 rounded-full overflow-hidden bg-muted/30">
+      <div className="flex h-2 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-700">
         <div
-          className="h-full bg-sky-300 dark:bg-sky-600/60 transition-all duration-500"
+          className="h-full bg-sky-400 dark:bg-sky-500 transition-all duration-500"
           style={{ width: `${short}%` }}
         />
         <div
-          className="h-full bg-foreground/60 dark:bg-foreground/40 transition-all duration-500"
+          className="h-full bg-slate-500 dark:bg-slate-400 transition-all duration-500"
           style={{ width: `${long}%` }}
         />
       </div>
@@ -110,8 +109,8 @@ function FitScoreGauge({ score }: { score: number }) {
               className={cn(
                 "w-4 h-5 rounded-sm transition-all duration-300",
                 idx < filledSegments
-                  ? "bg-foreground/80 dark:bg-foreground/70"
-                  : "bg-muted/50 dark:bg-muted/30"
+                  ? "bg-foreground"
+                  : "bg-slate-200 dark:bg-slate-700"
               )}
             />
           ))}
