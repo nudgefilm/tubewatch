@@ -6,6 +6,11 @@ interface MomentumSectionProps {
   uploadDates: string[]
 }
 
+function toLocalDateStr(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0")
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
 function buildDotGrid(uploadDates: string[]): boolean[] {
   const today = new Date()
   const dateSet = new Set(
@@ -14,7 +19,7 @@ function buildDotGrid(uploadDates: string[]): boolean[] {
   return Array.from({ length: 84 }, (_, i) => {
     const d = new Date(today)
     d.setDate(today.getDate() - (83 - i))
-    return dateSet.has(d.toISOString().slice(0, 10))
+    return dateSet.has(toLocalDateStr(d))
   })
 }
 
@@ -44,8 +49,7 @@ export function MomentumSection({ uploadDates }: MomentumSectionProps) {
           {dots.map((active, idx) => (
             <div
               key={idx}
-              style={{ aspectRatio: "1" }}
-              className={`rounded-[2px] transition-colors ${active ? "bg-primary/70" : "bg-muted/40"}`}
+              className={`h-2.5 w-full rounded-[2px] transition-colors ${active ? "bg-primary/70" : "bg-muted/60"}`}
             />
           ))}
         </div>
