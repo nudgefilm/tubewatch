@@ -235,7 +235,7 @@ export function DnaFormatDistributionSection({ data, analysisDate }: FormatDistr
           {midFormGapPercent != null && midFormGapPercent >= 50 && (
             <div className="rounded-lg border bg-muted/20 px-4 py-3 space-y-1">
               <div className="flex items-baseline gap-1.5">
-                <span className="text-2xl font-bold tabular-nums">{midFormGapPercent}%</span>
+                <span className={`text-2xl font-bold tabular-nums ${midFormGapPercent >= 80 ? "text-rose-600 dark:text-rose-400" : midFormGapPercent >= 60 ? "text-amber-600 dark:text-amber-400" : "text-foreground"}`}>{midFormGapPercent}%</span>
                 <span className="text-xs font-medium text-muted-foreground">미드폼 공백</span>
               </div>
               <p className="text-xs leading-relaxed text-muted-foreground">
@@ -248,7 +248,7 @@ export function DnaFormatDistributionSection({ data, analysisDate }: FormatDistr
           {categoryPurity != null && (
             <div className="rounded-lg border bg-muted/20 px-4 py-3 space-y-1">
               <div className="flex items-baseline gap-1.5">
-                <span className="text-2xl font-bold tabular-nums">{categoryPurity}%</span>
+                <span className={`text-2xl font-bold tabular-nums ${categoryPurity >= 70 ? "text-emerald-600 dark:text-emerald-400" : categoryPurity >= 45 ? "text-amber-600 dark:text-amber-400" : "text-rose-600 dark:text-rose-400"}`}>{categoryPurity}%</span>
                 <span className="text-xs font-medium text-muted-foreground">카테고리 일관성</span>
               </div>
               <p className="text-xs leading-relaxed text-muted-foreground">

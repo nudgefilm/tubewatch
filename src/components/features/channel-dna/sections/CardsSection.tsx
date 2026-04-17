@@ -28,9 +28,9 @@ export function DnaCardsSection({ data }: DnaCardsSectionProps) {
 
   const getRiskLevelColor = (level: string) => {
     switch (level) {
-      case "낮음": return "bg-muted text-muted-foreground border-muted"
-      case "중간": return "bg-muted text-foreground border-muted"
-      case "높음": return "bg-foreground/10 text-foreground border-foreground/20"
+      case "낮음": return "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300"
+      case "중간": return "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300"
+      case "높음": return "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300"
       default: return "bg-muted text-muted-foreground"
     }
   }

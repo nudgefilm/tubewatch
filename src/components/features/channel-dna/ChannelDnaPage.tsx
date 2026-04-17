@@ -18,8 +18,14 @@ import { ChannelDnaReportSection } from "./sections/ChannelDnaReportSection"
 function fanbaseLoyaltyDisplay(fl: FanbaseLoyaltyVm) {
   const gradeLabel =
     fl.grade === "very_high" ? "매우 높음" : fl.grade === "average" ? "보통" : "낮음"
-  const gradeBadgeClass = "bg-muted/50 text-foreground border-muted"
-  const valueColor = "text-foreground"
+  const gradeBadgeClass =
+    fl.grade === "very_high" ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300"
+    : fl.grade === "average" ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300"
+    : "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300"
+  const valueColor =
+    fl.grade === "very_high" ? "text-emerald-600 dark:text-emerald-400"
+    : fl.grade === "average" ? "text-amber-600 dark:text-amber-400"
+    : "text-rose-500 dark:text-rose-400"
   const insightText =
     fl.grade === "very_high"
       ? "팬덤 결속력이 강합니다. 커뮤니티 탭을 활성화해 이 흐름을 채널 성장으로 연결하세요."
@@ -90,7 +96,7 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
                 <div className="space-y-2">
                   {vm.contentPatterns.map((pattern, i) => (
                     <div key={i} className="flex items-start gap-3 rounded-lg border px-4 py-3 text-sm">
-                      <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-muted-foreground">
+                      <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
                         {i + 1}
                       </span>
                       <span>{pattern}</span>
@@ -186,7 +192,11 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
                     <div className="space-y-0.5">
                       <p className="text-[11px] text-muted-foreground">업로드 일관성</p>
                       {vm.uploadConsistencyLevel != null ? (
-                        <p className="text-sm font-semibold">
+                        <p className={`text-sm font-semibold ${
+                          vm.uploadConsistencyLevel === "high" ? "text-emerald-600 dark:text-emerald-400"
+                          : vm.uploadConsistencyLevel === "medium" ? "text-amber-600 dark:text-amber-400"
+                          : "text-rose-500 dark:text-rose-400"
+                        }`}>
                           {vm.uploadConsistencyLevel === "high" ? "안정적" : vm.uploadConsistencyLevel === "medium" ? "불규칙" : "불안정"}
                         </p>
                       ) : (
