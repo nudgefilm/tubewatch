@@ -25,17 +25,66 @@ const PATTERN_KEY_MAP: Record<string, string> = {
   low_tag_usage: "태그 활용 부족",
 }
 
+const AUDIENCE_COLORS = [
+  "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/40 dark:text-sky-300",
+  "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/40 dark:text-violet-300",
+  "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300",
+  "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300",
+  "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300",
+]
+
 function sanitizePatternText(text: string): string {
-  // 소수점 숫자 → 정수 반올림 (한국어 단위 앞)
   let result = text.replace(/(\d{1,3}(?:,\d{3})*\.\d+)(?=회|개|명|번)/g, (match) => {
     const num = parseFloat(match.replace(/,/g, ""))
     return Math.round(num).toLocaleString("en-US")
   })
-  // snake_case 패턴 키 → 자연어
   for (const [key, label] of Object.entries(PATTERN_KEY_MAP)) {
     result = result.replace(new RegExp(key, "g"), label)
   }
   return result
+}
+
+type PatternSeg = { text: string; kind: "normal" | "number" | "label" }
+
+function renderPatternText(text: string) {
+  const sanitized = sanitizePatternText(text)
+  const patternLabels = Object.values(PATTERN_KEY_MAP)
+  const numUnitRe = /(\d[\d,]*(?:\.\d+)?(?:회|개|명|번|%))/g
+  const segments: PatternSeg[] = []
+  let last = 0
+  let m: RegExpExecArray | null
+
+  const pushChunk = (chunk: string) => {
+    if (!chunk) return
+    const foundLabel = patternLabels.find(l => chunk.includes(l))
+    if (foundLabel) {
+      const idx = chunk.indexOf(foundLabel)
+      const before = chunk.slice(0, idx)
+      const after = chunk.slice(idx + foundLabel.length)
+      if (before) segments.push({ text: before, kind: "normal" })
+      segments.push({ text: foundLabel, kind: "label" })
+      if (after) pushChunk(after)
+    } else {
+      segments.push({ text: chunk, kind: "normal" })
+    }
+  }
+
+  while ((m = numUnitRe.exec(sanitized)) !== null) {
+    pushChunk(sanitized.slice(last, m.index))
+    segments.push({ text: m[0], kind: "number" })
+    last = m.index + m[0].length
+  }
+  pushChunk(sanitized.slice(last))
+
+  return (
+    <>
+      {segments.map((seg, i) => {
+        if (seg.kind === "number") return <span key={i} className="font-semibold text-sky-600 dark:text-sky-400 tabular-nums">{seg.text}</span>
+        if (seg.kind === "label") return <span key={i} className="font-semibold text-amber-600 dark:text-amber-400">{seg.text}</span>
+        return <span key={i}>{seg.text}</span>
+      })}
+    </>
+  )
 }
 
 function fanbaseLoyaltyDisplay(fl: FanbaseLoyaltyVm) {
@@ -104,7 +153,7 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
                   {vm.targetAudience.map((audience, i) => (
                     <span
                       key={i}
-                      className="inline-flex items-center rounded-full border px-3 py-1.5 text-sm font-medium bg-primary/5 text-primary"
+                      className={`inline-flex items-center rounded-full border px-3 py-1.5 text-sm font-medium ${AUDIENCE_COLORS[i % AUDIENCE_COLORS.length]}`}
                     >
                       {audience}
                     </span>
@@ -122,7 +171,7 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
                       <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
                         {i + 1}
                       </span>
-                      <span className="font-medium">{sanitizePatternText(pattern)}</span>
+                      <span className="font-medium">{renderPatternText(pattern)}</span>
                     </div>
                   ))}
                 </div>
