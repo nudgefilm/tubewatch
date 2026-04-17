@@ -331,7 +331,7 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
           const isFullInsight = showPerfPrediction && hasFullScenario
 
           return (
-            <Card key={action.id} className={`overflow-hidden border-l-4 ${colors.border}`}>
+            <Card key={action.id} className={`overflow-hidden border-l ${colors.border}`}>
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
