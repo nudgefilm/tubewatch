@@ -63,7 +63,15 @@ export function MomentumSection({ uploadDates }: MomentumSectionProps) {
             <span className="text-xs font-medium text-muted-foreground">최근 12주 업로드 활동</span>
             <p className="text-[10px] text-muted-foreground/50 mt-0.5">열(가로) = 주차 · 행(세로) = 요일(월~일)</p>
           </div>
-          <span className="text-xs text-muted-foreground">{uploadDayCount}일 업로드</span>
+          <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-0.5">
+              {DAY_ACTIVE_CLS.map((cls, i) => (
+                <span key={i} className={`inline-block w-2 h-2 rounded-[2px] ${cls}`} />
+              ))}
+            </div>
+            <span className="text-[10px] text-muted-foreground/60">업로드</span>
+            <span className="text-xs text-muted-foreground ml-1">{uploadDayCount}일</span>
+          </div>
         </div>
 
         <div className="flex gap-2 items-start">
