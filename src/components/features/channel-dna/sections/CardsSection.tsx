@@ -11,7 +11,6 @@ const INITIAL_SHOW = 3
 
 /** 진단 수치나 긴 raw 문장은 null 반환 → 렌더 생략 */
 function sanitizeDescription(desc: string): string | null {
-  if (/\d+\.?\d*\s*%/.test(desc)) return null
   return desc.trim() || null
 }
 
