@@ -72,18 +72,18 @@ export function NextTrendDataInsightsSection({
           </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {/* 스윗스팟 */}
-            <div className="rounded-xl border bg-primary/5 px-4 py-3 text-center col-span-2 sm:col-span-1">
+            <div className="rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/20 px-4 py-3 text-center col-span-2 sm:col-span-1">
               <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-1">
                 골든 타임 구간
               </p>
               {watchTimeCatalyst.sweetSpotMinSec === watchTimeCatalyst.sweetSpotMaxSec ? (
-                <p className="text-2xl font-bold tabular-nums text-primary leading-tight">
+                <p className="text-2xl font-bold tabular-nums text-rose-500 dark:text-rose-400 leading-tight">
                   {formatSeconds(watchTimeCatalyst.sweetSpotMinSec)}
                 </p>
               ) : (
-                <div className="text-2xl font-bold tabular-nums text-primary leading-snug">
+                <div className="text-2xl font-bold tabular-nums text-rose-500 dark:text-rose-400 leading-snug">
                   <p>{formatSeconds(watchTimeCatalyst.sweetSpotMinSec)}</p>
-                  <p className="text-lg text-primary/70">~ {formatSeconds(watchTimeCatalyst.sweetSpotMaxSec)}</p>
+                  <p className="text-lg text-rose-400 dark:text-rose-300">~ {formatSeconds(watchTimeCatalyst.sweetSpotMaxSec)}</p>
                 </div>
               )}
               <p className="text-[10px] text-muted-foreground mt-0.5">{watchTimeCatalyst.formatLabel}</p>
@@ -180,13 +180,13 @@ export function NextTrendDataInsightsSection({
                   표본 내 요일별 참여율 패턴입니다. 업로드 타이밍 참고용으로 활용하세요.
                 </p>
               </div>
-              <div className="rounded-xl border border-primary/30 bg-primary/10 px-4 py-4 text-center space-y-1">
-                <p className="text-3xl font-bold tabular-nums text-primary">
+              <div className="rounded-xl border border-violet-200 dark:border-violet-900/50 bg-violet-50 dark:bg-violet-950/20 px-4 py-4 text-center space-y-1">
+                <p className="text-3xl font-bold tabular-nums text-violet-600 dark:text-violet-400">
                   +{temporalResonance.liftPercent}%
                 </p>
-                <p className="text-sm font-semibold text-primary">
+                <p className="text-sm font-semibold text-foreground">
                   {temporalResonance.dayLabel} 업로드 시{" "}
-                  <span className="text-primary/80">{temporalResonance.metric} 참여율</span>
+                  <span className="text-muted-foreground">{temporalResonance.metric} 참여율</span>
                 </p>
                 <p className="text-xs text-muted-foreground tabular-nums">
                   표본 {temporalResonance.sampleCount}편 기준
