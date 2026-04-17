@@ -5,12 +5,11 @@ import { ExecutionHintDocument } from "./sections/ExecutionHintsSection"
 import { NextTrendActionSection } from "./sections/ActionSection"
 import { NextTrendDataInsightsSection } from "./sections/DataInsightsSection"
 import { NextTrendEmptyState } from "./sections/EmptyState"
+import { TopicCandidatesSection } from "./sections/TopicCandidatesSection"
 import { ChannelContextHeader, type ChannelContext } from "@/components/features/shared/ChannelContextHeader"
 import { FeaturePaywallBlock } from "@/components/features/shared/FeaturePaywallBlock"
-import { Badge } from "@/components/ui/badge"
 import { SegmentGauge } from "@/components/ui/SegmentGauge"
-import { AlertCircle, ArrowRight, TrendingUp, Lightbulb, Video, FlaskConical, Zap, FileText, SatelliteDish } from "lucide-react"
-import { EvidenceBlock } from "@/components/common/EvidenceBlock"
+import { AlertCircle, ArrowRight, TrendingUp, Lightbulb, Video, FlaskConical, Zap, FileText } from "lucide-react"
 import type { NextTrendPageViewModel } from "@/lib/next-trend/nextTrendPageViewModel"
 import { buildNextTrendPageSections, SIGNAL_STRENGTH_BADGE } from "@/lib/engines/nextTrendPageEngine"
 import { IntegratedSummaryButton } from "@/components/features/shared/IntegratedSummaryButton"
@@ -124,85 +123,10 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                   <p className="text-xs text-muted-foreground mt-0.5">이 중 하나를 골라 다음 영상 주제로 결정하세요</p>
                 </div>
 
-                {topCandidates.length > 0 && (() => {
-                  const top1 = topCandidates[0]!
-                  const rest = (isStarterPlan ? topCandidates.slice(1, 2) : topCandidates.slice(1))
-                  return (
-                    <div className="space-y-3">
-                      {/* 1순위 강조 카드 */}
-                      <div className="rounded-xl border-2 border-primary bg-primary/10 dark:bg-primary/15 p-5 space-y-3 shadow-sm">
-                        <div className="flex items-center gap-2 text-primary">
-                          <ArrowRight className="h-4 w-4 shrink-0" />
-                          <span className="text-xs font-bold uppercase tracking-wider">지금 1순위</span>
-                          {viewModel.growthMomentum != null && (
-                            <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium tabular-nums text-primary">
-                              성장 모멘텀 {Math.round(viewModel.growthMomentum)}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-lg font-bold leading-snug break-words">{top1.topic}</p>
-                        <p className="text-sm font-semibold text-foreground/80 leading-snug">
-                          {top1.topReason}
-                        </p>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <Badge variant="outline" className={`text-xs ${top1.badge.className}`}>
-                            {top1.badge.icon && <SatelliteDish className="mr-1 h-3 w-3 shrink-0" />}
-                            {top1.badge.label}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">→</span>
-                          <span className="text-xs font-semibold text-foreground">
-                            {top1.signalActionLabel}
-                          </span>
-                        </div>
-                        {top1.reason && (
-                          <p className="text-sm text-muted-foreground leading-relaxed">{top1.reason}</p>
-                        )}
-                        {top1.expectedEffect && (
-                          <p className="text-xs text-emerald-600 dark:text-emerald-400 flex items-start gap-1">
-                            <TrendingUp className="h-3 w-3 mt-0.5 shrink-0" />
-                            {top1.expectedEffect}
-                          </p>
-                        )}
-                        {(() => {
-                          const evidenceItems = (top1.evidence ?? []).slice(0, 3)
-                          if (evidenceItems.length === 0) return null
-                          return (
-                            <div className="space-y-1.5">
-                              <p className="text-xs font-semibold text-foreground/70 uppercase tracking-wide">왜 이 주제를 추천했는가?</p>
-                              <EvidenceBlock items={evidenceItems} />
-                            </div>
-                          )
-                        })()}
-                        <p className="text-sm font-semibold text-primary pt-3 border-t border-primary/20">
-                          이번 업로드는 이 주제로 먼저 시도하세요
-                        </p>
-                      </div>
-
-                      {/* 2순위 이후 — 소형 리스트 */}
-                      {rest.length > 0 && (
-                        <div className="space-y-2">
-                          {rest.map((c, i) => (
-                            <div key={c.id} className="flex items-center gap-3 rounded-lg border bg-card px-3 py-2.5">
-                              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary shrink-0">
-                                {i + 2}
-                              </span>
-                              <span className="flex-1 text-sm font-medium leading-snug break-words min-w-0">{c.topic}</span>
-                              <div className="flex shrink-0 items-center gap-1.5">
-                                <Badge variant="outline" className="text-xs border-primary/30 bg-primary/5 text-primary">
-                                  신규
-                                </Badge>
-                                <Badge variant="outline" className={`text-xs ${c.badge.className}`}>
-                                  {c.badge.icon && <SatelliteDish className="mr-1 h-3 w-3 shrink-0" />}
-                                  {c.badge.label}
-                                </Badge>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )
-                })()}
+                <TopicCandidatesSection
+                  data={candidates}
+                  growthMomentum={viewModel.growthMomentum}
+                />
 
                 {hasLockedCandidates && (
                   <FeaturePaywallBlock

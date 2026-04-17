@@ -55,7 +55,9 @@ function feasibilityFromSignal(strength: "clear" | "medium" | "low"): number {
 function toCandidates(vms: NextTrendCandidateVm[]) {
   return vms.map((vm, i) => ({
     id: `candidate-${i}`,
+    rank: i + 1,
     topic: vm.topic,
+    title: vm.topic,
     reason: vm.reason,
     signal: vm.signal,
     priority: i === 0 ? ("high" as const) : i < 3 ? ("medium" as const) : ("low" as const),
@@ -69,6 +71,14 @@ function toCandidates(vms: NextTrendCandidateVm[]) {
     signalActionLabel: signalActionLabel(vm.signalStrength),
     topReason: topReasonText(vm.signalStrength),
     badge: SIGNAL_STRENGTH_BADGE[vm.signalStrength],
+    // TopicCandidatesSection 전용 필드
+    candidateStatus: vm.signalStrength === "low" ? ("new" as const) : ("signal" as const),
+    description: topReasonText(vm.signalStrength),
+    strategy: signalActionLabel(vm.signalStrength),
+    analysis: vm.reason,
+    tip: vm.expectedEffect ?? null,
+    sourceLabel: vm.evidence?.[0]?.value ?? "튜브워치 채널 분석 추천",
+    cta: i === 0 ? "이번 업로드는 이 주제로 먼저 시도하세요" : null,
   }))
 }
 
