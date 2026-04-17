@@ -1,14 +1,19 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import dynamic from "next/dynamic"
 import { useRouter } from "next/navigation"
-import { RefreshCw, Clock, Activity, Gauge, History as HistoryIcon, BarChart3, ArrowDownToLine } from "lucide-react"
+import { RefreshCw, Clock, Activity, Gauge, TrendingUp, History as HistoryIcon, BarChart3, ArrowDownToLine } from "lucide-react"
 import { OverloadRetryBanner, isOverloadError } from "@/components/features/shared/OverloadRetryBanner"
 import { AnalysisProgressBar } from "@/components/features/shared/AnalysisProgressBar"
 import { AnalysisHeaderSection } from "./sections/HeaderSection"
 import { ScorecardSection } from "./sections/ScorecardSection"
 import { MomentumSection } from "./sections/MomentumSection"
 import { EngagementGridSection } from "./sections/EngagementGridSection"
+const AnalysisViewTrendChart = dynamic(
+  () => import("./sections/TrendChartSection").then((m) => ({ default: m.AnalysisViewTrendChart })),
+  { ssr: false, loading: () => null }
+)
 import { AnalysisRecentVideosSection } from "./sections/RecentVideosSection"
 import { AnalysisTopBottomCompare } from "./sections/TopBottomCompareSection"
 import { AnalysisSummarySection } from "./sections/SummarySection"
@@ -447,10 +452,6 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
 
           <MomentumSection
             uploadDates={videosData.map(v => v.uploadDate)}
-            trendPoints={trendData}
-            trendInterpretation={trendInterpretation}
-            viewTrend={kpiData.viewTrend.trend}
-            trendValue={kpiData.viewTrend.value}
           />
 
           <EngagementGridSection
@@ -458,6 +459,27 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
             diagnosisCards={viewModel.diagnosisCards}
             kpiData={kpiData}
           />
+        </section>
+
+        {/* 조회수 흐름 시그널 */}
+        <section className="space-y-4">
+          <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
+            <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><TrendingUp className="size-5 shrink-0 text-primary" />조회수 흐름 시그널</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">최근 표본 영상의 조회수 변화 흐름을 시각화합니다</p>
+          </div>
+          {trendData.length >= 1 ? (
+            <AnalysisViewTrendChart
+              data={trendData}
+              interpretation={trendInterpretation}
+              channelId={viewModel.selectedChannelId ?? undefined}
+            />
+          ) : (
+            <AnalysisEmptyState
+              type="insufficient-samples"
+              title="조회 흐름 데이터 부족"
+              description="영상 데이터가 있으면 조회 추세 차트가 표시됩니다."
+            />
+          )}
         </section>
 
         {/* 최근 성과 히스토리 */}
