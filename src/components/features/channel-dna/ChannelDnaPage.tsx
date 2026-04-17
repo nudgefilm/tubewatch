@@ -15,6 +15,29 @@ import type { ChannelDnaPageViewModel } from "@/lib/channel-dna/channelDnaPageVi
 import type { FanbaseLoyaltyVm } from "@/lib/channel-dna/internalChannelDnaSummary"
 import { ChannelDnaReportSection } from "./sections/ChannelDnaReportSection"
 
+const PATTERN_KEY_MAP: Record<string, string> = {
+  high_view_variance: "조회수 편차 과대",
+  low_upload_frequency: "업로드 빈도 낮음",
+  irregular_upload_interval: "업로드 주기 불규칙",
+  short_video_dominant: "쇼츠 중심 구조",
+  long_video_dominant: "롱폼 중심 구조",
+  repeated_topic_pattern: "특정 주제 반복 패턴",
+  low_tag_usage: "태그 활용 부족",
+}
+
+function sanitizePatternText(text: string): string {
+  // 소수점 숫자 → 정수 반올림 (한국어 단위 앞)
+  let result = text.replace(/(\d{1,3}(?:,\d{3})*\.\d+)(?=회|개|명|번)/g, (match) => {
+    const num = parseFloat(match.replace(/,/g, ""))
+    return Math.round(num).toLocaleString("en-US")
+  })
+  // snake_case 패턴 키 → 자연어
+  for (const [key, label] of Object.entries(PATTERN_KEY_MAP)) {
+    result = result.replace(new RegExp(key, "g"), label)
+  }
+  return result
+}
+
 function fanbaseLoyaltyDisplay(fl: FanbaseLoyaltyVm) {
   const gradeLabel =
     fl.grade === "very_high" ? "매우 높음" : fl.grade === "average" ? "보통" : "낮음"
@@ -99,7 +122,7 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
                       <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
                         {i + 1}
                       </span>
-                      <span className="font-medium">{pattern}</span>
+                      <span className="font-medium">{sanitizePatternText(pattern)}</span>
                     </div>
                   ))}
                 </div>
