@@ -27,9 +27,6 @@ export function AnalysisSummarySection({ data }: AnalysisSummarySectionProps) {
               </div>
               <h4 className="text-sm font-semibold">강점</h4>
             </div>
-            <p className="mb-3 text-sm leading-relaxed text-muted-foreground">
-              이 패턴이 반복될수록 주제 재현성과 반복 시청 가능성이 높아집니다
-            </p>
             <ul className="space-y-2">
               {data.strengths.map((item, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
@@ -48,9 +45,6 @@ export function AnalysisSummarySection({ data }: AnalysisSummarySectionProps) {
               </div>
               <h4 className="text-sm font-semibold">개선 포인트</h4>
             </div>
-            <p className="mb-3 text-sm leading-relaxed text-muted-foreground">
-              이 구간이 해소되지 않으면 평균 조회수 유지력이 약해질 수 있습니다
-            </p>
             <ul className="space-y-2">
               {data.improvements.map((item, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
