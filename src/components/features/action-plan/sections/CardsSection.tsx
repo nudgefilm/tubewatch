@@ -4,6 +4,7 @@ import { useState, useMemo } from "react"
 import {
   ChevronDown, ChevronUp, AlertCircle, Database, ListChecks, TrendingUp,
   Target, Clock, AlertTriangle, Shield, Dna, ArrowRight, Zap, Check,
+  Layers, BarChart2,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -93,12 +94,6 @@ const CATEGORY_LABELS: Record<Category, string> = {
   engagement: "반응",
 }
 
-const CATEGORY_COLORS: Record<Category, string> = {
-  structure: "bg-violet-300 dark:bg-violet-600/50",
-  seo: "bg-emerald-300 dark:bg-emerald-600/50",
-  activity: "bg-sky-300 dark:bg-sky-600/50",
-  engagement: "bg-amber-300 dark:bg-amber-600/50",
-}
 
 function deriveCategory(action: ActionCard): Category {
   const id = action.id.toLowerCase()
@@ -114,7 +109,7 @@ function deriveCategory(action: ActionCard): Category {
 }
 
 // ── Donut Chart ──────────────────────────────────────────────────────────
-const CIRCUMFERENCE = 2 * Math.PI * 42
+const CIRCUMFERENCE = 2 * Math.PI * 40
 
 function DonutChart({ counts, total }: { counts: Record<string, number>; total: number }) {
   const arcs = useMemo(() => {
@@ -130,17 +125,18 @@ function DonutChart({ counts, total }: { counts: Record<string, number>; total: 
 
   return (
     <div className="flex flex-col items-center gap-3">
-      <svg viewBox="0 0 110 110" className="w-20 h-20">
+      <svg viewBox="0 0 110 110" className="w-28 h-28">
         <g transform="rotate(-90 55 55)">
-          <circle cx="55" cy="55" r="42" fill="none" strokeWidth="10" className="stroke-muted/30" />
+          <circle cx="55" cy="55" r="40" fill="none" strokeWidth="16" className="stroke-muted/20" />
           {arcs.map(({ priority, arcLength, dashOffset }) => {
             if (arcLength < 1) return null
             return (
               <circle
                 key={priority}
-                cx="55" cy="55" r="42"
+                cx="55" cy="55" r="40"
                 fill="none"
-                strokeWidth="10"
+                strokeWidth="16"
+                strokeLinecap="round"
                 strokeDasharray={`${arcLength} ${CIRCUMFERENCE - arcLength}`}
                 strokeDashoffset={dashOffset}
                 className={PRIORITY_COLORS[priority].stroke}
@@ -148,14 +144,15 @@ function DonutChart({ counts, total }: { counts: Record<string, number>; total: 
             )
           })}
         </g>
-        <text x="55" y="52" textAnchor="middle" fontSize="16" fontWeight="700" fill="currentColor">{total}</text>
-        <text x="55" y="65" textAnchor="middle" fontSize="8" fill="currentColor" opacity="0.45">total</text>
+        <text x="55" y="50" textAnchor="middle" fontSize="18" fontWeight="700" fill="currentColor">{total}</text>
+        <text x="55" y="64" textAnchor="middle" fontSize="8" fill="currentColor" opacity="0.5">실행 계획</text>
       </svg>
-      <div className="flex gap-3 text-xs">
+      <div className="flex gap-4 text-xs">
         {["P1", "P2", "P3"].map((p) => (
-          <div key={p} className="flex items-center gap-1">
-            <div className={`w-2 h-2 rounded-full shrink-0 ${PRIORITY_COLORS[p].dot}`} />
-            <span className={PRIORITY_COLORS[p].text}>{p} {counts[p] ?? 0}</span>
+          <div key={p} className="flex flex-col items-center gap-0.5">
+            <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${PRIORITY_COLORS[p].dot}`} />
+            <span className="text-muted-foreground">{p}</span>
+            <span className={`font-bold tabular-nums ${PRIORITY_COLORS[p].text}`}>{counts[p] ?? 0}</span>
           </div>
         ))}
       </div>
@@ -173,12 +170,21 @@ function PlanSummaryBlock({ data }: { data: ActionCard[] }) {
       return acc
     }, {} as Record<string, number>), [data])
 
-  const categoryCounts = useMemo(() =>
+  // per-category breakdown: { structure: { P1: 2, P2: 1 }, ... }
+  const categoryBreakdown = useMemo(() =>
     data.reduce((acc, card) => {
       const cat = deriveCategory(card)
-      acc[cat] = (acc[cat] ?? 0) + 1
+      if (!acc[cat]) acc[cat] = {}
+      acc[cat][card.priority] = (acc[cat][card.priority] ?? 0) + 1
       return acc
-    }, {} as Partial<Record<Category, number>>), [data])
+    }, {} as Partial<Record<Category, Record<string, number>>>), [data])
+
+  const categoryCounts = useMemo(() =>
+    (Object.keys(CATEGORY_LABELS) as Category[]).reduce((acc, cat) => {
+      const breakdown = categoryBreakdown[cat] ?? {}
+      acc[cat] = Object.values(breakdown).reduce((s, n) => s + n, 0)
+      return acc
+    }, {} as Record<Category, number>), [categoryBreakdown])
 
   const totalActions = useMemo(() => data.reduce((s, c) => s + c.howToExecute.length, 0), [data])
   const totalBenefits = useMemo(() =>
@@ -193,22 +199,36 @@ function PlanSummaryBlock({ data }: { data: ActionCard[] }) {
           <DonutChart counts={priorityCounts} total={total} />
         </div>
 
-        {/* 카테고리 막대 */}
+        {/* 카테고리 스택 바 */}
         <div className="col-span-5 p-4">
-          <p className="text-xs font-medium text-muted-foreground mb-3">카테고리 분포</p>
+          <div className="flex items-center gap-1.5 mb-3">
+            <Layers className="h-3.5 w-3.5 text-muted-foreground" />
+            <p className="text-xs font-medium text-muted-foreground">카테고리별 분포</p>
+          </div>
           <div className="space-y-2.5">
             {(Object.keys(CATEGORY_LABELS) as Category[]).map((cat) => {
-              const count = categoryCounts[cat] ?? 0
-              const pct = total > 0 ? (count / total) * 100 : 0
+              const count = categoryCounts[cat]
+              const barWidthPct = total > 0 ? (count / total) * 100 : 0
+              const breakdown = categoryBreakdown[cat] ?? {}
               return (
-                <div key={cat} className="space-y-1">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">{CATEGORY_LABELS[cat]}</span>
-                    <span className="tabular-nums font-medium">{count}</span>
+                <div key={cat} className="flex items-center gap-2">
+                  <span className="w-8 text-xs text-muted-foreground shrink-0">{CATEGORY_LABELS[cat]}</span>
+                  <div className="flex-1 h-5 bg-muted/20 rounded overflow-hidden">
+                    <div className="flex h-full" style={{ width: `${barWidthPct}%` }}>
+                      {["P1", "P2", "P3"].map((p) => {
+                        const pCount = breakdown[p] ?? 0
+                        if (pCount === 0) return null
+                        return (
+                          <div
+                            key={p}
+                            className={`h-full ${PRIORITY_COLORS[p].bar}`}
+                            style={{ width: `${(pCount / count) * 100}%` }}
+                          />
+                        )
+                      })}
+                    </div>
                   </div>
-                  <div className="h-1.5 rounded-full bg-muted/20 overflow-hidden">
-                    <div className={`h-full rounded-full transition-all ${CATEGORY_COLORS[cat]}`} style={{ width: `${pct}%` }} />
-                  </div>
+                  <span className="text-xs font-medium tabular-nums shrink-0 w-8 text-right">{count}건</span>
                 </div>
               )
             })}
@@ -217,38 +237,41 @@ function PlanSummaryBlock({ data }: { data: ActionCard[] }) {
 
         {/* 지표 그리드 2×2 */}
         <div className="col-span-4 p-4 grid grid-cols-2 gap-2">
-          <div className="rounded-lg bg-muted/30 p-3 text-center">
-            <p className="text-lg font-bold tabular-nums">{totalActions}</p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">실행 액션</p>
+          <div className="rounded-lg bg-muted/30 p-3 relative">
+            <ListChecks className="h-3 w-3 text-muted-foreground absolute top-2 left-2" />
+            <p className="text-lg font-bold tabular-nums text-center mt-1">{totalActions}<span className="text-xs font-normal ml-0.5">건</span></p>
+            <p className="text-[10px] text-muted-foreground text-center mt-0.5">실행 액션</p>
           </div>
-          <div className="rounded-lg bg-emerald-50/60 dark:bg-emerald-950/20 p-3 text-center">
-            <p className="text-lg font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{totalBenefits}</p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">개선 효과</p>
+          <div className="rounded-lg bg-emerald-50/60 dark:bg-emerald-950/20 p-3 relative">
+            <TrendingUp className="h-3 w-3 text-emerald-500 absolute top-2 left-2" />
+            <p className="text-lg font-bold tabular-nums text-emerald-600 dark:text-emerald-400 text-center mt-1">{totalBenefits}<span className="text-xs font-normal ml-0.5">건</span></p>
+            <p className="text-[10px] text-muted-foreground text-center mt-0.5">개선 효과</p>
           </div>
-          <div className="rounded-lg bg-violet-50/60 dark:bg-violet-950/20 p-3 text-center">
-            <p className="text-lg font-bold tabular-nums text-violet-600 dark:text-violet-400">{total * 3}</p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">실행 단계</p>
+          <div className="rounded-lg bg-violet-50/60 dark:bg-violet-950/20 p-3 relative">
+            <BarChart2 className="h-3 w-3 text-violet-500 absolute top-2 left-2" />
+            <p className="text-lg font-bold tabular-nums text-violet-600 dark:text-violet-400 text-center mt-1">{total * 3}<span className="text-xs font-normal ml-0.5">건</span></p>
+            <p className="text-[10px] text-muted-foreground text-center mt-0.5">실행 단계</p>
           </div>
-          <div className="rounded-lg bg-rose-50/60 dark:bg-rose-950/20 p-3 text-center">
-            <p className="text-lg font-bold tabular-nums text-rose-600 dark:text-rose-400">{p1Pct}%</p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">P1 비중</p>
+          <div className="rounded-lg bg-rose-50/60 dark:bg-rose-950/20 p-3 relative">
+            <Zap className="h-3 w-3 text-rose-500 absolute top-2 left-2" />
+            <p className="text-lg font-bold tabular-nums text-rose-600 dark:text-rose-400 text-center mt-1">{p1Pct}%</p>
+            <p className="text-[10px] text-muted-foreground text-center mt-0.5">P1 비중</p>
           </div>
         </div>
       </div>
 
-      {/* 영향도 진행 바 */}
+      {/* 우선순위별 예상 영향도 바 */}
       <div className="px-4 pb-3 pt-2 border-t">
         <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1.5">
-          <span>영향도 가중 분포</span>
-          <span>P1 · 50%  P2 · 35%  P3 · 15%</span>
+          <span>우선순위별 예상 영향도</span>
+          <span>P1 완료 시 채널 점수 +15-20점 예상</span>
         </div>
-        <div className="h-1.5 rounded-full bg-muted/20 overflow-hidden flex gap-px">
+        <div className="h-4 rounded-md bg-muted/20 overflow-hidden flex">
           {["P1", "P2", "P3"].map((p) => {
-            const weight = p === "P1" ? 50 : p === "P2" ? 35 : 15
             const count = priorityCounts[p] ?? 0
-            const width = total > 0 ? (count / total) * weight : 0
+            const width = total > 0 ? (count / total) * 100 : 0
             if (width < 0.5) return null
-            return <div key={p} className={`h-full rounded-full ${PRIORITY_COLORS[p].bar}`} style={{ width: `${width}%` }} />
+            return <div key={p} className={`h-full ${PRIORITY_COLORS[p].bar}`} style={{ width: `${width}%` }} />
           })}
         </div>
       </div>
