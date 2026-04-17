@@ -34,14 +34,14 @@ interface TopicCandidatesSectionProps {
 const STATUS_CONFIG = {
   signal: {
     label: "신호감지",
-    bg: "bg-amber-50 dark:bg-amber-950/30",
+    bg: "bg-amber-50 dark:bg-amber-900",
     text: "text-amber-600 dark:text-amber-400",
-    border: "border-amber-200 dark:border-amber-800/50",
+    border: "border-amber-200 dark:border-amber-700",
     icon: Radio,
   },
   new: {
     label: "신규",
-    bg: "bg-slate-50 dark:bg-slate-950/30",
+    bg: "bg-slate-100 dark:bg-slate-800",
     text: "text-slate-600 dark:text-slate-400",
     border: "border-slate-200 dark:border-slate-700",
     icon: Sparkles,
@@ -66,8 +66,8 @@ export function TopicCandidatesSection({ data, growthMomentum }: TopicCandidates
             className={cn(
               "rounded-xl border overflow-hidden transition-colors",
               isExpanded
-                ? "border-border bg-muted/20"
-                : "border-border bg-background hover:border-muted-foreground/20"
+                ? "border-sky-300 dark:border-sky-700 bg-sky-50 dark:bg-sky-950"
+                : "border-border bg-background hover:border-slate-400 dark:hover:border-slate-500"
             )}
           >
             {/* 카드 헤더 — 항상 표시 */}
@@ -80,7 +80,7 @@ export function TopicCandidatesSection({ data, growthMomentum }: TopicCandidates
                 className={cn(
                   "flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-sm font-semibold mt-0.5",
                   topic.rank === 1
-                    ? "bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-300"
+                    ? "bg-rose-100 dark:bg-rose-900 text-rose-600 dark:text-rose-300"
                     : "bg-muted text-muted-foreground"
                 )}
               >
@@ -149,7 +149,7 @@ export function TopicCandidatesSection({ data, growthMomentum }: TopicCandidates
 
                 {/* 분석 (1순위만) */}
                 {topic.analysis && (
-                  <p className="text-sm text-foreground/80">{topic.analysis}</p>
+                  <p className="text-sm text-foreground">{topic.analysis}</p>
                 )}
 
                 {/* 팁 */}
@@ -162,7 +162,7 @@ export function TopicCandidatesSection({ data, growthMomentum }: TopicCandidates
 
                 {/* 추천 이유 박스 */}
                 {topic.sourceLabel && (
-                  <div className="p-3 rounded-md border bg-muted/30">
+                  <div className="p-3 rounded-md border bg-muted">
                     <p className="text-xs text-muted-foreground">
                       <span className="font-medium text-foreground">추천 이유</span>
                       {" · "}
