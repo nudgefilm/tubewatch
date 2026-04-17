@@ -76,7 +76,7 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
 
             {vm.targetAudience.length > 0 && (
               <div className="space-y-2">
-                <p className="flex items-center gap-1.5 text-sm font-medium"><Users className="size-4 shrink-0 text-primary" />타겟 시청자</p>
+                <p className="flex items-center gap-1.5 text-sm font-medium text-primary"><Users className="size-4 shrink-0" />타겟 시청자</p>
                 <div className="flex flex-wrap gap-2">
                   {vm.targetAudience.map((audience, i) => (
                     <span
@@ -92,14 +92,14 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
 
             {vm.contentPatterns.length > 0 && (
               <div className="space-y-2">
-                <p className="flex items-center gap-1.5 text-sm font-medium"><RefreshCw className="size-4 shrink-0 text-primary" />콘텐츠 주제 일관성</p>
+                <p className="flex items-center gap-1.5 text-sm font-medium text-primary"><RefreshCw className="size-4 shrink-0" />콘텐츠 주제 일관성</p>
                 <div className="space-y-2">
                   {vm.contentPatterns.map((pattern, i) => (
                     <div key={i} className="flex items-start gap-3 rounded-lg border px-4 py-3 text-sm">
                       <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
                         {i + 1}
                       </span>
-                      <span>{pattern}</span>
+                      <span className="font-medium">{pattern}</span>
                     </div>
                   ))}
                 </div>

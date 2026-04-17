@@ -53,7 +53,7 @@ export function ActionPlanTrackingSection({ data }: ActionPlanTrackingProps) {
                 {/* 현재 값 */}
                 <div className="text-center">
                   <p className="text-3xl font-bold">
-                    {kpi.current.toLocaleString()}
+                    {Math.round(kpi.current).toLocaleString()}
                     <span className="text-lg text-muted-foreground ml-1">{kpi.unit}</span>
                   </p>
                   <p className={`text-sm ${isPositive ? "text-emerald-600" : "text-destructive"}`}>
@@ -65,8 +65,8 @@ export function ActionPlanTrackingSection({ data }: ActionPlanTrackingProps) {
                 <div className="space-y-2">
                   <SegmentGauge score={progressValue} />
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>기준: {kpi.baseline.toLocaleString()}{kpi.unit}</span>
-                    <span>목표: {kpi.target.toLocaleString()}{kpi.unit}</span>
+                    <span>기준: {Math.round(kpi.baseline).toLocaleString()}{kpi.unit}</span>
+                    <span>목표: {Math.round(kpi.target).toLocaleString()}{kpi.unit}</span>
                   </div>
                 </div>
 
