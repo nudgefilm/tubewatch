@@ -86,6 +86,8 @@ export function AnalysisViewTrendChart({ data, interpretation, channelId }: Anal
 
   const maxViews = Math.max(...data.map((d) => d.views))
   const minViews = Math.min(...data.map((d) => d.views))
+  const maxIdx = data.reduce((best, d, i) => d.views > data[best].views ? i : best, 0)
+  const minIdx = data.reduce((worst, d, i) => d.views < data[worst].views ? i : worst, 0)
   // domain 안전 처리: min === max 이거나 0일 때 recharts가 빈 축을 그리는 것을 방지
   const yDomainMin = minViews > 0 ? minViews * 0.8 : 0
   const yDomainMax = maxViews > 0 ? maxViews * 1.1 : 100
@@ -94,6 +96,31 @@ export function AnalysisViewTrendChart({ data, interpretation, channelId }: Anal
   const smallSampleGuidance = data.length <= 4
     ? `현재 ${data.length}개 영상 기준 흐름입니다. 표본이 늘면 추세 정확도가 높아집니다.`
     : null
+
+  const renderDot = (props: { cx?: number; cy?: number; index?: number }) => {
+    const { cx = 0, cy = 0, index = 0 } = props
+    if (index === maxIdx) {
+      return (
+        <g key="dot-max">
+          <circle cx={cx} cy={cy} r={5} fill="#10b981" stroke="white" strokeWidth={2} />
+          <text x={cx} y={cy - 10} textAnchor="middle" fontSize={10} fill="#10b981" fontWeight="600">
+            {formatViews(data[index].views)}
+          </text>
+        </g>
+      )
+    }
+    if (index === minIdx && minIdx !== maxIdx) {
+      return (
+        <g key="dot-min">
+          <circle cx={cx} cy={cy} r={5} fill="#f43f5e" stroke="white" strokeWidth={2} />
+          <text x={cx} y={cy + 16} textAnchor="middle" fontSize={10} fill="#f43f5e" fontWeight="600">
+            {formatViews(data[index].views)}
+          </text>
+        </g>
+      )
+    }
+    return <g key={`dot-${index}`} />
+  }
 
   if (process.env.NODE_ENV === "development") {
     if (!data || data.length === 0) {
@@ -125,7 +152,7 @@ export function AnalysisViewTrendChart({ data, interpretation, channelId }: Anal
           <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={data}
-            margin={{ top: 8, right: 10, left: -20, bottom: 0 }}
+            margin={{ top: 20, right: 10, left: -20, bottom: 0 }}
           >
             <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
             <XAxis
@@ -158,7 +185,7 @@ export function AnalysisViewTrendChart({ data, interpretation, channelId }: Anal
               dataKey="views"
               stroke="var(--color-views)"
               strokeWidth={2}
-              dot={data.length <= 6}
+              dot={renderDot as any}
               activeDot={{ r: 4, strokeWidth: 0 }}
             />
           </LineChart>
