@@ -3,39 +3,39 @@
 @tailwind utilities;
 
 :root {
-  --background: oklch(0.985 0.002 90);
-  --foreground: oklch(0.12 0.01 60);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.12 0.01 60);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.12 0.01 60);
-  --primary: oklch(0.12 0.01 60);
-  --primary-foreground: oklch(0.985 0.002 90);
-  --secondary: oklch(0.96 0.005 90);
-  --secondary-foreground: oklch(0.12 0.01 60);
-  --muted: oklch(0.94 0.005 90);
-  --muted-foreground: oklch(0.45 0.02 60);
-  --accent: oklch(0.92 0.01 90);
-  --accent-foreground: oklch(0.12 0.01 60);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0.002 90);
-  --border: oklch(0.88 0.01 90);
-  --input: oklch(0.92 0.01 90);
-  --ring: oklch(0.12 0.01 60);
-  --chart-1: oklch(0.12 0.01 60);
-  --chart-2: oklch(0.35 0.02 60);
-  --chart-3: oklch(0.55 0.02 60);
-  --chart-4: oklch(0.7 0.02 60);
-  --chart-5: oklch(0.85 0.01 60);
+  --background: 0.985 0.002 90;
+  --foreground: 0.12 0.01 60;
+  --card: 1 0 0;
+  --card-foreground: 0.12 0.01 60;
+  --popover: 1 0 0;
+  --popover-foreground: 0.12 0.01 60;
+  --primary: 0.12 0.01 60;
+  --primary-foreground: 0.985 0.002 90;
+  --secondary: 0.96 0.005 90;
+  --secondary-foreground: 0.12 0.01 60;
+  --muted: 0.94 0.005 90;
+  --muted-foreground: 0.45 0.02 60;
+  --accent: 0.92 0.01 90;
+  --accent-foreground: 0.12 0.01 60;
+  --destructive: 0.577 0.245 27.325;
+  --destructive-foreground: 0.985 0.002 90;
+  --border: 0.88 0.01 90;
+  --input: 0.92 0.01 90;
+  --ring: 0.12 0.01 60;
+  --chart-1: 0.12 0.01 60;
+  --chart-2: 0.35 0.02 60;
+  --chart-3: 0.55 0.02 60;
+  --chart-4: 0.7 0.02 60;
+  --chart-5: 0.85 0.01 60;
   --radius: 0.25rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: 0.985 0 0;
+  --sidebar-foreground: 0.145 0 0;
+  --sidebar-primary: 0.205 0 0;
+  --sidebar-primary-foreground: 0.985 0 0;
+  --sidebar-accent: 0.97 0 0;
+  --sidebar-accent-foreground: 0.205 0 0;
+  --sidebar-border: 0.922 0 0;
+  --sidebar-ring: 0.708 0 0;
 }
 
 @layer base {
@@ -175,14 +175,14 @@
   .border-sketch {
     border: 1px solid transparent;
     background:
-      linear-gradient(var(--background), var(--background)) padding-box,
+      linear-gradient(oklch(var(--background)), oklch(var(--background))) padding-box,
       linear-gradient(
         135deg,
-        var(--foreground) 25%,
+        oklch(var(--foreground)) 25%,
         transparent 25%,
         transparent 50%,
-        var(--foreground) 50%,
-        var(--foreground) 75%,
+        oklch(var(--foreground)) 50%,
+        oklch(var(--foreground)) 75%,
         transparent 75%
       ) border-box;
     background-size: 100% 100%, 8px 8px;
