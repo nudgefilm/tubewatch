@@ -282,6 +282,66 @@ function buildTextExecutionSpec(
   }
 }
 
+function buildCategoryScenarioText(category: TextCategory): string {
+  switch (category) {
+    case "upload":
+      return (
+        "업로드 빈도·주기 불안정으로 알고리즘 활성 신호가 낮아진 상태입니다.\n" +
+        "발행 리듬이 안정되면 구독자 복귀 패턴이 먼저 형성되고 알고리즘 신호가 회복됩니다.\n" +
+        "발행 리듬 안정화 → 구독자 복귀 형성 → 알고리즘 활성 신호 회복 순으로 변화가 나타날 수 있습니다."
+      );
+    case "response":
+      return (
+        "시청자 반응 신호가 낮아 알고리즘 추천 범위가 좁아진 상태입니다.\n" +
+        "제목·썸네일·첫 30초 개선 시 CTR이 먼저 반응하고 반응 신호가 누적됩니다.\n" +
+        "CTR 개선 → 반응 신호 누적 → 알고리즘 추천 범위 확장 순으로 변화가 나타날 수 있습니다."
+      );
+    case "keyword":
+      return (
+        "키워드·태그 최적화 부족으로 검색 발견성이 제한된 상태입니다.\n" +
+        "주제 적합 태그 정리 시 검색 노출 대상이 좁혀지고 클릭 반응률이 개선됩니다.\n" +
+        "노출 대상 정교화 → 클릭 반응 개선 → 관심사 매칭 시청자 유입 증가 순으로 변화가 나타날 수 있습니다."
+      );
+    case "content":
+      return (
+        "콘텐츠 구조 또는 포맷 문제로 시청 유지율이 낮아지는 구조입니다.\n" +
+        "이탈 구간 제거 또는 포맷 안정화 시 시청 유지율이 먼저 반응합니다.\n" +
+        "시청 유지율 개선 → 이탈 신호 감소 → 알고리즘 추천 유지 순으로 변화가 나타날 수 있습니다."
+      );
+    case "growth":
+      return (
+        "성장 정체 또는 히트 의존 구조로 채널 전체 조회 안정성이 낮은 상태입니다.\n" +
+        "반복 가능 포맷 정착 시 중간 성과 영상이 늘어나고 조회 분포가 고르게 됩니다.\n" +
+        "중간 성과 영상 증가 → 조회 분포 안정화 → 히트 의존도 감소 순으로 변화가 나타날 수 있습니다."
+      );
+    default:
+      return (
+        "분석에서 감지된 신호로 현재 채널 구조에서 개선이 필요한 구간입니다.\n" +
+        "해당 요소를 조정하면 관련 지표가 먼저 반응하고 다른 지표로 연쇄 효과가 나타납니다.\n" +
+        "핵심 신호 개선 → 관련 지표 반응 → 채널 전체 안정성 향상 순으로 변화가 나타날 수 있습니다."
+      );
+  }
+}
+
+function buildCategoryPerformancePrediction(
+  category: TextCategory
+): { current: string; targetRange: string; expectedChanges: string[] } {
+  switch (category) {
+    case "upload":
+      return { current: "업로드 주기 불안정", targetRange: "목표 일정 주기 유지", expectedChanges: ["알고리즘 활성 신호 회복", "구독자 복귀율 개선"] };
+    case "response":
+      return { current: "반응 신호 낮음", targetRange: "목표 반응률 개선", expectedChanges: ["CTR 상승", "알고리즘 추천 범위 확장"] };
+    case "keyword":
+      return { current: "SEO 최적화 미흡", targetRange: "목표 검색 유입 개선", expectedChanges: ["검색 노출 정확도 향상", "외부 유입 경로 확대"] };
+    case "content":
+      return { current: "콘텐츠 구조 개선 필요", targetRange: "목표 시청 유지율 향상", expectedChanges: ["이탈률 감소", "시청 완료율 개선"] };
+    case "growth":
+      return { current: "성장 모멘텀 불안정", targetRange: "목표 안정적 조회 구조", expectedChanges: ["히트 의존도 감소", "채널 구조 안정화"] };
+    default:
+      return { current: "분석 신호 감지됨", targetRange: "목표 신호 해소", expectedChanges: ["관련 지표 개선", "채널 구조 안정화"] };
+  }
+}
+
 /**
  * Gemini가 직접 생성한 growth_action_plan[] 항목을 액션 카드로 변환.
  * 템플릿 없이 Gemini 원문을 title로 사용하고, 카테고리 분류로 hint를 보완.
@@ -301,6 +361,8 @@ function buildGeminiBackedActions(
       difficulty: "medium" as const,
       executionHint: buildTextExecutionHint(category),
       executionSpec: buildTextExecutionSpec(category),
+      scenarioText: buildCategoryScenarioText(category),
+      performancePrediction: buildCategoryPerformancePrediction(category),
     };
   });
 }
@@ -344,6 +406,8 @@ function buildTextBackedActions(
       difficulty: item.kind === "bottleneck" ? "high" : "medium",
       executionHint: buildTextExecutionHint(category),
       executionSpec: buildTextExecutionSpec(category),
+      scenarioText: buildCategoryScenarioText(category),
+      performancePrediction: buildCategoryPerformancePrediction(category),
     });
   }
   return out;
