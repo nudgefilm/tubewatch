@@ -110,23 +110,42 @@ export function MomentumSection({
   return (
     <Card className="border-0 shadow-sm">
       <CardContent className="space-y-4 p-6">
-        {/* Dot Grid — 카드 전체 너비 활용 */}
+        {/* Dot Grid — 열우선(주 단위) 배치, 전체 너비 활용 */}
         <div>
           <div className="mb-2.5 flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground">최근 12주 업로드 활동</span>
-            <span className="text-xs text-muted-foreground">{uploadCount}개 영상</span>
+            <div className="flex items-center gap-3">
+              {/* 범례 */}
+              <span className="flex items-center gap-1 text-[10px] text-muted-foreground/60">
+                <span className="inline-block w-2 h-2 rounded-[2px] bg-primary/70" />
+                업로드 있음
+              </span>
+              <span className="text-xs text-muted-foreground">{uploadCount}개 영상</span>
+            </div>
           </div>
+          {/* 열우선: 각 열 = 1주, 각 행 = 요일(7행). 좌→우 = 과거→현재 */}
           <div
             className="w-full"
-            style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: "3px" }}
+            style={{
+              display: "grid",
+              gridAutoFlow: "column",
+              gridTemplateRows: "repeat(7, auto)",
+              gridAutoColumns: "1fr",
+              gap: "3px",
+            }}
           >
             {dots.map((active, idx) => (
               <div
                 key={idx}
-                className={`rounded-[2px] transition-colors ${active ? "bg-primary/70" : "bg-muted/40"}`}
+                className={`w-full rounded-[2px] transition-colors ${active ? "bg-primary/70" : "bg-muted/40"}`}
                 style={{ aspectRatio: "1" }}
               />
             ))}
+          </div>
+          {/* 시간 방향 안내 */}
+          <div className="mt-1 flex justify-between text-[10px] text-muted-foreground/40">
+            <span>← 12주 전</span>
+            <span>오늘 →</span>
           </div>
         </div>
 

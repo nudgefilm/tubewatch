@@ -21,13 +21,13 @@ function gaugeColor(score: number): string {
   return "#f43f5e"
 }
 
-const SECTIONS: { key: keyof Required<AnalysisSectionScores>; label: string }[] = [
-  { key: "channelActivity",        label: "활동" },
-  { key: "audienceResponse",       label: "반응" },
-  { key: "contentStructure",       label: "구조" },
-  { key: "seoOptimization",        label: "검색" },
-  { key: "growthMomentum",         label: "성장" },
-  { key: "subscriptionConversion", label: "구독" },
+const SECTIONS: { key: keyof Required<AnalysisSectionScores>; label: string; fullLabel: string }[] = [
+  { key: "channelActivity",        label: "활동", fullLabel: "업로드 활동" },
+  { key: "audienceResponse",       label: "반응", fullLabel: "시청자 반응" },
+  { key: "contentStructure",       label: "구조", fullLabel: "콘텐츠 구조" },
+  { key: "seoOptimization",        label: "검색", fullLabel: "SEO 검색" },
+  { key: "growthMomentum",         label: "성장", fullLabel: "성장 모멘텀" },
+  { key: "subscriptionConversion", label: "구독", fullLabel: "구독 전환" },
 ]
 
 const INTERPRETATIONS: Record<keyof Required<AnalysisSectionScores>, [string, string, string]> = {
@@ -75,7 +75,9 @@ function weakestInterpretation(sectionScores?: AnalysisSectionScores): string | 
     .filter((e): e is [keyof Required<AnalysisSectionScores>, number] => e[1] != null)
   if (entries.length === 0) return null
   const [key, val] = entries.reduce((a, b) => (b[1] < a[1] ? b : a))
-  return INTERPRETATIONS[key][tierOf(val)]
+  const section = SECTIONS.find(s => s.key === key)
+  const prefix = section?.fullLabel ?? section?.label ?? ""
+  return `${prefix} — ${INTERPRETATIONS[key][tierOf(val)]}`
 }
 
 interface ScorecardSectionProps {
@@ -127,13 +129,16 @@ export function ScorecardSection({ score, sectionScores }: ScorecardSectionProps
 
           {/* Section bars */}
           <div className="space-y-2.5">
-            {SECTIONS.map(({ key, label }) => {
+            {SECTIONS.map(({ key, label, fullLabel }) => {
               const val = sectionScores?.[key]
               if (val == null) return null
               const { text: statusText, cls: statusCls } = scoreStyle(val)
               return (
                 <div key={key} className="flex items-center gap-2">
-                  <span className="w-7 shrink-0 text-right text-xs text-muted-foreground">{label}</span>
+                  <span
+                    className="w-7 shrink-0 text-right text-xs text-muted-foreground cursor-default"
+                    title={fullLabel}
+                  >{label}</span>
                   <div className="flex-1 h-1.5 rounded-full bg-muted/40 overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all duration-500 ${pastelBarClass(val)}`}
@@ -145,8 +150,10 @@ export function ScorecardSection({ score, sectionScores }: ScorecardSectionProps
                 </div>
               )
             })}
+            {/* 점수 기준 안내 */}
+            <p className="text-[10px] text-muted-foreground/50">65+ 양호 · 45+ 보통 · ~44 취약</p>
             {interpretation && (
-              <p className="pt-1 text-[11px] leading-relaxed text-muted-foreground">{interpretation}</p>
+              <p className="text-[11px] leading-relaxed text-muted-foreground border-l-2 border-muted pl-2">{interpretation}</p>
             )}
           </div>
         </div>

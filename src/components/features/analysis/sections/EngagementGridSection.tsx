@@ -27,13 +27,13 @@ interface MetricCardProps {
   title: string
   score: number
   meta: string
-  tooltip: string
+  interpretation: string
 }
 
-function MetricCard({ title, score, meta, tooltip }: MetricCardProps) {
+function MetricCard({ title, score, meta, interpretation }: MetricCardProps) {
   const { text: statusText, cls: statusCls } = scoreStyle(score)
   return (
-    <div className="rounded-lg bg-card p-4 shadow-sm space-y-2.5" title={tooltip}>
+    <div className="rounded-lg bg-card p-4 shadow-sm space-y-2.5">
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium">{title}</span>
         <span className="text-sm tabular-nums">
@@ -51,6 +51,7 @@ function MetricCard({ title, score, meta, tooltip }: MetricCardProps) {
         <span className="text-xs text-muted-foreground">{meta}</span>
         <span className={`text-xs font-medium ${statusCls}`}>{statusText}</span>
       </div>
+      <p className="text-[11px] leading-relaxed text-muted-foreground">{interpretation}</p>
     </div>
   )
 }
@@ -70,6 +71,28 @@ interface EngagementGridSectionProps {
 }
 
 const FALLBACK_LABEL = "표시 가능한 세부 지표"
+
+function deriveInterpretation(key: "audience" | "seo" | "sub", score: number): string {
+  const tier = score >= 65 ? 0 : score >= 45 ? 1 : 2
+  const map = {
+    audience: [
+      "시청자 반응 신호가 콘텐츠 방향과 맞아 CTR 유지에 유리한 신호입니다",
+      "반응 신호는 있으나 CTR 및 시청 지속시간 안정화 여지가 있습니다",
+      "조회 반응이 낮아 초반 이탈이 높을 가능성이 있는 구조입니다",
+    ],
+    seo: [
+      "키워드·제목 구조가 초반 클릭 유도력과 검색 유입에 기여하고 있는 신호입니다",
+      "검색 유입 가능성은 있으나 키워드 배치가 더 정리될 여지가 있습니다",
+      "제목·키워드 구조가 검색 노출을 이끌어내기 어려운 경향이 읽힙니다",
+    ],
+    sub: [
+      "참여 구조와 콘텐츠 일관성이 구독 전환에 유리한 신호를 형성하고 있습니다",
+      "구독 전환 신호가 부분적으로 감지되나 참여 일관성이 더 굳어져야 할 경향입니다",
+      "구독 전환 구조가 약해 시청자가 채널을 이탈 없이 구독할 동기가 낮을 수 있습니다",
+    ],
+  }
+  return map[key][tier]
+}
 
 export function EngagementGridSection({ sectionScores, diagnosisCards, kpiData }: EngagementGridSectionProps) {
   const audienceCard = diagnosisCards.find(c => c.title === "시청자 반응 구조")
@@ -111,7 +134,7 @@ export function EngagementGridSection({ sectionScores, diagnosisCards, kpiData }
           title="시청자 반응"
           score={audienceScore}
           meta={audienceMeta}
-          tooltip="시청자 반응 신호(좋아요·댓글 비율)를 기반으로 한 콘텐츠 반응 점수입니다"
+          interpretation={deriveInterpretation("audience", audienceScore)}
         />
       )}
       {seoScore != null && (
@@ -119,7 +142,7 @@ export function EngagementGridSection({ sectionScores, diagnosisCards, kpiData }
           title="SEO 최적화"
           score={seoScore}
           meta={seoMeta}
-          tooltip="제목 길이·태그 구조 등 검색 유입에 기여하는 메타 최적화 점수입니다"
+          interpretation={deriveInterpretation("seo", seoScore)}
         />
       )}
       {subScore != null && (
@@ -127,7 +150,7 @@ export function EngagementGridSection({ sectionScores, diagnosisCards, kpiData }
           title="구독 전환"
           score={subScore}
           meta={subMeta}
-          tooltip="시청자가 채널을 구독으로 전환하는 구조적 신호를 기반으로 한 점수입니다"
+          interpretation={deriveInterpretation("sub", subScore)}
         />
       )}
       {hasBenchmark && (
