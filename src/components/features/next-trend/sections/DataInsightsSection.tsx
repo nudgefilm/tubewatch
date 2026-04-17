@@ -93,7 +93,7 @@ export function NextTrendDataInsightsSection({
               <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-1">
                 상위 10% 평균
               </p>
-              <p className="text-lg font-bold tabular-nums leading-tight">
+              <p className="text-lg font-bold tabular-nums leading-tight text-emerald-600 dark:text-emerald-400">
                 {formatSeconds(watchTimeCatalyst.sweetSpotAvgSec)}
               </p>
               <p className="text-[10px] text-muted-foreground mt-0.5">
@@ -148,7 +148,7 @@ export function NextTrendDataInsightsSection({
                       </span>
                     </div>
                     <div className="shrink-0 flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground tabular-nums">
+                      <span className="text-xs tabular-nums text-sky-600 dark:text-sky-400 font-medium">
                         avg {formatViews(item.avgViews)}
                       </span>
                       <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold tabular-nums text-primary">
