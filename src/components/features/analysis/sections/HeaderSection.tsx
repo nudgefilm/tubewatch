@@ -84,7 +84,7 @@ export function AnalysisHeaderSection({ channel }: AnalysisHeaderSectionProps) {
                 <Video className="size-4 text-muted-foreground" />
               </div>
               <div>
-                <p className="text-sm font-medium">{channel.totalVideos.toLocaleString()}</p>
+                <p className="text-sm font-medium">{channel.totalVideos.toLocaleString()}개</p>
                 <p className="text-xs text-muted-foreground">총 영상</p>
               </div>
             </div>
@@ -93,7 +93,7 @@ export function AnalysisHeaderSection({ channel }: AnalysisHeaderSectionProps) {
                 <Upload className="size-4 text-muted-foreground" />
               </div>
               <div>
-                <p className="text-sm font-medium">{channel.recentUploads}</p>
+                <p className="text-sm font-medium">{channel.recentUploads}회</p>
                 <p className="text-xs text-muted-foreground">최근 30일</p>
               </div>
             </div>
