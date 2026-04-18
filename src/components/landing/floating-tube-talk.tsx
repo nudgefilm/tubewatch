@@ -16,6 +16,16 @@ export function FloatingTubeTalk() {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
+      {/* Tooltip */}
+      <div
+        className={`absolute bottom-full right-0 mb-3 w-64 px-4 py-3 bg-white text-gray-700 text-sm rounded-xl shadow-xl border border-gray-100 transition-all duration-200 pointer-events-none ${
+          isHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"
+        }`}
+      >
+        <p className="font-semibold text-gray-800 leading-snug">채널 성장 고민, 혼자 하지 마세요.</p>
+        <p className="text-gray-500 mt-0.5">크리에이터들이 모여 있어요!</p>
+        <div className="absolute bottom-0 right-6 translate-y-1/2 w-2.5 h-2.5 bg-white border-r border-b border-gray-100 rotate-45" />
+      </div>
       {/* Telegram Icon */}
       <svg
         className="w-5 h-5"
