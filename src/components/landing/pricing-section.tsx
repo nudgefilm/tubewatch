@@ -71,7 +71,7 @@ export function PricingSection() {
                 Free
               </p>
               <div className="flex items-baseline gap-1">
-                <span className="font-heading text-4xl font-medium tracking-[-0.03em]">$0</span>
+                <span className="font-heading text-4xl font-medium tracking-[-0.03em]">₩0</span>
               </div>
               <p className="mt-1 text-xs text-muted-foreground">구독 없이 시작</p>
             </div>
@@ -99,7 +99,7 @@ export function PricingSection() {
               </p>
               <div className="flex items-baseline gap-1">
                 <span className="font-heading text-4xl font-medium tracking-[-0.03em]">
-                  ${BILLING_PLANS[0].priceUsd}
+                  ₩{BILLING_PLANS[0].priceKrw.toLocaleString()}
                 </span>
                 <span className="text-sm text-muted-foreground">/월</span>
               </div>
@@ -142,7 +142,7 @@ export function PricingSection() {
               </p>
               <div className="flex items-baseline gap-1">
                 <span className="font-heading text-4xl font-medium tracking-[-0.03em]">
-                  ${BILLING_PLANS[1].priceUsd}
+                  ₩{BILLING_PLANS[1].priceKrw.toLocaleString()}
                 </span>
                 <span className="text-sm opacity-60">/월</span>
               </div>
@@ -190,7 +190,7 @@ export function PricingSection() {
               </div>
               <div className="text-right shrink-0">
                 <p className="font-heading text-2xl font-medium tracking-[-0.03em]">
-                  ${product.priceUsd}
+                  ₩{product.priceKrw.toLocaleString()}
                 </p>
                 <p className="text-xs text-muted-foreground">{product.creditCount}회 충전</p>
               </div>
