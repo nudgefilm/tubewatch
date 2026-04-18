@@ -1,9 +1,23 @@
+import type { User } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import type { AdminUsersData, AdminUserRow } from "@/components/admin/types";
 
+async function fetchAllAuthUsers(): Promise<User[]> {
+  const users: User[] = [];
+  let page = 1;
+  while (true) {
+    const { data } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000, page });
+    if (!data?.users?.length) break;
+    users.push(...data.users);
+    if (!data.nextPage) break;
+    page = data.nextPage;
+  }
+  return users;
+}
+
 export async function getAdminUsersData(): Promise<AdminUsersData> {
-  const [authRes, channelsRes, profilesRes, creditsRes, subscriptionsRes, analysisJobsRes] = await Promise.all([
-    supabaseAdmin.auth.admin.listUsers({ perPage: 200 }),
+  const [authUsers, channelsRes, profilesRes, creditsRes, subscriptionsRes, analysisJobsRes] = await Promise.all([
+    fetchAllAuthUsers(),
     supabaseAdmin.from("user_channels").select("user_id"),
     supabaseAdmin.from("profiles").select("id, role"),
     supabaseAdmin
@@ -17,8 +31,6 @@ export async function getAdminUsersData(): Promise<AdminUsersData> {
       .select("user_id")
       .eq("status", "completed"),
   ]);
-
-  const authUsers = authRes.data?.users ?? [];
 
   const channelCountMap = new Map<string, number>();
   for (const row of (channelsRes.data ?? []) as { user_id: string | null }[]) {

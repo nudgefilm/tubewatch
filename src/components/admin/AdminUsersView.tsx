@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import type { AdminUsersData, AdminSubscriptionChangeRow } from "./types";
 import { formatDateTime } from "@/lib/format/formatDateTime";
 import { FREE_LIFETIME_ANALYSIS_LIMIT } from "@/components/billing/types";
@@ -617,6 +618,8 @@ function RefundModal({
 
 export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.Element {
   const { rows, total } = data;
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -687,13 +690,23 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
             {totalPages > 1 && ` · ${page}/${totalPages} 페이지`}
           </p>
         </div>
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="이메일 · 이름 · ID 검색"
-          className="w-64 rounded-lg border border-foreground/10 bg-foreground/[0.02] px-3 py-2 text-xs placeholder:text-muted-foreground/40 focus:outline-none focus:border-foreground/30"
-        />
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => startTransition(() => router.refresh())}
+            disabled={isPending}
+            className="rounded-lg border border-foreground/10 px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-foreground/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            {isPending ? "새로고침 중…" : "새로고침"}
+          </button>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="이메일 · 이름 · ID 검색"
+            className="w-64 rounded-lg border border-foreground/10 bg-foreground/[0.02] px-3 py-2 text-xs placeholder:text-muted-foreground/40 focus:outline-none focus:border-foreground/30"
+          />
+        </div>
       </div>
 
       {/* 테이블 */}
