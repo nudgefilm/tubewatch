@@ -89,7 +89,7 @@ export function SecuritySection() {
           {whyFeatures.map((feature, index) => (
             <div
               key={feature.title}
-              className={`relative p-8 border rounded-2xl transition-all duration-300 cursor-pointer h-[320px] overflow-hidden hover:shadow-sm ${
+              className={`relative p-8 border rounded-2xl transition-all duration-300 cursor-pointer min-h-[320px] hover:shadow-sm ${
                 activeFeature === index
                   ? "border-orange-500/50 bg-orange-500/5"
                   : "border-foreground/10 hover:border-foreground/20"
