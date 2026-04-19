@@ -117,6 +117,7 @@ function HeroSection() {
               <div className="absolute -inset-4 bg-orange-500/10 rounded-3xl blur-2xl" />
               <div className="relative w-[200px] lg:w-[235px] rounded-2xl overflow-hidden border border-foreground/10 shadow-2xl">
                 <div className="relative" style={{ paddingBottom: "177.78%" }}>
+                  {/* sandbox: allow-top-navigation 제외 필수 — 없으면 Shorts 재생 시 YouTube JS가 window.top.location을 호출해 페이지 새로고침 발생 */}
                   <iframe
                     src={iframeSrc}
                     className="absolute inset-0 w-full h-full"
