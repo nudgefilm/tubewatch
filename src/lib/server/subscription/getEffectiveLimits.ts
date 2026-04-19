@@ -57,7 +57,8 @@ export async function getEffectiveLimits(
 
   // renewal_at 단일 소스 기준 만료 여부 — subscription_status 값과 무관하게 판단
   const periodEnd = r.renewal_at as string | null;
-  const isExpired = !periodEnd || new Date(periodEnd).getTime() < Date.now();
+  const periodEndMs = periodEnd ? new Date(periodEnd).getTime() : NaN;
+  const isExpired = !periodEnd || isNaN(periodEndMs) || periodEndMs < Date.now();
 
   if (isExpired) return FREE_RESULT(status, credits);
 
