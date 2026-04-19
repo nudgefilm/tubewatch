@@ -212,9 +212,17 @@ export function TermsModal({ isOpen, onClose }: TermsModalProps) {
             <h3 className="text-foreground font-medium mb-2">제16조 (데이터 보관 및 만료)</h3>
             <ul className="list-disc list-inside space-y-1 ml-2">
               <li>유료 플랜 만료 후 익일까지 서비스를 이용할 수 있습니다.</li>
-              <li>플랜 만료 후 분석 데이터는 30일간 보관되며, 이후 영구 삭제됩니다.</li>
               <li>이용자는 서비스 내 결제 현황에서 만료 일정을 직접 확인할 수 있습니다.</li>
-              <li>이용자는 보관 기간 내 재결제를 통해 데이터를 유지할 수 있습니다.</li>
+            </ul>
+          </section>
+
+          <section>
+            <h3 className="text-foreground font-medium mb-2">제17조 (계정 탈퇴 및 데이터 처리)</h3>
+            <ul className="list-disc list-inside space-y-1 ml-2">
+              <li>이용자는 언제든지 서비스 내 설정에서 계정 탈퇴를 요청할 수 있습니다.</li>
+              <li>계정 탈퇴 시 계정 정보 및 분석 데이터는 즉시 영구 삭제됩니다.</li>
+              <li>동일한 Google 계정으로 재가입하더라도 기존 데이터는 연동되지 않으며, 새로운 계정으로 처음부터 서비스를 이용하게 됩니다.</li>
+              <li>결제 및 구독 이력은 「전자상거래 등에서의 소비자보호에 관한 법률」에 따라 탈퇴 후에도 5년간 보관 후 파기됩니다.</li>
             </ul>
           </section>
         </div>

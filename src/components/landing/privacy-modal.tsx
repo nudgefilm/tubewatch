@@ -132,12 +132,11 @@ export function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
             <h3 className="text-foreground font-medium mb-2">4. 개인정보 보관 기간</h3>
             <p className="mb-2">개인정보는 다음 기간 동안 보관됩니다.</p>
             <ul className="list-disc list-inside space-y-1 ml-2">
-              <li>계정 정보: 서비스 이용 기간 동안 보관, 계정 삭제 요청 시 즉시 삭제</li>
-              <li>분석 데이터: 유료 플랜 만료 후 30일간 보관 후 영구 삭제</li>
-              <li>결제 및 구독 이력: 전자상거래법에 따라 5년간 보관</li>
+              <li>계정 정보: 서비스 이용 기간 동안 보관, 계정 탈퇴 요청 시 즉시 삭제</li>
+              <li>분석 데이터: 계정 탈퇴 요청 시 즉시 삭제</li>
+              <li>결제 및 구독 이력: 계정 탈퇴 후에도 「전자상거래 등에서의 소비자보호에 관한 법률」에 따라 5년간 보관 후 파기</li>
               <li>환불 처리 기록: 관련 법령에 따른 기간 동안 보관</li>
             </ul>
-            <p className="mt-2">단, 법령에 따라 일정 기간 보관이 필요한 경우 해당 기간 동안 보관됩니다.</p>
           </section>
 
           <section>
