@@ -37,7 +37,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 const heroStats = [
   { value: "4", unit: "개", label: "핵심 분석 모듈" },
   { value: "50", unit: "개", label: "영상 심층 분석" },
-  { value: "31", unit: "개+", label: "성장 신호 진단" },
+  { value: "80", unit: "개+", label: "성장 신호 진단" },
   { value: "무료", unit: "", label: "로 시작 가능", isFree: true },
 ];
 
