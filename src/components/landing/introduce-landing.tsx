@@ -120,8 +120,9 @@ function HeroSection() {
                   <iframe
                     src={iframeSrc}
                     className="absolute inset-0 w-full h-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                     allowFullScreen
+                    sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-presentation"
                     title="TubeWatch 소개 영상"
                   />
                 </div>
