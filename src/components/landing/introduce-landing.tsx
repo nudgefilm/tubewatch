@@ -81,7 +81,7 @@ function HeroSection() {
               </span>
             </h1>
 
-            <div className={`mt-6 flex items-center gap-4 transition-all duration-700 delay-300 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+            <div className={`mt-6 flex items-center gap-3 transition-all duration-700 delay-300 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
               <a
                 href="https://forms.gle/cGMyEXQL1SDevpv7A"
                 target="_blank"
@@ -89,7 +89,12 @@ function HeroSection() {
                 className="inline-flex items-center gap-2 bg-foreground text-background px-6 py-3 rounded-xl font-medium text-sm hover:bg-foreground/90 transition-colors"
               >
                 베타 테스터 신청하기
-                <ArrowRight className="w-4 h-4" />
+              </a>
+              <a
+                href="/signup"
+                className="inline-flex items-center px-6 py-3 rounded-xl font-medium text-sm border border-foreground/30 hover:border-foreground transition-colors"
+              >
+                채널 무료 분석
               </a>
               <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
