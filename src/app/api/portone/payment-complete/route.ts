@@ -168,10 +168,10 @@ export async function POST(request: Request) {
       const isUpgradeOrSamePlan = targetRank >= currentRank;
 
       if (isUpgradeOrSamePlan) {
-        // ── 업그레이드 또는 기간 변경 → 즉시 적용, renewal_at = 기존 + 새 기간 ─
+        // ── 업그레이드 또는 기간 변경 → 즉시 적용, renewal_at = 오늘 + 새 기간 ─
+        // 기존 잔여 기간은 소멸. CS를 통해 크레딧 보상 신청 가능.
         const months = PERIOD_MONTHS[billingPeriodTyped];
-        const baseDate = new Date(existingSub!.renewal_at!);
-        const newRenewalAt = new Date(baseDate);
+        const newRenewalAt = new Date(now);
         newRenewalAt.setMonth(newRenewalAt.getMonth() + months);
 
         const { error: updateError } = await supabaseAdmin

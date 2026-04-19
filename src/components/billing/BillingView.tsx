@@ -181,6 +181,9 @@ function SubscriptionPlanCard({
     isSubscribed &&
     (PLAN_RANK[plan.id] ?? 0) < (PLAN_RANK[currentPlanId] ?? 0);
 
+  // 업그레이드 여부 (creator → pro)
+  const isUpgrade = isSubscribed && !isDeferredChange && !isExactSamePlan;
+
   // 이 카드(plan.id + period)가 예약된 플랜인지
   const thisPlanIsPending =
     pendingPlanId === plan.id && pendingBillingPeriod === period;
@@ -325,6 +328,17 @@ function SubscriptionPlanCard({
         /* 구매 가능한 상태 */
         ) : (
           <>
+            {isUpgrade && (
+              <div className="mb-3 rounded-lg border border-foreground/10 bg-foreground/[0.03] px-3 py-2.5">
+                <p className="text-xs text-muted-foreground">
+                  업그레이드 즉시 적용됩니다. 기존 구독 잔여 기간은 소멸되며, 잔여 기간에 대한 크레딧 보상은{" "}
+                  <a href="/support" className="font-medium text-foreground/70 underline underline-offset-2">
+                    CS 문의
+                  </a>
+                  를 통해 신청하실 수 있습니다.
+                </p>
+              </div>
+            )}
             {isDeferredChange && channelCount > plan.channels && (
               <div className="mb-3 rounded-lg border-2 border-red-300 bg-red-50 px-3 py-2.5 dark:border-red-800/60 dark:bg-red-950/30">
                 <p className="text-xs font-bold text-red-700 dark:text-red-400">
