@@ -195,6 +195,7 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
       session: import("@supabase/supabase-js").Session | null,
       triggerDataLoad: boolean,
     ) => {
+      setPlanId(null)
       setUserEmail(session?.user?.email ?? null)
       const meta = session?.user?.user_metadata ?? {}
       setUserDisplayName(
@@ -218,14 +219,14 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
       void (async () => {
         const { data } = await supabase
           .from("user_subscriptions")
-          .select("plan_id, status")
+          .select("plan_id, subscription_status")
           .eq("user_id", session.user.id)
           .limit(1)
           .maybeSingle()
         const validStatuses = ["active", "trialing", "manual", "refunded"]
-        const rawStatus = data as { plan_id?: string; status?: string } | null
-        const status = typeof rawStatus?.status === "string"
-          ? rawStatus.status.trim().toLowerCase()
+        const rawStatus = data as { plan_id?: string; subscription_status?: string } | null
+        const status = typeof rawStatus?.subscription_status === "string"
+          ? rawStatus.subscription_status.trim().toLowerCase()
           : ""
         if (!data || !validStatuses.includes(status)) {
           setPlanId(null)
@@ -249,6 +250,8 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
       // INITIAL_SESSION은 getSession()으로 이미 처리했으므로 데이터 재로드는 SIGNED_IN만
       const triggerDataLoad = event === "SIGNED_IN"
       applySession(session, triggerDataLoad)
+      // 재가입 등 새 세션 시 Next.js 서버 컴포넌트 캐시 무효화
+      if (event === "SIGNED_IN") router.refresh()
       // TOKEN_REFRESHED: 채널/세션 재요청 불필요
     })
     return () => {

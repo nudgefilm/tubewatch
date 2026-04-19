@@ -46,7 +46,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     supabaseAdmin
       .from("user_subscriptions")
       .select("*", { count: "exact", head: true })
-      .in("status", ["active", "trialing"]),
+      .in("subscription_status", ["active", "trialing"]),
     supabaseAdmin
       .from("analysis_jobs")
       .select("id, user_channel_id, status, created_at")
