@@ -48,7 +48,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ markdown: null, pending: true });
     }
 
-    const markdown = (mod.result as Record<string, unknown>)?.markdown as string | null;
+    const modResult = mod.result as Record<string, unknown> | null;
+    const markdown = typeof modResult?.markdown === "string" ? modResult.markdown : null;
     console.log("[onepager-api]", {
       snapshot_id: snap.id, module_key: "strategy_plan",
       status: mod.status, started_at: mod.started_at, hasMarkdown: !!markdown,
@@ -63,7 +64,13 @@ export async function GET(req: NextRequest) {
 /** POST — 어드민 전용 강제 재생성 */
 export async function POST(req: NextRequest) {
   try {
-    const { channelId } = await req.json();
+    let body: { channelId?: string };
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: "요청 본문을 읽을 수 없습니다." }, { status: 400 });
+    }
+    const { channelId } = body;
     if (!channelId) return NextResponse.json({ error: "channelId required" }, { status: 400 });
 
     const supabase = await createClient();
@@ -88,7 +95,7 @@ export async function POST(req: NextRequest) {
     const markdown = await callGeminiForStrategyPlan(prompt);
     if (!markdown) return NextResponse.json({ error: "생성 실패" }, { status: 502 });
 
-    await supabaseAdmin.from("analysis_module_results").upsert({
+    const { error: upsertErr } = await supabaseAdmin.from("analysis_module_results").upsert({
       user_id: user.id,
       channel_id: channelId,
       snapshot_id: row.id,
@@ -97,6 +104,10 @@ export async function POST(req: NextRequest) {
       status: "completed",
       analyzed_at: new Date().toISOString(),
     }, { onConflict: "snapshot_id,module_key" });
+    if (upsertErr) {
+      console.error("[strategy-plan POST] upsert failed:", upsertErr);
+      return NextResponse.json({ error: "저장 실패" }, { status: 500 });
+    }
 
     return NextResponse.json({ markdown });
   } catch (e) {

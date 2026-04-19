@@ -29,7 +29,12 @@ type AllowedModule = (typeof ALLOWED_MODULES)[number];
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json() as { channelId?: string; moduleKey?: string };
+    let body: { channelId?: string; moduleKey?: string };
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: "요청 본문을 읽을 수 없습니다." }, { status: 400 });
+    }
     const { channelId, moduleKey } = body;
 
     if (!channelId || !moduleKey) {
@@ -84,7 +89,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "생성 실패" }, { status: 502 });
     }
 
-    await supabaseAdmin.from("analysis_module_results").upsert(
+    const { error: upsertErr } = await supabaseAdmin.from("analysis_module_results").upsert(
       {
         user_id: user.id,
         channel_id: channelId,
@@ -97,6 +102,10 @@ export async function POST(req: NextRequest) {
       },
       { onConflict: "snapshot_id,module_key" }
     );
+    if (upsertErr) {
+      console.error("[regenerate-module POST] upsert failed:", upsertErr);
+      return NextResponse.json({ error: "저장 실패" }, { status: 500 });
+    }
 
     return NextResponse.json({ ok: true, markdown });
   } catch (e) {

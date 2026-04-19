@@ -46,7 +46,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ markdown: null, pending: true });
     }
 
-    const markdown = (mod.result as Record<string, unknown>)?.markdown as string | null;
+    const modResult = mod.result as Record<string, unknown> | null;
+    const markdown = typeof modResult?.markdown === "string" ? modResult.markdown : null;
     console.log("[onepager-api]", {
       snapshot_id: snap.id, module_key: "channel_dna_report",
       status: mod.status, started_at: mod.started_at, hasMarkdown: !!markdown,
