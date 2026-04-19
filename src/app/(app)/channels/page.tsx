@@ -13,9 +13,9 @@ export default async function ChannelsPage() {
   const { data: { user } } = await supabase.auth.getUser();
   const email = user?.email ?? null;
   const adminUser = isAdmin(email);
-  const maxCount = adminUser
-    ? ADMIN_CHANNEL_LIMIT
-    : (await getEffectiveLimits(supabase, userId)).channelLimit;
+  const limits = adminUser ? null : await getEffectiveLimits(supabase, userId);
+  const maxCount = adminUser ? ADMIN_CHANNEL_LIMIT : limits!.channelLimit;
+  const isFreePlan = !adminUser && limits!.planId === "free";
 
   // 엔진 버전이 낡은 채널 감지 — 최신 analysis_result 기준
   const { data: latestResults } = await supabaseAdmin
@@ -34,5 +34,5 @@ export default async function ChannelsPage() {
     }
   }
 
-  return <ChannelsPageClient isAdmin={adminUser} maxCount={maxCount} staleChannelIds={staleChannelIds} />;
+  return <ChannelsPageClient isAdmin={adminUser} maxCount={maxCount} staleChannelIds={staleChannelIds} isFreePlan={isFreePlan} />;
 }

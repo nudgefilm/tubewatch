@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { BILLING_PLANS } from "@/components/billing/types";
 
 export type UserBillingStatus = {
   planId: "free" | "creator" | "pro";
@@ -118,6 +119,34 @@ export async function getUserBillingStatus(
       activePendingPlanId = null;
       activePendingBillingPeriod = null;
       activeSubscriptionStatus = "active";
+
+      // 다운그레이드 시 초과 채널 삭제 — 최신 등록 채널 N개 외 제거
+      const newPlan = BILLING_PLANS.find((p) => p.id === pendingPlanIdRaw);
+      if (newPlan) {
+        const { data: allChannels } = await supabaseAdmin
+          .from("user_channels")
+          .select("id")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: true }); // 오래된 채널이 앞에
+        const channels = (allChannels ?? []) as { id: string }[];
+        if (channels.length > newPlan.channels) {
+          const toDeleteIds = channels
+            .slice(0, channels.length - newPlan.channels)
+            .map((c) => c.id);
+          const cascadeSteps = [
+            { table: "credit_reservations",     field: "channel_id" },
+            { table: "credit_logs",             field: "channel_id" },
+            { table: "analysis_module_results", field: "channel_id" },
+            { table: "analysis_jobs",           field: "user_channel_id" },
+            { table: "analysis_runs",           field: "channel_id" },
+            { table: "analysis_results",        field: "user_channel_id" },
+          ] as const;
+          for (const { table, field } of cascadeSteps) {
+            await supabaseAdmin.from(table).delete().eq("user_id", userId).in(field, toDeleteIds);
+          }
+          await supabaseAdmin.from("user_channels").delete().eq("user_id", userId).in("id", toDeleteIds);
+        }
+      }
     }
     // applyError 시 다른 요청이 이미 승격한 것으로 간주, 원래 값으로 진행
   }

@@ -301,6 +301,17 @@ export async function DELETE(request: Request) {
 
   const { supabase, user } = authed;
 
+  const isAdmin = await isAdminUser(user.id);
+  if (!isAdmin) {
+    const limits = await getEffectiveLimits(supabase, user.id);
+    if (limits.planId === "free") {
+      return NextResponse.json(
+        { error: "현재 플랜에서는 채널을 변경할 수 없습니다." },
+        { status: 403 }
+      );
+    }
+  }
+
   const { data: row, error: findErr } = await supabase
     .from("user_channels")
     .select("id")

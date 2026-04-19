@@ -9,6 +9,9 @@ export const dynamic = "force-dynamic";
 export default async function BillingRoutePage() {
   const userId = await redirectToLandingAuthUnlessSignedIn("/billing");
   const supabase = await createClient();
-  const billingStatus = await getUserBillingStatus(supabase, userId);
-  return <BillingView initialData={billingStatus} />;
+  const [billingStatus, { count }] = await Promise.all([
+    getUserBillingStatus(supabase, userId),
+    supabase.from("user_channels").select("id", { count: "exact", head: true }).eq("user_id", userId),
+  ]);
+  return <BillingView initialData={billingStatus} channelCount={count ?? 0} />;
 }

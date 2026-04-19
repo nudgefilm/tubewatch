@@ -45,10 +45,12 @@ export default function ChannelsPageClient({
   isAdmin = false,
   maxCount = 3,
   staleChannelIds = [],
+  isFreePlan = false,
 }: {
   isAdmin?: boolean;
   maxCount?: number;
   staleChannelIds?: string[];
+  isFreePlan?: boolean;
 }): JSX.Element {
   const router = useRouter();
   const [channels, setChannels] = useState<ChannelRow[]>([]);
@@ -469,13 +471,22 @@ export default function ChannelsPageClient({
       <div>
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-sm font-medium text-muted-foreground">등록된 채널</h2>
-          {channels.length > 0 && (
+          {channels.length > 0 && !isFreePlan && (
             <span className="text-[11px] text-muted-foreground/60">
               최대 {maxCount}개 등록 · 월 {maxCount * 2}회 교체 가능
             </span>
           )}
         </div>
-        {channels.length > 0 && (
+        {isFreePlan && channels.length > 0 && (
+          <div className="mb-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2.5 dark:border-amber-800/50 dark:bg-amber-950/30">
+            <p className="text-xs font-semibold text-amber-800 dark:text-amber-300">채널 변경이 제한되어 있습니다.</p>
+            <p className="mt-0.5 text-xs text-amber-700 dark:text-amber-400">
+              구독 중에만 채널을 추가하거나 삭제할 수 있습니다.{" "}
+              <a href="/billing" className="underline font-medium">구독하기 →</a>
+            </p>
+          </div>
+        )}
+        {channels.length > 0 && !isFreePlan && (
           <p className="mb-2 text-[11px] text-muted-foreground/50">
             채널 삭제 시 해당 채널의 분석 데이터가 함께 삭제되며 복구되지 않습니다.
           </p>
@@ -529,14 +540,23 @@ export default function ChannelsPageClient({
                     </p>
                   ) : null}
                 </button>
-                <button
-                  type="button"
-                  disabled={deletingId === ch.id}
-                  onClick={() => void handleDelete(ch)}
-                  className="shrink-0 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100 disabled:opacity-50"
-                >
-                  {deletingId === ch.id ? "삭제 중…" : "삭제"}
-                </button>
+                {isFreePlan ? (
+                  <span
+                    title="구독 중에만 채널을 변경할 수 있습니다."
+                    className="shrink-0 cursor-not-allowed rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground/40 select-none"
+                  >
+                    삭제
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={deletingId === ch.id}
+                    onClick={() => void handleDelete(ch)}
+                    className="shrink-0 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100 disabled:opacity-50"
+                  >
+                    {deletingId === ch.id ? "삭제 중…" : "삭제"}
+                  </button>
+                )}
               </li>
             ))}
           </ul>

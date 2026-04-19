@@ -143,6 +143,7 @@ function SubscriptionPlanCard({
   currentBillingPeriod,
   pendingPlanId,
   pendingBillingPeriod,
+  channelCount,
   isLoading,
   error,
   onPaymentStart,
@@ -156,6 +157,7 @@ function SubscriptionPlanCard({
   currentBillingPeriod: "monthly" | "semiannual" | null;
   pendingPlanId: string | null;
   pendingBillingPeriod: "monthly" | "semiannual" | null;
+  channelCount: number;
   isLoading: boolean;
   error: string | null;
   onPaymentStart: () => void;
@@ -323,6 +325,17 @@ function SubscriptionPlanCard({
         /* 구매 가능한 상태 */
         ) : (
           <>
+            {isDeferredChange && channelCount > plan.channels && (
+              <div className="mb-3 rounded-lg border-2 border-red-300 bg-red-50 px-3 py-2.5 dark:border-red-800/60 dark:bg-red-950/30">
+                <p className="text-xs font-bold text-red-700 dark:text-red-400">
+                  ⚠️ 최신 등록 채널 {plan.channels}개 외 삭제됩니다.
+                </p>
+                <p className="mt-1 text-xs text-red-600 dark:text-red-500">
+                  현재 {channelCount}개 채널 중 {channelCount - plan.channels}개가 플랜 전환 시 삭제됩니다.<br />
+                  불필요한 채널을 먼저 채널 목록에서 정리한 후 진행하세요.
+                </p>
+              </div>
+            )}
             {isDeferredChange && (
               <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-center dark:border-amber-800/50 dark:bg-amber-950/30">
                 <p className="text-xs text-amber-700 dark:text-amber-400">
@@ -565,7 +578,7 @@ function CurrentPlanCard({ status }: { status: UserBillingStatus }) {
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
-export default function BillingView({ initialData }: { initialData: UserBillingStatus }) {
+export default function BillingView({ initialData, channelCount }: { initialData: UserBillingStatus; channelCount: number }) {
   const router = useRouter();
   const [period, setPeriod] = useState<BillingPeriod>("monthly");
   const [termsOpen, setTermsOpen] = useState(false);
@@ -668,6 +681,7 @@ export default function BillingView({ initialData }: { initialData: UserBillingS
                   currentBillingPeriod={initialData.billingPeriod}
                   pendingPlanId={initialData.pendingPlanId}
                   pendingBillingPeriod={initialData.pendingBillingPeriod}
+                  channelCount={channelCount}
                   isLoading={loadingPlanId === planKey}
                   error={errorPlanId === planKey ? errorMessage : null}
                   onPaymentStart={() => {
@@ -691,6 +705,24 @@ export default function BillingView({ initialData }: { initialData: UserBillingS
             })}
           </div>
         </section>
+
+        {/* Creator/Pro → Free 다운그레이드 안내 */}
+        {initialData.planId !== "free" && (
+          <section>
+            <div className="rounded-lg border border-foreground/10 bg-foreground/[0.02] px-5 py-4">
+              <p className="text-sm font-semibold text-foreground/70">Free 플랜 전환 안내</p>
+              <ul className="mt-2 space-y-1 text-xs text-muted-foreground list-disc list-inside">
+                <li>구독 만료 시 채널 변경·삭제가 제한됩니다. 기존 채널 데이터는 유지됩니다.</li>
+                {channelCount > 1 && (
+                  <li className="font-medium text-foreground/60">
+                    ⚠️ 구독 해지 후 Free 플랜으로 전환 시 최신 등록 채널 1개 외 삭제됩니다.
+                    <span className="ml-1 font-normal text-muted-foreground">(현재 {channelCount}개 등록 중)</span>
+                  </li>
+                )}
+              </ul>
+            </div>
+          </section>
+        )}
 
         {/* One-time credit products */}
         <section>
