@@ -419,6 +419,134 @@ function ManualGrantModal({
   );
 }
 
+// ─── 서브 컴포넌트: CreditGrantModal ─────────────────────────────────────────
+
+function CreditGrantModal({
+  userId,
+  userEmail,
+  onClose,
+  onSuccess,
+}: {
+  userId: string;
+  userEmail: string | null;
+  onClose: () => void;
+  onSuccess: (count: number) => void;
+}) {
+  const [count, setCount] = useState<string>("1");
+  const [reason, setReason] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [grantedCount, setGrantedCount] = useState<number | null>(null);
+
+  const parsedCount = parseInt(count, 10);
+  const isValidCount = !isNaN(parsedCount) && parsedCount >= 1 && parsedCount <= 99;
+
+  async function handleSubmit() {
+    if (!isValidCount || status === "loading") return;
+    setStatus("loading");
+    setErrorMsg(null);
+    try {
+      const res = await fetch("/api/admin/credit-grant", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, count: parsedCount, reason: reason.trim() || undefined }),
+      });
+      const body = await res.json().catch(() => ({})) as { ok?: boolean; credits?: number; error?: string };
+      if (res.ok && body.ok) {
+        setGrantedCount(body.credits ?? parsedCount);
+        setStatus("done");
+        onSuccess(body.credits ?? parsedCount);
+      } else {
+        setErrorMsg(body.error ?? `HTTP ${res.status}`);
+        setStatus("error");
+      }
+    } catch (e) {
+      setErrorMsg(e instanceof Error ? e.message : "네트워크 오류");
+      setStatus("error");
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
+      <div
+        className="relative w-full max-w-sm rounded-2xl border border-foreground/10 bg-background shadow-2xl p-6 space-y-5"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div>
+          <h3 className="font-heading text-base font-medium tracking-[-0.02em]">크레딧 수동 부여</h3>
+          <p className="mt-0.5 text-xs text-muted-foreground truncate">{userEmail}</p>
+        </div>
+
+        {status === "done" ? (
+          <div className="rounded-xl bg-emerald-50 p-4 text-sm text-emerald-700 text-center space-y-1">
+            <p className="font-medium">부여 완료</p>
+            <p className="text-xs">{grantedCount}회 크레딧이 추가되었습니다.</p>
+          </div>
+        ) : (
+          <>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-foreground/70">부여 횟수</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min={1}
+                  max={99}
+                  value={count}
+                  onChange={(e) => setCount(e.target.value)}
+                  className="w-24 rounded-lg border border-foreground/10 bg-foreground/[0.02] px-3 py-2 text-xs tabular-nums focus:outline-none focus:border-foreground/30"
+                />
+                <span className="text-xs text-muted-foreground">회</span>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-foreground/70">부여 사유 <span className="text-muted-foreground/40">(선택)</span></label>
+              <input
+                type="text"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="예: 업그레이드 잔여 기간 보상"
+                className="w-full rounded-lg border border-foreground/10 bg-foreground/[0.02] px-3 py-2 text-xs placeholder:text-muted-foreground/40 focus:outline-none focus:border-foreground/30"
+              />
+            </div>
+
+            {errorMsg && <p className="text-xs text-red-500">{errorMsg}</p>}
+
+            <div className="flex gap-2 pt-1">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 rounded-lg border border-foreground/10 py-2 text-xs font-medium text-muted-foreground hover:bg-foreground/5 transition-colors"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={!isValidCount || status === "loading"}
+                className="flex-1 rounded-lg bg-foreground py-2 text-xs font-medium text-background hover:bg-foreground/90 disabled:opacity-40 transition-colors"
+              >
+                {status === "loading" ? "처리 중..." : "부여"}
+              </button>
+            </div>
+          </>
+        )}
+
+        {status === "done" && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full rounded-lg border border-foreground/10 py-2 text-xs font-medium text-muted-foreground hover:bg-foreground/5 transition-colors"
+          >
+            닫기
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── 서브 컴포넌트: HistoryPanel ─────────────────────────────────────────────
 
 function HistoryPanel({ userId, userEmail, onClose }: { userId: string; userEmail: string | null; onClose: () => void }) {
@@ -624,6 +752,7 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [grantModal, setGrantModal] = useState<{ userId: string; email: string | null; periodEnd: string | null; planId: string | null; billingPeriod: string | null } | null>(null);
+  const [creditGrantModal, setCreditGrantModal] = useState<{ userId: string; email: string | null } | null>(null);
   const [historyPanel, setHistoryPanel] = useState<{ userId: string; email: string | null } | null>(null);
   const [refundModal, setRefundModal] = useState<{ userId: string; email: string | null; periodEnd: string | null } | null>(null);
   // 로컬 만료일 업데이트 (수동부여 성공 시)
@@ -661,6 +790,14 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
             setLocalExpiry((prev) => ({ ...prev, [grantModal.userId]: newExpiry }));
             setTimeout(() => setGrantModal(null), 1500);
           }}
+        />
+      )}
+      {creditGrantModal && (
+        <CreditGrantModal
+          userId={creditGrantModal.userId}
+          userEmail={creditGrantModal.email}
+          onClose={() => setCreditGrantModal(null)}
+          onSuccess={() => setTimeout(() => setCreditGrantModal(null), 1500)}
         />
       )}
       {historyPanel && (
@@ -841,6 +978,13 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
                             className="rounded px-1.5 py-0.5 text-[10px] font-medium bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
                           >
                             부여
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setCreditGrantModal({ userId: row.id, email: row.email })}
+                            className="rounded px-1.5 py-0.5 text-[10px] font-medium bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors"
+                          >
+                            크레딧
                           </button>
                           <button
                             type="button"
