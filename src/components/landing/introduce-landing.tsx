@@ -91,7 +91,7 @@ function HeroSection() {
                 베타 테스터 신청하기
               </a>
               <a
-                href="/signup"
+                href="/channels"
                 className="inline-flex items-center px-6 py-3 rounded-xl font-medium text-sm border border-foreground/30 hover:border-foreground transition-colors"
               >
                 채널 무료 분석
