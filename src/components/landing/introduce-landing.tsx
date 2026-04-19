@@ -96,10 +96,6 @@ function HeroSection() {
               >
                 채널 무료 분석
               </a>
-              <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                무료로 시작
-              </span>
             </div>
 
             {/* Stats row */}
