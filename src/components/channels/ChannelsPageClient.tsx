@@ -57,6 +57,8 @@ export default function ChannelsPageClient({
   const [loading, setLoading] = useState(true);
   const [listError, setListError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [changesThisMonth, setChangesThisMonth] = useState(0);
+  const [changeLimit, setChangeLimit] = useState(0);
   const [selectedChannelId, setSelectedChannelId] = useState<string | null>(null);
   const [isNavigating, setIsNavigating] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
@@ -104,7 +106,7 @@ export default function ChannelsPageClient({
     setListError(null);
     try {
       const res = await fetch("/api/channels", { credentials: "include", cache: "no-store" });
-      const json: { ok?: boolean; data?: ChannelRow[]; error?: string } =
+      const json: { ok?: boolean; data?: ChannelRow[]; changesThisMonth?: number; changeLimit?: number; error?: string } =
         await res.json().catch(() => ({}));
       if (!res.ok) {
         console.error("[Channels/load] /api/channels GET failed:", res.status, json.error);
@@ -114,6 +116,8 @@ export default function ChannelsPageClient({
       }
       const loaded = Array.isArray(json.data) ? json.data : [];
       setChannels(loaded);
+      setChangesThisMonth(json.changesThisMonth ?? 0);
+      setChangeLimit(json.changeLimit ?? 0);
     } catch (e) {
       console.error("[Channels/load] fetch exception:", e);
       setListError("목록을 불러오지 못했습니다.");
@@ -472,8 +476,9 @@ export default function ChannelsPageClient({
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-sm font-medium text-muted-foreground">등록된 채널</h2>
           {channels.length > 0 && !isFreePlan && (
-            <span className="text-[11px] text-muted-foreground/60">
-              최대 {maxCount}개 등록 · 월 {maxCount * 2}회 교체 가능
+            <span className={`text-[11px] ${changesThisMonth >= changeLimit && changeLimit > 0 ? "text-amber-600 font-medium" : "text-muted-foreground/60"}`}>
+              이번 달 채널 변경 {changesThisMonth}/{changeLimit}회
+              {changesThisMonth >= changeLimit && changeLimit > 0 ? " · 이번 달 변경 불가" : " · 각 채널 월 1회"}
             </span>
           )}
         </div>
@@ -543,6 +548,13 @@ export default function ChannelsPageClient({
                 {isFreePlan ? (
                   <span
                     title="구독 중에만 채널을 변경할 수 있습니다."
+                    className="shrink-0 cursor-not-allowed rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground/40 select-none"
+                  >
+                    삭제
+                  </span>
+                ) : changeLimit > 0 && changesThisMonth >= changeLimit ? (
+                  <span
+                    title="이번 달 채널 변경 횟수를 모두 사용했습니다."
                     className="shrink-0 cursor-not-allowed rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground/40 select-none"
                   >
                     삭제

@@ -113,7 +113,22 @@ export async function GET(request: Request) {
     return { ...c, last_analyzed_at: best };
   });
 
-  return NextResponse.json({ ok: true, data: enriched });
+  const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM UTC
+  const [{ count: changesThisMonth }, limits] = await Promise.all([
+    supabaseAdmin
+      .from("channel_change_log")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .eq("change_month", currentMonth),
+    getEffectiveLimits(supabase, user.id),
+  ]);
+
+  return NextResponse.json({
+    ok: true,
+    data: enriched,
+    changesThisMonth: changesThisMonth ?? 0,
+    changeLimit: limits.channelLimit,
+  });
 }
 
 /** 등록: channel_url 또는 channel_id(UC…) */
@@ -310,6 +325,18 @@ export async function DELETE(request: Request) {
         { status: 403 }
       );
     }
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    const { count: changesThisMonth } = await supabaseAdmin
+      .from("channel_change_log")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .eq("change_month", currentMonth);
+    if ((changesThisMonth ?? 0) >= limits.channelLimit) {
+      return NextResponse.json(
+        { error: "이번 달 채널 변경 횟수를 모두 사용했습니다. 다음 달에 다시 시도해주세요." },
+        { status: 403 }
+      );
+    }
   }
 
   const { data: row, error: findErr } = await supabase
@@ -373,6 +400,14 @@ export async function DELETE(request: Request) {
       { error: "채널 삭제에 실패했습니다." },
       { status: 500 }
     );
+  }
+
+  if (!isAdmin) {
+    await supabaseAdmin.from("channel_change_log").insert({
+      user_id: user.id,
+      removed_channel_id: idRaw,
+      added_channel_id: "",
+    });
   }
 
   return NextResponse.json({ ok: true, message: "채널이 삭제되었습니다." });
