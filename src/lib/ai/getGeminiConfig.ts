@@ -163,118 +163,9 @@ export type TubeWatchAnalysisResult = {
           description:
             "표본 수나 데이터 한계에 대한 설명. 데이터가 충분하지 않으면 반드시 제한점을 명시. 100자 이내.",
         },
-        next_trend_plan: {
-          type: "object",
-          description: "Next Trend 페이지용 다음 영상 기획 내용. 채널 데이터 기반으로 작성.",
-          properties: {
-            topic: {
-              type: "string",
-              description: "다음 영상 주제 핵심. 20자 이내 짧은 구로 작성 (예: '홈카페 레시피'). 긴 문장 금지.",
-            },
-            why_this_topic: {
-              type: "string",
-              description: "왜 이 주제가 이 채널에 맞는지 2~3문장. 메트릭 수치 인용 필수.",
-            },
-            pain_point: {
-              type: "string",
-              description: "이 영상이 해소할 시청자의 핵심 불편·궁금증 1~2문장.",
-            },
-            content_angle: {
-              type: "string",
-              description: "경쟁 채널과 차별화되는 접근 각도 1문장.",
-            },
-            opening_hook: {
-              type: "string",
-              description: "처음 15초 안에 시청자를 잡을 오프닝 방향 1문장. 실제 대사 형태 권장.",
-            },
-            title_candidates: {
-              type: "array",
-              minItems: 3,
-              maxItems: 3,
-              items: { type: "string" },
-              description: "클릭률 높은 제목 후보 3개. 각 30자 이내. 번호·기호 없이 제목만.",
-            },
-            recommended_tags: {
-              type: "array",
-              minItems: 5,
-              maxItems: 8,
-              items: { type: "string" },
-              description: "SEO에 적합한 태그 5~8개. 단어 또는 짧은 구.",
-            },
-            viewing_points: {
-              type: "object",
-              description: "이 영상 주제 기준 5개 지표를 1~5 정수로 평가.",
-              properties: {
-                popularity:     { type: "integer", minimum: 1, maximum: 5, description: "대중성 — 일반 시청자 접근성" },
-                expertise:      { type: "integer", minimum: 1, maximum: 5, description: "전문성 — 깊이와 정보 밀도" },
-                stimulation:    { type: "integer", minimum: 1, maximum: 5, description: "자극도 — 감정·호기심 유발 강도" },
-                informativeness:{ type: "integer", minimum: 1, maximum: 5, description: "정보성 — 실용적 정보 밀도" },
-                fan_service:    { type: "integer", minimum: 1, maximum: 5, description: "팬서비스 — 기존 구독자 만족도" },
-              },
-              required: ["popularity", "expertise", "stimulation", "informativeness", "fan_service"],
-            },
-            vpd_sec1: {
-              type: "string",
-              description: "## 1. 기획 의도 (The Logic) — 채널 메트릭·수치 인용, 왜 이 주제가 맞는지 2~3문단. 소제목은 ### 사용. **볼드** 마크다운 사용 금지. 빈 문자열 금지. 300자 이내.",
-            },
-            vpd_sec2: {
-              type: "string",
-              description: "## 2. 킬러 타이틀 & 썸네일 (The Hook) — 제목 후보 3개는 마크다운 번호 리스트(1. 2. 3.)로 작성. 썸네일 전략 2~3문장. 소제목은 ### 사용. **볼드** 마크다운 사용 금지. 빈 문자열 금지. 300자 이내.",
-            },
-            vpd_sec3: {
-              type: "string",
-              description: "## 3. 인트로 30초 설계 (The Retention) — 00:00-00:10 / 00:10-00:30 타임스탬프별 장면·대사 지시. 소제목은 ### 사용. **볼드** 마크다운 사용 금지. 빈 문자열 금지. 300자 이내.",
-            },
-            vpd_sec4: {
-              type: "string",
-              description: "## 4. 메인 콘텐츠 구성 (The Body) — Chapter 2~3개, 소제목 ### + 핵심 내용 한 문단씩. **볼드** 마크다운 사용 금지. 빈 문자열 금지. 300자 이내.",
-            },
-            vpd_sec5: {
-              type: "string",
-              description: "## 5. 시청자 결핍 & SEO (The Value) — 시청자 심리적 니즈 서술 + 핵심 키워드 5~8개 #태그. 소제목은 ### 사용. **볼드** 마크다운 사용 금지. 빈 문자열 금지. 300자 이내.",
-            },
-            vpd_sec6: {
-              type: "string",
-              description: "## 6. 예상 시청자 반응 (The Outcome) — 예상 댓글 2개(마크다운 번호 리스트), 조회수 예상 범위, 48시간 체크포인트. **볼드** 마크다운 사용 금지. 빈 문자열 금지. 300자 이내.",
-            },
-            execution_hint_document: {
-              type: "string",
-              description: "제목·훅·썸네일 실행 힌트 통합 원페이퍼. 마크다운 형식. 3개 섹션(## 제목 후보 / ## 훅 설계 / ## 썸네일 방향). 전체 300자 이내. 채널 데이터 기반 구체적 표현. 빈 문자열 금지.",
-            },
-          },
-          required: ["topic", "why_this_topic", "pain_point", "content_angle", "opening_hook", "title_candidates", "recommended_tags", "viewing_points", "vpd_sec1", "vpd_sec2", "vpd_sec3", "vpd_sec4", "vpd_sec5", "vpd_sec6", "execution_hint_document"],
-        },
-        channel_dna_narrative: {
-          type: "string",
-          description: "채널 DNA 서술 문단. content_patterns·target_audience·strengths를 종합해 채널의 핵심 성격을 3~4문장으로 자연스럽게 서술. 번호 목록 금지. 메트릭 수치 1개 이상 인용. 300자 이내.",
-        },
-        action_execution_hints: {
-          type: "array",
-          minItems: 3,
-          maxItems: 5,
-          description: "growth_action_plan 각 항목에 대한 구체적 실행 가이드",
-          items: {
-            type: "object",
-            properties: {
-              action: {
-                type: "string",
-                description: "growth_action_plan 해당 항목 원문 (그대로 복사). 120자 이내.",
-              },
-              execution_hint: {
-                type: "string",
-                description: "실제로 어떻게 실행할지 1~2문장. 추상적 조언 금지. 바로 할 수 있는 행동으로. 150자 이내.",
-              },
-              expected_effect: {
-                type: "string",
-                description: "이 액션의 기대 효과 1문장. 메트릭 예상값 포함 권장. 80자 이내.",
-              },
-            },
-            required: ["action", "execution_hint", "expected_effect"],
-          },
-        },
       },
     };
-  
+
     return {
       apiKey,
       model,
@@ -283,9 +174,42 @@ export type TubeWatchAnalysisResult = {
         temperature: 0.2,
         topK: 24,
         topP: 0.8,
-        maxOutputTokens: 32768,
+        maxOutputTokens: 8192,
         responseMimeType: "application/json",
         responseSchema,
       },
     };
   }
+
+// next_trend_plan 전용 스키마 — generateNextTrendPlan.ts에서 사용
+export const NEXT_TREND_PLAN_SCHEMA = {
+  type: "object",
+  properties: {
+    topic: { type: "string", description: "다음 영상 주제 핵심. 20자 이내 짧은 구. 긴 문장 금지." },
+    why_this_topic: { type: "string", description: "왜 이 주제가 이 채널에 맞는지 2~3문장. 메트릭 수치 인용 필수." },
+    pain_point: { type: "string", description: "이 영상이 해소할 시청자의 핵심 불편·궁금증 1~2문장." },
+    content_angle: { type: "string", description: "경쟁 채널과 차별화되는 접근 각도 1문장." },
+    opening_hook: { type: "string", description: "처음 15초 안에 시청자를 잡을 오프닝 방향 1문장. 실제 대사 형태 권장." },
+    title_candidates: { type: "array", minItems: 3, maxItems: 3, items: { type: "string" }, description: "제목 후보 3개. 각 30자 이내. 번호·기호 없이 제목만." },
+    recommended_tags: { type: "array", minItems: 5, maxItems: 8, items: { type: "string" }, description: "SEO 태그 5~8개." },
+    viewing_points: {
+      type: "object",
+      properties: {
+        popularity:      { type: "integer", minimum: 1, maximum: 5, description: "대중성" },
+        expertise:       { type: "integer", minimum: 1, maximum: 5, description: "전문성" },
+        stimulation:     { type: "integer", minimum: 1, maximum: 5, description: "자극도" },
+        informativeness: { type: "integer", minimum: 1, maximum: 5, description: "정보성" },
+        fan_service:     { type: "integer", minimum: 1, maximum: 5, description: "팬서비스" },
+      },
+      required: ["popularity", "expertise", "stimulation", "informativeness", "fan_service"],
+    },
+    vpd_sec1: { type: "string", description: "## 1. 기획 의도 (The Logic) — 채널 메트릭·수치 인용. 소제목 ### 사용. 300자 이내. 빈 문자열 금지." },
+    vpd_sec2: { type: "string", description: "## 2. 킬러 타이틀 & 썸네일 (The Hook) — 제목 3개 번호 리스트 + 썸네일 전략. 소제목 ### 사용. 300자 이내. 빈 문자열 금지." },
+    vpd_sec3: { type: "string", description: "## 3. 인트로 30초 설계 (The Retention) — 타임스탬프별 장면·대사. 300자 이내. 빈 문자열 금지." },
+    vpd_sec4: { type: "string", description: "## 4. 메인 콘텐츠 구성 (The Body) — Chapter 2~3개. 300자 이내. 빈 문자열 금지." },
+    vpd_sec5: { type: "string", description: "## 5. 시청자 결핍 & SEO (The Value) — 니즈 서술 + #태그. 300자 이내. 빈 문자열 금지." },
+    vpd_sec6: { type: "string", description: "## 6. 예상 시청자 반응 (The Outcome) — 예상 댓글 2개·조회수 범위·48h 체크포인트. 300자 이내. 빈 문자열 금지." },
+    execution_hint_document: { type: "string", description: "제목·훅·썸네일 실행 힌트 원페이퍼. 3섹션(## 제목 후보 / ## 훅 설계 / ## 썸네일 방향). 300자 이내. 빈 문자열 금지." },
+  },
+  required: ["topic", "why_this_topic", "pain_point", "content_angle", "opening_hook", "title_candidates", "recommended_tags", "viewing_points", "vpd_sec1", "vpd_sec2", "vpd_sec3", "vpd_sec4", "vpd_sec5", "vpd_sec6", "execution_hint_document"],
+};

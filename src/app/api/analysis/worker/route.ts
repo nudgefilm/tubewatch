@@ -29,12 +29,19 @@ import {
   buildStrategyPlanPrompt,
   callGeminiForStrategyPlan,
 } from "@/lib/server/onepager/generateStrategyPlan";
+import { generateNextTrendPlan } from "@/lib/server/onepager/generateNextTrendPlan";
+import {
+  generateChannelDnaNarrative,
+  generateActionExecutionHints,
+} from "@/lib/server/onepager/generateChannelDnaAndHints";
 
 const ONEPAGER_KEYS = [
   "analysis_report",
   "channel_dna_report",
   "strategy_plan",
   "next_trend",
+  "channel_dna",
+  "action_plan",
 ] as const;
 type OnepagerKey = (typeof ONEPAGER_KEYS)[number];
 
@@ -243,19 +250,38 @@ export async function POST(request: Request) {
             case "next_trend":
               return runModulePlan(
                 async () => {
-                  let plan: unknown = null;
-                  try {
-                    const parsed =
-                      typeof rawJson === "string"
-                        ? JSON.parse(rawJson)
-                        : (rawJson ?? {});
-                    plan =
-                      (parsed as Record<string, unknown>)?.next_trend_plan ??
-                      null;
-                  } catch {
-                    plan = null;
-                  }
+                  const plan = await generateNextTrendPlan({
+                    gemini_raw_json: rawJson,
+                    feature_snapshot: featureSnapshot,
+                    channel_title: channelTitle,
+                  });
                   return { plan };
+                },
+                key,
+                snapshotId
+              );
+            case "channel_dna":
+              return runModulePlan(
+                async () => {
+                  const narrative = await generateChannelDnaNarrative({
+                    gemini_raw_json: rawJson,
+                    feature_snapshot: featureSnapshot,
+                    channel_title: channelTitle,
+                  });
+                  return { narrative };
+                },
+                key,
+                snapshotId
+              );
+            case "action_plan":
+              return runModulePlan(
+                async () => {
+                  const execution_hints = await generateActionExecutionHints({
+                    gemini_raw_json: rawJson,
+                    feature_snapshot: featureSnapshot,
+                    channel_title: channelTitle,
+                  });
+                  return { execution_hints };
                 },
                 key,
                 snapshotId

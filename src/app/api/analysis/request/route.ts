@@ -592,36 +592,6 @@ export async function POST(request: Request) {
     } else {
       console.log("[Analysis Start API] delta: no previous module_results to copy — will trigger waitUntil generation");
     }
-  } else {
-    // Full run: Gemini 신규 호출 결과를 저장
-    const modulesToSave: Array<{ module_key: string; result: Record<string, unknown> }> = [];
-    // next_trend: plan이 null이어도 row는 항상 저장 (빈 화면 대신 '준비 중' 상태 유도)
-    modulesToSave.push({ module_key: "next_trend", result: { plan: geminiSuccess.result.next_trend_plan ?? null } });
-    if (geminiSuccess.result.channel_dna_narrative) {
-      modulesToSave.push({ module_key: "channel_dna", result: { narrative: geminiSuccess.result.channel_dna_narrative } });
-    }
-    if (geminiSuccess.result.action_execution_hints) {
-      modulesToSave.push({ module_key: "action_plan", result: { execution_hints: geminiSuccess.result.action_execution_hints } });
-    }
-    if (modulesToSave.length > 0) {
-      const insertRows = modulesToSave.map((m) => ({
-        user_id: user.id,
-        channel_id: userChannelId,
-        snapshot_id: savedRow.id,
-        module_key: m.module_key,
-        result: m.result,
-        status: "completed",
-        analyzed_at: now,
-      }));
-      const { error: modErr } = await supabaseAdmin
-        .from("analysis_module_results")
-        .insert(insertRows);
-      if (modErr) {
-        console.error("[Analysis Start API] module_results insert failed (non-fatal):", modErr.message);
-      } else {
-        console.log("[Analysis Start API] module_results saved:", modulesToSave.map((m) => m.module_key));
-      }
-    }
   }
 
   void updateJobStep("completed", "completed");
@@ -657,7 +627,7 @@ export async function POST(request: Request) {
   // 실제 Gemini 실행은 worker 자체 슬롯의 waitUntil에서 독립 처리
   if (needsOnepagerGeneration) {
     const snapshotId = savedRow.id;
-    const ONEPAGER_KEYS = ["analysis_report", "channel_dna_report", "strategy_plan", "next_trend"] as const;
+    const ONEPAGER_KEYS = ["analysis_report", "channel_dna_report", "strategy_plan", "next_trend", "channel_dna", "action_plan"] as const;
 
     // pending pre-insert: completed 상태는 절대 덮어쓰지 않음 (race condition 보호)
     const { data: existingMods } = await supabaseAdmin

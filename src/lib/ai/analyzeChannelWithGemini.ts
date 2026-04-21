@@ -327,9 +327,9 @@ function normalizeParsedObject(input: JsonObject): TubeWatchAnalysisResult {
       pickFirstNonEmptyString(input.interpretation_mode) ??
       "early_stage_signal_based",
     sample_size_note: pickFirstNonEmptyString(input.sample_size_note) ?? "",
-    next_trend_plan: normalizeNextTrendPlan(input.next_trend_plan),
-    channel_dna_narrative: pickFirstNonEmptyString(input.channel_dna_narrative),
-    action_execution_hints: normalizeActionExecutionHints(input.action_execution_hints),
+    next_trend_plan: null,
+    channel_dna_narrative: null,
+    action_execution_hints: null,
   };
 }
 
@@ -670,16 +670,6 @@ function buildPrompt(args: AnalyzeChannelWithGeminiArgs): string {
     ? buildContextSection(args.analysisContext) + "\n\n"
     : "";
 
-  // 조회수 기준 상위 3편 — 제목 스타일 레퍼런스용
-  const top3 = [...args.videos]
-    .filter((v) => typeof v.viewCount === "number" && v.viewCount > 0)
-    .sort((a, b) => (b.viewCount ?? 0) - (a.viewCount ?? 0))
-    .slice(0, 3);
-  const top3Block = top3.length > 0
-    ? `[최고 성과 영상 레퍼런스 — next_trend_plan 기획 시 제목 스타일·언어 감각 반드시 참고]\n` +
-      top3.map((v, i) => `TOP${i + 1}. "${v.title}" — 조회수 ${formatNumber(v.viewCount ?? 0)}`).join("\n")
-    : "";
-
   // 이전 분석 요약 블록 (재분석 시 일관성 유지용)
   const prevAnalysisBlock = args.previousAnalysis
     ? [
@@ -692,11 +682,32 @@ function buildPrompt(args: AnalyzeChannelWithGeminiArgs): string {
       ].join("\n") + "\n\n"
     : "";
 
-  // 영상 섹션 구성 (신규/기존 분리 or 통합)
+  // 영상 섹션 구성 (신규/기존 분리 or 통합) — 선택적 컨텍스트: 조회수 상위5 + 최신10, 중복 제거
+  const selectVideoSample = (videos: ChannelVideoSample[]): ChannelVideoSample[] => {
+    const byViews = [...videos]
+      .filter((v) => typeof v.viewCount === "number" && v.viewCount > 0)
+      .sort((a, b) => (b.viewCount ?? 0) - (a.viewCount ?? 0))
+      .slice(0, 5);
+    const byDate = [...videos]
+      .filter((v) => v.publishedAt != null)
+      .sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? ""))
+      .slice(0, 10);
+    const seen = new Set<string>();
+    const result: ChannelVideoSample[] = [];
+    for (const v of [...byViews, ...byDate]) {
+      if (!seen.has(v.videoId)) {
+        seen.add(v.videoId);
+        result.push(v);
+      }
+    }
+    return result;
+  };
+
   let videoSection: string;
   if (isReanalysis && newVideos.length > 0) {
-    const avgViews = existingVideos.length > 0
-      ? Math.round(existingVideos.reduce((s, v) => s + (v.viewCount ?? 0), 0) / existingVideos.length)
+    const sampledExisting = selectVideoSample(existingVideos);
+    const avgViews = sampledExisting.length > 0
+      ? Math.round(sampledExisting.reduce((s, v) => s + (v.viewCount ?? 0), 0) / sampledExisting.length)
       : null;
     const newAvgViews = newVideos.length > 0
       ? Math.round(newVideos.reduce((s, v) => s + (v.viewCount ?? 0), 0) / newVideos.length)
@@ -708,11 +719,12 @@ function buildPrompt(args: AnalyzeChannelWithGeminiArgs): string {
       `[신규 영상 — ${newVideos.length}개] (이번 분석에서 새로 감지된 영상)\n` +
       comparisonLine +
       toVideoLines(newVideos, 0).join("\n\n") +
-      (existingVideos.length > 0
-        ? `\n\n[기존 영상 — ${existingVideos.length}개]\n` + toVideoLines(existingVideos, newVideos.length).join("\n\n")
+      (sampledExisting.length > 0
+        ? `\n\n[기존 영상 샘플 — ${sampledExisting.length}개 (조회수 상위+최신 선별)]\n` + toVideoLines(sampledExisting, newVideos.length).join("\n\n")
         : "");
   } else {
-    videoSection = `[영상 샘플 — ${args.videos.length}개]\n` + toVideoLines(args.videos, 0).join("\n\n");
+    const sampled = selectVideoSample(args.videos);
+    videoSection = `[영상 샘플 — ${sampled.length}개 (조회수 상위+최신 선별)]\n` + toVideoLines(sampled, 0).join("\n\n");
   }
 
   return `
@@ -727,7 +739,7 @@ channel_title: ${args.channelTitle}
 subscriber_count: ${formatNumber(args.subscriberCount)}
 sample_video_count: ${args.videos.length}${isReanalysis ? ` (신규 ${newCount}개 포함)` : ""}${args.channelPublishedAt ? `\nchannel_published_at: ${args.channelPublishedAt.slice(0, 10)}` : ""}${args.channelDescription ? `\nchannel_description: ${args.channelDescription.slice(0, 300)}` : ""}
 
-${prevAnalysisBlock}${contextBlock}${top3Block ? top3Block + "\n\n" : ""}${videoSection}
+${prevAnalysisBlock}${contextBlock}${videoSection}
 
 [작성 규칙]
 - 위 메트릭과 패턴, 스코어를 근거로 분석하세요
@@ -735,9 +747,6 @@ ${prevAnalysisBlock}${contextBlock}${top3Block ? top3Block + "\n\n" : ""}${video
 - 감지된 패턴이 있으면 해당 패턴을 분석에 반영하세요${isReanalysis ? `
 - 전체 ${args.videos.length}개 영상 평균 성과 대비 신규 ${newCount}개의 성과를 비교하여 일시적 변화인지 채널 체질 변화인지 판단하세요
 - 이전 분석 결론과 달라지는 부분은 반드시 수치 근거를 인용하고, 이전 결론의 방향성은 연속성 있게 유지하세요` : ""}
-- next_trend_plan의 topic은 [신규 영상] 및 [기존 영상] 샘플에 이미 존재하는 영상과 주제가 중복되지 않아야 합니다. 조회수가 높은 기존 영상을 모방하거나 재현하는 제안은 절대 하지 마세요.
-- next_trend_plan.video_plan_document는 반드시 실제 콘텐츠로 채워야 합니다. 빈 문자열이나 placeholder 금지.
-- vpd_sec1~vpd_sec6은 하나의 유기적인 영상 기획안입니다. 모든 섹션에서 동일한 톤앤매너(경어체, 방송 작가 관점)를 일관되게 유지하세요.
 - 스코어가 낮은 영역의 개선점을 우선 제시하세요
 - 과장 금지
 - 확인되지 않은 추정 금지
@@ -762,49 +771,6 @@ ${prevAnalysisBlock}${contextBlock}${top3Block ? top3Block + "\n\n" : ""}${video
 "- 시청자와의 소통이 부족합니다."
 "콘텐츠 전략을 재검토할 필요가 있습니다."
 
-[next_trend_plan 작성 규칙]
-★ 페르소나 전환: 이 섹션은 데이터 분석가가 아니라 시청률에 미친 방송 작가 관점에서 작성합니다. 데이터는 근거로만 쓰고, 기획 언어는 현장 방송 작가처럼 구체적이고 감각적으로.
-
-★ 주제 제약: 위 [최근 영상 샘플]에 이미 존재하는 영상의 주제를 반복하거나 모방하는 것 절대 금지. 채널이 아직 만들지 않은 새로운 영역·각도·포맷에서 주제를 선택할 것.
-
-★ 제목·언어 기준: 위 [최고 성과 영상 레퍼런스]의 제목 구조와 어휘 감각을 반드시 참고할 것. 제목에 원시 수치('5.26배', '66만 조회수' 같은 숫자 그대로)를 쓰지 말고 '현지인만 아는', '아무도 모르는', '한 번도 공개 안 된', '이것만 알면' 같은 희소성·감성 키워드로 번역할 것.
-
-- topic: 채널이 아직 다루지 않은 미개척 주제. 20자 이내 짧은 구 (예: "홈카페 레시피", "주식 초보 가이드"). 긴 문장 절대 금지.
-- why_this_topic: 채널 메트릭·패턴 데이터 인용, 기존 영상과 다른 방향 포함, 2~3문장.
-- pain_point: 이 영상이 해소할 시청자 핵심 불편·궁금증 1~2문장.
-- content_angle: 경쟁 채널 대비 차별화 접근 1문장.
-- opening_hook: 처음 15초 안에 시청자를 잡을 실제 대사체. 숫자 대신 감정·궁금증 유발. 예: "저도 처음엔 몰랐는데…"
-- title_candidates: 제목 후보 3개. 각 30자 이내. 위 레퍼런스 영상의 언어 감각 참고. 원시 수치 절대 금지. 번호·기호 없이 제목만.
-- recommended_tags: SEO 태그 5~8개. 단어 또는 짧은 구.
-- viewing_points: 5개 지표 1~5 정수. 채널 특성·주제 성격 반영. 모두 3점 동일 금지.
-- vpd_sec1: [## 1. 기획 의도 (The Logic)] 채널 메트릭·실제 영상 성과 수치 인용. 왜 이 주제가 지금 이 채널에 맞는지. 2~3문단. 빈 문자열 금지.
-- vpd_sec2: [## 2. 킬러 타이틀 & 썸네일 (The Hook)] 제목 후보 3개(유형 레이블 포함)와 이 채널 패턴 기반 썸네일 전략 2~3문장. 빈 문자열 금지.
-- vpd_sec3: [## 3. 인트로 30초 설계 (The Retention)] 00:00-00:10 / 00:10-00:30 타임스탬프별 구체적 장면·대사 지시. 빈 문자열 금지.
-- vpd_sec4: [## 4. 메인 콘텐츠 구성 (The Body)] Chapter 2~3개. 소제목 + 핵심 내용 한 문단씩. 빈 문자열 금지.
-- vpd_sec5: [## 5. 시청자 결핍 & SEO (The Value)] 시청자 심리적 니즈 서술 + 핵심 키워드 5~8개 #태그 형식. 빈 문자열 금지.
-- vpd_sec6: [## 6. 예상 시청자 반응 (The Outcome)] 예상 댓글 2개(실제 댓글 형태), 조회수 예상 범위, 48시간 체크포인트. 빈 문자열 금지.
-
-- execution_hint_document: [필수 — 빈 문자열 절대 금지.] 제목·훅·썸네일 실행 힌트를 하나로 묶은 간결한 원페이퍼. 아래 3개 섹션 구조로 작성. 전체 300자 내외(video_plan_document의 절반 분량). 채널 데이터에 근거한 구체적 표현만 사용.
-
-  ## 제목 후보 (Title)
-  title_candidates 3개를 각각 유형 레이블(감성형/희소성형/결과형 등)과 함께 제시. 왜 이 제목이 이 채널에 맞는지 한 줄 근거.
-
-  ## 훅 설계 (Hook)
-  첫 15초 오프닝 구성. 실제 대사체 또는 장면 지시로 구체적으로.
-
-  ## 썸네일 방향 (Thumbnail)
-  이 채널의 기존 패턴을 기반으로 색·구도·텍스트 방향 2~3문장.
-
-[channel_dna_narrative 작성 규칙]
-- content_patterns, target_audience, strengths를 종합해 채널의 핵심 성격·포지션을 3~4문장으로 자연스럽게 서술
-- 번호·기호 목록 절대 금지. 자연스러운 문단 형태
-- 메트릭 수치 최소 1개 인용
-
-[action_execution_hints 작성 규칙]
-- growth_action_plan의 각 항목에 1:1 대응하는 실행 가이드를 작성
-- action: growth_action_plan 항목 원문을 그대로 복사
-- execution_hint: 실제로 어떻게 실행할지 1~2문장. "~하세요" 형태의 구체적 행동 지시
-- expected_effect: 이 액션 실행 시 기대할 수 있는 효과 1문장. 가능하면 메트릭 예상값 포함
 `.trim();
 }
 
