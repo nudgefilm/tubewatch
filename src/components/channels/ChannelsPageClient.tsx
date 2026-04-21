@@ -59,6 +59,7 @@ export default function ChannelsPageClient({
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [changesThisMonth, setChangesThisMonth] = useState(0);
   const [changeLimit, setChangeLimit] = useState(0);
+  const [effectiveMaxCount, setEffectiveMaxCount] = useState(maxCount);
   const [selectedChannelId, setSelectedChannelId] = useState<string | null>(null);
   const [isNavigating, setIsNavigating] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
@@ -118,6 +119,7 @@ export default function ChannelsPageClient({
       setChannels(loaded);
       setChangesThisMonth(json.changesThisMonth ?? 0);
       setChangeLimit(json.changeLimit ?? 0);
+      if ((json.changeLimit ?? 0) > 0) setEffectiveMaxCount(json.changeLimit!);
     } catch (e) {
       console.error("[Channels/load] fetch exception:", e);
       setListError("목록을 불러오지 못했습니다.");
@@ -329,7 +331,7 @@ export default function ChannelsPageClient({
 
       <RegisterChannelForm
         currentCount={channels.length}
-        maxCount={maxCount}
+        maxCount={effectiveMaxCount}
         isAdmin={isAdmin}
         onRegistered={async (newChannelId) => {
           // localStorage를 먼저 쓴 뒤 broadcast — 사이드바 이벤트 핸들러가 읽을 때 새 ID가 이미 저장되어 있어야 함
