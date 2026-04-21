@@ -186,12 +186,10 @@ export async function generateNextTrendPlan(
   }
 
   if (!res.ok) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     console.error("[next-trend-plan] HTTP error:", res.status, (data as any)?.error);
     return null;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const text = (data as any)?.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text || typeof text !== "string") {
     console.error("[next-trend-plan] empty or invalid response");

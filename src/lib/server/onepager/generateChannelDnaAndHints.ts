@@ -66,7 +66,6 @@ async function callGeminiText(prompt: string, systemText: string): Promise<strin
     return null;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const text = (data as any)?.candidates?.[0]?.content?.parts?.[0]?.text;
   return typeof text === "string" && text.length > 0 ? text : null;
 }
@@ -191,7 +190,6 @@ ${growthActionPlan.map((a, i) => `${i + 1}. ${a}`).join("\n")}
     return null;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const text = (data as any)?.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text || typeof text !== "string") return null;
 
