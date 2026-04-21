@@ -1,12 +1,15 @@
 "use client"
 
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
-import { BarChart2, Tag } from "lucide-react"
+import { BarChart2, Tag, RefreshCw, Loader2 } from "lucide-react"
 import type { ExecutionAction, ViewingPointGauge } from "@/mocks/next-trend"
 import { OnePagerCard } from "@/components/features/shared/OnePagerCard"
 
 interface NextTrendActionSectionProps {
   data: ExecutionAction[]
+  channelId?: string
 }
 
 /** 1–5 점수 게이지 (●●●●○) */
@@ -66,19 +69,70 @@ function normalizeVideoPlan(md: string): string {
     .join("\n")
 }
 
+const ShellHeader = () => (
+  <div className="flex items-center gap-2 px-5 py-3 border-b bg-muted/30">
+    <span className="font-heading font-medium text-sm leading-none tracking-[-0.01em]">TubeWatch™</span>
+    <span className="text-muted-foreground/40 text-sm">|</span>
+    <span className="text-sm font-semibold text-foreground">영상 기획안</span>
+    <Badge variant="outline" className="text-xs text-emerald-600 border-emerald-200">튜브워치 엔진</Badge>
+  </div>
+)
+
 /** 기획안 카드 1장 */
-function ActionCard({ action }: { action: ExecutionAction }) {
+function ActionCard({ action, channelId }: { action: ExecutionAction; channelId?: string }) {
+  const router = useRouter()
+  const [isRetrying, setIsRetrying] = useState(false)
+  const [retryError, setRetryError] = useState<string | null>(null)
+  const [retryDone, setRetryDone] = useState(false)
+
+  async function handleRetry() {
+    if (!channelId) return
+    setIsRetrying(true)
+    setRetryError(null)
+    try {
+      const res = await fetch("/api/analysis/regenerate-module", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ channelId, moduleKey: "next_trend" }),
+      })
+      const data = await res.json() as { ok?: boolean; error?: string }
+      if (data.ok) {
+        setRetryDone(true)
+        router.refresh()
+      } else {
+        setRetryError(data.error ?? "재생성에 실패했습니다. 잠시 후 다시 시도해주세요.")
+      }
+    } catch {
+      setRetryError("네트워크 오류가 발생했습니다.")
+    } finally {
+      setIsRetrying(false)
+    }
+  }
+
   if (!action.videoPlanDocument) {
     return (
       <div className="rounded-xl border bg-card overflow-hidden">
-        <div className="flex items-center gap-2 px-5 py-3 border-b bg-muted/30">
-          <span className="font-heading font-medium text-sm leading-none tracking-[-0.01em]">TubeWatch™</span>
-          <span className="text-muted-foreground/40 text-sm">|</span>
-          <span className="text-sm font-semibold text-foreground">영상 기획안</span>
-          <Badge variant="outline" className="text-xs text-emerald-600 border-emerald-200">튜브워치 엔진</Badge>
-        </div>
-        <div className="px-5 py-5">
-          <p className="text-sm text-muted-foreground">튜브워치 엔진이 채널의 잠재력 분석을 통해 6가지 핵심 섹션을 설계하고 있습니다. 작업이 완료되면 전략 리포트가 자동 노출되니 잠시 후 확인 바랍니다.</p>
+        <ShellHeader />
+        <div className="px-5 py-5 space-y-3">
+          <p className="text-sm text-muted-foreground">
+            {retryDone
+              ? "재생성 요청이 완료됐습니다. 페이지를 업데이트 중입니다…"
+              : "영상 기획안이 아직 생성되지 않았습니다. 아래 버튼으로 이 섹션만 재생성할 수 있습니다."}
+          </p>
+          {!retryDone && (
+            <button
+              type="button"
+              onClick={() => { void handleRetry() }}
+              disabled={isRetrying || !channelId}
+              className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+            >
+              {isRetrying
+                ? <><Loader2 className="size-3.5 animate-spin" /><span>재생성 중…</span></>
+                : <><RefreshCw className="size-3.5" /><span>이 섹션 다시 생성하기</span></>
+              }
+            </button>
+          )}
+          {retryError && <p className="text-xs text-red-500">{retryError}</p>}
         </div>
       </div>
     )
@@ -113,11 +167,11 @@ function ActionCard({ action }: { action: ExecutionAction }) {
   )
 }
 
-export function NextTrendActionSection({ data }: NextTrendActionSectionProps) {
+export function NextTrendActionSection({ data, channelId }: NextTrendActionSectionProps) {
   return (
     <div className="space-y-4">
       {data.map((action) => (
-        <ActionCard key={action.id} action={action} />
+        <ActionCard key={action.id} action={action} channelId={channelId} />
       ))}
     </div>
   )
