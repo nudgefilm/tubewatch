@@ -43,11 +43,7 @@ const heroStats = [
 
 function HeroSection() {
   const [visible, setVisible] = useState(false);
-  const [iframeSrc, setIframeSrc] = useState("https://www.youtube.com/embed/NSXkMdEBSwo?rel=0");
-  useEffect(() => {
-    setVisible(true);
-    setIframeSrc(`https://www.youtube.com/embed/NSXkMdEBSwo?rel=0&enablejsapi=1&origin=${window.location.origin}`);
-  }, []);
+  useEffect(() => { setVisible(true); }, []);
 
   return (
     <section className="relative flex flex-col justify-center pt-20 pb-12 lg:pt-28 lg:pb-16 overflow-hidden">
@@ -60,10 +56,10 @@ function HeroSection() {
       <div className="absolute top-0 right-1/4 w-[500px] h-[300px] bg-orange-500/[0.04] rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative z-10 max-w-[1080px] mx-auto px-8 lg:px-20">
-        <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
+        <div className="flex flex-col gap-8">
 
-          {/* Left: 텍스트 + 배너 + 스탯 */}
-          <div className="flex-1 min-w-0">
+          {/* 텍스트 + 스탯 */}
+          <div>
             <div className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
               <span className="inline-flex items-center gap-3 text-sm font-mono text-muted-foreground mb-6">
                 <span className="w-8 h-px bg-foreground/30 inline-block" />
@@ -80,48 +76,42 @@ function HeroSection() {
                 선착순 100명에게만 드리는 특별한 기회,<br />지금 바로 가입하세요!
               </span>
             </h1>
+          </div>
 
-            <div className={`mt-6 flex items-center gap-3 transition-all duration-700 delay-300 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-              <a
-                href="/channels"
-                className="inline-flex items-center gap-2 bg-foreground text-background px-6 py-3 rounded-xl font-medium text-sm hover:bg-foreground/90 transition-colors"
-              >
-                내 채널 무료 분석
-              </a>
-            </div>
-
-            {/* Stats row */}
-            <div className={`mt-8 grid grid-cols-4 gap-3 border-t border-foreground/10 pt-6 transition-all duration-700 delay-500 ${visible ? "opacity-100" : "opacity-0"}`}>
-              {heroStats.map(({ value, unit, label, isFree }) => (
-                <div key={label} className="flex flex-col">
-                  <p className={`font-heading text-xl lg:text-2xl font-medium tracking-[-0.03em] leading-none ${isFree ? "text-orange-600 dark:text-orange-500" : ""}`}>
-                    {value}<span className="text-sm lg:text-base font-normal">{unit}</span>
-                  </p>
-                  <p className="text-[10px] lg:text-xs text-muted-foreground mt-1.5 leading-tight">{label}</p>
-                </div>
-              ))}
+          {/* 프리뷰 이미지 */}
+          <div className={`transition-all duration-700 delay-200 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
+            <div className="relative">
+              <div className="absolute -inset-2 bg-orange-500/10 rounded-3xl blur-2xl pointer-events-none" />
+              <div className="relative rounded-2xl overflow-hidden border border-foreground/10 shadow-2xl">
+                <img
+                  src="/hero-channel-preview.png"
+                  alt="튜브워치 채널 분석 미리보기"
+                  className="w-full h-auto"
+                />
+              </div>
             </div>
           </div>
 
-          {/* Right: YouTube Shorts 영상 */}
-          <div className={`shrink-0 self-end transition-all duration-700 delay-400 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
-            <div className="relative">
-              {/* Glow behind video */}
-              <div className="absolute -inset-4 bg-orange-500/10 rounded-3xl blur-2xl" />
-              <div className="relative w-[200px] lg:w-[235px] rounded-2xl overflow-hidden border border-foreground/10 shadow-2xl">
-                <div className="relative" style={{ paddingBottom: "177.78%" }}>
-                  {/* sandbox: allow-top-navigation 제외 필수 — 없으면 Shorts 재생 시 YouTube JS가 window.top.location을 호출해 페이지 새로고침 발생 */}
-                  <iframe
-                    src={iframeSrc}
-                    className="absolute inset-0 w-full h-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                    allowFullScreen
-                    sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-presentation"
-                    title="TubeWatch 소개 영상"
-                  />
-                </div>
+          {/* 버튼 */}
+          <div className={`flex items-center gap-3 transition-all duration-700 delay-300 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+            <a
+              href="/channels"
+              className="inline-flex items-center gap-2 bg-foreground text-background px-6 py-3 rounded-xl font-medium text-sm hover:bg-foreground/90 transition-colors"
+            >
+              내 채널 무료 분석
+            </a>
+          </div>
+
+          {/* Stats row */}
+          <div className={`grid grid-cols-4 gap-3 border-t border-foreground/10 pt-6 transition-all duration-700 delay-500 ${visible ? "opacity-100" : "opacity-0"}`}>
+            {heroStats.map(({ value, unit, label, isFree }) => (
+              <div key={label} className="flex flex-col">
+                <p className={`font-heading text-xl lg:text-2xl font-medium tracking-[-0.03em] leading-none ${isFree ? "text-orange-600 dark:text-orange-500" : ""}`}>
+                  {value}<span className="text-sm lg:text-base font-normal">{unit}</span>
+                </p>
+                <p className="text-[10px] lg:text-xs text-muted-foreground mt-1.5 leading-tight">{label}</p>
               </div>
-            </div>
+            ))}
           </div>
 
         </div>
