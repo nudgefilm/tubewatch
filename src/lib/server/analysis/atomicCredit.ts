@@ -39,7 +39,7 @@ export async function reserveCredit(
 ): Promise<ReserveResult> {
   const supabase = await createClient();
   const [limits, credits] = await Promise.all([
-    getEffectiveLimits(supabase, userId),
+    getEffectiveLimits(supabaseAdmin, userId),
     getOrCreateUserCredits(supabase, userId),
   ]);
 

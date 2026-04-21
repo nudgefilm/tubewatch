@@ -408,7 +408,7 @@ export async function DELETE(request: Request) {
     await supabaseAdmin.from("channel_change_log").insert({
       user_id: user.id,
       removed_channel_id: idRaw,
-      added_channel_id: "",
+      added_channel_id: null,
     });
   }
 
