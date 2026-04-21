@@ -120,7 +120,7 @@ export async function GET(request: Request) {
       .select("id", { count: "exact", head: true })
       .eq("user_id", user.id)
       .eq("change_month", currentMonth),
-    getEffectiveLimits(supabase, user.id),
+    getEffectiveLimits(supabaseAdmin, user.id),
   ]);
 
   return NextResponse.json({
@@ -177,7 +177,9 @@ export async function POST(request: Request) {
 
   const isAdmin = await isAdminUser(user.id);
   if (!isAdmin) {
-    const limits = await getEffectiveLimits(supabase, user.id);
+    // supabaseAdmin 사용: user 클라이언트의 RLS로 user_subscriptions 조회가 막힐 경우를 방지
+    const limits = await getEffectiveLimits(supabaseAdmin, user.id);
+    console.log("[Channels API] effective limits:", { planId: limits.planId, channelLimit: limits.channelLimit });
     if ((currentCount ?? 0) >= limits.channelLimit) {
       return NextResponse.json(
         { error: `채널은 최대 ${limits.channelLimit}개까지 등록할 수 있습니다.` },

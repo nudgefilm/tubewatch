@@ -113,9 +113,11 @@ export async function POST(request: Request) {
         const newRenewalAt = new Date(existingRenewalAt!);
         newRenewalAt.setMonth(newRenewalAt.getMonth() + months);
 
+        // upsert 사용: update().eq()는 매칭 row 없을 때 에러 없이 0행 처리 → 플랜 변경 무시
         const { error: updateError } = await supabaseAdmin
           .from("user_subscriptions")
-          .update({
+          .upsert({
+            user_id: targetUserId,
             plan_id: planId,
             billing_period: billingPeriod,
             renewal_at: newRenewalAt.toISOString(),
@@ -125,8 +127,9 @@ export async function POST(request: Request) {
             pending_plan_id: null,
             pending_billing_period: null,
             updated_at: now.toISOString(),
-          })
-          .eq("user_id", targetUserId);
+            last_plan_id: existing?.plan_id ?? null,
+            current_period_start: now.toISOString(),
+          }, { onConflict: "user_id", ignoreDuplicates: false });
 
         if (updateError) {
           return NextResponse.json({ error: `플랜 설정 실패: ${updateError.message}` }, { status: 500 });
