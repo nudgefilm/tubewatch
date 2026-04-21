@@ -334,20 +334,22 @@ export function ChannelDnaPage({ channelId = "", channelContext, viewModel, isSt
 
   // No analysis data
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <header className="flex flex-col gap-2">
-        <div className="flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
-            <Dna className="size-5 text-primary" />
+    <div className="min-h-screen bg-background">
+      <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
+        <header className="flex flex-col gap-2">
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
+              <Dna className="size-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">Channel DNA</h1>
+              <p className="text-sm text-muted-foreground">성공 공식 추출기</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Channel DNA</h1>
-            <p className="text-sm text-muted-foreground">성공 공식 추출기</p>
-          </div>
-        </div>
-      </header>
-      <ChannelContextHeader channelContext={channelContext} />
-      <DnaEmptyState channelId={channelId || undefined} />
+        </header>
+        <ChannelContextHeader channelContext={channelContext} />
+        <DnaEmptyState channelId={channelId || undefined} />
+      </div>
     </div>
   )
 }
