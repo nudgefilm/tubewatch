@@ -261,7 +261,7 @@ export async function POST(request: Request) {
       );
     }
     return NextResponse.json(
-      { error: "불편을 드려 죄송합니다. 서비스 이용 중 오류가 발생할 경우, 메인페이지 하단의 'Tube Talk(텔레그램)'로 문의해 주세요. 개발팀 확인을 통해 빠르게 복구해 드리겠습니다." },
+      { error: "혹시 분석이 멈추거나 오류 발생 시 재시도로 개선이 안된다면, 하단의 'Tube Talk(텔레그램)'로 알려주세요. 개발팀에서 빠르게 해결해 드리겠습니다." },
       { status: 500 }
     );
   }
