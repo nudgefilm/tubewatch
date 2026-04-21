@@ -1,6 +1,5 @@
 "use client"
 
-import { useEffect } from "react"
 import { NextTrendFormatSection } from "./sections/FormatSection"
 import { ExecutionHintDocument } from "./sections/ExecutionHintsSection"
 import { NextTrendActionSection } from "./sections/ActionSection"
@@ -14,8 +13,6 @@ import { AlertCircle, ArrowRight, TrendingUp, Lightbulb, Video, FlaskConical, Za
 import type { NextTrendPageViewModel } from "@/lib/next-trend/nextTrendPageViewModel"
 import { buildNextTrendPageSections, SIGNAL_STRENGTH_BADGE } from "@/lib/engines/nextTrendPageEngine"
 import { IntegratedSummaryButton } from "@/components/features/shared/IntegratedSummaryButton"
-import { useActionCall } from "@/context/ActionCallContext"
-import { buildActionCallContent } from "@/lib/next-trend/buildActionCallContent"
 
 interface NextTrendPageProps {
   channelId?: string
@@ -26,16 +23,6 @@ interface NextTrendPageProps {
 
 
 export function NextTrendPage({ channelId = "", channelContext, viewModel, isStarterPlan = false }: NextTrendPageProps) {
-  const { trigger } = useActionCall()
-
-  useEffect(() => {
-    if (!viewModel?.hasAnalysisEffective) return
-    const content = buildActionCallContent(viewModel)
-    if (content) trigger(content, viewModel.channelTitle)
-  // viewModel이 바뀔 때마다 재평가하되, trigger 자체가 세션 중복 방지
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewModel?.hasAnalysisEffective, viewModel?.selectedChannelId])
-
   // Real data path
   if (viewModel) {
     const {
@@ -194,7 +181,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                   {/* [4] 실행 힌트 */}
                   <section className="space-y-4">
                     <div className="border-l-4 border-primary pl-3">
-                      <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><Zap className="size-5 shrink-0 text-primary" />실행 힌트</h2>
+                      <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><Zap className="size-5 shrink-0 text-amber-400" fill="currentColor" />실행 힌트</h2>
                       <p className="text-xs text-muted-foreground mt-0.5">제목·훅·썸네일 통합 원페이퍼</p>
                     </div>
                     <ExecutionHintDocument markdown={executionHintDocument} channelId={(viewModel.selectedChannelId ?? channelId) || undefined} />
