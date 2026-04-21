@@ -64,7 +64,10 @@ const CHANGE_TYPE_LABELS: Record<string, string> = {
   expiry: "만료",
   refund: "환불",
   cancel: "취소",
+  pending_cancel: "예약 취소",
 };
+
+const PLAN_TIER: Record<string, number> = { free: 0, creator: 1, pro: 2 };
 
 // ─── 유틸 ────────────────────────────────────────────────────────────────────
 
@@ -549,21 +552,133 @@ function CreditGrantModal({
 
 // ─── 서브 컴포넌트: HistoryPanel ─────────────────────────────────────────────
 
-function HistoryPanel({ userId, userEmail, onClose }: { userId: string; userEmail: string | null; onClose: () => void }) {
+type HistoryPanelProps = {
+  userId: string;
+  userEmail: string | null;
+  planId: string | null;
+  billingPeriod: "monthly" | "semiannual" | null;
+  renewalAt: string | null;
+  subscriptionStatus: string | null;
+  pendingPlanId: string | null;
+  pendingBillingPeriod: "monthly" | "semiannual" | null;
+  onClose: () => void;
+  onPlanChanged: () => void;
+};
+
+function HistoryPanel({
+  userId,
+  userEmail,
+  planId: initPlanId,
+  billingPeriod,
+  renewalAt,
+  subscriptionStatus,
+  pendingPlanId: initPendingPlanId,
+  pendingBillingPeriod: initPendingBillingPeriod,
+  onClose,
+  onPlanChanged,
+}: HistoryPanelProps) {
   const [history, setHistory] = useState<AdminSubscriptionChangeRow[] | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
-  useState(() => {
+  const [planId, setPlanId] = useState(initPlanId);
+  const [pendingPlanId, setPendingPlanId] = useState(initPendingPlanId);
+  const [pendingBillingPeriod, setPendingBillingPeriod] = useState(initPendingBillingPeriod);
+
+  const [showDowngradeForm, setShowDowngradeForm] = useState(false);
+  const [targetPlanId, setTargetPlanId] = useState<"creator" | "free" | null>(null);
+  const [targetBillingPeriod, setTargetBillingPeriod] = useState<"monthly" | "semiannual">("monthly");
+  const [actionStatus, setActionStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [cancelStatus, setCancelStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  useEffect(() => {
     fetch(`/api/admin/subscription-history?userId=${encodeURIComponent(userId)}`)
       .then((r) => r.json())
       .then((body: { ok?: boolean; history?: AdminSubscriptionChangeRow[]; error?: string }) => {
         if (body.ok && body.history) setHistory(body.history);
-        else setError(body.error ?? "조회 실패");
+        else setFetchError(body.error ?? "조회 실패");
       })
-      .catch((e: unknown) => setError(e instanceof Error ? e.message : "오류"))
+      .catch((e: unknown) => setFetchError(e instanceof Error ? e.message : "오류"))
       .finally(() => setLoading(false));
-  });
+  }, [userId]);
+
+  const currentTier = PLAN_TIER[planId ?? "free"] ?? 0;
+  const isActive =
+    (subscriptionStatus === "active" || subscriptionStatus === "manual") &&
+    renewalAt !== null &&
+    !isExpired(renewalAt);
+
+  const downgradeOptions: Array<{ planId: "creator" | "free"; label: string }> = [];
+  if (currentTier > 1) downgradeOptions.push({ planId: "creator", label: "Creator" });
+  if (currentTier > 0) downgradeOptions.push({ planId: "free", label: "Free" });
+
+  async function handleDowngrade() {
+    if (!targetPlanId || actionStatus === "loading") return;
+    setActionStatus("loading");
+    setActionError(null);
+    try {
+      const bp = targetPlanId === "creator" ? targetBillingPeriod : "monthly";
+      const res = await fetch("/api/admin/set-user-plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, planId: targetPlanId, billingPeriod: bp }),
+      });
+      const body = await res.json().catch(() => ({})) as { ok?: boolean; error?: string };
+      if (res.ok && body.ok) {
+        if (targetPlanId === "free") {
+          setPlanId("free");
+          setPendingPlanId(null);
+          setPendingBillingPeriod(null);
+        } else {
+          setPendingPlanId(targetPlanId);
+          setPendingBillingPeriod(targetBillingPeriod);
+        }
+        setShowDowngradeForm(false);
+        setTargetPlanId(null);
+        setActionStatus("done");
+        onPlanChanged();
+        setTimeout(() => setActionStatus("idle"), 2000);
+      } else {
+        setActionError(body.error ?? `HTTP ${res.status}`);
+        setActionStatus("error");
+        setTimeout(() => { setActionStatus("idle"); setActionError(null); }, 5000);
+      }
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : "네트워크 오류");
+      setActionStatus("error");
+      setTimeout(() => { setActionStatus("idle"); setActionError(null); }, 5000);
+    }
+  }
+
+  async function handleCancelPending() {
+    if (cancelStatus === "loading") return;
+    setCancelStatus("loading");
+    setActionError(null);
+    try {
+      const res = await fetch("/api/admin/cancel-pending-plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+      const body = await res.json().catch(() => ({})) as { ok?: boolean; error?: string };
+      if (res.ok && body.ok) {
+        setPendingPlanId(null);
+        setPendingBillingPeriod(null);
+        setCancelStatus("done");
+        onPlanChanged();
+        setTimeout(() => setCancelStatus("idle"), 2000);
+      } else {
+        setActionError(body.error ?? `HTTP ${res.status}`);
+        setCancelStatus("error");
+        setTimeout(() => { setCancelStatus("idle"); setActionError(null); }, 5000);
+      }
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : "네트워크 오류");
+      setCancelStatus("error");
+      setTimeout(() => { setCancelStatus("idle"); setActionError(null); }, 5000);
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
@@ -572,55 +687,185 @@ function HistoryPanel({ userId, userEmail, onClose }: { userId: string; userEmai
         className="relative w-full max-w-lg rounded-2xl border border-foreground/10 bg-background shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* 헤더 */}
         <div className="px-6 py-4 border-b border-foreground/8 flex items-center justify-between">
           <div>
-            <h3 className="font-heading text-base font-medium tracking-[-0.02em]">구독 이력</h3>
+            <h3 className="font-heading text-base font-medium tracking-[-0.02em]">구독 이력 · 플랜 변경</h3>
             <p className="mt-0.5 text-xs text-muted-foreground truncate">{userEmail}</p>
           </div>
           <button type="button" onClick={onClose} className="text-muted-foreground hover:text-foreground text-lg leading-none">×</button>
         </div>
-        <div className="p-6 max-h-[60vh] overflow-y-auto">
-          {loading && <p className="text-xs text-muted-foreground text-center py-4">불러오는 중...</p>}
-          {error && <p className="text-xs text-red-500 text-center py-4">{error}</p>}
-          {history && history.length === 0 && (
-            <p className="text-xs text-muted-foreground text-center py-4">이력이 없습니다.</p>
-          )}
-          {history && history.length > 0 && (
-            <div className="space-y-3">
-              {history.map((item) => (
-                <div key={item.id} className="rounded-xl border border-foreground/8 bg-foreground/[0.02] px-4 py-3 space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                      {CHANGE_TYPE_LABELS[item.change_type] ?? item.change_type}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground/60">
-                      {new Date(item.changed_at).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="text-muted-foreground">{item.previous_plan_id ?? "없음"}</span>
-                    <span className="text-muted-foreground/40">→</span>
-                    <span className="font-medium text-foreground">{item.new_plan_id ?? "없음"}</span>
-                    <span className={`ml-auto text-[10px] px-1.5 py-0.5 rounded ${
-                      item.change_source === "admin" ? "bg-violet-50 text-violet-600" : "bg-foreground/5 text-muted-foreground"
-                    }`}>
-                      {item.change_source}
-                    </span>
-                  </div>
-                  {item.new_expires_at && (
-                    <p className="text-[10px] text-muted-foreground">
-                      만료일: {formatExpiry(item.new_expires_at)}
-                    </p>
-                  )}
-                  {item.note && (
-                    <p className="text-[10px] text-muted-foreground/70 border-t border-foreground/5 pt-1.5">
-                      {item.note}
-                    </p>
-                  )}
+
+        <div className="max-h-[75vh] overflow-y-auto">
+          {/* 플랜 변경 섹션 — 활성 유료 구독만 표시 */}
+          {isActive && currentTier > 0 && (
+            <div className="px-6 py-4 border-b border-foreground/8 space-y-3">
+              {/* 현재 플랜 상태 */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${getPlanClass(planId)}`}>
+                    {getPlanDisplayLabel(planId, billingPeriod)}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">{formatExpiry(renewalAt)} 만료</span>
                 </div>
-              ))}
+                {downgradeOptions.length > 0 && !showDowngradeForm && (
+                  <button
+                    type="button"
+                    onClick={() => { setShowDowngradeForm(true); setTargetPlanId(null); }}
+                    className="rounded px-2 py-1 text-[10px] font-medium bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors"
+                  >
+                    다운그레이드
+                  </button>
+                )}
+              </div>
+
+              {/* 예약된 다운그레이드 */}
+              {pendingPlanId && (
+                <div className="flex items-center justify-between rounded-lg bg-amber-50 border border-amber-100 px-3 py-2">
+                  <p className="text-[10px] text-amber-700">
+                    예약된 변경: <span className="font-semibold">{getPlanDisplayLabel(pendingPlanId, pendingBillingPeriod)}</span>{" "}
+                    (만료 후 적용)
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleCancelPending}
+                    disabled={cancelStatus === "loading"}
+                    className="ml-3 shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-700 hover:bg-amber-200 disabled:opacity-50 transition-colors"
+                  >
+                    {cancelStatus === "loading" ? "..." : cancelStatus === "done" ? "취소됨" : "예약 취소"}
+                  </button>
+                </div>
+              )}
+
+              {/* 다운그레이드 폼 */}
+              {showDowngradeForm && (
+                <div className="space-y-3 rounded-xl border border-foreground/10 bg-foreground/[0.02] p-4">
+                  <p className="text-xs font-medium text-foreground/70">변경할 플랜 선택</p>
+
+                  <div className="flex gap-1.5">
+                    {downgradeOptions.map((opt) => (
+                      <button
+                        key={opt.planId}
+                        type="button"
+                        onClick={() => setTargetPlanId(opt.planId)}
+                        className={`flex-1 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${
+                          targetPlanId === opt.planId
+                            ? "border-foreground bg-foreground text-background"
+                            : "border-foreground/15 text-muted-foreground hover:border-foreground/40"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Creator 선택 시 결제 주기 */}
+                  {targetPlanId === "creator" && (
+                    <div className="flex gap-1.5">
+                      {(["monthly", "semiannual"] as const).map((p) => (
+                        <button
+                          key={p}
+                          type="button"
+                          onClick={() => setTargetBillingPeriod(p)}
+                          className={`flex-1 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${
+                            targetBillingPeriod === p
+                              ? "border-foreground bg-foreground text-background"
+                              : "border-foreground/15 text-muted-foreground hover:border-foreground/40"
+                          }`}
+                        >
+                          {p === "monthly" ? "월간" : "6개월"}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {targetPlanId && (
+                    <p className="text-[10px] text-muted-foreground">
+                      {targetPlanId === "free"
+                        ? "구독이 즉시 종료됩니다."
+                        : `현재 만료일(${formatExpiry(renewalAt)}) 이후 Creator로 변경됩니다.`}
+                    </p>
+                  )}
+
+                  {actionError && <p className="text-[10px] text-red-500">{actionError}</p>}
+
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => { setShowDowngradeForm(false); setTargetPlanId(null); setActionError(null); }}
+                      className="flex-1 rounded-lg border border-foreground/10 py-1.5 text-xs font-medium text-muted-foreground hover:bg-foreground/5 transition-colors"
+                    >
+                      취소
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDowngrade}
+                      disabled={!targetPlanId || actionStatus === "loading"}
+                      className={`flex-1 rounded-lg py-1.5 text-xs font-medium text-white disabled:opacity-40 transition-colors ${
+                        targetPlanId === "free" ? "bg-red-500 hover:bg-red-600" : "bg-amber-500 hover:bg-amber-600"
+                      }`}
+                    >
+                      {actionStatus === "loading"
+                        ? "처리 중..."
+                        : targetPlanId === "free"
+                        ? "즉시 Free 전환"
+                        : "다운그레이드 예약"}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {actionStatus === "done" && !showDowngradeForm && (
+                <p className="text-[10px] text-emerald-600">변경이 적용되었습니다.</p>
+              )}
             </div>
           )}
+
+          {/* 이력 목록 */}
+          <div className="p-6 space-y-3">
+            <p className="text-xs font-medium text-foreground/60">변경 이력</p>
+            {loading && <p className="text-xs text-muted-foreground text-center py-4">불러오는 중...</p>}
+            {fetchError && <p className="text-xs text-red-500 text-center py-4">{fetchError}</p>}
+            {history && history.length === 0 && (
+              <p className="text-xs text-muted-foreground text-center py-4">이력이 없습니다.</p>
+            )}
+            {history && history.length > 0 && (
+              <div className="space-y-3">
+                {history.map((item) => (
+                  <div key={item.id} className="rounded-xl border border-foreground/8 bg-foreground/[0.02] px-4 py-3 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        {CHANGE_TYPE_LABELS[item.change_type] ?? item.change_type}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground/60">
+                        {new Date(item.changed_at).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="text-muted-foreground">{item.previous_plan_id ?? "없음"}</span>
+                      <span className="text-muted-foreground/40">→</span>
+                      <span className="font-medium text-foreground">{item.new_plan_id ?? "없음"}</span>
+                      <span className={`ml-auto text-[10px] px-1.5 py-0.5 rounded ${
+                        item.change_source === "admin" ? "bg-violet-50 text-violet-600" : "bg-foreground/5 text-muted-foreground"
+                      }`}>
+                        {item.change_source}
+                      </span>
+                    </div>
+                    {item.new_expires_at && (
+                      <p className="text-[10px] text-muted-foreground">
+                        만료일: {formatExpiry(item.new_expires_at)}
+                      </p>
+                    )}
+                    {item.note && (
+                      <p className="text-[10px] text-muted-foreground/70 border-t border-foreground/5 pt-1.5">
+                        {item.note}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -753,7 +998,16 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
   const [page, setPage] = useState(1);
   const [grantModal, setGrantModal] = useState<{ userId: string; email: string | null; periodEnd: string | null; planId: string | null; billingPeriod: string | null } | null>(null);
   const [creditGrantModal, setCreditGrantModal] = useState<{ userId: string; email: string | null } | null>(null);
-  const [historyPanel, setHistoryPanel] = useState<{ userId: string; email: string | null } | null>(null);
+  const [historyPanel, setHistoryPanel] = useState<{
+    userId: string;
+    email: string | null;
+    planId: string | null;
+    billingPeriod: "monthly" | "semiannual" | null;
+    renewalAt: string | null;
+    subscriptionStatus: string | null;
+    pendingPlanId: string | null;
+    pendingBillingPeriod: "monthly" | "semiannual" | null;
+  } | null>(null);
   const [refundModal, setRefundModal] = useState<{ userId: string; email: string | null; periodEnd: string | null } | null>(null);
   // 로컬 만료일 업데이트 (수동부여 성공 시)
   const [localExpiry, setLocalExpiry] = useState<Record<string, string>>({});
@@ -804,7 +1058,14 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
         <HistoryPanel
           userId={historyPanel.userId}
           userEmail={historyPanel.email}
+          planId={historyPanel.planId}
+          billingPeriod={historyPanel.billingPeriod}
+          renewalAt={historyPanel.renewalAt}
+          subscriptionStatus={historyPanel.subscriptionStatus}
+          pendingPlanId={historyPanel.pendingPlanId}
+          pendingBillingPeriod={historyPanel.pendingBillingPeriod}
           onClose={() => setHistoryPanel(null)}
+          onPlanChanged={() => startTransition(() => router.refresh())}
         />
       )}
       {refundModal && (
@@ -988,7 +1249,16 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
                           </button>
                           <button
                             type="button"
-                            onClick={() => setHistoryPanel({ userId: row.id, email: row.email })}
+                            onClick={() => setHistoryPanel({
+                              userId: row.id,
+                              email: row.email,
+                              planId: row.plan_id,
+                              billingPeriod: row.billing_period,
+                              renewalAt: effectivePeriodEnd,
+                              subscriptionStatus: row.subscription_status,
+                              pendingPlanId: row.pending_plan_id,
+                              pendingBillingPeriod: row.pending_billing_period,
+                            })}
                             className="rounded px-1.5 py-0.5 text-[10px] font-medium bg-foreground/5 text-muted-foreground hover:bg-foreground/10 transition-colors"
                           >
                             이력
