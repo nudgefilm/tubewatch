@@ -74,27 +74,19 @@ function HeroSection() {
 
             <h1 className={`font-heading font-medium leading-[1.15] tracking-[-0.03em] transition-all duration-1000 delay-100 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
               <span className="block text-[clamp(1.6rem,4vw,3.2rem)]">
-                당신의 데이터는 이미<br />다음 전략을 말하고 있습니다.
+                채널 성장의 시작,<br />Creator 플랜 무료 업그레이드
               </span>
               <span className="block text-[clamp(1rem,2.4vw,1.9rem)] text-muted-foreground mt-2">
-                유튜브 스튜디오가 보여주지 않는 성장 신호,<br />튜브워치가 찾아드립니다.
+                선착순 20명에게만 드리는 특별한 기회,<br />지금 바로 가입하세요!
               </span>
             </h1>
 
             <div className={`mt-6 flex items-center gap-3 transition-all duration-700 delay-300 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
               <a
-                href="https://forms.gle/cGMyEXQL1SDevpv7A"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="/channels"
                 className="inline-flex items-center gap-2 bg-foreground text-background px-6 py-3 rounded-xl font-medium text-sm hover:bg-foreground/90 transition-colors"
               >
-                베타 테스터 신청하기
-              </a>
-              <a
-                href="/channels"
-                className="inline-flex items-center px-6 py-3 rounded-xl font-medium text-sm border border-foreground/30 hover:border-foreground transition-colors"
-              >
-                채널 무료 분석
+                내 채널 무료 분석
               </a>
             </div>
 
