@@ -23,9 +23,23 @@ import {
   buildStrategyPlanPrompt,
   callGeminiForStrategyPlan,
 } from "@/lib/server/onepager/generateStrategyPlan";
+import { generateNextTrendPlan } from "@/lib/server/onepager/generateNextTrendPlan";
+import {
+  generateChannelDnaNarrative,
+  generateActionExecutionHints,
+} from "@/lib/server/onepager/generateChannelDnaAndHints";
 
-const ALLOWED_MODULES = ["analysis_report", "channel_dna_report", "strategy_plan"] as const;
+const ALLOWED_MODULES = [
+  "analysis_report",
+  "channel_dna_report",
+  "strategy_plan",
+  "next_trend",
+  "channel_dna",
+  "action_plan",
+] as const;
 type AllowedModule = (typeof ALLOWED_MODULES)[number];
+
+const MARKDOWN_MODULES = new Set(["analysis_report", "channel_dna_report", "strategy_plan"]);
 
 export async function POST(req: NextRequest) {
   try {
@@ -112,47 +126,41 @@ export async function POST(req: NextRequest) {
     }
 
     // Gemini 호출
-    let markdown: string | null = null;
+    let moduleResult: Record<string, unknown> | null = null;
     try {
       if (moduleKey === "analysis_report") {
-        markdown = await callGeminiForAnalysisReport(buildAnalysisReportPrompt(typedRow));
+        const md = await callGeminiForAnalysisReport(buildAnalysisReportPrompt(typedRow));
+        if (md) moduleResult = { markdown: md };
       } else if (moduleKey === "channel_dna_report") {
-        markdown = await callGeminiForChannelDnaReport(buildChannelDnaReportPrompt(typedRow));
+        const md = await callGeminiForChannelDnaReport(buildChannelDnaReportPrompt(typedRow));
+        if (md) moduleResult = { markdown: md };
       } else if (moduleKey === "strategy_plan") {
-        markdown = await callGeminiForStrategyPlan(buildStrategyPlanPrompt(typedRow));
+        const md = await callGeminiForStrategyPlan(buildStrategyPlanPrompt(typedRow));
+        if (md) moduleResult = { markdown: md };
+      } else if (moduleKey === "next_trend") {
+        const plan = await generateNextTrendPlan(typedRow);
+        if (plan) moduleResult = { plan };
+      } else if (moduleKey === "channel_dna") {
+        const narrative = await generateChannelDnaNarrative(typedRow);
+        if (narrative) moduleResult = { narrative };
+      } else if (moduleKey === "action_plan") {
+        const execution_hints = await generateActionExecutionHints(typedRow);
+        if (execution_hints) moduleResult = { execution_hints };
       }
     } catch (e) {
       const errMsg = e instanceof Error ? e.message : "unknown";
       console.error("[regenerate-module]", { channelId, moduleKey, snapshotId, error: errMsg });
       await supabaseAdmin.from("analysis_module_results").upsert(
-        {
-          user_id: user.id,
-          channel_id: channelId,
-          snapshot_id: snapshotId,
-          module_key: moduleKey,
-          result: existingResult,
-          status: "failed",
-          error_message: errMsg,
-          analyzed_at: now,
-        },
+        { user_id: user.id, channel_id: channelId, snapshot_id: snapshotId, module_key: moduleKey, result: existingResult, status: "failed", error_message: errMsg, analyzed_at: now },
         { onConflict: "snapshot_id,module_key" }
       );
       return NextResponse.json({ error: "생성 실패" }, { status: 502 });
     }
 
-    if (!markdown) {
+    if (!moduleResult) {
       console.error("[regenerate-module]", { channelId, moduleKey, snapshotId, error: "empty_response" });
       await supabaseAdmin.from("analysis_module_results").upsert(
-        {
-          user_id: user.id,
-          channel_id: channelId,
-          snapshot_id: snapshotId,
-          module_key: moduleKey,
-          result: existingResult,
-          status: "failed",
-          error_message: "empty_response",
-          analyzed_at: now,
-        },
+        { user_id: user.id, channel_id: channelId, snapshot_id: snapshotId, module_key: moduleKey, result: existingResult, status: "failed", error_message: "empty_response", analyzed_at: now },
         { onConflict: "snapshot_id,module_key" }
       );
       return NextResponse.json({ error: "생성 실패" }, { status: 502 });
@@ -160,16 +168,7 @@ export async function POST(req: NextRequest) {
 
     const completedAt = new Date().toISOString();
     const { error: upsertErr } = await supabaseAdmin.from("analysis_module_results").upsert(
-      {
-        user_id: user.id,
-        channel_id: channelId,
-        snapshot_id: snapshotId,
-        module_key: moduleKey,
-        result: { markdown },
-        status: "completed",
-        completed_at: completedAt,
-        analyzed_at: completedAt,
-      },
+      { user_id: user.id, channel_id: channelId, snapshot_id: snapshotId, module_key: moduleKey, result: moduleResult, status: "completed", completed_at: completedAt, analyzed_at: completedAt },
       { onConflict: "snapshot_id,module_key" }
     );
 
@@ -178,7 +177,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "저장 실패" }, { status: 500 });
     }
 
-    return NextResponse.json({ ok: true, markdown });
+    // 마크다운 모듈은 클라이언트 즉시 반영용으로 markdown 반환, 나머지는 ok만 반환
+    if (MARKDOWN_MODULES.has(moduleKey)) {
+      return NextResponse.json({ ok: true, markdown: moduleResult.markdown });
+    }
+    return NextResponse.json({ ok: true });
   } catch (e) {
     console.error("[regenerate-module POST]", e);
     return NextResponse.json({ error: "서버 오류" }, { status: 500 });

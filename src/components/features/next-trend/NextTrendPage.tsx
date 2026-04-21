@@ -184,7 +184,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                       <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><Zap className="size-5 shrink-0 text-primary" />실행 힌트</h2>
                       <p className="text-xs text-muted-foreground mt-0.5">제목·훅·썸네일 통합 원페이퍼</p>
                     </div>
-                    <ExecutionHintDocument markdown={executionHintDocument} />
+                    <ExecutionHintDocument markdown={executionHintDocument} channelId={(viewModel.selectedChannelId ?? channelId) || undefined} />
                   </section>
 
                   {/* [5] 영상 기획안 */}
