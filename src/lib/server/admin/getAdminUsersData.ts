@@ -9,8 +9,9 @@ async function fetchAllAuthUsers(): Promise<User[]> {
     const { data } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000, page });
     if (!data?.users?.length) break;
     users.push(...data.users);
-    if (!data.nextPage) break;
-    page = data.nextPage;
+    const nextPage = "nextPage" in data ? data.nextPage : undefined;
+    if (!nextPage) break;
+    page = nextPage;
   }
   return users;
 }
