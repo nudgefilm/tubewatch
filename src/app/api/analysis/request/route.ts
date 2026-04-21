@@ -469,7 +469,7 @@ export async function POST(request: Request) {
       void updateJobStep("failed", "failed");
       if (reservationId) void rollbackCredit(reservationId, isFreePlan);
       return NextResponse.json(
-        { ok: false, error: `AI 분석에 실패했습니다: ${gemini.error}` },
+        { ok: false, error: gemini.error?.includes("timeout") ? "분석 데이터가 많아 응답이 지연되고 있습니다. 다시 시도해 보세요." : `AI 분석에 실패했습니다: ${gemini.error}` },
         { status: 502 }
       );
     }

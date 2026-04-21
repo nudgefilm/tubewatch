@@ -20,7 +20,7 @@ const STEP_LABELS: Record<string, { text: string; sub: string }> = {
   queued:          { text: "분석 대기 중",               sub: "잠시 후 자동으로 시작됩니다" },
   fetching_yt:     { text: "유튜브 데이터 수집 중",       sub: "최근 영상 목록을 불러오는 중입니다" },
   processing_data: { text: "영상 데이터 분석 중",         sub: "업로드 패턴과 성과 지표를 계산하고 있습니다" },
-  generating_ai:   { text: "AI가 채널을 분석하고 있습니다", sub: "채널 DNA와 성장 전략을 설계 중입니다 (30~60초 소요)" },
+  generating_ai:   { text: "튜브워치가 채널을 분석하고 있습니다", sub: "채널 DNA와 성장 전략을 설계 중입니다 (30~60초 소요)" },
   saving_results:  { text: "결과를 저장하는 중",          sub: "거의 다 됐습니다!" },
 }
 
