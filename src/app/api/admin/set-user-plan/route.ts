@@ -46,6 +46,7 @@ export async function POST(request: Request) {
     const planId = typeof body.planId === "string" ? body.planId.trim() as PlanId : "";
     const billingPeriod: BillingPeriod =
       body.billingPeriod === "semiannual" ? "semiannual" : "monthly";
+    const force = body.force === true;
 
     if (!targetUserId) {
       return NextResponse.json({ error: "userId가 필요합니다." }, { status: 400 });
@@ -142,6 +143,41 @@ export async function POST(request: Request) {
           previous_expires_at: existingRenewalAt,
           new_expires_at: newRenewalAt.toISOString(),
           change_type: "upgrade",
+          change_source: "admin",
+          note: "어드민 직접 플랜 설정 (즉시 적용)",
+          changed_by_admin_id: user.id,
+        });
+
+        return NextResponse.json({ ok: true, planId, billingPeriod, deferred: false });
+      } else if (force) {
+        // ── 강제 즉시 다운그레이드 (어드민 테스트용) ─────────────────────────
+        const { error: updateError } = await supabaseAdmin
+          .from("user_subscriptions")
+          .upsert({
+            user_id: targetUserId,
+            plan_id: planId,
+            billing_period: billingPeriod,
+            renewal_at: existingRenewalAt!,
+            subscription_status: "active",
+            grant_type: "manual",
+            manual_grant_reason: "어드민 직접 플랜 설정 (즉시 적용)",
+            pending_plan_id: null,
+            pending_billing_period: null,
+            updated_at: now.toISOString(),
+            last_plan_id: existing?.plan_id ?? null,
+          }, { onConflict: "user_id", ignoreDuplicates: false });
+
+        if (updateError) {
+          return NextResponse.json({ error: `플랜 설정 실패: ${updateError.message}` }, { status: 500 });
+        }
+
+        await supabaseAdmin.from("subscription_changes").insert({
+          user_id: targetUserId,
+          previous_plan_id: existing?.plan_id ?? null,
+          new_plan_id: planId,
+          previous_expires_at: existingRenewalAt,
+          new_expires_at: existingRenewalAt,
+          change_type: "downgrade",
           change_source: "admin",
           note: "어드민 직접 플랜 설정 (즉시 적용)",
           changed_by_admin_id: user.id,

@@ -13,7 +13,7 @@ export default async function ChannelsPage() {
   const { data: { user } } = await supabase.auth.getUser();
   const email = user?.email ?? null;
   const adminUser = isAdmin(email);
-  const limits = adminUser ? null : await getEffectiveLimits(supabase, userId);
+  const limits = adminUser ? null : await getEffectiveLimits(supabaseAdmin, userId);
   const maxCount = adminUser ? ADMIN_CHANNEL_LIMIT : limits!.channelLimit;
   const isFreePlan = !adminUser && limits!.planId === "free";
 

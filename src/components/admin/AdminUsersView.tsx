@@ -137,7 +137,7 @@ function SetPlanButton({
       const res = await fetch("/api/admin/set-user-plan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, planId: opt.planId, billingPeriod: opt.billingPeriod }),
+        body: JSON.stringify({ userId, planId: opt.planId, billingPeriod: opt.billingPeriod, force: true }),
       });
       const body = await res.json().catch(() => ({})) as { ok?: boolean; error?: string };
       if (res.ok && body.ok) {
@@ -622,18 +622,13 @@ function HistoryPanel({
       const res = await fetch("/api/admin/set-user-plan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, planId: targetPlanId, billingPeriod: bp }),
+        body: JSON.stringify({ userId, planId: targetPlanId, billingPeriod: bp, force: true }),
       });
       const body = await res.json().catch(() => ({})) as { ok?: boolean; error?: string };
       if (res.ok && body.ok) {
-        if (targetPlanId === "free") {
-          setPlanId("free");
-          setPendingPlanId(null);
-          setPendingBillingPeriod(null);
-        } else {
-          setPendingPlanId(targetPlanId);
-          setPendingBillingPeriod(targetBillingPeriod);
-        }
+        setPlanId(targetPlanId);
+        setPendingPlanId(null);
+        setPendingBillingPeriod(null);
         setShowDowngradeForm(false);
         setTargetPlanId(null);
         setActionStatus("done");
@@ -783,7 +778,7 @@ function HistoryPanel({
                     <p className="text-[10px] text-muted-foreground">
                       {targetPlanId === "free"
                         ? "구독이 즉시 종료됩니다."
-                        : `현재 만료일(${formatExpiry(renewalAt)}) 이후 Creator로 변경됩니다.`}
+                        : `즉시 Creator로 변경됩니다. 만료일(${formatExpiry(renewalAt)})은 유지됩니다.`}
                     </p>
                   )}
 
@@ -809,7 +804,7 @@ function HistoryPanel({
                         ? "처리 중..."
                         : targetPlanId === "free"
                         ? "즉시 Free 전환"
-                        : "다운그레이드 예약"}
+                        : "즉시 다운그레이드"}
                     </button>
                   </div>
                 </div>
