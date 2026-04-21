@@ -1578,38 +1578,6 @@ function PlanCard({ plan, index, visible }: { plan: typeof plans[0]; index: numb
   );
 }
 
-function PricingPreviewSection() {
-  const { ref, visible } = useFadeIn();
-
-  return (
-    <section className="relative py-10 lg:py-20 border-t border-foreground/10">
-      <div className="max-w-[1080px] mx-auto px-8 lg:px-20">
-        <div ref={ref} className={`mb-10 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-          <span className="inline-flex items-center gap-3 text-sm font-mono text-muted-foreground mb-6">
-            <span className="w-8 h-px bg-foreground/30 inline-block" />
-            Pricing
-            <span className="w-8 h-px bg-foreground/30 inline-block" />
-          </span>
-          <h2 className="font-heading text-4xl lg:text-5xl font-medium tracking-[-0.03em] leading-[1.1]">
-            필요한 만큼만
-            <br />
-            <span className="text-muted-foreground">선택하세요</span>
-          </h2>
-          <p className="mt-4 text-base text-muted-foreground">
-            기본 채널 진단은 <strong className="text-foreground">무료</strong>입니다. 성장이 필요한 시점에 업그레이드하세요.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-px border border-foreground/10 bg-foreground/10">
-          {plans.map((plan, index) => (
-            <PlanCard key={plan.name} plan={plan} index={index} visible={visible} />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 // ─── 07. Final CTA ──────────────────────────────────────────────────────────
 
 function FinalCtaSection() {
@@ -1666,14 +1634,6 @@ function FinalCtaSection() {
               <Button size="lg" className="bg-foreground hover:bg-foreground/90 text-background px-8 h-12 text-base rounded-xl shadow-lg" asChild>
                 <a href="/channels">내 채널 분석하기</a>
               </Button>
-              <a
-                href="https://forms.gle/cGMyEXQL1SDevpv7A"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center h-12 px-8 text-sm border border-foreground/30 rounded-xl hover:border-foreground transition-colors"
-              >
-                베타 테스터 신청
-              </a>
             </div>
 
             <p
@@ -1699,7 +1659,6 @@ export default function IntroduceLanding() {
       <FeaturesSection />
       <HowItWorksSection />
       <WhySection />
-      <PricingPreviewSection />
       <FinalCtaSection />
       <FooterSection />
     </main>
