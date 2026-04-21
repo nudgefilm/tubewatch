@@ -604,10 +604,6 @@ function HistoryPanel({
   }, [userId]);
 
   const currentTier = PLAN_TIER[planId ?? "free"] ?? 0;
-  const isActive =
-    (subscriptionStatus === "active" || subscriptionStatus === "manual") &&
-    renewalAt !== null &&
-    !isExpired(renewalAt);
 
   const downgradeOptions: Array<{ planId: "creator" | "free"; label: string }> = [];
   if (currentTier > 1) downgradeOptions.push({ planId: "creator", label: "Creator" });
@@ -692,8 +688,8 @@ function HistoryPanel({
         </div>
 
         <div className="max-h-[75vh] overflow-y-auto">
-          {/* 플랜 변경 섹션 — 활성 유료 구독만 표시 */}
-          {isActive && currentTier > 0 && (
+          {/* 플랜 변경 섹션 — 유료 플랜 보유 시 표시 */}
+          {currentTier > 0 && (
             <div className="px-6 py-4 border-b border-foreground/8 space-y-3">
               {/* 현재 플랜 상태 */}
               <div className="flex items-center justify-between">
@@ -778,7 +774,7 @@ function HistoryPanel({
                     <p className="text-[10px] text-muted-foreground">
                       {targetPlanId === "free"
                         ? "구독이 즉시 종료됩니다."
-                        : `즉시 Creator로 변경됩니다. 만료일(${formatExpiry(renewalAt)})은 유지됩니다.`}
+                        : renewalAt ? `즉시 Creator로 변경됩니다. 만료일(${formatExpiry(renewalAt)})은 유지됩니다.` : "즉시 Creator로 변경됩니다."}
                     </p>
                   )}
 
