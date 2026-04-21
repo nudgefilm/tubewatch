@@ -585,9 +585,10 @@ export async function POST(request: Request) {
         console.error("[Analysis Start API] delta: module_results copy failed (non-fatal):", copyErr.message);
       } else {
         const copiedKeys = (prevModules as Array<{ module_key: string; result: Record<string, unknown> }>).map((m) => m.module_key);
-        const nextTrendCopied = copiedKeys.includes("next_trend");
+        const workerModules = ["next_trend", "channel_dna", "action_plan"] as const;
+        const allWorkerModulesCopied = workerModules.every((k) => copiedKeys.includes(k));
         console.log("[Analysis Start API] delta: module_results copied →", savedRow.id, "keys:", copiedKeys);
-        needsOnepagerGeneration = !nextTrendCopied;
+        needsOnepagerGeneration = !allWorkerModulesCopied;
       }
     } else {
       console.log("[Analysis Start API] delta: no previous module_results to copy — will trigger waitUntil generation");
