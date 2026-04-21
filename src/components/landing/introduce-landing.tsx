@@ -70,7 +70,7 @@ function HeroSection() {
 
             <h1 className={`font-heading font-medium leading-[1.15] tracking-[-0.03em] transition-all duration-1000 delay-100 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
               <span className="block text-[clamp(1.4rem,3.2vw,2.6rem)]">
-                채널 성장의 시작,<br />Creator 플랜 <span className="text-primary">무료</span> 업그레이드
+                채널 성장의 시작,<br />Creator 플랜 <span className="text-orange-500">무료</span> 업그레이드
               </span>
               <span className="block text-[clamp(1rem,2.4vw,1.9rem)] text-muted-foreground mt-2">
                 선착순 100명에게만 드리는 특별한 기회, 지금 바로 가입하세요!
