@@ -73,7 +73,7 @@ function HeroSection() {
                 채널 성장의 시작,<br />Creator 플랜 무료 업그레이드
               </span>
               <span className="block text-[clamp(1rem,2.4vw,1.9rem)] text-muted-foreground mt-2">
-                선착순 100명에게만 드리는 특별한 기회,<br />지금 바로 가입하세요!
+                선착순 100명에게만 드리는 특별한 기회, 지금 바로 가입하세요!
               </span>
             </h1>
           </div>
