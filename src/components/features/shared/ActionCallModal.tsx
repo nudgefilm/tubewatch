@@ -2,16 +2,17 @@
 
 import { useRef, useState } from "react"
 import { X, Download, Zap } from "lucide-react"
+import type { ActionCallContent } from "@/lib/next-trend/buildActionCallContent"
 
 export interface ActionCallModalProps {
-  sentence: string
+  content: ActionCallContent
   channelTitle?: string | null
   onClose: () => void
   onDismissToday: () => void
 }
 
 export function ActionCallModal({
-  sentence,
+  content,
   channelTitle,
   onClose,
   onDismissToday,
@@ -25,7 +26,7 @@ export function ActionCallModal({
     try {
       const { default: html2canvas } = await import("html2canvas")
       const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: "#09090b",
+        backgroundColor: "#fafafa",
         scale: 2,
         useCORS: true,
         logging: false,
@@ -45,7 +46,7 @@ export function ActionCallModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* backdrop */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
 
@@ -54,43 +55,112 @@ export function ActionCallModal({
         <button
           onClick={onClose}
           aria-label="닫기"
-          className="absolute -top-3 -right-3 z-10 rounded-full bg-zinc-900 border border-zinc-700 p-1.5 text-zinc-400 hover:text-white shadow-lg transition-colors"
+          className="absolute -top-3 -right-3 z-10 rounded-full bg-white border border-gray-200 p-1.5 text-gray-400 hover:text-gray-700 shadow-md transition-colors"
         >
           <X className="size-3" />
         </button>
 
-        {/* card — html2canvas capture target */}
+        {/* ── card — html2canvas capture target ─────────────────── */}
         <div
           ref={cardRef}
-          style={{ backgroundColor: "#09090b" }}
-          className="rounded-2xl overflow-hidden border border-zinc-800 shadow-2xl"
+          style={{
+            backgroundColor: "#fafafa",
+            backgroundImage:
+              "radial-gradient(circle, rgba(0,0,0,0.035) 1px, transparent 1px)",
+            backgroundSize: "24px 24px",
+          }}
+          className="rounded-2xl overflow-hidden border border-gray-200 shadow-lg"
         >
           {/* header */}
-          <div className="bg-primary px-5 py-2.5 flex items-center gap-2">
-            <Zap className="size-3.5 text-primary-foreground" fill="currentColor" />
-            <span className="text-[11px] font-bold text-primary-foreground tracking-widest uppercase select-none">
+          <div
+            className="px-5 pt-5 pb-0 flex items-center gap-1.5"
+          >
+            <Zap
+              className="size-3 shrink-0"
+              style={{ color: "#f97316" }}
+              fill="#f97316"
+            />
+            <span
+              className="text-[10px] font-bold tracking-widest uppercase"
+              style={{ color: "#f97316" }}
+            >
               지금 바로 실행하세요
             </span>
           </div>
 
-          {/* sentence */}
-          <div className="px-6 py-8 text-center">
+          {/* timing + action */}
+          <div className="px-5 pt-3 pb-0">
+            {content.timing && (
+              <p
+                className="text-[18px] font-black leading-tight tracking-tight"
+                style={{ color: "#09090b" }}
+              >
+                {content.timing}
+              </p>
+            )}
             <p
-              className="text-[22px] font-black leading-snug tracking-tight"
-              style={{ color: "#ffffff" }}
+              className="text-[18px] font-black leading-tight tracking-tight"
+              style={{ color: "#09090b" }}
             >
-              {sentence}
+              올리세요.
             </p>
           </div>
 
+          {/* spec chips */}
+          {content.specs.length > 0 && (
+            <div className="px-5 pt-3 pb-0 flex flex-wrap gap-1.5">
+              {content.specs.map((spec) => (
+                <span
+                  key={spec}
+                  className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
+                  style={{
+                    backgroundColor: "rgba(249,115,22,0.1)",
+                    color: "#ea580c",
+                  }}
+                >
+                  {spec}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* title candidates */}
+          {content.titles.length > 0 && (
+            <div className="px-5 pt-4 pb-0">
+              <p
+                className="text-[9px] font-bold uppercase tracking-widest mb-2"
+                style={{ color: "#9ca3af" }}
+              >
+                제목 후보
+              </p>
+              <div className="space-y-2">
+                {content.titles.map((title, i) => (
+                  <p
+                    key={i}
+                    className="text-[12px] font-semibold leading-snug"
+                    style={{ color: "#111827" }}
+                  >
+                    &ldquo;{title}&rdquo;
+                  </p>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* footer */}
-          <div className="px-5 pb-5 text-center space-y-1">
+          <div
+            className="px-5 pt-4 pb-4 mt-2 border-t text-center"
+            style={{ borderColor: "#f3f4f6" }}
+          >
             {channelTitle && (
-              <p className="text-xs" style={{ color: "#52525b" }}>
+              <p
+                className="text-[9px]"
+                style={{ color: "#9ca3af" }}
+              >
                 {channelTitle} 분석 기반
               </p>
             )}
-            <p className="text-[10px]" style={{ color: "#3f3f46" }}>
+            <p className="text-[9px]" style={{ color: "#d1d5db" }}>
               tubewatch.kr
             </p>
           </div>
@@ -108,7 +178,7 @@ export function ActionCallModal({
           </button>
           <button
             onClick={onDismissToday}
-            className="rounded-xl border border-zinc-700 px-3 py-2.5 text-xs text-zinc-400 hover:text-white hover:border-zinc-500 transition-colors"
+            className="rounded-xl border border-gray-300 px-3 py-2.5 text-xs text-gray-500 hover:text-gray-800 hover:border-gray-400 transition-colors"
           >
             오늘은 그만보기
           </button>

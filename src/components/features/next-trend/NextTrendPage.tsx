@@ -15,7 +15,7 @@ import type { NextTrendPageViewModel } from "@/lib/next-trend/nextTrendPageViewM
 import { buildNextTrendPageSections, SIGNAL_STRENGTH_BADGE } from "@/lib/engines/nextTrendPageEngine"
 import { IntegratedSummaryButton } from "@/components/features/shared/IntegratedSummaryButton"
 import { useActionCall } from "@/context/ActionCallContext"
-import { buildActionCallSentence } from "@/lib/next-trend/buildActionCallSentence"
+import { buildActionCallContent } from "@/lib/next-trend/buildActionCallContent"
 
 interface NextTrendPageProps {
   channelId?: string
@@ -30,8 +30,8 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
 
   useEffect(() => {
     if (!viewModel?.hasAnalysisEffective) return
-    const sentence = buildActionCallSentence(viewModel)
-    if (sentence) trigger(sentence, viewModel.channelTitle)
+    const content = buildActionCallContent(viewModel)
+    if (content) trigger(content, viewModel.channelTitle)
   // viewModel이 바뀔 때마다 재평가하되, trigger 자체가 세션 중복 방지
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewModel?.hasAnalysisEffective, viewModel?.selectedChannelId])
