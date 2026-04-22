@@ -31,8 +31,8 @@ export async function getAdminChannelsData(): Promise<AdminChannelsData> {
 
   const emailMap = new Map<string, string>();
   if (userIds.length > 0) {
-    const authRes = await supabaseAdmin.auth.admin.listUsers({ perPage: 200 });
-    for (const u of authRes.data?.users ?? []) {
+    const { data: authUsers } = await supabaseAdmin.rpc("admin_get_auth_users");
+    for (const u of (authUsers ?? []) as { id: string; email: string | null }[]) {
       if (userIds.includes(u.id)) {
         emailMap.set(u.id, u.email ?? "—");
       }
