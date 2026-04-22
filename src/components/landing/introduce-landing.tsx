@@ -110,7 +110,7 @@ function HeroSection() {
               </div>
             </div>
             <p className="mt-3 text-center text-xs text-muted-foreground/60">
-              채널 분석 후 &apos;텔레그램 커뮤니티&apos; 입장 시 일부 데이터 접근제한이 해제됩니다.
+              채널 분석 후 텔레그램 커뮤니티 <span className="text-orange-500 font-medium">Tube Talk</span> 입장(메인페이지 우측 하단) 시 일부 데이터 접근제한이 해제됩니다.
             </p>
           </div>
 
