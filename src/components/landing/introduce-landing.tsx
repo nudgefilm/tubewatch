@@ -70,12 +70,31 @@ function HeroSection() {
 
             <h1 className={`font-heading font-medium leading-[1.15] tracking-[-0.03em] transition-all duration-1000 delay-100 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
               <span className="block text-[clamp(1.4rem,3.2vw,2.6rem)]">
-                채널 성장의 시작,<br />Creator 플랜 <span className="text-orange-500">무료</span> 업그레이드
+                채널 성장의 시작!
               </span>
               <span className="block text-[clamp(1rem,2.4vw,1.9rem)] text-muted-foreground mt-2">
-                선착순 100명에게만 드리는 특별한 기회, 지금 바로 가입하세요!
+                채널 분석 진단 리포트 <span className="text-orange-500">무료</span> 제공
               </span>
             </h1>
+
+            <div className={`grid grid-cols-2 gap-x-8 gap-y-2 mt-6 transition-all duration-700 delay-200 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+              <div className="flex items-start gap-2">
+                <span className="mt-1 w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0" />
+                <span className="text-sm text-muted-foreground">채널의 정체성과 성공 패턴 분석</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="mt-1 w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0" />
+                <span className="text-sm text-muted-foreground">채널 현재 상태 종합 진단</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="mt-1 w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0" />
+                <span className="text-sm text-muted-foreground">다음 영상을 위한 완성형 기획문서</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="mt-1 w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0" />
+                <span className="text-sm text-muted-foreground">30일간의 구체적 실행 계획 제시</span>
+              </div>
+            </div>
           </div>
 
           {/* 프리뷰 이미지 */}
@@ -98,7 +117,7 @@ function HeroSection() {
               href="/channels"
               className="inline-flex items-center gap-2 bg-foreground text-background px-6 py-3 rounded-xl font-medium text-sm hover:bg-foreground/90 transition-colors"
             >
-              내 채널 무료 분석
+              내 채널 무료 분석하기
             </a>
           </div>
 
@@ -1622,7 +1641,7 @@ function FinalCtaSection() {
               className={`flex flex-col sm:flex-row items-start gap-4 mt-8 transition-all duration-700 delay-300 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
             >
               <Button size="lg" className="bg-foreground hover:bg-foreground/90 text-background px-8 h-12 text-base rounded-xl shadow-lg" asChild>
-                <a href="/channels">내 채널 분석하기</a>
+                <a href="/channels">내 채널 무료 분석하기</a>
               </Button>
             </div>
 
