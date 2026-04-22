@@ -1131,7 +1131,7 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
                   const totalAnalyses = row.total_analyses_count;
 
                   const statusBadge = getStatusBadge(row.subscription_status, effectivePeriodEnd);
-                  const planLabel = row.plan_id && !isExpired(effectivePeriodEnd)
+                  const planLabel = row.plan_id && !isExpired(effectivePeriodEnd) && row.subscription_status !== "refunded"
                     ? getPlanDisplayLabel(row.plan_id, row.billing_period)
                     : null;
                   const isPaid = row.subscription_status === "active" || row.subscription_status === "trialing" || row.subscription_status === "manual";
