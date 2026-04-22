@@ -988,6 +988,12 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
+  // 다른 메뉴 갔다가 돌아올 때 라우터 캐시 구버전 복원 방지
+  useEffect(() => {
+    startTransition(() => router.refresh());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [grantModal, setGrantModal] = useState<{ userId: string; email: string | null; periodEnd: string | null; planId: string | null; billingPeriod: string | null } | null>(null);
