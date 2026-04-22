@@ -154,9 +154,9 @@ export async function POST(request: Request) {
       const isUpgrade = targetRank >= currentRank;
 
       if (isUpgrade) {
-        // ── 업그레이드: 즉시 적용, renewal_at += 새 기간 ─────────────────────
+        // ── 업그레이드: 즉시 적용, renewal_at = 오늘 + 새 기간 (잔여 기간 소멸) ─
         const months = PERIOD_MONTHS[billingPeriod];
-        const newRenewalAt = new Date(existingRenewalAt!);
+        const newRenewalAt = new Date(now);
         newRenewalAt.setMonth(newRenewalAt.getMonth() + months);
 
         const { error: updateError } = await supabaseAdmin
