@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BarChart3,
@@ -44,7 +43,7 @@ export default function AdminSidebar(): JSX.Element {
         {NAV_ITEMS.map((item) => {
           const active = isActive(pathname, item.href);
           return (
-            <Link
+            <a
               key={item.href}
               href={item.href}
               className={[
@@ -56,19 +55,19 @@ export default function AdminSidebar(): JSX.Element {
             >
               {item.icon}
               {item.label}
-            </Link>
+            </a>
           );
         })}
       </nav>
 
       <div className="border-t border-foreground/10 px-3 py-4">
-        <Link
+        <a
           href="/"
           className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           서비스로 돌아가기
-        </Link>
+        </a>
       </div>
     </aside>
   );
