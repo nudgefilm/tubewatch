@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { data: snap } = await supabase
+    const { data: snap } = await supabaseAdmin
       .from("analysis_results")
       .select("id")
       .eq("user_id", user.id)

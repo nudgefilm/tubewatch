@@ -62,8 +62,8 @@ export async function POST(req: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    // 최신 스냅샷 조회 — supabase(user RLS)로 소유자 검증
-    const { data: row, error: snapErr } = await supabase
+    // 최신 스냅샷 조회 — user_id 필터로 소유자 검증
+    const { data: row, error: snapErr } = await supabaseAdmin
       .from("analysis_results")
       .select("id, channel_title, gemini_raw_json, feature_snapshot, feature_total_score")
       .eq("user_id", user.id)

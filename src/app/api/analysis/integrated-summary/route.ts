@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ── 3. 최신 analysis_results 조회 (integrated_summary 포함) ──────────────
-    const { data: snap, error: snapError } = await supabase
+    const { data: snap, error: snapError } = await supabaseAdmin
       .from("analysis_results")
       .select(
         "id, channel_title, gemini_raw_json, feature_total_score, feature_section_scores, feature_snapshot, created_at, integrated_summary"
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
     // ── 4. DB 캐시 히트 — Gemini 재호출 없이 즉시 반환 ───────────────────────
     if (typeof snap.integrated_summary === "string" && snap.integrated_summary.trim() !== "") {
       // 채널명은 항상 user_channels에서 최신값으로 조회
-      const { data: channelRow } = await supabase
+      const { data: channelRow } = await supabaseAdmin
         .from("user_channels")
         .select("channel_title")
         .eq("id", userChannelId)

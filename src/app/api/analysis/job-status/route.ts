@@ -26,7 +26,7 @@ export async function GET(request: Request) {
   }
 
   // 삭제된 채널 or 타인 채널 접근 방지 — user_channels 소유권 검증
-  const { data: channelRow } = await supabase
+  const { data: channelRow } = await supabaseAdmin
     .from("user_channels")
     .select("id")
     .eq("id", channelId)

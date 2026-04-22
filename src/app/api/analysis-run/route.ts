@@ -12,6 +12,7 @@ import {
   updateAnalysisRunStatusInDb,
 } from "@/lib/analysis/analysisRun";
 import { createClient } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import {
   getOrCreateUserCredits,
   incrementCreditsUsed,
@@ -78,7 +79,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const { data: channelRow, error: chErr } = await supabase
+  const { data: channelRow, error: chErr } = await supabaseAdmin
     .from("user_channels")
     .select("id")
     .eq("id", parsed.channelId)
@@ -100,7 +101,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const { data: latestResult, error: lrErr } = await supabase
+  const { data: latestResult, error: lrErr } = await supabaseAdmin
     .from("analysis_results")
     .select("*")  // STEP 7: 전체 필드 필요 (module payload 구성용)
     .eq("user_id", user.id)
@@ -128,7 +129,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const inserted = await createAnalysisRun(supabase, {
+  const inserted = await createAnalysisRun(supabaseAdmin, {
     userId: user.id,
     channelId: parsed.channelId,
     analysisType: parsed.analysisType,
@@ -144,14 +145,14 @@ export async function POST(request: Request) {
     );
   }
 
-  const toRunning = await updateAnalysisRunStatusInDb(supabase, {
+  const toRunning = await updateAnalysisRunStatusInDb(supabaseAdmin, {
     runId: inserted.id,
     userId: user.id,
     patch: { status: "running" },
   });
 
   if (!toRunning) {
-    await updateAnalysisRunStatusInDb(supabase, {
+    await updateAnalysisRunStatusInDb(supabaseAdmin, {
       runId: inserted.id,
       userId: user.id,
       patch: {
@@ -165,14 +166,14 @@ export async function POST(request: Request) {
     );
   }
 
-  const toCompleted = await updateAnalysisRunStatusInDb(supabase, {
+  const toCompleted = await updateAnalysisRunStatusInDb(supabaseAdmin, {
     runId: inserted.id,
     userId: user.id,
     patch: { status: "completed" },
   });
 
   if (!toCompleted) {
-    await updateAnalysisRunStatusInDb(supabase, {
+    await updateAnalysisRunStatusInDb(supabaseAdmin, {
       runId: inserted.id,
       userId: user.id,
       patch: {
@@ -190,7 +191,7 @@ export async function POST(request: Request) {
   // requested_modules 기준 1 module = 1 row. 개별 실패는 로그로 추적.
   const moduleAnalyzedAt = new Date().toISOString();
   try {
-    await insertAnalysisModuleResults(supabase, {
+    await insertAnalysisModuleResults(supabaseAdmin, {
       analysisRunId: inserted.id,
       userId: user.id,
       channelId: parsed.channelId,
@@ -206,12 +207,12 @@ export async function POST(request: Request) {
   // STEP 5: credit 차감 + credit_logs 1행 기록 (run 완료 후)
   // non-fatal — credit 기록 실패가 run 응답을 막지 않음
   try {
-    const creditsBefore = await getOrCreateUserCredits(supabase, user.id);
+    const creditsBefore = await getOrCreateUserCredits(supabaseAdmin, user.id);
     const creditBefore = creditsBefore.credits_used;
 
     try {
-      await incrementCreditsUsed(supabase, user.id);
-      await insertCreditLog(supabase, {
+      await incrementCreditsUsed(supabaseAdmin, user.id);
+      await insertCreditLog(supabaseAdmin, {
         userId: user.id,
         channelId: parsed.channelId,
         snapshotId: latestResult.id,
@@ -224,7 +225,7 @@ export async function POST(request: Request) {
       });
     } catch (incrementErr) {
       console.error("[analysis-run] credit increment failed:", incrementErr);
-      await insertCreditLog(supabase, {
+      await insertCreditLog(supabaseAdmin, {
         userId: user.id,
         channelId: parsed.channelId,
         snapshotId: latestResult.id,
@@ -244,7 +245,7 @@ export async function POST(request: Request) {
     console.error("[analysis-run] credit flow failed:", creditErr);
   }
 
-  const { data: finalRow, error: finalErr } = await supabase
+  const { data: finalRow, error: finalErr } = await supabaseAdmin
     .from("analysis_runs")
     .select("*")
     .eq("id", inserted.id)

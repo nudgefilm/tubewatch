@@ -102,8 +102,8 @@ export async function POST(request: Request) {
   // admin 판별 — profiles.role 기준, 이메일 하드코딩 없음
   const isAdmin = await isAdminUser(user.id);
 
-  // 채널 소유권 확인
-  const { data: channelRow, error: channelErr } = await supabase
+  // 채널 소유권 확인 (supabaseAdmin: RLS 우회, user_id 필터로 소유권 보장)
+  const { data: channelRow, error: channelErr } = await supabaseAdmin
     .from("user_channels")
     .select(
       "id, channel_id, channel_title, channel_url, thumbnail_url, subscriber_count, video_count, last_analyzed_at"
@@ -128,7 +128,7 @@ export async function POST(request: Request) {
   }
 
   // 기존 스냅샷 확인 — delta 재분석 판단 + 엔진 버전 비교에 사용
-  const { data: existingSnapshot } = await supabase
+  const { data: existingSnapshot } = await supabaseAdmin
     .from("analysis_results")
     .select(
       "id, created_at, feature_snapshot, gemini_raw_json, gemini_model, channel_summary, content_pattern_summary, content_patterns, target_audience, strengths, weaknesses, bottlenecks, recommended_topics, growth_action_plan, sample_size_note, analysis_confidence, engine_version, feature_total_score, feature_section_scores"
