@@ -12,7 +12,6 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getEffectiveLimits } from "@/lib/server/subscription/getEffectiveLimits";
 import { getOrCreateUserCredits } from "@/lib/server/analysis/checkUserCredits";
 import { FREE_LIFETIME_ANALYSIS_LIMIT } from "@/components/billing/types";
-import { createClient } from "@/lib/supabase/server";
 
 export class CreditReservationError extends Error {
   constructor(
@@ -37,10 +36,9 @@ export async function reserveCredit(
   userId: string,
   channelId: string
 ): Promise<ReserveResult> {
-  const supabase = await createClient();
   const [limits, credits] = await Promise.all([
     getEffectiveLimits(supabaseAdmin, userId),
-    getOrCreateUserCredits(supabase, userId),
+    getOrCreateUserCredits(supabaseAdmin, userId),
   ]);
 
   const isFreePlan = limits.planId === "free";
