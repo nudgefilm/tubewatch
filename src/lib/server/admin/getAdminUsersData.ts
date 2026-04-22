@@ -1,19 +1,18 @@
-import type { User } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import type { AdminUsersData, AdminUserRow } from "@/components/admin/types";
 
-async function fetchAllAuthUsers(): Promise<User[]> {
-  const users: User[] = [];
-  let page = 1;
-  while (true) {
-    const { data } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000, page });
-    if (!data?.users?.length) break;
-    users.push(...data.users);
-    const nextPage = "nextPage" in data ? data.nextPage : undefined;
-    if (!nextPage) break;
-    page = nextPage;
-  }
-  return users;
+type RawAuthUser = {
+  id: string;
+  email: string | null;
+  display_name: string | null;
+  created_at: string | null;
+  last_sign_in_at: string | null;
+};
+
+async function fetchAllAuthUsers(): Promise<RawAuthUser[]> {
+  const { data, error } = await supabaseAdmin.rpc("admin_get_auth_users");
+  if (error) throw new Error(`admin_get_auth_users RPC error: ${error.message}`);
+  return (data ?? []) as RawAuthUser[];
 }
 
 export async function getAdminUsersData(): Promise<AdminUsersData> {
@@ -76,16 +75,12 @@ export async function getAdminUsersData(): Promise<AdminUsersData> {
   }
 
   const rows: AdminUserRow[] = authUsers.map((u) => {
-    const meta = u.user_metadata ?? {};
     const credits = creditsMap.get(u.id);
     const sub = subsMap.get(u.id);
     return {
       id: u.id,
       email: u.email ?? null,
-      display_name:
-        (meta.name as string | undefined) ||
-        (meta.full_name as string | undefined) ||
-        null,
+      display_name: u.display_name ?? null,
       created_at: u.created_at ?? null,
       last_sign_in_at: u.last_sign_in_at ?? null,
       channel_count: channelCountMap.get(u.id) ?? 0,
