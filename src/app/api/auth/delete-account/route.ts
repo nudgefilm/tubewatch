@@ -50,6 +50,12 @@ export async function DELETE() {
       }
     }
 
+    // 탈퇴 일시 기록 — 삭제 전에 처리 (CASCADE로 지워지기 전)
+    await supabaseAdmin
+      .from("user_signup_log")
+      .update({ withdrawn_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+      .eq("user_id", user.id);
+
     // shouldSoftDelete: false → hard delete, auth.identities까지 완전 제거
     const { error } = await supabaseAdmin.auth.admin.deleteUser(user.id, false);
 
