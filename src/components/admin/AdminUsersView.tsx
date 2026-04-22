@@ -591,6 +591,7 @@ function HistoryPanel({
   const [showDowngradeForm, setShowDowngradeForm] = useState(false);
   const [targetPlanId, setTargetPlanId] = useState<"creator" | "free" | null>(null);
   const [targetBillingPeriod, setTargetBillingPeriod] = useState<"monthly" | "semiannual">("monthly");
+  const [forceApply, setForceApply] = useState(false);
   const [actionStatus, setActionStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [cancelStatus, setCancelStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [actionError, setActionError] = useState<string | null>(null);
@@ -621,15 +622,23 @@ function HistoryPanel({
       const res = await fetch("/api/admin/set-user-plan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, planId: targetPlanId, billingPeriod: bp, force: true }),
+        body: JSON.stringify({ userId, planId: targetPlanId, billingPeriod: bp, ...(forceApply && { force: true }) }),
       });
-      const body = await res.json().catch(() => ({})) as { ok?: boolean; error?: string };
+      const body = await res.json().catch(() => ({})) as { ok?: boolean; deferred?: boolean; error?: string };
       if (res.ok && body.ok) {
-        setPlanId(targetPlanId);
-        setPendingPlanId(null);
-        setPendingBillingPeriod(null);
+        if (body.deferred) {
+          // 만료 후 적용 → pending으로 표시
+          setPendingPlanId(targetPlanId);
+          setPendingBillingPeriod(targetPlanId === "creator" ? targetBillingPeriod : null);
+        } else {
+          // 즉시 적용
+          setPlanId(targetPlanId);
+          setPendingPlanId(null);
+          setPendingBillingPeriod(null);
+        }
         setShowDowngradeForm(false);
         setTargetPlanId(null);
+        setForceApply(false);
         setActionStatus("done");
         onPlanChanged();
         setTimeout(() => setActionStatus("idle"), 2000);
@@ -775,18 +784,33 @@ function HistoryPanel({
 
                   {targetPlanId && (
                     <p className="text-[10px] text-muted-foreground">
-                      {targetPlanId === "free"
-                        ? "구독이 즉시 종료됩니다."
-                        : renewalAt ? `즉시 Creator로 변경됩니다. 만료일(${formatExpiry(renewalAt)})은 유지됩니다.` : "즉시 Creator로 변경됩니다."}
+                      {forceApply
+                        ? targetPlanId === "free"
+                          ? "구독이 즉시 종료되고 초과 채널이 삭제됩니다."
+                          : renewalAt ? `즉시 Creator로 변경됩니다. 만료일(${formatExpiry(renewalAt)})은 유지되며 초과 채널이 삭제됩니다.` : "즉시 Creator로 변경됩니다. 초과 채널이 삭제됩니다."
+                        : targetPlanId === "free"
+                          ? `${renewalAt ? formatExpiry(renewalAt) + " 만료 후" : "만료 후"} Free로 전환됩니다. 채널은 만료 시점에 정리됩니다.`
+                          : renewalAt ? `${formatExpiry(renewalAt)} 만료 후 Creator로 전환됩니다.` : "만료 후 Creator로 전환됩니다."}
                     </p>
                   )}
+
+                  {/* 즉시 적용 옵션 (테스트/긴급용) */}
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={forceApply}
+                      onChange={(e) => setForceApply(e.target.checked)}
+                      className="w-3 h-3 accent-red-500"
+                    />
+                    <span className="text-[10px] text-red-500 font-medium">즉시 적용 (테스트/긴급용)</span>
+                  </label>
 
                   {actionError && <p className="text-[10px] text-red-500">{actionError}</p>}
 
                   <div className="flex gap-2">
                     <button
                       type="button"
-                      onClick={() => { setShowDowngradeForm(false); setTargetPlanId(null); setActionError(null); }}
+                      onClick={() => { setShowDowngradeForm(false); setTargetPlanId(null); setForceApply(false); setActionError(null); }}
                       className="flex-1 rounded-lg border border-foreground/10 py-1.5 text-xs font-medium text-muted-foreground hover:bg-foreground/5 transition-colors"
                     >
                       취소
@@ -796,21 +820,25 @@ function HistoryPanel({
                       onClick={handleDowngrade}
                       disabled={!targetPlanId || actionStatus === "loading"}
                       className={`flex-1 rounded-lg py-1.5 text-xs font-medium text-white disabled:opacity-40 transition-colors ${
-                        targetPlanId === "free" ? "bg-red-500 hover:bg-red-600" : "bg-amber-500 hover:bg-amber-600"
+                        forceApply
+                          ? targetPlanId === "free" ? "bg-red-500 hover:bg-red-600" : "bg-red-400 hover:bg-red-500"
+                          : targetPlanId === "free" ? "bg-amber-500 hover:bg-amber-600" : "bg-amber-500 hover:bg-amber-600"
                       }`}
                     >
                       {actionStatus === "loading"
                         ? "처리 중..."
-                        : targetPlanId === "free"
-                        ? "즉시 Free 전환"
-                        : "즉시 다운그레이드"}
+                        : forceApply
+                          ? targetPlanId === "free" ? "즉시 Free 전환" : "즉시 다운그레이드"
+                          : targetPlanId === "free" ? "만료 후 Free 전환 예약" : "만료 후 다운그레이드 예약"}
                     </button>
                   </div>
                 </div>
               )}
 
               {actionStatus === "done" && !showDowngradeForm && (
-                <p className="text-[10px] text-emerald-600">변경이 적용되었습니다.</p>
+                <p className="text-[10px] text-emerald-600">
+                  {pendingPlanId ? "다운그레이드가 만료 후 적용되도록 예약되었습니다." : "변경이 즉시 적용되었습니다."}
+                </p>
               )}
             </div>
           )}
