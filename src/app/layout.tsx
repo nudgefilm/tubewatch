@@ -3,6 +3,7 @@ import { Analytics } from "@vercel/analytics/next"
 import { Instrument_Sans, JetBrains_Mono } from "next/font/google"
 import Script from "next/script"
 import type { ReactNode } from "react"
+import VisitTracker from "@/components/VisitTracker"
 import "./globals.css"
 
 const instrumentSans = Instrument_Sans({
@@ -89,6 +90,7 @@ export default function RootLayout({
       </head>
       <body className={`${instrumentSans.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
         {children}
+        <VisitTracker />
         <Analytics />
       </body>
     </html>

@@ -27,6 +27,8 @@ function truncateError(raw: string | null, maxLen: number): string | null {
 }
 
 export async function getAdminDashboardData(): Promise<AdminDashboardData> {
+  const today = new Date().toISOString().slice(0, 10);
+
   const [
     usersCountRes,
     channelsCountRes,
@@ -35,6 +37,8 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     activeSubsRes,
     jobsRes,
     failuresRes,
+    todayVisitorsRes,
+    totalVisitorsRes,
   ] = await Promise.all([
     supabaseAdmin.from("users").select("*", { count: "exact", head: true }),
     supabaseAdmin.from("user_channels").select("*", { count: "exact", head: true }),
@@ -58,6 +62,13 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       .eq("gemini_status", "failed")
       .order("created_at", { ascending: false })
       .limit(5),
+    supabaseAdmin
+      .from("site_visits")
+      .select("*", { count: "exact", head: true })
+      .eq("visit_date", today),
+    supabaseAdmin
+      .from("site_visits")
+      .select("*", { count: "exact", head: true }),
   ]);
 
   const kpi: AdminDashboardKpi = {
@@ -66,6 +77,8 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     analysisRunsCount: resultsCountRes.count ?? 0,
     failedJobsCount: failedJobsRes.count ?? 0,
     activeSubscribersCount: activeSubsRes.count ?? 0,
+    todayVisitorsCount: todayVisitorsRes.count ?? 0,
+    totalVisitorsCount: totalVisitorsRes.count ?? 0,
   };
 
   const jobData = (jobsRes.data ?? []) as unknown as JobDbRow[];

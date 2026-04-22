@@ -9,6 +9,8 @@ export type AdminDashboardKpi = {
   analysisRunsCount: number;
   failedJobsCount: number;
   activeSubscribersCount: number;
+  todayVisitorsCount: number;
+  totalVisitorsCount: number;
 };
 
 export type AdminQueueRow = {
