@@ -7,7 +7,7 @@ const features = [
   {
     number: "01",
     title: "Channel Analysis",
-    description: "최근 영상 50개와 채널 지표를\n80개 신호로 분석해 성장 점수를 산출합니다.",
+    description: "최근 영상 50개와 채널 지표를\n30개 채널 신호 · 9개 성장 지표로 분석해 성장 점수를 산출합니다.",
     visual: "deploy",
     href: "/analysis",
   },

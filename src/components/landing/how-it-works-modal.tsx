@@ -30,12 +30,12 @@ const steps: Step[] = [
   },
   {
     number: "02",
-    title: "80개 신호 분석",
-    description: "수집된 데이터를 튜브워치 엔진이 80개 성장 신호로 분해해 채널의 현재 상태를 진단합니다.\n단순 통계가 아닌 채널 구조 자체를 분석합니다.",
+    title: "30개 채널 신호 분석",
+    description: "수집된 데이터를 튜브워치 엔진이 30개 채널 신호 · 9개 성장 지표 · 7개 패턴으로 분해해 채널의 현재 상태를 진단합니다.\n단순 통계가 아닌 채널 구조 자체를 분석합니다.",
     icon: BarChart3,
     items: ["콘텐츠 주제 일관성", "시청자 반응 구조", "채널 활동 패턴", "SEO 최적화 상태", "성장 모멘텀", "구독 전환 구조", "업로드 주기", "키워드 밀도"],
     label: "분석 신호 영역",
-    note: "80개 신호는 8개 성장 지표로 점수화되어 채널 종합 성장 점수(100점 만점)를 산출합니다.",
+    note: "30개 채널 신호와 9개 성장 지표는 6개 영역 점수로 환산되어 채널 종합 성장 점수(100점 만점)를 산출합니다.",
   },
   {
     number: "03",
@@ -220,7 +220,7 @@ export function HowItWorksModal({ isOpen, onClose }: HowItWorksModalProps) {
         {/* Footer */}
         <div className="p-6 border-t border-foreground/10 bg-foreground/[0.02]">
           <p className="text-center text-sm text-muted-foreground">
-            튜브워치 엔진 — 영상 50개 · 신호 80개 · 성장 지표 8개 · 분석 모듈 4개
+            튜브워치 엔진 — 영상 50개 · 채널 신호 30개 · 성장 지표 9개 · 패턴 7개 · 분석 모듈 4개
           </p>
         </div>
       </div>

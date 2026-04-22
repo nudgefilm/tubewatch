@@ -103,7 +103,7 @@ export function InfrastructureSection() {
               내 채널 점수
             </h2>
             <p className="text-xl text-muted-foreground leading-relaxed mb-12">
-              최근 영상 50개와 80개 성장 신호를 기반으로
+              최근 영상 50개와 30개 채널 신호 · 9개 성장 지표를 기반으로
               <br />
               채널의 현재 상태를 종합 평가합니다.
             </p>
