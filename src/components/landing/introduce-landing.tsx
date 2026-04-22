@@ -109,6 +109,9 @@ function HeroSection() {
                 />
               </div>
             </div>
+            <p className="mt-3 text-center text-xs text-muted-foreground/60">
+              채널 분석 후 &apos;텔레그램 커뮤니티&apos; 입장 시 일부 데이터 접근제한이 해제됩니다.
+            </p>
           </div>
 
           {/* 버튼 */}
