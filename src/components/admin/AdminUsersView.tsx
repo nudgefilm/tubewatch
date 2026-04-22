@@ -116,10 +116,12 @@ function SetPlanButton({
   userId,
   currentPlanId,
   currentBillingPeriod,
+  onSuccess,
 }: {
   userId: string;
   currentPlanId: string | null;
   currentBillingPeriod: string | null;
+  onSuccess?: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [reqStatus, setReqStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
@@ -143,6 +145,7 @@ function SetPlanButton({
       if (res.ok && body.ok) {
         setApplied(opt.key);
         setReqStatus("done");
+        onSuccess?.();
         setTimeout(() => setReqStatus("idle"), 2000);
       } else {
         setErrorMsg(body.error ?? `HTTP ${res.status}`);
@@ -1033,6 +1036,7 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
           onClose={() => setGrantModal(null)}
           onSuccess={(newExpiry) => {
             setLocalExpiry((prev) => ({ ...prev, [grantModal.userId]: newExpiry }));
+            startTransition(() => router.refresh());
             setTimeout(() => setGrantModal(null), 1500);
           }}
         />
@@ -1042,7 +1046,10 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
           userId={creditGrantModal.userId}
           userEmail={creditGrantModal.email}
           onClose={() => setCreditGrantModal(null)}
-          onSuccess={() => setTimeout(() => setCreditGrantModal(null), 1500)}
+          onSuccess={() => {
+            startTransition(() => router.refresh());
+            setTimeout(() => setCreditGrantModal(null), 1500);
+          }}
         />
       )}
       {historyPanel && (
@@ -1065,7 +1072,10 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
           userEmail={refundModal.email}
           currentPeriodEnd={localExpiry[refundModal.userId] ?? refundModal.periodEnd}
           onClose={() => setRefundModal(null)}
-          onSuccess={() => setTimeout(() => setRefundModal(null), 1500)}
+          onSuccess={() => {
+            startTransition(() => router.refresh());
+            setTimeout(() => setRefundModal(null), 1500);
+          }}
         />
       )}
 
@@ -1162,9 +1172,11 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
                       <td className="px-4 py-2.5">
                         <div className="flex flex-col gap-1">
                           <SetPlanButton
+                            key={`${row.id}|${row.plan_id ?? ""}|${row.billing_period ?? ""}`}
                             userId={row.id}
                             currentPlanId={row.plan_id}
                             currentBillingPeriod={row.billing_period}
+                            onSuccess={() => startTransition(() => router.refresh())}
                           />
                           <div className="flex items-center gap-1 flex-wrap">
                             {planLabel && (
