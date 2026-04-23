@@ -9,7 +9,7 @@ const words = [
   { line1: "떡상의 신호", line2: "튜브 워치가 가장 빨리 읽습니다." },
   { line1: "알고리즘 분석", line2: "채널의 다음 행동을 설계합니다." },
   { line1: "성공한 채널의 DNA", line2: "해독하거나 놓치거나" },
-  { line1: "100만 구독자로 가는", line2: "가장 정밀한 네비게이션" },
+  { line1: "성장 채널로 가는", line2: "가장 정밀한 네비게이션" },
 ];
 
 export function HeroSection() {
