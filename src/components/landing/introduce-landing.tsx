@@ -37,7 +37,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 const heroStats = [
   { value: "4", unit: "개", label: "핵심 분석 모듈" },
   { value: "50", unit: "개", label: "영상 심층 분석" },
-  { value: "80", unit: "개+", label: "성장 신호 진단" },
+  { value: "30+9+7", unit: "", label: "신호·지표·패턴 분석" },
   { value: "무료", unit: "", label: "로 시작 가능", isFree: true },
 ];
 
@@ -76,6 +76,11 @@ function HeroSection() {
                 채널 분석 진단 리포트 <span className="text-orange-500">무료</span> 제공
               </span>
             </h1>
+
+            <p className={`text-sm text-muted-foreground mt-3 transition-all duration-700 delay-150 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+              영상 <span className="text-foreground font-medium">50개</span>와 채널 데이터를{" "}
+              <span className="text-orange-500 font-medium">30개 신호 · 9개 지표 · 7개 패턴</span>으로 정밀 분석
+            </p>
 
             <div className={`grid grid-cols-2 gap-x-8 gap-y-2 mt-6 transition-all duration-700 delay-200 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
               <div className="flex items-start gap-2">
@@ -771,7 +776,7 @@ function FeaturesSection() {
 const workSteps = [
   { number: 1, title: "채널 연동",   description: "유튜브 채널 URL 입력", duration: "30초",    icon: "link"     as const },
   { number: 2, title: "데이터 수집", description: "최근 영상 50개 분석", duration: "1분",     icon: "download" as const },
-  { number: 3, title: "AI 분석",    description: "31개+ 성장 신호 처리", duration: "2분",     icon: "brain"    as const },
+  { number: 3, title: "AI 분석",    description: "30신호 · 9지표 · 7패턴 처리", duration: "2분",     icon: "brain"    as const },
   { number: 4, title: "리포트 생성", description: "맞춤 전략 도출",     duration: "1분 30초", icon: "report"  as const },
 ];
 
@@ -1101,7 +1106,7 @@ const comparisonItems = [
     features: [
       { name: "조회수·구독자 수치 제공", others: true, tubewatch: true, highlight: false },
       { name: "성과 원인 분석 (왜 떴는지)", others: false, tubewatch: true, highlight: true },
-      { name: "31개 성장 신호 종합 진단", others: false, tubewatch: true, highlight: true },
+      { name: "30개 신호 · 9개 지표 · 7개 패턴 종합 진단", others: false, tubewatch: true, highlight: true },
     ],
   },
   {
