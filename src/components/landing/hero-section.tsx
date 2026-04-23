@@ -134,8 +134,8 @@ export function HeroSection() {
       </div>
       
       {/* Stats marquee - full width outside container */}
-      <div 
-        className={`absolute bottom-24 left-0 right-0 transition-all duration-700 delay-500 ${
+      <div
+        className={`absolute bottom-24 left-0 right-0 overflow-hidden transition-all duration-700 delay-500 ${
           isVisible ? "opacity-100" : "opacity-0"
         }`}
       >
@@ -143,8 +143,8 @@ export function HeroSection() {
         <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
         {/* Right fade */}
         <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
-        <div className="flex marquee whitespace-nowrap">
-          {[...Array(2)].map((_, i) => (
+        <div className="flex w-max marquee-quad">
+          {[...Array(4)].map((_, i) => (
             <div key={i} className="flex gap-16 pr-16">
               {[
                 { value: "50", label: "분석 영상" },
