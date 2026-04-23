@@ -148,8 +148,9 @@ export function HeroSection() {
             <div key={i} className="flex gap-16">
               {[
                 { value: "50", label: "분석 영상" },
-                { value: "80", label: "데이터 시그널" },
-                { value: "8", label: "성장 지표" },
+                { value: "30", label: "신호" },
+                { value: "9", label: "성장 지표" },
+                { value: "7", label: "패턴" },
                 { value: "4", label: "분석 모듈" },
                 { value: "100", label: "성장 점수 만점" },
                 { value: "1", label: "채널별 무료 진단" },
