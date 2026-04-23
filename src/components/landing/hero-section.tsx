@@ -156,7 +156,7 @@ export function HeroSection() {
                 { value: "3", label: "채널 무료 진단" },
               ].map((stat, idx) => (
                 <div key={`${stat.label}-${i}-${idx}`} className="flex items-baseline gap-4">
-                  <span className="text-4xl lg:text-5xl font-display">{stat.value}</span>
+                  <span className={`text-4xl lg:text-5xl font-display${stat.label === "채널 무료 진단" ? " text-orange-500" : ""}`}>{stat.value}</span>
                   <span className="text-sm text-muted-foreground">
                     {stat.label}
                   </span>
