@@ -79,7 +79,7 @@ function HeroSection() {
 
             <p className={`text-sm text-muted-foreground mt-3 transition-all duration-700 delay-150 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
               영상 <span className="text-foreground font-medium">50개</span>와 채널 데이터를{" "}
-              <span className="text-orange-500 font-medium">30개 신호 · 9개 지표 · 7개 패턴</span>으로 정밀 분석
+              <span className="text-orange-500 font-medium">30개 데이터 시그널 · 9개 성장 지표 · 7개 채널 운영 패턴</span>으로 정밀 분석
             </p>
 
             <div className={`grid grid-cols-2 gap-x-8 gap-y-2 mt-6 transition-all duration-700 delay-200 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
@@ -776,7 +776,7 @@ function FeaturesSection() {
 const workSteps = [
   { number: 1, title: "채널 연동",   description: "유튜브 채널 URL 입력", duration: "30초",    icon: "link"     as const },
   { number: 2, title: "데이터 수집", description: "최근 영상 50개 분석", duration: "1분",     icon: "download" as const },
-  { number: 3, title: "AI 분석",    description: "30신호 · 9지표 · 7패턴 처리", duration: "2분",     icon: "brain"    as const },
+  { number: 3, title: "AI 분석",    description: "30 데이터 시그널 · 9 성장 지표 · 7 채널 운영 패턴 처리", duration: "2분",     icon: "brain"    as const },
   { number: 4, title: "리포트 생성", description: "맞춤 전략 도출",     duration: "1분 30초", icon: "report"  as const },
 ];
 
@@ -1106,7 +1106,7 @@ const comparisonItems = [
     features: [
       { name: "조회수·구독자 수치 제공", others: true, tubewatch: true, highlight: false },
       { name: "성과 원인 분석 (왜 떴는지)", others: false, tubewatch: true, highlight: true },
-      { name: "30개 신호 · 9개 지표 · 7개 패턴 종합 진단", others: false, tubewatch: true, highlight: true },
+      { name: "30개 데이터 시그널 · 9개 성장 지표 · 7개 채널 운영 패턴 종합 진단", others: false, tubewatch: true, highlight: true },
     ],
   },
   {
