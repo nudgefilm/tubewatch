@@ -4,7 +4,7 @@ type AdminStatCardProps = {
   label: string;
   value: number | string;
   subtitle?: string;
-  variant?: "default" | "danger" | "highlight";
+  variant?: "default" | "danger" | "highlight" | "success";
 };
 
 export default function AdminStatCard({
@@ -17,11 +17,13 @@ export default function AdminStatCard({
     typeof value === "number" ? value.toLocaleString("ko-KR") : value;
 
   const valueColor =
-    variant === "danger" && typeof value === "number" && value > 0
-      ? "text-red-600"
-      : variant === "highlight"
-        ? "text-primary"
-        : "text-foreground";
+    variant === "success"
+      ? "text-green-500"
+      : variant === "danger" && typeof value === "number" && value > 0
+        ? "text-red-500"
+        : variant === "highlight"
+          ? "text-primary"
+          : "text-foreground";
 
   return (
     <div className="rounded-xl border border-foreground/10 bg-foreground/[0.02] p-5">

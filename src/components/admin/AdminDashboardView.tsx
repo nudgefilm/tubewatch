@@ -30,10 +30,13 @@ export default function AdminDashboardView({
         <AdminStatCard label="Failed Jobs" value={kpi.failedJobsCount} variant="danger" />
       </div>
 
-      {/* 방문자 */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 max-w-sm">
+      {/* 방문자 · 당일 활동 */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
         <AdminStatCard label="당일 접속수" value={kpi.todayVisitorsCount} />
         <AdminStatCard label="전체 접속수" value={kpi.totalVisitorsCount} />
+        <AdminStatCard label="당일 가입수" value={kpi.todaySignupsCount} variant="success" />
+        <AdminStatCard label="당일 탈퇴수" value={kpi.todayWithdrawalsCount} />
+        <AdminStatCard label="당일 결제수" value={kpi.todayPaymentsCount} variant="danger" />
       </div>
 
       {/* Recent Queue */}

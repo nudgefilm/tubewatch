@@ -28,6 +28,7 @@ function truncateError(raw: string | null, maxLen: number): string | null {
 
 export async function getAdminDashboardData(): Promise<AdminDashboardData> {
   const today = new Date().toISOString().slice(0, 10);
+  const tomorrow = new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
 
   const [
     usersCountRes,
@@ -39,6 +40,9 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     failuresRes,
     todayVisitorsRes,
     totalVisitorsRes,
+    todaySignupsRes,
+    todayWithdrawalsRes,
+    todayPaymentsRes,
   ] = await Promise.all([
     supabaseAdmin.from("users").select("*", { count: "exact", head: true }),
     supabaseAdmin.from("user_channels").select("*", { count: "exact", head: true }),
@@ -69,6 +73,22 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     supabaseAdmin
       .from("site_visits")
       .select("*", { count: "exact", head: true }),
+    supabaseAdmin
+      .from("user_signup_log")
+      .select("*", { count: "exact", head: true })
+      .gte("joined_at", today)
+      .lt("joined_at", tomorrow),
+    supabaseAdmin
+      .from("user_signup_log")
+      .select("*", { count: "exact", head: true })
+      .gte("withdrawn_at", today)
+      .lt("withdrawn_at", tomorrow),
+    supabaseAdmin
+      .from("subscription_changes")
+      .select("*", { count: "exact", head: true })
+      .in("change_type", ["new", "upgrade"])
+      .gte("changed_at", today)
+      .lt("changed_at", tomorrow),
   ]);
 
   const kpi: AdminDashboardKpi = {
@@ -79,6 +99,9 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     activeSubscribersCount: activeSubsRes.count ?? 0,
     todayVisitorsCount: todayVisitorsRes.count ?? 0,
     totalVisitorsCount: totalVisitorsRes.count ?? 0,
+    todaySignupsCount: todaySignupsRes.count ?? 0,
+    todayWithdrawalsCount: todayWithdrawalsRes.count ?? 0,
+    todayPaymentsCount: todayPaymentsRes.count ?? 0,
   };
 
   const jobData = (jobsRes.data ?? []) as unknown as JobDbRow[];

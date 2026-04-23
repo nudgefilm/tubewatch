@@ -11,6 +11,9 @@ export type AdminDashboardKpi = {
   activeSubscribersCount: number;
   todayVisitorsCount: number;
   totalVisitorsCount: number;
+  todaySignupsCount: number;
+  todayWithdrawalsCount: number;
+  todayPaymentsCount: number;
 };
 
 export type AdminQueueRow = {
