@@ -153,7 +153,7 @@ export function HeroSection() {
                 { value: "7", label: "채널 운영 패턴" },
                 { value: "4", label: "분석 모듈" },
                 { value: "100", label: "성장 점수 만점" },
-                { value: "1", label: "채널별 무료 진단" },
+                { value: "3", label: "채널 무료 진단" },
               ].map((stat, idx) => (
                 <div key={`${stat.label}-${i}-${idx}`} className="flex items-baseline gap-4">
                   <span className="text-4xl lg:text-5xl font-display">{stat.value}</span>
