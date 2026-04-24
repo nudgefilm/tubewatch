@@ -306,6 +306,9 @@ export default function ChannelsPageClient({
   }, [selectedChannel, isNavigating, router]);
 
   const handleGenerateReport = useCallback(async (channelId: string) => {
+    // 브라우저 팝업 차단 우회 — async/await 이전에 탭을 먼저 열어둠
+    const newTab = window.open("", "_blank");
+
     setGeneratingReportId(channelId);
     try {
       const res = await fetch("/api/manus/generate", {
@@ -321,20 +324,21 @@ export default function ChannelsPageClient({
       };
 
       if (res.status === 409 && json.access_token) {
-        // 이미 생성된 리포트 — 바로 열기
-        window.open(`/report/${json.access_token}`, "_blank");
+        if (newTab) newTab.location.href = `/report/${json.access_token}`;
         await loadReports();
         return;
       }
 
       if (!res.ok || !json.access_token) {
+        newTab?.close();
         alert(json.error ?? "리포트 생성 요청에 실패했습니다.");
         return;
       }
 
-      window.open(`/report/${json.access_token}`, "_blank");
+      if (newTab) newTab.location.href = `/report/${json.access_token}`;
       await loadReports();
     } catch {
+      newTab?.close();
       alert("네트워크 오류가 발생했습니다. 다시 시도하세요.");
     } finally {
       setGeneratingReportId(null);
@@ -605,7 +609,12 @@ export default function ChannelsPageClient({
                 {/* 월간 리포트 버튼 */}
                 {(() => {
                   const report = reportMap[ch.id];
-                  if (report?.status === "processing" || report?.status === "pending") {
+                  const isExpired = (createdAt: string) =>
+                    Date.now() - new Date(createdAt).getTime() > 15 * 60 * 1000;
+                  if (
+                    (report?.status === "processing" || report?.status === "pending") &&
+                    !isExpired(report.created_at)
+                  ) {
                     return (
                       <span className="shrink-0 cursor-not-allowed rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground/60 select-none">
                         리포트 생성 중…
@@ -617,7 +626,7 @@ export default function ChannelsPageClient({
                       <button
                         type="button"
                         onClick={() => window.open(`/report/${report.access_token}`, "_blank")}
-                        className="shrink-0 rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors"
+                        className="shrink-0 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors"
                       >
                         리포트 확인
                       </button>
@@ -628,7 +637,7 @@ export default function ChannelsPageClient({
                       type="button"
                       disabled={generatingReportId === ch.id}
                       onClick={() => void handleGenerateReport(ch.id)}
-                      className="shrink-0 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="shrink-0 rounded-lg bg-foreground px-3 py-1.5 text-xs font-medium text-background hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {generatingReportId === ch.id ? "요청 중…" : "월간 리포트 신청"}
                     </button>
