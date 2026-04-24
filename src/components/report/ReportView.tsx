@@ -647,6 +647,21 @@ function ContentPlansSection({ data, signals }: {
                     </div>
                   )}
 
+                  {/* 구성 흐름 */}
+                  {(opp.structure_flow ?? []).length > 0 && (
+                    <div style={{ paddingBottom: "18px", borderBottom: `1px solid ${G200}` }}>
+                      <div style={{ fontFamily: MONO, fontSize: "10px", color: G400, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "10px" }}>구성 흐름</div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                        {opp.structure_flow!.map((step, si) => (
+                          <div key={si} style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
+                            <span style={{ fontFamily: MONO, fontSize: "10px", fontWeight: 700, background: BLK, color: LIME, padding: "2px 6px", flexShrink: 0, marginTop: "2px", minWidth: "22px", textAlign: "center" }}>{si + 1}</span>
+                            <span style={{ fontSize: "13px", color: G600, lineHeight: 1.65 }}>{step}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* 하단: 예상 조회수 */}
                   {opp.expected_views && (
                     <div>

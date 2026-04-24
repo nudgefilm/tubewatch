@@ -196,6 +196,7 @@ export type ManusReportJson = {
       rationale?: string;
       priority?: number;
       title_formula?: string;
+      structure_flow?: string[];
       expected_views?: string;
     }>;
     short_form_strategy?: {

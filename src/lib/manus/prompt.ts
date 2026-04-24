@@ -16,86 +16,202 @@ export const MANUS_PROJECT_INSTRUCTION = `당신은 '튜브워치(TubeWatch)'의
 [출력 JSON 스키마 구조]
 {
   "channel_info": {
-    "name": "채널명",
-    "description": "채널 한 줄 소개",
-    "created_date": "YYYY.MM",
-    "total_videos": 0,
+    "channel_name": "채널명",
+    "channel_description": "채널 한 줄 소개",
+    "channel_url": "채널 URL",
+    "founded": "YYYY-MM",
     "subscribers": 0,
-    "analysis_date": "YYYY.MM.DD"
+    "total_videos": 0,
+    "total_views": 0,
+    "analysis_date": "YYYY-MM-DD"
   },
   "section1_scorecard": {
-    "channel_score": 0.0,
-    "grade": "A~F",
-    "grade_label": "등급 설명 (예: 성장 초기 단계)",
-    "metrics": [
-      {"label": "총 조회수 (누적)", "value": "00,000", "sub_label": "▲ 전월 대비 +00%"},
-      {"label": "구독자 수", "value": "00", "sub_label": "→ +0명"},
-      {"label": "평균 조회수 (최근 50개 기준)", "value": "000", "sub_label": "▲ 중앙값 대비 0.0배"},
-      {"label": "월 평균 업로드 수", "value": "0.0회", "sub_label": "▼ 최근 30일 0건"},
-      {"label": "평균 좋아요율", "value": "0.00%", "sub_label": "▲ 우수"},
-      {"label": "평균 댓글 참여율", "value": "0.00%", "sub_label": "▼ 개선 필요"},
-      {"label": "평균 제목 길이", "value": "00.0자", "sub_label": "▲ 최적 범위"},
-      {"label": "채널 개설일", "value": "YYYY.MM", "sub_label": "→ 운영 기간 약 0.0년"}
-    ]
-  },
-  "section2_growth_metrics": [
-    {"id": 1, "title": "구독자 성장률", "status": "정체", "status_type": "neutral", "value": "+00.0%", "label": "월간 구독자 증가율", "diagnosis": "진단 코멘트 1~2문장"}
-  ],
-  "section3_data_signals": {
-    "content": [
-      {"id": "01", "label": "업로드 주기", "value": "불규칙 · 평균 00일 간격", "status": "bad"}
-    ],
-    "performance": [
-      {"id": "11", "label": "최고 조회 영상 배수", "value": "0,000회 · 평균의 0.0배", "status": "good"}
-    ],
-    "identity": [
-      {"id": "21", "label": "주제 일관성", "value": "특정 주제 00% 집중", "status": "good"}
-    ]
-  },
-  "section4_channel_patterns": [
-    {"id": "01", "title": "업로드 패턴 (주기·요일·시간대)", "pattern": "발견된 패턴 요약", "interpretation": "해석 및 의미 1~2문장"}
-  ],
-  "section5_channel_dna": {
-    "core_identity": "채널의 핵심 정체성을 2~3문장으로 요약.",
-    "positioning": "포지셔닝 한 줄 정의",
-    "strengths": [{"id": "01", "title": "강점 1", "description": "강점 설명"}],
-    "weaknesses": [{"id": "01", "title": "약점 1", "description": "약점 설명"}]
-  },
-  "section6_content_plans": [
-    {
-      "id": 1,
-      "titles": [
-        {"type": "자극형", "title": "제목 후보 A"},
-        {"type": "정보형", "title": "제목 후보 B"}
-      ],
-      "intent": "기획 의도 설명",
-      "structure": ["도입부 (0~30초)", "본론 전개", "클라이맥스", "아웃트로"],
-      "target_response": "예상 타겟 반응",
-      "tags": ["태그1", "태그2", "태그3"],
-      "audience_reaction": {"interest": 8, "shareability": 7, "engagement": 6, "informativeness": 9}
+    "grade": "B+",
+    "overall_score": 78,
+    "strengths": ["강점 1 (1~2문장)", "강점 2", "강점 3"],
+    "weaknesses": ["약점 1 (1~2문장)", "약점 2", "약점 3"],
+    "score_breakdown": {
+      "growth_velocity":    {"grade": "B+", "score": 82, "comment": "성장 속도 진단 1~2문장"},
+      "niche_authority":    {"grade": "B",  "score": 80, "comment": "니치 권위 진단 1~2문장"},
+      "viral_potential":    {"grade": "A-", "score": 88, "comment": "바이럴 잠재력 진단 1~2문장"},
+      "upload_regularity":  {"grade": "B-", "score": 72, "comment": "업로드 규칙성 진단 1~2문장"},
+      "engagement_quality": {"grade": "B",  "score": 75, "comment": "참여 품질 진단 1~2문장"},
+      "content_consistency":{"grade": "C+", "score": 70, "comment": "콘텐츠 일관성 진단 1~2문장"}
     }
-  ],
-  "section7_action_plan": {
-    "month": "N월",
-    "weeks": [
-      {"week": 1, "title": "1주차 타이틀", "tasks": [{"title": "태스크 1", "priority": "URGENT"}]}
+  },
+  "section2_growth_metrics": {
+    "growth_trend": {
+      "trend_comment": "성장 추세 요약 1~2문장",
+      "growth_rate_pct": 0.0,
+      "recent_10_avg_views": 0,
+      "previous_10_avg_views": 0,
+      "monthly_upload_last_30d": 0
+    },
+    "view_statistics": {
+      "average_views": 0,
+      "median_views": 0,
+      "max_views": {"title": "최고 조회 영상 제목", "views": 0, "date": "YYYY-MM-DD"},
+      "min_views":  {"title": "최저 조회 영상 제목", "views": 0, "date": "YYYY-MM-DD"},
+      "total_views_50_videos": 0
+    },
+    "view_distribution": {
+      "over_500k": 0,
+      "under_50k": 0,
+      "viral_ratio_pct": 0,
+      "above_average_ratio_pct": 0
+    },
+    "engagement_metrics": {
+      "avg_like_rate": 0.0,
+      "avg_comment_rate": 0.0,
+      "avg_likes_per_video": 0,
+      "avg_comments_per_video": 0
+    },
+    "subscriber_efficiency": {
+      "view_to_subscriber_ratio_pct": 0.0,
+      "comment": "구독자 효율 진단 1문장"
+    }
+  },
+  "section3_data_signals": {
+    "high_performance_patterns": [
+      {"pattern": "고성과 패턴명", "avg_views": 0, "description": "패턴 설명", "insight": "활용 인사이트"}
     ],
-    "success_criteria": [
-      {"label": "활동성 점수", "current": "현재값", "target": "목표값"},
-      {"label": "평균 조회수", "current": "현재값", "target": "목표값"},
-      {"label": "구독자 수", "current": "현재값", "target": "목표값"},
-      {"label": "댓글 참여율", "current": "현재값", "target": "목표값"}
+    "low_performance_patterns": [
+      {"pattern": "저성과 패턴명", "avg_views": 0, "description": "패턴 설명", "insight": "개선 인사이트"}
+    ],
+    "keyword_analysis": {
+      "high_ctr_keywords": ["키워드1", "키워드2", "키워드3"],
+      "topic_performance": {
+        "주제명": {"avg_views": 0, "share_pct": 0, "video_count": 0}
+      }
+    },
+    "title_pattern_analysis": {
+      "avg_title_length": 0.0,
+      "optimal_title_length": "XX~XX자",
+      "effective_structures": ["효과적 제목 구조1", "구조2", "구조3"],
+      "hashtag_usage": {
+        "avg_tags": 0.0,
+        "effective_tags": "#태그1 #태그2 #태그3"
+      }
+    }
+  },
+  "section4_channel_patterns": {
+    "upload_patterns": {
+      "avg_upload_interval_days": 0.0,
+      "recent_30d_uploads": 0,
+      "upload_consistency": "규칙적/불규칙",
+      "optimal_upload_frequency": "권장 업로드 빈도",
+      "peak_upload_period": "YYYY-MM-DD ~ YYYY-MM-DD (XX일간 XX개)"
+    },
+    "audience_behavior": {
+      "viral_trigger": "바이럴 발생 조건 1~2문장",
+      "comment_driver": "댓글 유발 요인 1~2문장",
+      "engagement_peak_content": "참여 피크 콘텐츠 유형"
+    },
+    "content_evolution": {
+      "phase1": {"theme": "주제", "period": "기간", "description": "설명", "avg_views_estimate": 0},
+      "phase2": {"theme": "주제", "period": "기간", "description": "설명", "avg_views_estimate": 0},
+      "phase3": {"theme": "주제", "period": "기간", "description": "설명", "avg_views_estimate": 0}
+    },
+    "series_performance": {
+      "시리즈_키": {"name": "시리즈명", "status": "활성/완료/하락", "avg_views": 0, "video_count": 0, "peak_video": "최고 영상 제목"}
+    },
+    "thumbnail_and_title_patterns": {
+      "effective_title_formulas": ["효과적 제목 공식1", "공식2"],
+      "effective_thumbnail_elements": ["썸네일 요소1", "요소2"]
+    }
+  },
+  "section5_channel_dna": {
+    "core_identity": "채널 핵심 정체성 2~3문장",
+    "brand_keywords": ["키워드1", "키워드2", "키워드3", "키워드4", "키워드5"],
+    "content_pillars": [
+      {"pillar": "필러명", "description": "설명", "avg_performance": "성과 요약", "contribution_pct": 40}
+    ],
+    "creator_persona": {
+      "character": "크리에이터 캐릭터 설명",
+      "storytelling_style": "스토리텔링 방식",
+      "relationship_with_audience": "시청자와의 관계"
+    },
+    "target_audience": {
+      "primary": "1차 타겟 (연령·관심사 포함)",
+      "secondary": "2차 타겟",
+      "tertiary": "3차 타겟"
+    },
+    "unique_value_proposition": "고유 가치 제안 한 줄",
+    "competitive_differentiation": "경쟁 차별화 포인트 한 줄"
+  },
+  "section6_content_plans": {
+    "immediate_opportunities": [
+      {
+        "title": "추천 영상 제목 (구체적 예시 제목)",
+        "concept": "기획 의도 1~2문장 — 왜 이 영상을 만들어야 하는가",
+        "format": "영상 포맷 (예: 10~15분 중형 영상 + 오프라인 클립)",
+        "rationale": "데이터 근거 — 어떤 성과 데이터가 이 기획을 뒷받침하는가 1~2문장",
+        "priority": 1,
+        "title_formula": "제목 공식 템플릿 (예: [장소] [대상]과 [활동] 했더니 [반응])",
+        "structure_flow": [
+          "도입부 (0~30초): 훅 — 시청자의 관심을 끄는 첫 장면 설명",
+          "전개 (1~5분): 본론 — 핵심 내용 전개 방식",
+          "클라이맥스 (5~8분): 하이라이트 — 가장 강렬한 장면·반응",
+          "아웃트로 (마지막 30초): 구독 유도 및 다음 영상 예고"
+        ],
+        "expected_views": "XX만~XX만"
+      }
+    ],
+    "series_concepts": [
+      {
+        "series_name": "시리즈명",
+        "concept": "시리즈 기획 의도 1~2문장",
+        "episode_count": 10,
+        "target_views_per_episode": "XX만~XX만",
+        "content_calendar": "주 X회 업로드"
+      }
+    ],
+    "short_form_strategy": {
+      "posting_frequency": "숏폼 업로드 빈도",
+      "hashtag_strategy": "해시태그 전략 설명",
+      "recommended_formats": ["포맷1", "포맷2"]
+    }
+  },
+  "section7_action_plan": {
+    "immediate_actions": {
+      "timeframe": "1주차",
+      "tasks": [
+        {"task": "태스크명", "detail": "상세 실행 내용", "priority": "URGENT", "expected_impact": "기대 효과"}
+      ]
+    },
+    "short_term_plan": {
+      "timeframe": "2~3주차",
+      "tasks": [
+        {"task": "태스크명", "detail": "상세 실행 내용", "priority": "HIGH", "expected_impact": "기대 효과"}
+      ]
+    },
+    "long_term_plan": {
+      "timeframe": "4주차+",
+      "tasks": [
+        {"task": "태스크명", "detail": "상세 실행 내용", "priority": "NORMAL", "kpi": "KPI 지표", "timeline": "타임라인"}
+      ]
+    },
+    "kpi_targets": {
+      "1_month":  {"subscribers": 0, "upload_count": 0, "avg_views_per_video": 0},
+      "3_months": {"subscribers": 0, "upload_count": 0, "avg_views_per_video": 0},
+      "6_months": {"subscribers": 0, "upload_count": 0, "avg_views_per_video": 0},
+      "12_months":{"subscribers": 0, "upload_count": 0, "avg_views_per_video": 0}
+    },
+    "risk_management": [
+      {"risk": "리스크 내용", "mitigation": "대응 방안", "probability": "높음/보통/낮음"}
     ]
   }
 }
 
 [필수 항목 수]
-- section2_growth_metrics: 반드시 9개
-- section3_data_signals: content 10개, performance 10개, identity 10개 (총 30개)
-- section4_channel_patterns: 반드시 7개
-- section5_channel_dna: strengths 3개, weaknesses 3개
-- section6_content_plans: 반드시 2개
-- section7_action_plan.weeks: 1~4주차 모두 포함`;
+- section1_scorecard.score_breakdown: 6개 항목 모두 포함 (comment 필드 필수)
+- section2_growth_metrics: 5개 하위 객체 모두 포함
+- section3_data_signals: high_performance_patterns 4개 이상, low_performance_patterns 3개 이상, high_ctr_keywords 8개 이상, topic_performance 3개 이상, effective_structures 3개 이상
+- section4_channel_patterns: content_evolution 3단계 이상, series_performance 시리즈별 항목
+- section5_channel_dna: content_pillars 3개, brand_keywords 5개 이상
+- section6_content_plans.immediate_opportunities: 반드시 2개 (structure_flow 4단계 필수 포함)
+- section6_content_plans.series_concepts: 2개
+- section7_action_plan: immediate_actions·short_term_plan·long_term_plan 각 3개 이상 태스크, kpi_targets 1/3/6/12개월 모두 포함`;
 
 export function buildReportPayload(data: {
   channelName: string;
