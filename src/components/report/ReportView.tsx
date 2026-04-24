@@ -323,7 +323,8 @@ function DataSignalsSection({ data, growth, patterns }: {
   const trend  = growth?.growth_trend;
   const thumb  = patterns?.thumbnail_and_title_patterns;
   const upload = patterns?.upload_patterns;
-  const seriesEntries = Object.values(patterns?.series_performance ?? {}).filter(Boolean);
+  const seriesPerf = patterns?.series_performance;
+  const seriesEntries = (Array.isArray(seriesPerf) ? seriesPerf : seriesPerf && typeof seriesPerf === "object" ? Object.values(seriesPerf) : []).filter(Boolean);
 
   type SIRaw = { t: string; v: string; dot: "g" | "r" | "y" | "b" };
   type SI = SIRaw & { n: string };
@@ -354,7 +355,7 @@ function DataSignalsSection({ data, growth, patterns }: {
 
   const g3 = mkSI([
     ...low.slice(0, 7).map(p => ({ t: p.pattern ?? "-", v: (p.insight ?? p.description ?? "").slice(0, 35), dot: "r" as const })),
-    ...(kw?.topic_performance ? Object.entries(kw.topic_performance).map(([topic, perf]) => ({ t: `주제: ${topic}`, v: perf?.avg_views != null ? `평균 ${fmt(perf.avg_views)}회 · ${perf.share_pct ?? 0}%` : `${perf?.video_count ?? 0}개 영상`, dot: "b" as const })) : []),
+    ...(kw?.topic_performance && !Array.isArray(kw.topic_performance) && typeof kw.topic_performance === "object" ? Object.entries(kw.topic_performance).map(([topic, perf]) => ({ t: `주제: ${topic}`, v: perf?.avg_views != null ? `평균 ${fmt(perf.avg_views)}회 · ${perf.share_pct ?? 0}%` : `${perf?.video_count ?? 0}개 영상`, dot: "b" as const })) : []),
     ...seriesEntries.slice(0, 3).map(s => ({ t: `시리즈 · ${s!.name ?? "-"}`, v: `평균 ${fmt(s!.avg_views)}회 · ${s!.video_count ?? 0}편`, dot: "b" as const })),
     upload?.peak_upload_period               ? { t: "업로드 피크 시점",    v: upload.peak_upload_period.slice(0, 45),                                                 dot: "y" } : null,
   ], g1.length + g2.length);
@@ -430,7 +431,7 @@ function ChannelPatternsSection({ data }: { data: ManusReportJson["section4_chan
     pats.push({ n: "07", name: "콘텐츠 진화 타임라인", char: phases.map((ph, i) => `${i + 1}단계: ${ph?.theme ?? "-"}`).join(" → "), interp: last?.description ?? "채널 콘텐츠 방향이 수렴 중. 현재 포맷 유지 권장" });
   }
 
-  if (pats.length < 7 && series && Object.keys(series).length > 0) {
+  if (pats.length < 7 && series && !Array.isArray(series) && typeof series === "object" && Object.keys(series).length > 0) {
     const entries = Object.values(series).filter(Boolean);
     pats.push({ n: String(pats.length + 1).padStart(2, "0"), name: "시리즈 성과 패턴", char: entries.slice(0, 3).map(s => `${s?.name ?? "-"} (평균 ${fmt(s?.avg_views)})`).join(" · "), interp: `${entries.length}개 시리즈 운영 중. 핵심 시리즈에 집중 권장` });
   }

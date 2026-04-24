@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import ReportView from "@/components/report/ReportView";
 import ReportPolling from "@/components/report/ReportPolling";
+import ReportErrorBoundary from "@/components/report/ReportErrorBoundary";
 import type { ManusReportJson } from "@/lib/manus/types";
 
 type Props = { params: Promise<{ token: string }> };
@@ -54,9 +55,11 @@ export default async function ReportPage({ params }: Props) {
   }
 
   return (
-    <ReportView
-      report={data.result_json as ManusReportJson}
-      generatedAt={data.created_at}
-    />
+    <ReportErrorBoundary>
+      <ReportView
+        report={data.result_json as ManusReportJson}
+        generatedAt={data.created_at}
+      />
+    </ReportErrorBoundary>
   );
 }
