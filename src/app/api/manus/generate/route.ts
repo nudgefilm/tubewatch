@@ -66,13 +66,9 @@ export async function POST(req: Request) {
           access_token: existing.access_token,
         }, { status: 409 });
       }
-      // 3분 초과 processing → 실패로 처리 후 재생성 허용
-      await supabaseAdmin
-        .from("manus_reports")
-        .update({ status: "failed", error_message: "Timeout — retrying" })
-        .eq("id", existing.id);
     }
-    // failed 상태 → 아무 처리 없이 새 레코드 생성으로 진행
+    // failed 또는 3분 초과 processing → 기존 레코드 삭제 후 새로 생성
+    await supabaseAdmin.from("manus_reports").delete().eq("id", existing.id);
   }
 
   // 최신 분석 결과 조회
