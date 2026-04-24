@@ -5,6 +5,7 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import {
   BarChart3,
+  CalendarDays,
   ChevronDown,
   CreditCard,
   FileText,
@@ -401,6 +402,30 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup className="mt-auto px-2 pb-3">
+          <SidebarGroupContent>
+            {sidebarState === "expanded" ? (
+              <Link
+                href="/channels"
+                className="flex w-full items-center gap-2 rounded-lg bg-black px-3 py-2.5 text-sm font-semibold text-white hover:bg-zinc-800 transition-colors"
+              >
+                <CalendarDays className="size-4 shrink-0" />
+                <span>월간 채널 분석 리포트</span>
+              </Link>
+            ) : (
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="월간 채널 분석 리포트">
+                    <Link href="/channels">
+                      <CalendarDays />
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            )}
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
