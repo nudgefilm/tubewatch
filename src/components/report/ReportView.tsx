@@ -1003,7 +1003,7 @@ export default function ReportView({ report, generatedAt }: Props) {
           </a>
           <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
             <span className="rpt-nav-label" style={{ fontFamily: MONO, fontSize: "13px", fontWeight: 800, letterSpacing: ".5px", textTransform: "uppercase" }}>Monthly Report</span>
-            <span className="rpt-nav-label" style={{ fontFamily: MONO, fontSize: "12px", fontWeight: 300 }}>{date} · Pro</span>
+            <span className="rpt-nav-label" style={{ fontFamily: MONO, fontSize: "12px", fontWeight: 300 }}>{date} · Free | Creator | Pro</span>
             <button onClick={handleShare} style={{ fontFamily: MONO, fontSize: "12px", fontWeight: 700, letterSpacing: ".5px", padding: "8px 18px", border: `1px solid ${BLK}`, borderRadius: "3px", background: copied ? "#22c55e" : BLK, color: "#fff", cursor: "pointer", whiteSpace: "nowrap", transition: "background .2s" }}
               onMouseEnter={e => { if (!copied) e.currentTarget.style.opacity = ".7"; }}
               onMouseLeave={e => (e.currentTarget.style.opacity = "1")}>
