@@ -54,6 +54,7 @@ export default function ReportPolling({ reportId }: Props) {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background px-4">
+      <p className="mb-2 text-xl font-semibold tracking-tight text-foreground">TubeWatch</p>
       <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       <div className="text-center">
         <p className="text-sm font-medium text-foreground">AI가 채널을 분석하고 있습니다</p>
