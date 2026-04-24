@@ -337,14 +337,14 @@ function DataSignalsSection({ data, growth, patterns }: {
     title?.hashtag_usage?.effective_tags     ? { t: "효과적 태그",         v: title.hashtag_usage.effective_tags.slice(0, 40),                                        dot: "g" } : null,
     ...(title?.effective_structures ?? []).slice(0, 6).map(s => ({ t: "효과적 제목 구조", v: s.slice(0, 45), dot: "g" as const })),
     stats?.max_views?.title                  ? { t: "최고 조회 영상 제목", v: stats.max_views.title.slice(0, 45),                                                     dot: "g" } : null,
-    (kw?.high_ctr_keywords ?? []).length > 3 ? { t: "추가 고CTR 키워드",  v: (kw!.high_ctr_keywords!).slice(3, 6).map(k => `#${k}`).join("  "),                     dot: "y" } : null,
+    (kw?.high_ctr_keywords ?? []).length > 3 ? { t: "클릭 유도 키워드",  v: (kw!.high_ctr_keywords!).slice(3, 6).map(k => `#${k}`).join("  "),                     dot: "y" } : null,
     (thumb?.effective_thumbnail_elements ?? []).length > 0
                                              ? { t: "효과적 썸네일 요소",  v: (thumb!.effective_thumbnail_elements!).slice(0, 2).join(" · ").slice(0, 45),            dot: "b" } : null,
   ]);
 
   const g2 = mkSI([
     ...high.slice(0, 7).map(p => ({ t: p.pattern ?? "-", v: p.avg_views != null ? `평균 ${fmt(p.avg_views)}회` : (p.insight ?? p.description ?? "").slice(0, 35), dot: "g" as const })),
-    ...(kw?.high_ctr_keywords ?? []).slice(0, 3).map(k => ({ t: "고 CTR 키워드", v: `#${k}`, dot: "y" as const })),
+    ...(kw?.high_ctr_keywords ?? []).slice(0, 3).map(k => ({ t: "클릭 유도 키워드", v: `#${k}`, dot: "y" as const })),
     eng?.avg_likes_per_video != null         ? { t: "영상당 평균 좋아요",  v: `${fmt(eng.avg_likes_per_video)}개`,                                                    dot: "g" } : null,
     eng?.avg_comments_per_video != null      ? { t: "영상당 평균 댓글",    v: `${fmt(eng.avg_comments_per_video)}개`,                                                 dot: "g" } : null,
     (trend?.recent_10_avg_views != null && trend?.previous_10_avg_views != null)
