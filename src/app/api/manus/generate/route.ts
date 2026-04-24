@@ -1,7 +1,8 @@
 export const dynamic = "force-dynamic";
-export const maxDuration = 120; // Vercel Pro — Claude 응답 대기
+export const maxDuration = 120; // Vercel Pro — Claude 백그라운드 완료 대기
 
 import { NextResponse } from "next/server";
+import { waitUntil } from "@vercel/functions";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { buildReportPayload } from "@/lib/manus/prompt";
@@ -38,18 +39,40 @@ export async function POST(req: Request) {
 
   const { data: existing } = await supabaseAdmin
     .from("manus_reports")
-    .select("id, status, access_token")
+    .select("id, status, access_token, created_at")
     .eq("user_channel_id", userChannelId)
     .eq("year_month", yearMonth)
     .maybeSingle();
 
   if (existing) {
-    return NextResponse.json({
-      error: "already_generated",
-      report_id: existing.id,
-      status: existing.status,
-      access_token: existing.access_token,
-    }, { status: 409 });
+    // 완료된 리포트 → 기존 것 반환
+    if (existing.status === "completed") {
+      return NextResponse.json({
+        error: "already_generated",
+        report_id: existing.id,
+        status: existing.status,
+        access_token: existing.access_token,
+      }, { status: 409 });
+    }
+
+    // 진행 중 리포트 — 3분 이내면 폴링 페이지로 안내, 이상이면 재시도 허용
+    if (existing.status === "processing") {
+      const ageMs = Date.now() - new Date(existing.created_at).getTime();
+      if (ageMs < 3 * 60 * 1000) {
+        return NextResponse.json({
+          error: "already_generated",
+          report_id: existing.id,
+          status: existing.status,
+          access_token: existing.access_token,
+        }, { status: 409 });
+      }
+      // 3분 초과 processing → 실패로 처리 후 재생성 허용
+      await supabaseAdmin
+        .from("manus_reports")
+        .update({ status: "failed", error_message: "Timeout — retrying" })
+        .eq("id", existing.id);
+    }
+    // failed 상태 → 아무 처리 없이 새 레코드 생성으로 진행
   }
 
   // 최신 분석 결과 조회
@@ -136,28 +159,28 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Failed to save report record" }, { status: 500 });
   }
 
-  // Claude API로 리포트 생성 (동기)
-  try {
-    const resultJson = await generateReport(payload);
+  // Claude API로 리포트 생성 — 백그라운드 실행, 즉시 processing 반환
+  waitUntil(
+    (async () => {
+      try {
+        const resultJson = await generateReport(payload);
+        await supabaseAdmin
+          .from("manus_reports")
+          .update({ status: "completed", result_json: resultJson, error_message: null })
+          .eq("id", reportRow.id);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Unknown error";
+        await supabaseAdmin
+          .from("manus_reports")
+          .update({ status: "failed", error_message: message })
+          .eq("id", reportRow.id);
+      }
+    })()
+  );
 
-    await supabaseAdmin
-      .from("manus_reports")
-      .update({ status: "completed", result_json: resultJson, error_message: null })
-      .eq("id", reportRow.id);
-
-    return NextResponse.json({
-      report_id: reportRow.id,
-      access_token: reportRow.access_token,
-      status: "completed",
-    });
-
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error";
-    await supabaseAdmin
-      .from("manus_reports")
-      .update({ status: "failed", error_message: message })
-      .eq("id", reportRow.id);
-
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
+  return NextResponse.json({
+    report_id: reportRow.id,
+    access_token: reportRow.access_token,
+    status: "processing",
+  });
 }
