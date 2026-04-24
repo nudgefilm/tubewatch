@@ -172,7 +172,7 @@ function ChannelDNA({ data }: { data: ManusReportJson["section5_channel_dna"] })
       <SectionHeader title="Channel DNA" sub="채널 정체성 진단" />
       <div className="mb-4 rounded-lg bg-primary/5 border border-primary/10 p-4">
         <p className="text-xs text-muted-foreground leading-relaxed">{data.core_identity}</p>
-        <p className="mt-2 text-sm font-semibold text-foreground">"{data.positioning}"</p>
+        <p className="mt-2 text-sm font-semibold text-foreground">&ldquo;{data.positioning}&rdquo;</p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
