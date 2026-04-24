@@ -593,7 +593,8 @@ function ContentPlansSection({ data }: { data: ManusReportJson["section6_content
       <div className="rpt-wrap">
         <SecLabel txt="Content Plan" section="섹션 6 / 7" />
         <h2 style={{ fontSize: "clamp(22px,3vw,30px)", fontWeight: 900, letterSpacing: "-1px", lineHeight: 1.2, marginBottom: "8px", fontFamily: SANS }}>완성형 콘텐츠 기획안</h2>
-        <p style={{ fontSize: "15px", color: G600, marginBottom: "36px" }}>AI 분석 기반 · 채널 데이터 흐름에서 도출한 완성형 기획문서입니다.</p>
+        <p style={{ fontSize: "15px", color: G600, marginBottom: "12px" }}>AI 분석 기반 · 채널 데이터 흐름에서 도출한 완성형 기획문서입니다.</p>
+        <p style={{ fontSize: "12px", color: "#D97706", marginBottom: "36px", fontFamily: MONO }}>* 상승기 패턴 기반의 기획으로, 현재 채널 상황과 교차 검토를 권장합니다.</p>
 
         {opps.length > 0 && (
           <div className={opps.length >= 2 ? "g-plans2" : "g-plans2 g-plans-single"} style={{ marginBottom: "28px" }}>
