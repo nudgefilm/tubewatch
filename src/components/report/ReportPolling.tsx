@@ -57,7 +57,7 @@ export default function ReportPolling({ reportId }: Props) {
       <p className="mb-2 text-xl font-semibold tracking-tight text-foreground">TubeWatch</p>
       <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       <div className="text-center">
-        <p className="text-sm font-medium text-foreground">AI가 채널을 분석하고 있습니다</p>
+        <p className="text-sm font-medium text-foreground">튜브워치가 채널을 분석하고 있습니다</p>
         <p className="mt-1 text-xs text-muted-foreground">리포트 생성까지 보통 3~5분 소요됩니다.</p>
         <p className="mt-1 text-xs text-muted-foreground">이 페이지를 열어두면 완료 시 자동으로 결과를 표시합니다.</p>
       </div>
