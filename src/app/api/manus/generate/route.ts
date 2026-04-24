@@ -1,11 +1,11 @@
 export const dynamic = "force-dynamic";
+export const maxDuration = 120; // Vercel Pro — Claude 응답 대기
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { createTask } from "@/lib/manus/client";
 import { buildReportPayload } from "@/lib/manus/prompt";
-import { getOrCreateManusProjectId } from "@/lib/manus/getOrCreateProject";
+import { generateReport } from "@/lib/claude/reportClient";
 import type { NormalizedVideo } from "@/lib/analysis/engine/types";
 
 // POST /api/manus/generate
@@ -119,16 +119,7 @@ export async function POST(req: Request) {
     nextTrend: moduleMap["next_trend"] ?? null,
   });
 
-  // Manus 프로젝트 가져오기 (없으면 생성)
-  const projectId = await getOrCreateManusProjectId();
-
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://tubewatch.kr";
-  const webhookUrl = `${appUrl}/api/manus/webhook`;
-
-  // Manus task 생성
-  const taskId = await createTask(projectId, payload, webhookUrl);
-
-  // DB에 pending 상태로 저장
+  // DB에 processing 상태로 먼저 삽입
   const { data: reportRow, error: insertError } = await supabaseAdmin
     .from("manus_reports")
     .insert({
@@ -136,20 +127,37 @@ export async function POST(req: Request) {
       user_channel_id: userChannelId,
       snapshot_id: result.id,
       year_month: yearMonth,
-      manus_task_id: taskId,
-      manus_project_id: projectId,
       status: "processing",
     })
-    .select("id, access_token, status")
+    .select("id, access_token")
     .single();
 
   if (insertError || !reportRow) {
     return NextResponse.json({ error: "Failed to save report record" }, { status: 500 });
   }
 
-  return NextResponse.json({
-    report_id: reportRow.id,
-    access_token: reportRow.access_token,
-    status: reportRow.status,
-  });
+  // Claude API로 리포트 생성 (동기)
+  try {
+    const resultJson = await generateReport(payload);
+
+    await supabaseAdmin
+      .from("manus_reports")
+      .update({ status: "completed", result_json: resultJson, error_message: null })
+      .eq("id", reportRow.id);
+
+    return NextResponse.json({
+      report_id: reportRow.id,
+      access_token: reportRow.access_token,
+      status: "completed",
+    });
+
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    await supabaseAdmin
+      .from("manus_reports")
+      .update({ status: "failed", error_message: message })
+      .eq("id", reportRow.id);
+
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
