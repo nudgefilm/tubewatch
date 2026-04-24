@@ -147,14 +147,17 @@ export default function ChannelsPageClient({
     void loadReports();
   }, [loadChannels, loadReports]);
 
-  // 페이지가 다시 보일 때 최신 채널 데이터 재조회 (라우터 캐시 우회)
+  // 페이지가 다시 보일 때 최신 채널·리포트 데이터 재조회 (라우터 캐시 우회)
   useEffect(() => {
     const handler = () => {
-      if (document.visibilityState === "visible") void loadChannels();
+      if (document.visibilityState === "visible") {
+        void loadChannels();
+        void loadReports();
+      }
     };
     document.addEventListener("visibilitychange", handler);
     return () => document.removeEventListener("visibilitychange", handler);
-  }, [loadChannels]);
+  }, [loadChannels, loadReports]);
 
   // 삭제된 채널이 선택 중이면 선택 해제
   useEffect(() => {
