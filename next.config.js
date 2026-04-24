@@ -4,6 +4,7 @@ const nextConfig = {
     staleTimes: {
       dynamic: 0,
     },
+    after: true,
   },
   typescript: {
     ignoreBuildErrors: true,

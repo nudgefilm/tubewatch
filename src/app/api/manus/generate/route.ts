@@ -2,11 +2,9 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 120; // Vercel Pro — Claude 백그라운드 완료 대기
 
 import { NextResponse } from "next/server";
-import { waitUntil } from "@vercel/functions";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { buildReportPayload } from "@/lib/manus/prompt";
-import { generateReport } from "@/lib/claude/reportClient";
 import type { NormalizedVideo } from "@/lib/analysis/engine/types";
 
 // POST /api/manus/generate
@@ -155,25 +153,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Failed to save report record" }, { status: 500 });
   }
 
-  // Claude API로 리포트 생성 — 백그라운드 실행, 즉시 processing 반환
-  waitUntil(
-    (async () => {
-      try {
-        const resultJson = await generateReport(payload);
-        await supabaseAdmin
-          .from("manus_reports")
-          .update({ status: "completed", result_json: resultJson, error_message: null })
-          .eq("id", reportRow.id);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Unknown error";
-        await supabaseAdmin
-          .from("manus_reports")
-          .update({ status: "failed", error_message: message })
-          .eq("id", reportRow.id);
-      }
-    })()
-  );
-
+  // 즉시 processing 반환 — 실제 생성은 /api/manus/process 에서 클라이언트가 트리거
   return NextResponse.json({
     report_id: reportRow.id,
     access_token: reportRow.access_token,
