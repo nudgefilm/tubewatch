@@ -103,8 +103,8 @@ export const MANUS_PROJECT_INSTRUCTION = `당신은 '튜브워치(TubeWatch)'의
       "peak_upload_period": "YYYY-MM-DD ~ YYYY-MM-DD (XX일간 XX개)"
     },
     "audience_behavior": {
-      "viral_trigger": "바이럴 발생 조건 1~2문장",
-      "comment_driver": "댓글 유발 요인 1~2문장",
+      "viral_trigger": "바이럴 발생 조건 1문장",
+      "comment_driver": "댓글 유발 요인 1문장",
       "engagement_peak_content": "참여 피크 콘텐츠 유형"
     },
     "content_evolution": {
@@ -143,24 +143,18 @@ export const MANUS_PROJECT_INSTRUCTION = `당신은 '튜브워치(TubeWatch)'의
     "immediate_opportunities": [
       {
         "title": "추천 영상 제목 (구체적 예시 제목)",
-        "concept": "기획 의도 1~2문장 — 왜 이 영상을 만들어야 하는가",
-        "format": "영상 포맷 (예: 10~15분 중형 영상 + 오프라인 클립)",
-        "rationale": "데이터 근거 — 어떤 성과 데이터가 이 기획을 뒷받침하는가 1~2문장",
+        "concept": "기획 의도 1문장 — 왜 이 영상을 만들어야 하는가",
+        "format": "영상 포맷 (예: 10~15분 중형 영상)",
+        "rationale": "데이터 근거 1문장",
         "priority": 1,
-        "title_formula": "제목 공식 템플릿 (예: [장소] [대상]과 [활동] 했더니 [반응])",
-        "structure_flow": [
-          "도입부 (0~30초): 훅 — 시청자의 관심을 끄는 첫 장면 설명",
-          "전개 (1~5분): 본론 — 핵심 내용 전개 방식",
-          "클라이맥스 (5~8분): 하이라이트 — 가장 강렬한 장면·반응",
-          "아웃트로 (마지막 30초): 구독 유도 및 다음 영상 예고"
-        ],
+        "title_formula": "제목 공식 템플릿",
         "expected_views": "XX만~XX만"
       }
     ],
     "series_concepts": [
       {
         "series_name": "시리즈명",
-        "concept": "시리즈 기획 의도 1~2문장",
+        "concept": "시리즈 기획 의도 1문장",
         "episode_count": 10,
         "target_views_per_episode": "XX만~XX만",
         "content_calendar": "주 X회 업로드"
@@ -206,12 +200,12 @@ export const MANUS_PROJECT_INSTRUCTION = `당신은 '튜브워치(TubeWatch)'의
 [필수 항목 수]
 - section1_scorecard.score_breakdown: 6개 항목 모두 포함 (comment 필드 필수)
 - section2_growth_metrics: 5개 하위 객체 모두 포함
-- section3_data_signals: high_performance_patterns 4개 이상, low_performance_patterns 3개 이상, high_ctr_keywords 8개 이상, topic_performance 3개 이상, effective_structures 3개 이상
+- section3_data_signals: high_performance_patterns 3개, low_performance_patterns 3개, high_ctr_keywords 5개 이상, topic_performance 3개 이상, effective_structures 3개 이상
 - section4_channel_patterns: content_evolution 3단계 이상, series_performance 시리즈별 항목
 - section5_channel_dna: content_pillars 3개, brand_keywords 5개 이상
-- section6_content_plans.immediate_opportunities: 반드시 2개 (structure_flow 4단계 필수 포함)
-- section6_content_plans.series_concepts: 2개
-- section7_action_plan: immediate_actions·short_term_plan·long_term_plan 각 3개 이상 태스크, kpi_targets 1/3/6/12개월 모두 포함`;
+- section6_content_plans.immediate_opportunities: 2개 (structure_flow 불필요)
+- section6_content_plans.series_concepts: 1개
+- section7_action_plan: immediate_actions·short_term_plan·long_term_plan 각 3개 태스크, kpi_targets 1/3/6/12개월 모두 포함`;
 
 export function buildReportPayload(data: {
   channelName: string;

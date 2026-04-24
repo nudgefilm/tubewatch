@@ -309,7 +309,7 @@ export default function ChannelsPageClient({
   }, [selectedChannel, isNavigating, router]);
 
   const handleGenerateReport = useCallback(async (channelId: string) => {
-    // 팝업 차단 우회 — 동기 컨텍스트에서 탭을 먼저 열어둠 (생성 중 로딩 페이지)
+    // 팝업 차단 우회 — 동기 컨텍스트에서 탭을 먼저 열어둠
     const newTab = window.open("/report/generating", "_blank");
 
     setGeneratingReportId(channelId);
@@ -326,20 +326,24 @@ export default function ChannelsPageClient({
         status?: string;
       };
 
-      if (res.status === 409 && json.access_token) {
-        if (newTab) newTab.location.href = `/report/${json.access_token}`;
-        await loadReports();
-        return;
-      }
-
-      if (!res.ok || !json.access_token) {
+      if (!res.ok && res.status !== 409) {
         newTab?.close();
         alert(json.error ?? "리포트 생성 요청에 실패했습니다.");
         return;
       }
 
-      // 완료 — 리포트 페이지로 이동
-      if (newTab) newTab.location.href = `/report/${json.access_token}`;
+      if (!json.access_token) {
+        newTab?.close();
+        alert(json.error ?? "리포트 생성 요청에 실패했습니다.");
+        return;
+      }
+
+      // 완료 → 리포트 직접 이동 / 생성 중(processing) → SSE 진행 페이지로 이동
+      if (json.status === "completed") {
+        if (newTab) newTab.location.href = `/report/${json.access_token}`;
+      } else {
+        if (newTab) newTab.location.href = `/report/generating?token=${json.access_token}`;
+      }
       await loadReports();
     } catch {
       newTab?.close();
@@ -647,7 +651,7 @@ export default function ChannelsPageClient({
                       onClick={() => void handleGenerateReport(ch.id)}
                       className="shrink-0 rounded-lg bg-foreground px-3 py-1.5 text-xs font-medium text-background hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {generatingReportId === ch.id ? "생성 중… (1~2분)" : "월간 리포트 신청"}
+                      {generatingReportId === ch.id ? "신청 중…" : "월간 리포트 신청"}
                     </button>
                   );
                 })()}
