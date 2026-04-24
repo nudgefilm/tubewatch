@@ -327,8 +327,8 @@ function DataSignalsSection({ data, growth, patterns }: {
 
   type SIRaw = { t: string; v: string; dot: "g" | "r" | "y" | "b" };
   type SI = SIRaw & { n: string };
-  const mkSI = (arr: (SIRaw | null)[]): SI[] =>
-    arr.filter((x): x is SIRaw => x !== null).slice(0, 10).map((item, i) => ({ n: String(i + 1).padStart(2, "0"), ...item }));
+  const mkSI = (arr: (SIRaw | null)[], offset = 0): SI[] =>
+    arr.filter((x): x is SIRaw => x !== null).slice(0, 10).map((item, i) => ({ n: String(offset + i + 1).padStart(2, "0"), ...item }));
 
   const g1 = mkSI([
     title?.avg_title_length != null          ? { t: "평균 제목 길이",      v: `${title.avg_title_length}자`,                                                          dot: "g" } : null,
@@ -350,14 +350,14 @@ function DataSignalsSection({ data, growth, patterns }: {
     (trend?.recent_10_avg_views != null && trend?.previous_10_avg_views != null)
       ? { t: "최근 모멘텀 변화", v: `최근 ${fmt(trend.recent_10_avg_views)} vs 이전 ${fmt(trend.previous_10_avg_views)}`, dot: trend.recent_10_avg_views >= trend.previous_10_avg_views ? "g" : "r" as const }
       : null,
-  ]);
+  ], g1.length);
 
   const g3 = mkSI([
     ...low.slice(0, 7).map(p => ({ t: p.pattern ?? "-", v: (p.insight ?? p.description ?? "").slice(0, 35), dot: "r" as const })),
     ...(kw?.topic_performance ? Object.entries(kw.topic_performance).map(([topic, perf]) => ({ t: `주제: ${topic}`, v: perf?.avg_views != null ? `평균 ${fmt(perf.avg_views)}회 · ${perf.share_pct ?? 0}%` : `${perf?.video_count ?? 0}개 영상`, dot: "b" as const })) : []),
     ...seriesEntries.slice(0, 3).map(s => ({ t: `시리즈 · ${s!.name ?? "-"}`, v: `평균 ${fmt(s!.avg_views)}회 · ${s!.video_count ?? 0}편`, dot: "b" as const })),
     upload?.peak_upload_period               ? { t: "업로드 피크 시점",    v: upload.peak_upload_period.slice(0, 45),                                                 dot: "y" } : null,
-  ]);
+  ], g1.length + g2.length);
 
   const total = g1.length + g2.length + g3.length;
   const groups = [
