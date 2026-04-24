@@ -1,10 +1,11 @@
 export const dynamic = "force-dynamic";
-export const maxDuration = 120; // Vercel Pro — Claude 백그라운드 완료 대기
+export const maxDuration = 120; // Vercel Pro — Claude 응답 대기
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { buildReportPayload } from "@/lib/manus/prompt";
+import { generateReport } from "@/lib/claude/reportClient";
 import type { NormalizedVideo } from "@/lib/analysis/engine/types";
 
 // POST /api/manus/generate
@@ -43,7 +44,6 @@ export async function POST(req: Request) {
     .maybeSingle();
 
   if (existing) {
-    // 완료된 리포트 → 기존 것 반환
     if (existing.status === "completed") {
       return NextResponse.json({
         error: "already_generated",
@@ -53,10 +53,10 @@ export async function POST(req: Request) {
       }, { status: 409 });
     }
 
-    // 진행 중 리포트 — 3분 이내면 폴링 페이지로 안내, 이상이면 재시도 허용
+    // processing 2분 이내 → 현재 생성 중, 기존 토큰으로 안내
     if (existing.status === "processing") {
       const ageMs = Date.now() - new Date(existing.created_at).getTime();
-      if (ageMs < 3 * 60 * 1000) {
+      if (ageMs < 2 * 60 * 1000) {
         return NextResponse.json({
           error: "already_generated",
           report_id: existing.id,
@@ -65,11 +65,11 @@ export async function POST(req: Request) {
         }, { status: 409 });
       }
     }
-    // failed 또는 3분 초과 processing → 기존 레코드 삭제 후 새로 생성
+    // failed 또는 2분 초과 processing → 삭제 후 재생성
     await supabaseAdmin.from("manus_reports").delete().eq("id", existing.id);
   }
 
-  // 최신 분석 결과 조회
+  // 분석 결과 조회
   const { data: result } = await supabaseAdmin
     .from("analysis_results")
     .select("id, feature_snapshot, channel_summary")
@@ -80,7 +80,7 @@ export async function POST(req: Request) {
     .maybeSingle();
 
   if (!result) {
-    return NextResponse.json({ error: "No analysis result found. Please run an analysis first." }, { status: 404 });
+    return NextResponse.json({ error: "분석 결과가 없습니다. 먼저 채널 분석을 실행해주세요." }, { status: 404 });
   }
 
   // 모듈 결과 조회
@@ -100,15 +100,9 @@ export async function POST(req: Request) {
     channel?: { description?: string; publishedAt?: string };
     videos?: NormalizedVideo[];
     metrics?: {
-      avgViewCount: number;
-      medianViewCount: number;
-      avgLikeRatio: number;
-      avgCommentRatio: number;
-      avgVideoDuration: number;
-      avgUploadIntervalDays: number;
-      recent30dUploadCount: number;
-      avgTitleLength: number;
-      avgTagCount: number;
+      avgViewCount: number; medianViewCount: number; avgLikeRatio: number;
+      avgCommentRatio: number; avgVideoDuration: number; avgUploadIntervalDays: number;
+      recent30dUploadCount: number; avgTitleLength: number; avgTagCount: number;
     };
   } | null;
 
@@ -120,15 +114,9 @@ export async function POST(req: Request) {
     videoCount: channel.video_count ?? 0,
     publishedAt: snapshot?.channel?.publishedAt ?? channel.published_at ?? null,
     metrics: snapshot?.metrics ?? {
-      avgViewCount: 0,
-      medianViewCount: 0,
-      avgLikeRatio: 0,
-      avgCommentRatio: 0,
-      avgVideoDuration: 0,
-      avgUploadIntervalDays: 0,
-      recent30dUploadCount: 0,
-      avgTitleLength: 0,
-      avgTagCount: 0,
+      avgViewCount: 0, medianViewCount: 0, avgLikeRatio: 0, avgCommentRatio: 0,
+      avgVideoDuration: 0, avgUploadIntervalDays: 0, recent30dUploadCount: 0,
+      avgTitleLength: 0, avgTagCount: 0,
     },
     videos: snapshot?.videos ?? [],
     channelDna: moduleMap["channel_dna"] ?? null,
@@ -136,7 +124,7 @@ export async function POST(req: Request) {
     nextTrend: moduleMap["next_trend"] ?? null,
   });
 
-  // DB에 processing 상태로 먼저 삽입
+  // DB에 processing 상태로 삽입
   const { data: reportRow, error: insertError } = await supabaseAdmin
     .from("manus_reports")
     .insert({
@@ -150,13 +138,28 @@ export async function POST(req: Request) {
     .single();
 
   if (insertError || !reportRow) {
-    return NextResponse.json({ error: "Failed to save report record" }, { status: 500 });
+    return NextResponse.json({ error: "리포트 레코드 저장에 실패했습니다." }, { status: 500 });
   }
 
-  // 즉시 processing 반환 — 실제 생성은 /api/manus/process 에서 클라이언트가 트리거
-  return NextResponse.json({
-    report_id: reportRow.id,
-    access_token: reportRow.access_token,
-    status: "processing",
-  });
+  // Claude API 동기 호출 — 완료 후 반환
+  try {
+    const resultJson = await generateReport(payload);
+    await supabaseAdmin
+      .from("manus_reports")
+      .update({ status: "completed", result_json: resultJson, error_message: null })
+      .eq("id", reportRow.id);
+
+    return NextResponse.json({
+      report_id: reportRow.id,
+      access_token: reportRow.access_token,
+      status: "completed",
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    await supabaseAdmin
+      .from("manus_reports")
+      .update({ status: "failed", error_message: message })
+      .eq("id", reportRow.id);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }

@@ -1,64 +1,51 @@
 export const dynamic = "force-dynamic";
-export const maxDuration = 120; // Vercel Pro — Claude 응답 대기
+export const maxDuration = 120;
 
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { generateReport } from "@/lib/claude/reportClient";
 import { buildReportPayload } from "@/lib/manus/prompt";
 import type { NormalizedVideo } from "@/lib/analysis/engine/types";
 
 // POST /api/manus/process
-// Body: { report_id: string }
-// 클라이언트(ReportPolling)가 마운트 시 호출 — Claude API를 동기 실행
+// Body: { access_token: string }
+// stuck "processing" 레코드 복구용 — access_token 기반 인증 (세션 불필요)
 export async function POST(req: Request) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const body = await req.json().catch(() => ({}));
-  const reportId: string | undefined = body?.report_id;
-  if (!reportId) return NextResponse.json({ error: "report_id required" }, { status: 400 });
+  const accessToken: string | undefined = body?.access_token;
+  if (!accessToken) return NextResponse.json({ error: "access_token required" }, { status: 400 });
 
-  // 리포트 조회 + 소유권 확인
+  // access_token으로 리포트 조회 (processing 상태만)
   const { data: report } = await supabaseAdmin
     .from("manus_reports")
-    .select("id, status, user_channel_id, snapshot_id, created_at, updated_at")
-    .eq("id", reportId)
-    .eq("user_id", user.id)
+    .select("id, status, user_id, user_channel_id, snapshot_id, created_at, updated_at")
+    .eq("access_token", accessToken)
     .maybeSingle();
 
   if (!report) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (report.status === "completed") return NextResponse.json({ status: "completed" });
+  if (report.status === "failed") return NextResponse.json({ status: "failed" });
+  if (report.status !== "processing") return NextResponse.json({ status: report.status });
 
-  // 이미 완료/실패 → 재실행 불필요
-  if (report.status === "completed" || report.status === "failed") {
-    return NextResponse.json({ status: report.status });
-  }
-
-  // 중복 실행 방지: process가 이미 claimed한 경우(updated_at이 created_at보다 10초 이상 최신)에만 90초 락 적용
-  // 신규 레코드(updated_at ≈ created_at)는 락 없이 즉시 실행
+  // 중복 실행 방지: process가 이미 claimed된 경우만 90초 락 적용
   const createdMs = new Date(report.created_at).getTime();
   const updatedMs = new Date(report.updated_at).getTime();
-  const wasClaimed = (updatedMs - createdMs) > 10_000;
-  if (wasClaimed) {
-    const msSinceClaim = Date.now() - updatedMs;
-    if (msSinceClaim < 90_000) {
-      return NextResponse.json({ status: "processing", message: "already running" });
-    }
+  if ((updatedMs - createdMs) > 10_000 && (Date.now() - updatedMs) < 90_000) {
+    return NextResponse.json({ status: "processing", message: "already running" });
   }
 
-  // updated_at 갱신으로 중복 실행 방지 (낙관적 락)
+  // 락 획득
   await supabaseAdmin
     .from("manus_reports")
     .update({ updated_at: new Date().toISOString() })
-    .eq("id", reportId);
+    .eq("id", report.id);
 
-  // 분석 결과 + 채널 정보 다시 조회
+  // 채널 + 분석 데이터 조회
   const { data: channel } = await supabaseAdmin
     .from("user_channels")
     .select("channel_title, channel_id, subscriber_count, view_count, video_count, description, published_at")
     .eq("id", report.user_channel_id)
-    .eq("user_id", user.id)
+    .eq("user_id", report.user_id)
     .maybeSingle();
 
   const { data: result } = await supabaseAdmin
@@ -70,8 +57,8 @@ export async function POST(req: Request) {
   if (!channel || !result) {
     await supabaseAdmin
       .from("manus_reports")
-      .update({ status: "failed", error_message: "Channel or analysis data missing" })
-      .eq("id", reportId);
+      .update({ status: "failed", error_message: "채널 또는 분석 데이터를 찾을 수 없습니다." })
+      .eq("id", report.id);
     return NextResponse.json({ error: "Data missing" }, { status: 404 });
   }
 
@@ -79,7 +66,7 @@ export async function POST(req: Request) {
     .from("analysis_module_results")
     .select("module_key, result")
     .eq("snapshot_id", result.id)
-    .eq("user_id", user.id)
+    .eq("user_id", report.user_id)
     .eq("status", "completed");
 
   const moduleMap: Record<string, Record<string, unknown>> = {};
@@ -120,14 +107,14 @@ export async function POST(req: Request) {
     await supabaseAdmin
       .from("manus_reports")
       .update({ status: "completed", result_json: resultJson, error_message: null })
-      .eq("id", reportId);
+      .eq("id", report.id);
     return NextResponse.json({ status: "completed" });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     await supabaseAdmin
       .from("manus_reports")
       .update({ status: "failed", error_message: message })
-      .eq("id", reportId);
+      .eq("id", report.id);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

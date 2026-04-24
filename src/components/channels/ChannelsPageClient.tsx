@@ -309,8 +309,8 @@ export default function ChannelsPageClient({
   }, [selectedChannel, isNavigating, router]);
 
   const handleGenerateReport = useCallback(async (channelId: string) => {
-    // 브라우저 팝업 차단 우회 — async/await 이전에 탭을 먼저 열어둠
-    const newTab = window.open("", "_blank");
+    // 팝업 차단 우회 — 동기 컨텍스트에서 탭을 먼저 열어둠 (생성 중 로딩 페이지)
+    const newTab = window.open("/report/generating", "_blank");
 
     setGeneratingReportId(channelId);
     try {
@@ -338,6 +338,7 @@ export default function ChannelsPageClient({
         return;
       }
 
+      // 완료 — 리포트 페이지로 이동
       if (newTab) newTab.location.href = `/report/${json.access_token}`;
       await loadReports();
     } catch {
@@ -613,7 +614,7 @@ export default function ChannelsPageClient({
                 {(() => {
                   const report = reportMap[ch.id];
                   const isExpired = (createdAt: string) =>
-                    Date.now() - new Date(createdAt).getTime() > 15 * 60 * 1000;
+                    Date.now() - new Date(createdAt).getTime() > 3 * 60 * 1000;
                   if (
                     (report?.status === "processing" || report?.status === "pending") &&
                     !isExpired(report.created_at)
@@ -624,7 +625,7 @@ export default function ChannelsPageClient({
                         onClick={() => window.open(`/report/${report.access_token}`, "_blank")}
                         className="shrink-0 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted transition-colors"
                       >
-                        리포트 생성 중…
+                        리포트 확인 중…
                       </button>
                     );
                   }
@@ -646,7 +647,7 @@ export default function ChannelsPageClient({
                       onClick={() => void handleGenerateReport(ch.id)}
                       className="shrink-0 rounded-lg bg-foreground px-3 py-1.5 text-xs font-medium text-background hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {generatingReportId === ch.id ? "요청 중…" : "월간 리포트 신청"}
+                      {generatingReportId === ch.id ? "생성 중… (1~2분)" : "월간 리포트 신청"}
                     </button>
                   );
                 })()}
