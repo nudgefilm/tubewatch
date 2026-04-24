@@ -256,27 +256,28 @@ function HeroSection({ info, scorecard, growth, signals, date }: {
 }
 
 /* ══ SECTION 2: 9개 성장 지표 ═════════════════════════════════ */
-function GrowthSection({ data }: { data: ManusReportJson["section2_growth_metrics"] }) {
+function GrowthSection({ data, scorecard }: { data: ManusReportJson["section2_growth_metrics"]; scorecard: ManusReportJson["section1_scorecard"] }) {
   if (!data) return null;
   const trend = data.growth_trend;
   const stats = data.view_statistics;
   const dist  = data.view_distribution;
   const eng   = data.engagement_metrics;
   const sub   = data.subscriber_efficiency;
+  const sb    = scorecard?.score_breakdown ?? {};
 
   type St = "up" | "dn" | "fl" | "wn";
   const s = (v: number | null | undefined, g: number, b: number): St => v == null ? "fl" : v >= g ? "up" : v <= b ? "dn" : "fl";
 
   const metrics = [
-    { n: "① 구독자 성장률",         st: s(trend?.growth_rate_pct, 5, 0),               val: trend?.growth_rate_pct != null ? `${trend.growth_rate_pct > 0 ? "+" : ""}${trend.growth_rate_pct}%` : "-",              name: "구독자 성장률",          ann: trend?.growth_rate_pct != null ? (trend.growth_rate_pct > 0 ? annUp(`전월 대비 +${trend.growth_rate_pct}%`) : annDown(`전월 대비 ${trend.growth_rate_pct}%`)) : annFlat("성장 추세 분석 중") },
-    { n: "② 조회율 (조회수/구독자)", st: s(sub?.view_to_subscriber_ratio_pct, 50, 10),  val: sub?.view_to_subscriber_ratio_pct != null ? `${sub.view_to_subscriber_ratio_pct}%` : "-",                                 name: "구독자 대비 조회수 비율", ann: sub?.view_to_subscriber_ratio_pct != null ? (sub.view_to_subscriber_ratio_pct >= 50 ? annUp(`구독자 대비 조회율 ${sub.view_to_subscriber_ratio_pct}%`) : annDown(`구독자 대비 조회율 ${sub.view_to_subscriber_ratio_pct}%`)) : annFlat(sub?.comment ?? "-") },
-    { n: "③ 좋아요율",              st: s(eng?.avg_like_rate, 1.5, 0.5),               val: eng?.avg_like_rate != null ? `${eng.avg_like_rate}%` : "-",                                                               name: "평균 좋아요율",           ann: eng?.avg_like_rate != null ? (eng.avg_like_rate >= 1.2 ? annUp("업계 평균 1.2% 상회") : annDown("업계 평균 1.2% 미달")) : annFlat("-") },
-    { n: "④ 댓글 참여율",           st: s(eng?.avg_comment_rate, 1.0, 0.3),            val: eng?.avg_comment_rate != null ? `${eng.avg_comment_rate}%` : "-",                                                         name: "평균 댓글 참여율",         ann: eng?.avg_comment_rate != null ? (eng.avg_comment_rate >= 1.0 ? annUp("상호작용 우수") : eng.avg_comment_rate >= 0.3 ? annFlat("상호작용 개선 여지") : annDown("상호작용 개선 필요")) : annFlat("-") },
-    { n: "⑤ 업로드 일관성",         st: "fl" as St,                                     val: trend?.monthly_upload_last_30d != null ? `${trend.monthly_upload_last_30d}회/월` : "-",                                   name: "최근 30일 업로드 횟수",   ann: trend?.monthly_upload_last_30d != null ? (trend.monthly_upload_last_30d === 0 ? annDown("최근 30일 0건") : trend.monthly_upload_last_30d >= 4 ? annUp(`월 ${trend.monthly_upload_last_30d}건`) : annFlat(`월 ${trend.monthly_upload_last_30d}건`)) : annFlat("-") },
-    { n: "⑥ 최근 모멘텀",           st: s(trend?.growth_rate_pct, 10, 0),              val: (trend?.recent_10_avg_views != null ? fmt(trend.recent_10_avg_views) : trend?.growth_rate_pct != null ? `${trend.growth_rate_pct > 0 ? "+" : ""}${trend.growth_rate_pct}%` : "-"),                                    name: "최근 10개 평균 조회",     ann: (trend?.recent_10_avg_views != null && trend?.previous_10_avg_views != null && trend.previous_10_avg_views > 0) ? (trend.recent_10_avg_views >= trend.previous_10_avg_views ? annUp(`이전 대비 +${(((trend.recent_10_avg_views - trend.previous_10_avg_views) / trend.previous_10_avg_views) * 100).toFixed(0)}%`) : annDown(`이전 대비 ${(((trend.recent_10_avg_views - trend.previous_10_avg_views) / trend.previous_10_avg_views) * 100).toFixed(0)}%`)) : annFlat("성장 모멘텀 분석 중") },
-    { n: "⑦ 상위 조회수 집중도",    st: s(dist?.viral_ratio_pct, 20, 5),              val: dist?.viral_ratio_pct != null ? `${dist.viral_ratio_pct}%` : "-",                                                          name: "바이럴 비율",             ann: dist?.over_500k != null ? annFlat(`50만↑ ${dist.over_500k}개 · 5만↓ ${dist.under_50k ?? 0}개`) : annFlat("-") },
-    { n: "⑧ CTR 잠재력",            st: s(dist?.above_average_ratio_pct, 40, 20),      val: dist?.above_average_ratio_pct != null ? `${dist.above_average_ratio_pct}%` : "-",                                          name: "평균 이상 조회 비율",      ann: annFlat("제목·썸네일 클릭 유도력 지표") },
-    { n: "⑨ 장기 지속성",           st: "fl" as St,                                     val: stats?.average_views != null ? fmt(stats.average_views) : "-",                                                            name: "평균 조회수",             ann: (stats?.average_views != null && stats?.median_views != null && stats.median_views > 0) ? annUp(`중앙값 대비 ${(stats.average_views / stats.median_views).toFixed(1)}배`) : annFlat("최근 50개 영상 기준") },
+    { n: "① 구독자 성장률",         st: s(trend?.growth_rate_pct, 5, 0),               val: trend?.growth_rate_pct != null ? `${trend.growth_rate_pct > 0 ? "+" : ""}${trend.growth_rate_pct}%` : "-",              name: "구독자 성장률",          ann: trend?.growth_rate_pct != null ? (trend.growth_rate_pct > 0 ? annUp(`전월 대비 +${trend.growth_rate_pct}%`) : annDown(`전월 대비 ${trend.growth_rate_pct}%`)) : annFlat("성장 추세 분석 중"), comment: sb.growth_velocity?.comment },
+    { n: "② 조회율 (조회수/구독자)", st: s(sub?.view_to_subscriber_ratio_pct, 50, 10),  val: sub?.view_to_subscriber_ratio_pct != null ? `${sub.view_to_subscriber_ratio_pct}%` : "-",                                 name: "구독자 대비 조회수 비율", ann: sub?.view_to_subscriber_ratio_pct != null ? (sub.view_to_subscriber_ratio_pct >= 50 ? annUp(`구독자 대비 조회율 ${sub.view_to_subscriber_ratio_pct}%`) : annDown(`구독자 대비 조회율 ${sub.view_to_subscriber_ratio_pct}%`)) : annFlat(sub?.comment ?? "-"), comment: sub?.comment ?? sb.niche_authority?.comment },
+    { n: "③ 좋아요율",              st: s(eng?.avg_like_rate, 1.5, 0.5),               val: eng?.avg_like_rate != null ? `${eng.avg_like_rate}%` : "-",                                                               name: "평균 좋아요율",           ann: eng?.avg_like_rate != null ? (eng.avg_like_rate >= 1.2 ? annUp("업계 평균 1.2% 상회") : annDown("업계 평균 1.2% 미달")) : annFlat("-"), comment: sb.engagement_quality?.comment },
+    { n: "④ 댓글 참여율",           st: s(eng?.avg_comment_rate, 1.0, 0.3),            val: eng?.avg_comment_rate != null ? `${eng.avg_comment_rate}%` : "-",                                                         name: "평균 댓글 참여율",         ann: eng?.avg_comment_rate != null ? (eng.avg_comment_rate >= 1.0 ? annUp("상호작용 우수") : eng.avg_comment_rate >= 0.3 ? annFlat("상호작용 개선 여지") : annDown("상호작용 개선 필요")) : annFlat("-"), comment: sb.engagement_quality?.comment },
+    { n: "⑤ 업로드 일관성",         st: "fl" as St,                                     val: trend?.monthly_upload_last_30d != null ? `${trend.monthly_upload_last_30d}회/월` : "-",                                   name: "최근 30일 업로드 횟수",   ann: trend?.monthly_upload_last_30d != null ? (trend.monthly_upload_last_30d === 0 ? annDown("최근 30일 0건") : trend.monthly_upload_last_30d >= 4 ? annUp(`월 ${trend.monthly_upload_last_30d}건`) : annFlat(`월 ${trend.monthly_upload_last_30d}건`)) : annFlat("-"), comment: sb.upload_regularity?.comment },
+    { n: "⑥ 최근 모멘텀",           st: s(trend?.growth_rate_pct, 10, 0),              val: (trend?.recent_10_avg_views != null ? fmt(trend.recent_10_avg_views) : trend?.growth_rate_pct != null ? `${trend.growth_rate_pct > 0 ? "+" : ""}${trend.growth_rate_pct}%` : "-"),                                    name: "최근 10개 평균 조회",     ann: (trend?.recent_10_avg_views != null && trend?.previous_10_avg_views != null && trend.previous_10_avg_views > 0) ? (trend.recent_10_avg_views >= trend.previous_10_avg_views ? annUp(`이전 대비 +${(((trend.recent_10_avg_views - trend.previous_10_avg_views) / trend.previous_10_avg_views) * 100).toFixed(0)}%`) : annDown(`이전 대비 ${(((trend.recent_10_avg_views - trend.previous_10_avg_views) / trend.previous_10_avg_views) * 100).toFixed(0)}%`)) : annFlat("성장 모멘텀 분석 중"), comment: trend?.trend_comment ?? sb.growth_velocity?.comment },
+    { n: "⑦ 상위 조회수 집중도",    st: s(dist?.viral_ratio_pct, 20, 5),              val: dist?.viral_ratio_pct != null ? `${dist.viral_ratio_pct}%` : "-",                                                          name: "바이럴 비율",             ann: dist?.over_500k != null ? annFlat(`50만↑ ${dist.over_500k}개 · 5만↓ ${dist.under_50k ?? 0}개`) : annFlat("-"), comment: sb.viral_potential?.comment },
+    { n: "⑧ CTR 잠재력",            st: s(dist?.above_average_ratio_pct, 40, 20),      val: dist?.above_average_ratio_pct != null ? `${dist.above_average_ratio_pct}%` : "-",                                          name: "평균 이상 조회 비율",      ann: annFlat("제목·썸네일 클릭 유도력 지표"), comment: sb.niche_authority?.comment },
+    { n: "⑨ 장기 지속성",           st: "fl" as St,                                     val: stats?.average_views != null ? fmt(stats.average_views) : "-",                                                            name: "평균 조회수",             ann: (stats?.average_views != null && stats?.median_views != null && stats.median_views > 0) ? annUp(`중앙값 대비 ${(stats.average_views / stats.median_views).toFixed(1)}배`) : annFlat("최근 50개 영상 기준"), comment: sb.content_consistency?.comment },
   ];
 
   return (
@@ -287,12 +288,17 @@ function GrowthSection({ data }: { data: ManusReportJson["section2_growth_metric
         <p style={{ fontSize: "15px", color: G600, marginBottom: "36px" }}>각 지표별 현재 수치와 진단을 확인하세요. 수치는 최근 50개 영상 기준입니다.</p>
         <div className="g-metrics" style={{ border: `1px solid ${G200}` }}>
           {metrics.map((m, i) => (
-            <div key={i} style={{ background: "#fff", padding: "22px 18px", borderRight: `1px solid ${G200}`, borderBottom: `1px solid ${G200}` }}>
+            <div key={i} style={{ background: "#fff", padding: "22px 18px", borderRight: `1px solid ${G200}`, borderBottom: `1px solid ${G200}`, display: "flex", flexDirection: "column" }}>
               <div style={{ fontFamily: MONO, fontSize: "11px", color: G400, marginBottom: "8px" }}>{m.n}</div>
               <DotBadge status={m.st} />
               <div style={{ fontSize: "22px", fontWeight: 800, fontFamily: MONO, marginBottom: "4px", color: m.st === "up" ? "#16A34A" : m.st === "dn" ? "#DC2626" : G600 }}>{m.val}</div>
               <div style={{ fontSize: "13px", fontWeight: 700, color: BLK, marginBottom: "2px", fontFamily: SANS }}>{m.name}</div>
               <Ann a={m.ann} />
+              {m.comment && (
+                <div style={{ marginTop: "10px", paddingTop: "10px", borderTop: `1px solid ${G200}`, fontSize: "12px", color: G600, lineHeight: 1.65, fontFamily: SANS }}>
+                  {m.comment}
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -914,7 +920,7 @@ export default function ReportView({ report, generatedAt }: Props) {
         </nav>
 
         <HeroSection        info={report.channel_info} scorecard={report.section1_scorecard} growth={report.section2_growth_metrics} signals={report.section3_data_signals} date={date} />
-        <GrowthSection      data={report.section2_growth_metrics} />
+        <GrowthSection      data={report.section2_growth_metrics} scorecard={report.section1_scorecard} />
         <hr style={{ border: "none", borderTop: `1px solid ${G200}`, margin: 0 }} />
         <DataSignalsSection data={report.section3_data_signals} />
         <ChannelPatternsSection data={report.section4_channel_patterns} />
