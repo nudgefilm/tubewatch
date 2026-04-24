@@ -71,6 +71,10 @@ export default function ChannelsPageClient({
   const [cooldownCache, setCooldownCache] = useState<Record<string, string>>({});
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  type ReportInfo = { id: string; status: string; access_token: string; created_at: string };
+  const [reportMap, setReportMap] = useState<Record<string, ReportInfo>>({});
+  const [generatingReportId, setGeneratingReportId] = useState<string | null>(null);
+
   // localStorage에서 선택 채널 초기화 + 사이드바 변경 이벤트 동기화
   useEffect(() => {
     setSelectedChannelId(readSelectedChannelIdFromStorage());
@@ -129,9 +133,19 @@ export default function ChannelsPageClient({
     }
   }, []);
 
+  const loadReports = useCallback(async () => {
+    try {
+      const res = await fetch("/api/manus/my-reports", { credentials: "include", cache: "no-store" });
+      if (!res.ok) return;
+      const json = await res.json() as { reports: Record<string, ReportInfo> };
+      setReportMap(json.reports ?? {});
+    } catch { /* ignore */ }
+  }, []);
+
   useEffect(() => {
     void loadChannels();
-  }, [loadChannels]);
+    void loadReports();
+  }, [loadChannels, loadReports]);
 
   // 페이지가 다시 보일 때 최신 채널 데이터 재조회 (라우터 캐시 우회)
   useEffect(() => {
@@ -290,6 +304,42 @@ export default function ChannelsPageClient({
       });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedChannel, isNavigating, router]);
+
+  const handleGenerateReport = useCallback(async (channelId: string) => {
+    setGeneratingReportId(channelId);
+    try {
+      const res = await fetch("/api/manus/generate", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_channel_id: channelId }),
+      });
+      const json = await res.json() as {
+        access_token?: string;
+        error?: string;
+        status?: string;
+      };
+
+      if (res.status === 409 && json.access_token) {
+        // 이미 생성된 리포트 — 바로 열기
+        window.open(`/report/${json.access_token}`, "_blank");
+        await loadReports();
+        return;
+      }
+
+      if (!res.ok || !json.access_token) {
+        alert(json.error ?? "리포트 생성 요청에 실패했습니다.");
+        return;
+      }
+
+      window.open(`/report/${json.access_token}`, "_blank");
+      await loadReports();
+    } catch {
+      alert("네트워크 오류가 발생했습니다. 다시 시도하세요.");
+    } finally {
+      setGeneratingReportId(null);
+    }
+  }, [loadReports]);
 
   return (
     <div className="mx-auto max-w-3xl space-y-8 px-6 py-10">
@@ -547,6 +597,40 @@ export default function ChannelsPageClient({
                     </p>
                   ) : null}
                 </button>
+                {/* 월간 리포트 버튼 */}
+                {(() => {
+                  const report = reportMap[ch.id];
+                  if (report?.status === "processing" || report?.status === "pending") {
+                    return (
+                      <span className="shrink-0 cursor-not-allowed rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground/60 select-none">
+                        리포트 생성 중…
+                      </span>
+                    );
+                  }
+                  if (report?.status === "completed") {
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => window.open(`/report/${report.access_token}`, "_blank")}
+                        className="shrink-0 rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors"
+                      >
+                        리포트 확인
+                      </button>
+                    );
+                  }
+                  return (
+                    <button
+                      type="button"
+                      disabled={generatingReportId === ch.id}
+                      onClick={() => void handleGenerateReport(ch.id)}
+                      className="shrink-0 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {generatingReportId === ch.id ? "요청 중…" : "월간 리포트 신청"}
+                    </button>
+                  );
+                })()}
+
+                {/* 삭제 버튼 */}
                 {isFreePlan ? (
                   <span
                     title="구독 중에만 채널을 변경할 수 있습니다."
