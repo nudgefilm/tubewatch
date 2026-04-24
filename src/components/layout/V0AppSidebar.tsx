@@ -47,6 +47,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import * as HoverCard from "@radix-ui/react-hover-card"
 
 const mainNavItems = [
   {
@@ -408,13 +409,29 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
         <SidebarGroup className="mt-auto px-2 pb-3">
           <SidebarGroupContent>
             {sidebarState === "expanded" ? (
-              <Link
-                href="/channels"
-                className="flex w-full items-center gap-2 rounded-lg bg-black px-3 py-2.5 text-sm font-semibold text-white hover:bg-zinc-800 transition-colors"
-              >
-                <CalendarDays className="size-4 shrink-0" />
-                <span>월간 채널 분석 리포트</span>
-              </Link>
+              <HoverCard.Root openDelay={150} closeDelay={0}>
+                <HoverCard.Trigger asChild>
+                  <Link
+                    href="/channels"
+                    className="flex w-full items-center gap-2 rounded-lg bg-black px-3 py-2.5 text-sm font-semibold text-white hover:bg-zinc-800 transition-colors"
+                  >
+                    <CalendarDays className="size-4 shrink-0" />
+                    <span>월간 채널 분석 리포트</span>
+                  </Link>
+                </HoverCard.Trigger>
+                <HoverCard.Content
+                  side="right"
+                  sideOffset={12}
+                  className="z-[200] rounded-xl overflow-hidden shadow-2xl border border-border p-0"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/minireport-preview.png"
+                    alt="월간 채널 분석 리포트 미리보기"
+                    className="block w-[320px]"
+                  />
+                </HoverCard.Content>
+              </HoverCard.Root>
             ) : (
               <SidebarMenu>
                 <SidebarMenuItem>
