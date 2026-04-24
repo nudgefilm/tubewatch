@@ -853,7 +853,12 @@ function ActionPlanSection({ report }: { report: ManusReportJson }) {
 }
 
 /* ══ 다음달 리포트 예고 ════════════════════════════════════════ */
-function NextMonthSection({ report, date }: { report: ManusReportJson; date: string }) {
+function NextMonthSection({ report, date, generatedAt }: { report: ManusReportJson; date: string; generatedAt: string }) {
+  const nextAvailable = (() => {
+    const d = new Date(generatedAt);
+    d.setDate(d.getDate() + 30);
+    return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
+  })();
   const channelName = report.channel_info?.channel_name ?? "채널";
   const kpi1m = report.section7_action_plan?.kpi_targets?.["1_month"];
   const subs  = report.channel_info?.subscribers;
@@ -906,10 +911,10 @@ function NextMonthSection({ report, date }: { report: ManusReportJson; date: str
 
         <div style={{ padding: "18px 22px", border: `1px solid #2A2A2A`, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
           <div>
-            <div style={{ fontFamily: MONO, fontSize: "11px", color: "#555", marginBottom: "3px" }}>다음 리포트 발행 예정</div>
-            <div style={{ fontSize: "15px", fontWeight: 700, color: "#CCCCCC" }}>매월 자동 생성 · TubeWatch Pro</div>
+            <div style={{ fontFamily: MONO, fontSize: "11px", color: "#888", marginBottom: "3px" }}>다음 리포트 발행 예정</div>
+            <div style={{ fontSize: "15px", fontWeight: 700, color: "#EEEEEE" }}>다음 리포트 신청일: {nextAvailable} 이후</div>
           </div>
-          <div style={{ fontFamily: MONO, fontSize: "11px", color: "#444", textAlign: "right" }}>
+          <div style={{ fontFamily: MONO, fontSize: "11px", color: "#888", textAlign: "right" }}>
             현재 리포트: {date}<br />
             <span style={{ color: LIME }}>Pro 플랜 구독 중</span>
           </div>
@@ -1017,7 +1022,7 @@ export default function ReportView({ report, generatedAt }: Props) {
         <ContentPlansSection data={report.section6_content_plans} signals={report.section3_data_signals} />
         <hr style={{ border: "none", borderTop: `1px solid ${G200}`, margin: 0 }} />
         <ActionPlanSection  report={report} />
-        <NextMonthSection   report={report} date={date} />
+        <NextMonthSection   report={report} date={date} generatedAt={generatedAt} />
 
         <footer style={{ background: "#0A0A0A", padding: "28px 48px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
           <div style={{ fontWeight: 900, fontSize: "16px", color: "#fff" }}>TubeWatch<span style={{ color: LIME }}>™</span></div>
