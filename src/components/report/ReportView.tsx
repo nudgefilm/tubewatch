@@ -184,7 +184,8 @@ function HeroSection({ info, scorecard, growth, signals, date }: {
         <div className="g-hero-head">
           <div>
             <h1 style={{ fontSize: "clamp(24px,4vw,44px)", fontWeight: 900, color: "#fff", lineHeight: 1.1, letterSpacing: "-1.5px", marginBottom: "8px", fontFamily: SANS }}>
-              {name}<br /><em style={{ fontStyle: "normal", color: LIME }}>{desc.slice(0, 60) || "채널 분석 리포트"}</em>
+              {name}<br />
+              <em style={{ fontStyle: "normal", color: LIME, fontSize: "clamp(13px,1.8vw,20px)", fontWeight: 400, letterSpacing: "0px", lineHeight: 1.5, display: "inline-block", marginTop: "4px" }}>{desc.slice(0, 80) || "채널 분석 리포트"}</em>
             </h1>
             {meta && <p style={{ fontSize: "13px", color: "#AAAAAA", fontFamily: MONO, marginTop: "8px" }}>{meta}</p>}
           </div>
