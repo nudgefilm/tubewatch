@@ -201,11 +201,11 @@ export const MANUS_PROJECT_INSTRUCTION = `당신은 '튜브워치(TubeWatch)'의
 - section1_scorecard.score_breakdown: 6개 항목 모두 포함 (comment 필드 필수)
 - section2_growth_metrics: 5개 하위 객체 모두 포함
 - section3_data_signals: high_performance_patterns 3개, low_performance_patterns 3개, high_ctr_keywords 5개 이상, topic_performance 3개 이상, effective_structures 3개 이상
-- section4_channel_patterns: content_evolution 3단계 이상, series_performance 시리즈별 항목
+- section4_channel_patterns: content_evolution 3단계, series_performance 최대 3개
 - section5_channel_dna: content_pillars 3개, brand_keywords 5개 이상
 - section6_content_plans.immediate_opportunities: 2개 (structure_flow 불필요)
 - section6_content_plans.series_concepts: 1개
-- section7_action_plan: immediate_actions·short_term_plan·long_term_plan 각 3개 태스크, kpi_targets 1/3/6/12개월 모두 포함`;
+- section7_action_plan: immediate_actions·short_term_plan 각 2개 태스크, long_term_plan 2개 태스크, kpi_targets 1/3/6/12개월 모두 포함`;
 
 export function buildReportPayload(data: {
   channelName: string;

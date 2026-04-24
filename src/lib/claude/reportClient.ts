@@ -19,7 +19,7 @@ export function parseReportJson(text: string): ManusReportJson {
 export async function generateReport(payload: string): Promise<ManusReportJson> {
   const response = await anthropic.messages.create({
     model: process.env.REPORT_MODEL ?? "claude-sonnet-4-6",
-    max_tokens: 10000,
+    max_tokens: 14000,
     temperature: 0,
     system: MANUS_PROJECT_INSTRUCTION,
     messages: [{ role: "user", content: payload }],
@@ -34,7 +34,7 @@ export async function generateReport(payload: string): Promise<ManusReportJson> 
 export async function* streamReport(payload: string): AsyncGenerator<string> {
   const response = await anthropic.messages.create({
     model: process.env.REPORT_MODEL ?? "claude-sonnet-4-6",
-    max_tokens: 10000,
+    max_tokens: 14000,
     temperature: 0,
     system: MANUS_PROJECT_INSTRUCTION,
     messages: [{ role: "user", content: payload }],
