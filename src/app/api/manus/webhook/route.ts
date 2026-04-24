@@ -13,16 +13,6 @@ export async function GET() {
 // POST /api/manus/webhook
 // Manus가 task_stopped 이벤트 발생 시 호출
 export async function POST(req: Request) {
-  // 서명 검증 — MANUS_WEBHOOK_SECRET 설정 시 쿼리 파라미터로 대조
-  const secret = process.env.MANUS_WEBHOOK_SECRET;
-  if (secret) {
-    const { searchParams } = new URL(req.url);
-    const provided = searchParams.get("secret");
-    if (provided !== secret) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-  }
-
   let payload: ManusWebhookPayload;
   try {
     payload = await req.json();
