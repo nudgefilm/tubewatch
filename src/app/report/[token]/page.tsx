@@ -39,7 +39,7 @@ export default async function ReportPage({ params }: Props) {
   if (!data) notFound();
 
   if (data.status === "pending" || data.status === "processing") {
-    return <ReportPolling reportId={data.id} />;
+    return <ReportPolling />;
   }
 
   if (data.status === "failed" || !data.result_json) {

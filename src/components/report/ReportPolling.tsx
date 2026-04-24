@@ -1,57 +1,19 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-type Props = {
-  reportId: string;
-};
-
-export default function ReportPolling({ reportId }: Props) {
+export default function ReportPolling() {
   const router = useRouter();
-  const pollCount = useRef(0);
 
   useEffect(() => {
-    let stopped = false;
-
-    async function poll() {
-      if (stopped) return;
-      pollCount.current += 1;
-
-      try {
-        // 24번(2분) 이후부터는 Manus API 직접 확인 (webhook 미수신 대비)
-        if (pollCount.current > 24) {
-          const syncRes = await fetch("/api/manus/sync", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ report_id: reportId }),
-          });
-          if (syncRes.ok) {
-            const data = await syncRes.json() as { status: string };
-            if (data.status === "completed" || data.status === "failed") {
-              router.refresh();
-              return;
-            }
-          }
-        } else {
-          const res = await fetch(`/api/manus/status/${reportId}`);
-          if (res.ok) {
-            const data = await res.json() as { status: string };
-            if (data.status === "completed" || data.status === "failed") {
-              router.refresh();
-              return;
-            }
-          }
-        }
-      } catch {
-        // 네트워크 오류는 무시하고 계속 폴링
-      }
-      setTimeout(poll, 5000);
-    }
-
-    poll();
-    return () => { stopped = true; };
-  }, [reportId, router]);
+    // status API 대신 router.refresh()로 서버 컴포넌트를 직접 재요청
+    // → 인증 불필요, 완료 즉시 ReportView로 전환
+    const id = setInterval(() => {
+      router.refresh();
+    }, 5000);
+    return () => clearInterval(id);
+  }, [router]);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background px-4">
