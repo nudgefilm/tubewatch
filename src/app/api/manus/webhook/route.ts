@@ -40,25 +40,26 @@ export async function POST(req: Request) {
     // Manus에서 메시지 가져오기
     const { messages } = await getTaskMessages(payload.task_id);
 
-    // 실제 Manus v2 구조: type === "assistant_message" → assistant_message.content
+    // 메시지 배열은 최신순(역순) → index 0이 마지막 응답
     const assistantMessages = messages.filter((m) => m.type === "assistant_message");
-    const lastMsg = assistantMessages[assistantMessages.length - 1];
-    const content = lastMsg?.type === "assistant_message"
-      ? lastMsg.assistant_message.content
+    const firstMsg = assistantMessages[0];
+    const content = firstMsg?.type === "assistant_message"
+      ? firstMsg.assistant_message.content
       : undefined;
 
     if (!content) {
       throw new Error("No assistant message found");
     }
 
-    // JSON 파싱 (마크다운 코드블록이 있을 경우 제거)
-    const raw = content
-      .replace(/^```json\s*/i, "")
-      .replace(/^```\s*/i, "")
-      .replace(/\s*```$/, "")
-      .trim();
+    // JSON 객체 경계를 직접 추출 (코드블록·설명 텍스트 모두 처리)
+    const start = content.indexOf("{");
+    const end = content.lastIndexOf("}");
+    if (start === -1 || end < start) throw new Error("No JSON object found in response");
+    const resultJson = JSON.parse(content.slice(start, end + 1)) as ManusReportJson;
 
-    const resultJson = JSON.parse(raw) as ManusReportJson;
+    if (!resultJson.section1_scorecard) {
+      throw new Error("리포트 스키마 불일치: section1_scorecard 누락. 재신청이 필요합니다.");
+    }
 
     await supabaseAdmin
       .from("manus_reports")

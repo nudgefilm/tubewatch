@@ -200,8 +200,11 @@ export function buildReportPayload(data: {
   }
 
   lines.push("=== 출력 지시 ===");
-  lines.push("위 데이터를 기반으로 프로젝트 지침에 정의된 7개 섹션 JSON 스키마를 완전히 채워서 출력하세요.");
+  lines.push("위 데이터를 기반으로 프로젝트 지침에 정의된 JSON 스키마를 완전히 채워서 출력하세요.");
   lines.push("파일 생성 금지. 메시지 본문에 JSON 객체만 직접 작성하세요. 설명 텍스트 없이 JSON만.");
+  lines.push("");
+  lines.push("최상위 키는 반드시 아래 8개만 사용하세요 (다른 키 추가 금지):");
+  lines.push("channel_info, section1_scorecard, section2_growth_metrics, section3_data_signals, section4_channel_patterns, section5_channel_dna, section6_content_plans, section7_action_plan");
 
   return lines.join("\n");
 }
