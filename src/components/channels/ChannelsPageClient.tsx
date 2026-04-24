@@ -24,7 +24,7 @@ type ChannelRow = {
   last_analyzed_at?: string | null;
 };
 
-const COOLDOWN_MS = 12 * 60 * 60 * 1000 // 12시간
+const COOLDOWN_MS = 24 * 60 * 60 * 1000 // 24시간
 
 function formatCooldownRemain(lastAnalyzedAt: string): string {
   const elapsed = Date.now() - new Date(lastAnalyzedAt).getTime()
@@ -378,7 +378,7 @@ export default function ChannelsPageClient({
               생애 {FREE_LIFETIME_ANALYSIS_LIMIT}회 분석
             </span>
             <span className="rounded-full border border-foreground/10 bg-background px-2.5 py-1">
-              재분석 12시간 쿨다운
+              재분석 24시간 쿨다운
             </span>
           </div>
           <p className="mt-2.5 text-xs text-muted-foreground">
@@ -561,7 +561,7 @@ export default function ChannelsPageClient({
               ⚠ 채널 삭제 시 해당 채널의 분석 데이터가 함께 삭제되며 복구되지 않습니다.
             </p>
             <p className="text-[11px] text-muted-foreground/60">
-              월간 리포트는 <span className="font-semibold text-primary">월 1회</span> 발행됩니다.
+              월간 리포트는 <span className="font-semibold text-primary">30일</span>에 1회 발행됩니다.
             </p>
           </div>
         )}

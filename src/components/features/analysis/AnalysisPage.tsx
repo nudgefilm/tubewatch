@@ -24,7 +24,7 @@ import { buildAnalysisPageSections } from "@/lib/engines/analysisPageEngine"
 import type { AnalysisPageViewModel } from "@/lib/analysis/analysisPageViewModel"
 // ─── 재분석 쿨다운 타이머 박스 ───────────────────────────────────────────────
 
-const COOLDOWN_MS = 12 * 60 * 60 * 1000 // 12시간
+const COOLDOWN_MS = 24 * 60 * 60 * 1000 // 24시간
 
 function formatCountdown(ms: number): string {
   if (ms <= 0) return "0분"
@@ -374,7 +374,7 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
           {/* STEP 2 — 재진단 제한 상태 보강 (needs_refresh) */}
           {viewModel.hasAnalysisResult && isNeedsRefresh && (
             <div className="rounded-lg border border-amber-200 bg-amber-50/50 px-4 py-3 space-y-1 dark:border-amber-800 dark:bg-amber-950/20">
-              <p className="text-xs text-amber-800 dark:text-amber-300">최근 12시간 이내에는 새 영상 데이터가 충분히 쌓이지 않아 결과 변화가 작을 수 있습니다.</p>
+              <p className="text-xs text-amber-800 dark:text-amber-300">최근 24시간 이내에는 새 영상 데이터가 충분히 쌓이지 않아 결과 변화가 작을 수 있습니다.</p>
               <p className="text-xs text-amber-700 dark:text-amber-400">지금은 기존 분석 기준을 유지하고, 데이터가 더 쌓인 뒤 다시 반영됩니다.</p>
             </div>
           )}

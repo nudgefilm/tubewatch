@@ -11,14 +11,14 @@ import {
 const FREE_FEATURES = [
   `채널 1개`,
   `생애 ${FREE_LIFETIME_ANALYSIS_LIMIT}회 분석`,
-  "재분석 12시간 쿨다운",
+  "재분석 24시간 쿨다운",
   "영상 50개 분석",
   "Channel Analysis · Channel DNA",
   "Action Plan · Next Trend",
 ];
 
 const PLAN_FEATURES = [
-  "재분석 12시간 쿨다운",
+  "재분석 24시간 쿨다운",
   "영상 50개 분석",
   "Channel Analysis · Channel DNA",
   "Action Plan · Next Trend",

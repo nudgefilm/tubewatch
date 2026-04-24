@@ -3,7 +3,7 @@
  *
  * 등록 채널에 대해 베이스 분석(analysis_results)을 실행한다.
  * YouTube API + Gemini AI 호출 후 analysis_results에 저장.
- * 쿨다운: last_analyzed_at 기준 12시간.
+ * 쿨다운: last_analyzed_at 기준 24시간.
  */
 export const maxDuration = 90; // Vercel Pro — 메인 분석(YouTube+Gemini)만 담당, onepager는 worker 슬롯
 
@@ -36,7 +36,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { isAdminUser } from "@/lib/server/isAdminUser";
 import type { VideoInfo } from "@/lib/youtube";
 
-const COOLDOWN_HOURS = 12;
+const COOLDOWN_HOURS = 24;
 
 function toChannelVideoSamples(videos: VideoInfo[]): ChannelVideoSample[] {
   return videos.map((v) => ({

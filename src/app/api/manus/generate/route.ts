@@ -30,14 +30,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Channel not found" }, { status: 404 });
   }
 
-  // 월 1회 제한 확인 (KST 기준)
+  // 30일 롤링 쿨다운 확인
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
   const yearMonth = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 7);
 
   const { data: existing } = await supabaseAdmin
     .from("manus_reports")
     .select("id, status, access_token, created_at")
     .eq("user_channel_id", userChannelId)
-    .eq("year_month", yearMonth)
+    .gte("created_at", thirtyDaysAgo)
+    .order("created_at", { ascending: false })
+    .limit(1)
     .maybeSingle();
 
   if (existing) {
