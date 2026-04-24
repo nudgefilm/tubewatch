@@ -35,11 +35,12 @@ export default function ReportPolling({ reportId }: Props) {
           }
         } else {
           const res = await fetch(`/api/manus/status/${reportId}`);
-          if (!res.ok) return;
-          const data = await res.json() as { status: string };
-          if (data.status === "completed" || data.status === "failed") {
-            router.refresh();
-            return;
+          if (res.ok) {
+            const data = await res.json() as { status: string };
+            if (data.status === "completed" || data.status === "failed") {
+              router.refresh();
+              return;
+            }
           }
         }
       } catch {
@@ -54,10 +55,10 @@ export default function ReportPolling({ reportId }: Props) {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background px-4">
-      <p className="mb-2 text-xl font-semibold tracking-tight text-foreground">TubeWatch</p>
+      <p className="mb-2 text-xl font-semibold tracking-tight text-foreground">TubeWatch™</p>
       <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       <div className="text-center">
-        <p className="text-sm font-medium text-foreground">튜브워치가 채널을 분석하고 있습니다</p>
+        <p className="text-sm font-medium text-foreground">튜브워치가 채널 데이터 해석을 통해 월간 리포트를 작성하고 있습니다.</p>
         <p className="mt-1 text-xs text-muted-foreground">리포트 생성까지 보통 3~5분 소요됩니다.</p>
         <p className="mt-1 text-xs text-muted-foreground">이 페이지를 열어두면 완료 시 자동으로 결과를 표시합니다.</p>
       </div>

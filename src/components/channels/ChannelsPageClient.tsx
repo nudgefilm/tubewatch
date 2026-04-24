@@ -556,7 +556,7 @@ export default function ChannelsPageClient({
               ⚠ 채널 삭제 시 해당 채널의 분석 데이터가 함께 삭제되며 복구되지 않습니다.
             </p>
             <p className="text-[11px] text-muted-foreground/60">
-              월간 리포트는 월 1회 발행됩니다.
+              월간 리포트는 <span className="font-semibold text-primary">월 1회</span> 발행됩니다.
             </p>
           </div>
         )}
