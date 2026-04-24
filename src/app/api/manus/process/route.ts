@@ -23,7 +23,7 @@ export async function POST(req: Request) {
   // 리포트 조회 + 소유권 확인
   const { data: report } = await supabaseAdmin
     .from("manus_reports")
-    .select("id, status, user_channel_id, snapshot_id, updated_at")
+    .select("id, status, user_channel_id, snapshot_id, created_at, updated_at")
     .eq("id", reportId)
     .eq("user_id", user.id)
     .maybeSingle();
@@ -35,10 +35,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ status: report.status });
   }
 
-  // processing 상태이지만 90초 이내면 이미 다른 요청이 처리 중 → 건너뜀
-  const ageMs = Date.now() - new Date(report.updated_at).getTime();
-  if (ageMs < 90 * 1000) {
-    return NextResponse.json({ status: "processing", message: "already running" });
+  // 중복 실행 방지: process가 이미 claimed한 경우(updated_at이 created_at보다 10초 이상 최신)에만 90초 락 적용
+  // 신규 레코드(updated_at ≈ created_at)는 락 없이 즉시 실행
+  const createdMs = new Date(report.created_at).getTime();
+  const updatedMs = new Date(report.updated_at).getTime();
+  const wasClaimed = (updatedMs - createdMs) > 10_000;
+  if (wasClaimed) {
+    const msSinceClaim = Date.now() - updatedMs;
+    if (msSinceClaim < 90_000) {
+      return NextResponse.json({ status: "processing", message: "already running" });
+    }
   }
 
   // updated_at 갱신으로 중복 실행 방지 (낙관적 락)
