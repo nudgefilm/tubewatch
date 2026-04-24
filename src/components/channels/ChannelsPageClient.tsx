@@ -619,9 +619,13 @@ export default function ChannelsPageClient({
                     !isExpired(report.created_at)
                   ) {
                     return (
-                      <span className="shrink-0 cursor-not-allowed rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground/60 select-none">
+                      <button
+                        type="button"
+                        onClick={() => window.open(`/report/${report.access_token}`, "_blank")}
+                        className="shrink-0 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted transition-colors"
+                      >
                         리포트 생성 중…
-                      </span>
+                      </button>
                     );
                   }
                   if (report?.status === "completed") {
