@@ -168,7 +168,7 @@ export async function GET(req: Request) {
           nextTrend: moduleMap["next_trend"] ?? null,
         });
 
-        send(controller, { type: "progress", message: "AI 분석 시작..." });
+        send(controller, { type: "progress", message: "튜브워치 분석 시작.." });
 
         // 스트리밍 생성
         let fullText = "";
