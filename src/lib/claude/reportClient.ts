@@ -7,7 +7,7 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 export async function generateReport(payload: string): Promise<ManusReportJson> {
   const response = await anthropic.messages.create({
     model: process.env.REPORT_MODEL ?? "claude-sonnet-4-6",
-    max_tokens: 16000,
+    max_tokens: 8000,
     temperature: 0,
     system: MANUS_PROJECT_INSTRUCTION,
     messages: [{ role: "user", content: payload }],

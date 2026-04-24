@@ -1,5 +1,5 @@
 export const dynamic = "force-dynamic";
-export const maxDuration = 120; // Vercel Pro — Claude 응답 대기
+export const maxDuration = 300; // Vercel Pro — 최대 5분
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
