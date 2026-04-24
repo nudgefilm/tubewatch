@@ -582,11 +582,20 @@ function ChannelDNASection({ data, scorecard }: { data: ManusReportJson["section
 }
 
 /* ══ SECTION 6: 완성형 콘텐츠 기획안 ═════════════════════════ */
-function ContentPlansSection({ data }: { data: ManusReportJson["section6_content_plans"] }) {
+function ContentPlansSection({ data, signals }: {
+  data: ManusReportJson["section6_content_plans"];
+  signals: ManusReportJson["section3_data_signals"];
+}) {
   if (!data) return null;
   const opps   = [...(data.immediate_opportunities ?? [])].sort((a, b) => (a.priority ?? 99) - (b.priority ?? 99)).slice(0, 2);
   const series = data.series_concepts ?? [];
   const sf     = data.short_form_strategy;
+
+  /* 해시태그: effective_tags 파싱 + high_ctr_keywords 보완 */
+  const rawTags  = (signals?.title_pattern_analysis?.hashtag_usage?.effective_tags ?? "")
+    .split(/\s+/).filter(t => t.startsWith("#")).map(t => t.replace(/^#+/, ""));
+  const kwTags   = (signals?.keyword_analysis?.high_ctr_keywords ?? []).slice(0, 5);
+  const allTags  = [...new Set([...rawTags, ...kwTags])].slice(0, 10);
 
   return (
     <section className="rpt-section" style={{ background: "#fff" }}>
@@ -600,6 +609,7 @@ function ContentPlansSection({ data }: { data: ManusReportJson["section6_content
           <div className={opps.length >= 2 ? "g-plans2" : "g-plans2 g-plans-single"} style={{ marginBottom: "28px" }}>
             {opps.map((opp, i) => (
               <div key={i} style={{ border: `1px solid ${G200}`, overflow: "hidden" }}>
+                {/* 헤더 */}
                 <div style={{ background: BLK, padding: "18px 22px" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
                     <span style={{ fontFamily: MONO, fontSize: "11px", color: G400, letterSpacing: "1px" }}>PLAN #{String(opp.priority ?? i + 1).padStart(2, "0")}</span>
@@ -607,37 +617,59 @@ function ContentPlansSection({ data }: { data: ManusReportJson["section6_content
                   </div>
                   <div style={{ fontSize: "16px", fontWeight: 800, color: "#fff", lineHeight: 1.35 }}>{opp.title ?? "-"}</div>
                 </div>
-                <div style={{ padding: "22px" }}>
-                  {opp.concept && (
-                    <>
-                      <div style={{ fontFamily: MONO, fontSize: "10px", color: G400, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "6px" }}>기획 의도</div>
-                      <div style={{ fontSize: "14px", color: G600, lineHeight: 1.75, marginBottom: "18px", paddingBottom: "18px", borderBottom: `1px solid ${G200}` }}>{opp.concept}</div>
-                    </>
+
+                <div style={{ padding: "22px", display: "flex", flexDirection: "column", gap: "18px" }}>
+                  {/* 기획 의도: concept + rationale 합산 2문장 */}
+                  {(opp.concept || opp.rationale) && (
+                    <div style={{ paddingBottom: "18px", borderBottom: `1px solid ${G200}` }}>
+                      <div style={{ fontFamily: MONO, fontSize: "10px", color: G400, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "8px" }}>기획 의도</div>
+                      {opp.concept && <div style={{ fontSize: "14px", color: G600, lineHeight: 1.8, marginBottom: opp.rationale ? "6px" : 0 }}>{opp.concept}</div>}
+                      {opp.rationale && <div style={{ fontSize: "14px", color: G600, lineHeight: 1.8 }}>{opp.rationale}</div>}
+                    </div>
                   )}
-                  {opp.title_formula && (
-                    <>
-                      <div style={{ fontFamily: MONO, fontSize: "10px", color: G400, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "8px" }}>제목 공식</div>
-                      <div style={{ marginBottom: "18px", paddingBottom: "18px", borderBottom: `1px solid ${G200}` }}>
-                        <div style={{ display: "flex", gap: "10px", fontSize: "14px", marginBottom: "8px", lineHeight: 1.6 }}>
-                          <span style={{ fontFamily: MONO, fontSize: "11px", fontWeight: 700, background: BLK, color: LIME, padding: "2px 7px", flexShrink: 0 }}>A</span>
+
+                  {/* 제목 공식: A=공식, B=구체 예시 */}
+                  {(opp.title_formula || opp.title) && (
+                    <div style={{ paddingBottom: "18px", borderBottom: `1px solid ${G200}` }}>
+                      <div style={{ fontFamily: MONO, fontSize: "10px", color: G400, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "10px" }}>제목 공식</div>
+                      {opp.title_formula && (
+                        <div style={{ display: "flex", gap: "10px", fontSize: "14px", marginBottom: "10px", lineHeight: 1.6, alignItems: "flex-start" }}>
+                          <span style={{ fontFamily: MONO, fontSize: "11px", fontWeight: 700, background: BLK, color: LIME, padding: "2px 7px", flexShrink: 0, marginTop: "2px" }}>A</span>
                           <span>{opp.title_formula}</span>
                         </div>
-                        {opp.rationale && (
-                          <div style={{ fontSize: "13px", color: G600, paddingLeft: "30px", lineHeight: 1.7, fontStyle: "italic" }}>{opp.rationale.slice(0, 80)}</div>
-                        )}
-                      </div>
-                    </>
+                      )}
+                      {opp.title && (
+                        <div style={{ display: "flex", gap: "10px", fontSize: "14px", lineHeight: 1.6, alignItems: "flex-start" }}>
+                          <span style={{ fontFamily: MONO, fontSize: "11px", fontWeight: 700, background: DARK3, color: ORANGE, padding: "2px 7px", flexShrink: 0, marginTop: "2px" }}>B</span>
+                          <span style={{ color: G600 }}>{opp.title}</span>
+                        </div>
+                      )}
+                    </div>
                   )}
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
-                    {opp.expected_views && (
+
+                  {/* 하단: 예상 조회수 */}
+                  {opp.expected_views && (
+                    <div>
                       <span style={{ fontFamily: MONO, fontSize: "12px", background: "#F5F5F5", color: G600, padding: "4px 12px", borderRadius: "2px" }}>
                         예상 조회수: <strong style={{ color: ORANGE }}>{opp.expected_views}</strong>
                       </span>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* 추천 해시태그 */}
+        {allTags.length > 0 && (
+          <div style={{ marginBottom: "28px", padding: "18px 22px", border: `1px solid ${G200}` }}>
+            <div style={{ fontFamily: MONO, fontSize: "10px", color: G400, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "12px" }}>추천 해시태그</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+              {allTags.map((tag, i) => (
+                <span key={i} style={{ fontFamily: MONO, fontSize: "13px", background: "#F5F5F5", color: BLK, padding: "4px 12px", borderRadius: "2px", cursor: "pointer" }}>#{tag}</span>
+              ))}
+            </div>
           </div>
         )}
 
@@ -951,7 +983,7 @@ export default function ReportView({ report, generatedAt }: Props) {
         <ChannelPatternsSection data={report.section4_channel_patterns} />
         <hr style={{ border: "none", borderTop: `1px solid ${G200}`, margin: 0 }} />
         <ChannelDNASection  data={report.section5_channel_dna} scorecard={report.section1_scorecard} />
-        <ContentPlansSection data={report.section6_content_plans} />
+        <ContentPlansSection data={report.section6_content_plans} signals={report.section3_data_signals} />
         <hr style={{ border: "none", borderTop: `1px solid ${G200}`, margin: 0 }} />
         <ActionPlanSection  report={report} />
         <NextMonthSection   report={report} date={date} />
