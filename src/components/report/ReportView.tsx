@@ -728,21 +728,20 @@ function ContentPlansSection({ data, signals }: {
 
 /* ══ SECTION 7: 30일 실행 계획 (4탭) ════════════════════════ */
 function ActionPlanSection({ report }: { report: ManusReportJson }) {
-  const [activeTab, setActiveTab] = useState<0 | 1 | 2 | 3>(0);
+  const [activeTab, setActiveTab] = useState<0 | 1 | 2>(0);
   const data = report.section7_action_plan;
   if (!data) return null;
 
-  const kpi    = data.kpi_targets;
-  const score  = report.section1_scorecard?.overall_score ?? 0;
-  const subs   = report.channel_info?.subscribers ?? 0;
-  const avgV   = report.section2_growth_metrics?.view_statistics?.average_views ?? 0;
-  const cmtR   = report.section2_growth_metrics?.engagement_metrics?.avg_comment_rate ?? 0;
+  const kpi   = data.kpi_targets;
+  const score = report.section1_scorecard?.overall_score ?? 0;
+  const subs  = report.channel_info?.subscribers ?? 0;
+  const avgV  = report.section2_growth_metrics?.view_statistics?.average_views ?? 0;
+  const cmtR  = report.section2_growth_metrics?.engagement_metrics?.avg_comment_rate ?? 0;
 
   const tabs = [
-    { label: "1주차", sub: data.immediate_actions?.timeframe ?? "기반 다지기",  tasks: data.immediate_actions?.tasks ?? [] },
-    { label: "2~3주차", sub: data.short_term_plan?.timeframe ?? "실행 중기",    tasks: data.short_term_plan?.tasks ?? [] },
-    { label: "4주차+", sub: data.long_term_plan?.timeframe ?? "전략 실행",      tasks: data.long_term_plan?.tasks ?? [] },
-    { label: "KPI 목표", sub: "성과 지표 달성 예측",                             tasks: [] },
+    { label: "1주차",   sub: data.immediate_actions?.timeframe ?? "기반 다지기", tasks: data.immediate_actions?.tasks ?? [] },
+    { label: "2~3주차", sub: data.short_term_plan?.timeframe ?? "실행 중기",     tasks: data.short_term_plan?.tasks ?? [] },
+    { label: "4주차+",  sub: data.long_term_plan?.timeframe ?? "전략 실행",      tasks: data.long_term_plan?.tasks ?? [] },
   ];
 
   type Task = { task?: string; detail?: string; priority?: string; expected_impact?: string; kpi?: string; timeline?: string };
@@ -754,56 +753,65 @@ function ActionPlanSection({ report }: { report: ManusReportJson }) {
         <h2 style={{ fontSize: "clamp(22px,3vw,30px)", fontWeight: 900, letterSpacing: "-1px", lineHeight: 1.2, marginBottom: "8px", fontFamily: SANS }}>30일 실행 계획</h2>
         <p style={{ fontSize: "15px", color: G600, marginBottom: "24px" }}>우선순위별 액션 아이템과 목표 수치를 확인하세요.</p>
 
-        <div className="rpt-tabs">
-          {tabs.map((tab, idx) => (
-            <button key={idx} onClick={() => setActiveTab(idx as 0|1|2|3)} style={{ padding: "12px 20px", border: "none", borderBottom: activeTab === idx ? `2px solid ${BLK}` : "2px solid transparent", background: "transparent", cursor: "pointer", fontFamily: SANS, fontSize: "14px", fontWeight: activeTab === idx ? 700 : 400, color: activeTab === idx ? BLK : G400, marginBottom: "-2px", transition: "all .15s", whiteSpace: "nowrap", flexShrink: 0 }}>
-              {tab.label}
-              <span style={{ display: "block", fontFamily: MONO, fontSize: "10px", color: activeTab === idx ? G600 : G400, fontWeight: 400, marginTop: "1px" }}>{tab.sub}</span>
-            </button>
-          ))}
+        {/* 탭 3개 — 선택 탭은 블랙 배경 */}
+        <div style={{ display: "flex", gap: "6px", marginBottom: "20px" }}>
+          {tabs.map((tab, idx) => {
+            const isActive = activeTab === idx;
+            return (
+              <button key={idx} onClick={() => setActiveTab(idx as 0 | 1 | 2)}
+                style={{ padding: "10px 18px", border: `1px solid ${isActive ? BLK : G200}`, borderRadius: "6px", background: isActive ? BLK : "#fff", cursor: "pointer", fontFamily: SANS, fontSize: "13px", fontWeight: 700, color: isActive ? "#fff" : G400, transition: "all .15s", whiteSpace: "nowrap", textAlign: "left" }}>
+                {tab.label}
+                <span style={{ display: "block", fontFamily: MONO, fontSize: "10px", color: isActive ? "rgba(255,255,255,.6)" : G400, fontWeight: 400, marginTop: "2px" }}>{tab.sub}</span>
+              </button>
+            );
+          })}
         </div>
 
-        {/* 주차별 태스크 */}
-        {activeTab < 3 && (
-          <>
-            {tabs[activeTab].tasks.length === 0 && <p style={{ fontSize: "14px", color: G400, padding: "20px 0" }}>해당 구간 액션 아이템이 없습니다.</p>}
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              {(tabs[activeTab].tasks as Task[]).map((t, i) => {
-                const up = (t.priority ?? "").toUpperCase();
-                const bc = up === "긴급" || up === "URGENT" ? "#DC2626" : up === "높음" || up === "HIGH" ? "#D97706" : "#1D4ED8";
-                return (
-                  <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "14px", padding: "16px 20px", border: `1px solid ${G200}`, borderLeft: `3px solid ${bc}` }}>
-                    <PriBadge p={t.priority} />
-                    <div>
-                      <div style={{ fontSize: "15px", fontWeight: 700, marginBottom: "4px", fontFamily: SANS }}>{t.task ?? "-"}</div>
-                      {t.detail && <div style={{ fontSize: "14px", color: G600, lineHeight: 1.7 }}>{t.detail}</div>}
-                      {t.expected_impact && <div style={{ fontSize: "13px", color: "#D97706", marginTop: "4px" }}>기대 효과: {t.expected_impact}</div>}
-                      {t.kpi && <div style={{ fontSize: "13px", color: ORANGE, marginTop: "4px", fontFamily: MONO }}>KPI: {t.kpi}</div>}
-                      {t.timeline && <div style={{ fontSize: "12px", color: G400, marginTop: "4px", fontFamily: MONO }}>타임라인: {t.timeline}</div>}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            {(data.risk_management ?? []).length > 0 && (
-              <div style={{ border: `1px solid #F59E0B`, background: "#FFFBEB", padding: "14px 18px", display: "flex", gap: "10px", marginTop: "16px" }}>
-                <span>⚠</span>
-                <div style={{ fontSize: "14px", color: "#92400E", lineHeight: 1.75 }}>
-                  <strong>리스크 관리: </strong>{(data.risk_management ?? []).slice(0, 2).map(r => r.risk).filter(Boolean).join(" · ")}
+        {/* 선택 탭 태스크 */}
+        {tabs[activeTab].tasks.length === 0 && (
+          <p style={{ fontSize: "14px", color: G400, padding: "20px 0" }}>해당 구간 액션 아이템이 없습니다.</p>
+        )}
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "16px" }}>
+          {(tabs[activeTab].tasks as Task[]).map((t, i) => {
+            const up = (t.priority ?? "").toUpperCase();
+            const bc = up === "긴급" || up === "URGENT" ? "#DC2626" : up === "높음" || up === "HIGH" ? "#D97706" : "#1D4ED8";
+            return (
+              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "14px", padding: "16px 20px", border: `1px solid ${G200}`, borderLeft: `3px solid ${bc}` }}>
+                <PriBadge p={t.priority} />
+                <div>
+                  <div style={{ fontSize: "15px", fontWeight: 700, marginBottom: "4px", fontFamily: SANS }}>{t.task ?? "-"}</div>
+                  {t.detail && <div style={{ fontSize: "14px", color: G600, lineHeight: 1.7 }}>{t.detail}</div>}
+                  {t.expected_impact && <div style={{ fontSize: "13px", color: "#D97706", marginTop: "4px" }}>기대 효과: {t.expected_impact}</div>}
+                  {t.kpi && <div style={{ fontSize: "13px", color: ORANGE, marginTop: "4px", fontFamily: MONO }}>KPI: {t.kpi}</div>}
+                  {t.timeline && <div style={{ fontSize: "12px", color: G400, marginTop: "4px", fontFamily: MONO }}>타임라인: {t.timeline}</div>}
                 </div>
               </div>
-            )}
-          </>
+            );
+          })}
+        </div>
+
+        {/* 리스크 */}
+        {(data.risk_management ?? []).length > 0 && (
+          <div style={{ border: `1px solid #F59E0B`, background: "#FFFBEB", padding: "14px 18px", display: "flex", gap: "10px", marginBottom: "32px" }}>
+            <span>⚠</span>
+            <div style={{ fontSize: "14px", color: "#92400E", lineHeight: 1.75 }}>
+              <strong>리스크 관리: </strong>{(data.risk_management ?? []).slice(0, 2).map(r => r.risk).filter(Boolean).join(" · ")}
+            </div>
+          </div>
         )}
 
-        {/* KPI 목표 탭 */}
-        {activeTab === 3 && (
-          <>
-            {/* 진행률 바 4개: 현재 → 1개월 목표 */}
-            {kpi?.["1_month"] && (
-              <div style={{ marginBottom: "28px" }}>
-                <div style={{ fontFamily: MONO, fontSize: "11px", color: G400, letterSpacing: "1px", textTransform: "uppercase", marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
-                  <span style={{ width: "24px", height: "1px", background: G400, display: "block" }} />현재 → 1개월 목표
+        {/* 성과 지표 달성 예측 — 항상 노출 */}
+        {kpi && (
+          <div style={{ borderTop: `1px solid ${G200}`, paddingTop: "28px" }}>
+            <div style={{ fontFamily: MONO, fontSize: "11px", fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase", color: G400, marginBottom: "20px" }}>
+              성과 지표 달성 예측
+            </div>
+
+            {/* 진행률 바: 현재 → 1개월 목표 */}
+            {kpi["1_month"] && (
+              <div style={{ marginBottom: "24px" }}>
+                <div style={{ fontFamily: MONO, fontSize: "10px", color: G400, letterSpacing: "1px", marginBottom: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span style={{ width: "20px", height: "1px", background: G400, display: "block" }} />현재 → 1개월 목표
                 </div>
                 {score > 0 && kpi["1_month"]?.avg_views_per_video != null && (
                   <ProgressBar label="채널 스코어" current={score} target={Math.min(100, score + 12)} unit="점" color="#16A34A" />
@@ -820,10 +828,10 @@ function ActionPlanSection({ report }: { report: ManusReportJson }) {
               </div>
             )}
 
-            {/* 목표 그리드 */}
-            <div className="g-kpi-goal" style={{ background: G200, border: `1px solid ${G200}`, marginBottom: "20px" }}>
+            {/* 기간별 목표 그리드 */}
+            <div className="g-kpi-goal" style={{ background: G200, border: `1px solid ${G200}`, marginBottom: "8px" }}>
               {(["1_month","3_months","6_months","12_months"] as const).map((key) => {
-                const row = kpi?.[key];
+                const row = kpi[key];
                 if (!row) return <div key={key} style={{ background: "#fff", padding: "18px 16px" }} />;
                 const label = { "1_month": "1개월 목표", "3_months": "3개월 목표", "6_months": "6개월 목표", "12_months": "12개월 목표" }[key];
                 return (
@@ -837,7 +845,7 @@ function ActionPlanSection({ report }: { report: ManusReportJson }) {
                 );
               })}
             </div>
-          </>
+          </div>
         )}
       </div>
     </section>
