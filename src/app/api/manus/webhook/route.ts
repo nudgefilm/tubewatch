@@ -5,6 +5,11 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getTaskMessages } from "@/lib/manus/client";
 import type { ManusWebhookPayload, ManusReportJson } from "@/lib/manus/types";
 
+// GET /api/manus/webhook — Manus URL 검증용
+export async function GET() {
+  return NextResponse.json({ ok: true });
+}
+
 // POST /api/manus/webhook
 // Manus가 task_stopped 이벤트 발생 시 호출
 export async function POST(req: Request) {
