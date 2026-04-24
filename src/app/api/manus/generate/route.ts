@@ -122,9 +122,12 @@ export async function POST(req: Request) {
   // Manus 프로젝트 가져오기 (없으면 생성)
   const projectId = await getOrCreateManusProjectId();
 
-  // Webhook URL
+  // Webhook URL (secret 있으면 쿼리 파라미터로 첨부)
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://tubewatch.kr";
-  const webhookUrl = `${appUrl}/api/manus/webhook`;
+  const webhookSecret = process.env.MANUS_WEBHOOK_SECRET;
+  const webhookUrl = webhookSecret
+    ? `${appUrl}/api/manus/webhook?secret=${encodeURIComponent(webhookSecret)}`
+    : `${appUrl}/api/manus/webhook`;
 
   // Manus task 생성
   const taskId = await createTask(projectId, payload, webhookUrl);

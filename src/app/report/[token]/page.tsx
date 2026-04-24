@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import ReportView from "@/components/report/ReportView";
+import ReportPolling from "@/components/report/ReportPolling";
 import type { ManusReportJson } from "@/lib/manus/types";
 
 type Props = { params: Promise<{ token: string }> };
@@ -36,13 +37,7 @@ export default async function ReportPage({ params }: Props) {
   if (!data) notFound();
 
   if (data.status === "pending" || data.status === "processing") {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background px-4">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-        <p className="text-sm text-muted-foreground">리포트 생성 중입니다. 잠시 후 새로고침 해주세요.</p>
-        <p className="text-xs text-muted-foreground/60">약 2~3분 소요됩니다</p>
-      </div>
-    );
+    return <ReportPolling reportId={data.id} />;
   }
 
   if (data.status === "failed" || !data.result_json) {
