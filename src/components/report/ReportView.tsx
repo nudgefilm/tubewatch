@@ -916,6 +916,13 @@ export default function ReportView({ report, generatedAt }: Props) {
   const date = new Date(generatedAt)
     .toLocaleDateString("ko-KR", { year: "numeric", month: "2-digit" })
     .replace(". ", ".").replace(".", "년 ").replace(".", "월");
+  const [copied, setCopied] = useState(false);
+  const handleShare = () => {
+    void navigator.clipboard.writeText(window.location.href).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   return (
     <>
@@ -974,7 +981,6 @@ export default function ReportView({ report, generatedAt }: Props) {
           .g-kpi-goal{grid-template-columns:repeat(2,1fr)}
           .g-preview3{grid-template-columns:1fr}
         }
-        @media print{.rpt-nav{display:none!important}section{page-break-inside:avoid}}
       `}</style>
 
       <div className="report-root">
@@ -985,10 +991,10 @@ export default function ReportView({ report, generatedAt }: Props) {
           <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
             <span className="rpt-nav-label" style={{ fontFamily: MONO, fontSize: "13px", fontWeight: 800, letterSpacing: ".5px", textTransform: "uppercase" }}>Monthly Report</span>
             <span className="rpt-nav-label" style={{ fontFamily: MONO, fontSize: "12px", fontWeight: 300 }}>{date} · Pro</span>
-            <button onClick={() => window.print()} style={{ fontFamily: MONO, fontSize: "12px", fontWeight: 700, letterSpacing: ".5px", padding: "8px 18px", border: `1px solid ${BLK}`, borderRadius: "3px", background: BLK, color: "#fff", cursor: "pointer", whiteSpace: "nowrap" }}
-              onMouseEnter={e => (e.currentTarget.style.opacity = ".7")}
+            <button onClick={handleShare} style={{ fontFamily: MONO, fontSize: "12px", fontWeight: 700, letterSpacing: ".5px", padding: "8px 18px", border: `1px solid ${BLK}`, borderRadius: "3px", background: copied ? "#22c55e" : BLK, color: "#fff", cursor: "pointer", whiteSpace: "nowrap", transition: "background .2s" }}
+              onMouseEnter={e => { if (!copied) e.currentTarget.style.opacity = ".7"; }}
               onMouseLeave={e => (e.currentTarget.style.opacity = "1")}>
-              ↓ 리포트 다운로드
+              {copied ? "✓ 링크 복사됨" : "↗ 리포트 공유"}
             </button>
           </div>
         </nav>
