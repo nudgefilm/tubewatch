@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .maybeSingle();
 
   const report = data?.result_json as ManusReportJson | null;
-  const name = report?.channel_info?.name ?? "채널";
+  const name = report?.channel_info?.channel_name ?? "채널";
 
   return {
     title: `${name} 종합 분석 리포트 | TubeWatch™`,
