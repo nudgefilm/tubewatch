@@ -593,7 +593,8 @@ function ContentPlansSection({ data, signals }: {
   const sf     = data.short_form_strategy;
 
   /* 해시태그: effective_tags 파싱 + high_ctr_keywords 보완 */
-  const rawTags  = (signals?.title_pattern_analysis?.hashtag_usage?.effective_tags ?? "")
+  const _effectiveTags = signals?.title_pattern_analysis?.hashtag_usage?.effective_tags;
+  const rawTags  = (typeof _effectiveTags === "string" ? _effectiveTags : "")
     .split(/\s+/).filter(t => t.startsWith("#")).map(t => t.replace(/^#+/, ""));
   const kwTags   = (signals?.keyword_analysis?.high_ctr_keywords ?? []).slice(0, 5);
   const allTags  = [...new Set([...rawTags, ...kwTags])].slice(0, 10);
