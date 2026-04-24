@@ -916,7 +916,7 @@ function NextMonthSection({ report, date, generatedAt }: { report: ManusReportJs
           </div>
           <div style={{ fontFamily: MONO, fontSize: "11px", color: "#888", textAlign: "right" }}>
             현재 리포트: {date}<br />
-            <span style={{ color: LIME }}>Pro 플랜 구독 중</span>
+            <span style={{ color: "#666" }}>Free | Creator | Pro</span>
           </div>
         </div>
       </div>
