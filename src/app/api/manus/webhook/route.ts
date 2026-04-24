@@ -20,8 +20,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  if (payload.event !== "task_stopped" || !payload.task_id) {
-    return NextResponse.json({ ok: true }); // 무관한 이벤트는 무시
+  // task_id가 없는 이벤트는 무시
+  if (!payload.task_id) {
+    return NextResponse.json({ ok: true });
   }
 
   // task_id로 리포트 레코드 조회
@@ -39,16 +40,19 @@ export async function POST(req: Request) {
     // Manus에서 메시지 가져오기
     const { messages } = await getTaskMessages(payload.task_id);
 
-    // 마지막 assistant 메시지에서 JSON 추출
-    const assistantMessages = messages.filter((m) => m.role === "assistant");
-    const lastMessage = assistantMessages[assistantMessages.length - 1];
+    // 실제 Manus v2 구조: type === "assistant_message" → assistant_message.content
+    const assistantMessages = messages.filter((m) => m.type === "assistant_message");
+    const lastMsg = assistantMessages[assistantMessages.length - 1];
+    const content = lastMsg?.type === "assistant_message"
+      ? lastMsg.assistant_message.content
+      : undefined;
 
-    if (!lastMessage?.content) {
+    if (!content) {
       throw new Error("No assistant message found");
     }
 
     // JSON 파싱 (마크다운 코드블록이 있을 경우 제거)
-    const raw = lastMessage.content
+    const raw = content
       .replace(/^```json\s*/i, "")
       .replace(/^```\s*/i, "")
       .replace(/\s*```$/, "")

@@ -1,28 +1,46 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 type Props = {
   reportId: string;
 };
 
-// 생성 중 상태에서 5초마다 status API를 폴링, 완료되면 페이지 새로고침
 export default function ReportPolling({ reportId }: Props) {
   const router = useRouter();
+  const pollCount = useRef(0);
 
   useEffect(() => {
     let stopped = false;
 
     async function poll() {
       if (stopped) return;
+      pollCount.current += 1;
+
       try {
-        const res = await fetch(`/api/manus/status/${reportId}`);
-        if (!res.ok) return;
-        const data = await res.json() as { status: string };
-        if (data.status === "completed" || data.status === "failed") {
-          router.refresh();
-          return;
+        // 24번(2분) 이후부터는 Manus API 직접 확인 (webhook 미수신 대비)
+        if (pollCount.current > 24) {
+          const syncRes = await fetch("/api/manus/sync", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ report_id: reportId }),
+          });
+          if (syncRes.ok) {
+            const data = await syncRes.json() as { status: string };
+            if (data.status === "completed" || data.status === "failed") {
+              router.refresh();
+              return;
+            }
+          }
+        } else {
+          const res = await fetch(`/api/manus/status/${reportId}`);
+          if (!res.ok) return;
+          const data = await res.json() as { status: string };
+          if (data.status === "completed" || data.status === "failed") {
+            router.refresh();
+            return;
+          }
         }
       } catch {
         // 네트워크 오류는 무시하고 계속 폴링
@@ -39,7 +57,7 @@ export default function ReportPolling({ reportId }: Props) {
       <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       <div className="text-center">
         <p className="text-sm font-medium text-foreground">AI가 채널을 분석하고 있습니다</p>
-        <p className="mt-1 text-xs text-muted-foreground">리포트 생성까지 보통 10~30분 소요됩니다.</p>
+        <p className="mt-1 text-xs text-muted-foreground">리포트 생성까지 보통 3~5분 소요됩니다.</p>
         <p className="mt-1 text-xs text-muted-foreground">이 페이지를 열어두면 완료 시 자동으로 결과를 표시합니다.</p>
       </div>
       <div className="flex gap-1 mt-2">

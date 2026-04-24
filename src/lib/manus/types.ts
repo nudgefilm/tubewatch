@@ -99,18 +99,46 @@ export type ManusTaskCreateResponse = {
   task_id: string;
 };
 
-export type ManusMessage = {
-  role: "user" | "assistant" | "system";
-  content: string;
-  created_at?: string;
-};
+// 실제 Manus v2 API 메시지 구조 (type 필드 기반 discriminated union)
+export type ManusMessage =
+  | {
+      type: "user_message";
+      id: string;
+      timestamp: string;
+      user_message: { content: string };
+    }
+  | {
+      type: "assistant_message";
+      id: string;
+      timestamp: string;
+      assistant_message: {
+        content: string;
+        attachments?: Array<{
+          type: string;
+          content_type: string;
+          filename?: string;
+          url?: string;
+        }>;
+      };
+    }
+  | {
+      type: "status_update";
+      id: string;
+      timestamp: string;
+      status_update: {
+        agent_status: "running" | "stopped" | "waiting";
+        brief: string;
+        description: string;
+      };
+    };
 
 export type ManusTaskMessagesResponse = {
   messages: ManusMessage[];
+  has_more: boolean;
 };
 
 export type ManusWebhookPayload = {
   event: string;
-  task_id: string;
-  status?: string;
+  task_id?: string;
+  [key: string]: unknown;
 };

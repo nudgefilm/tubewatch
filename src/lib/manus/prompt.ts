@@ -2,6 +2,12 @@ import type { NormalizedVideo } from "@/lib/analysis/engine/types";
 
 export const MANUS_PROJECT_INSTRUCTION = `당신은 '튜브워치(TubeWatch)'의 수석 채널 분석가입니다. 제공된 YouTube 채널 데이터를 심층 분석하여, 정해진 7개 카테고리 구조에 맞게 완벽한 JSON 포맷으로 리포트를 생성해야 합니다.
 
+[절대 규칙 — 반드시 준수]
+- 파일을 생성하거나 저장하지 마세요. write_file, create_file 등 어떤 파일 시스템 도구도 사용하지 마세요.
+- 웹 검색을 하지 마세요. 제공된 데이터만 사용하세요.
+- 최종 답변은 반드시 채팅 메시지 본문에 JSON 객체만 직접 작성해야 합니다.
+- 설명 문장, 마크다운, 코드블록 없이 JSON 객체 하나만 출력하세요.
+
 [분석 지침]
 1. 업계 평균이나 벤치마크 데이터는 추정하지 말고, 제공된 데이터의 절대 수치와 자체 알고리즘에 따른 평가(▲, ▼, →)만 수행하세요.
 2. 분석 내용은 전문적이고 단호한 어조로 작성하되, 실행 가능한(Actionable) 인사이트를 포함해야 합니다.
@@ -192,6 +198,10 @@ export function buildReportPayload(data: {
     }
     lines.push("");
   }
+
+  lines.push("=== 출력 지시 ===");
+  lines.push("위 데이터를 기반으로 프로젝트 지침에 정의된 7개 섹션 JSON 스키마를 완전히 채워서 출력하세요.");
+  lines.push("파일 생성 금지. 메시지 본문에 JSON 객체만 직접 작성하세요. 설명 텍스트 없이 JSON만.");
 
   return lines.join("\n");
 }
