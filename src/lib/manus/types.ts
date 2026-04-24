@@ -1,22 +1,4 @@
-export type ManusReportStatus = "pending" | "processing" | "completed" | "failed";
-
-export type ManusReportRow = {
-  id: string;
-  user_id: string;
-  user_channel_id: string;
-  snapshot_id: string;
-  year_month: string;
-  manus_task_id: string | null;
-  manus_project_id: string | null;
-  status: ManusReportStatus;
-  access_token: string;
-  result_json: ManusReportJson | null;
-  error_message: string | null;
-  created_at: string;
-  updated_at: string;
-};
-
-// ---------- Manus 실제 출력 JSON 스키마 (Manus 자체 구조 기준) ----------
+// ---------- Manus 실제 출력 JSON 스키마 ----------
 
 export type ScoreBreakdownItem = {
   grade: string;
@@ -249,57 +231,3 @@ export type ManusReportJson = {
   };
 };
 
-// ---------- Manus API 응답 타입 ----------
-
-export type ManusProjectCreateResponse = {
-  id: string;
-  name: string;
-};
-
-export type ManusTaskCreateResponse = {
-  task_id: string;
-};
-
-// 실제 Manus v2 API 메시지 구조 (type 필드 기반 discriminated union)
-export type ManusMessage =
-  | {
-      type: "user_message";
-      id: string;
-      timestamp: string;
-      user_message: { content: string };
-    }
-  | {
-      type: "assistant_message";
-      id: string;
-      timestamp: string;
-      assistant_message: {
-        content: string;
-        attachments?: Array<{
-          type: string;
-          content_type: string;
-          filename?: string;
-          url?: string;
-        }>;
-      };
-    }
-  | {
-      type: "status_update";
-      id: string;
-      timestamp: string;
-      status_update: {
-        agent_status: "running" | "stopped" | "waiting";
-        brief: string;
-        description: string;
-      };
-    };
-
-export type ManusTaskMessagesResponse = {
-  messages: ManusMessage[];
-  has_more: boolean;
-};
-
-export type ManusWebhookPayload = {
-  event: string;
-  task_id?: string;
-  [key: string]: unknown;
-};
