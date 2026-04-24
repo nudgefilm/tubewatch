@@ -544,9 +544,14 @@ export default function ChannelsPageClient({
           </div>
         )}
         {channels.length > 0 && !isFreePlan && (
-          <p className="mb-2 text-[11px] text-muted-foreground/50">
-            채널 삭제 시 해당 채널의 분석 데이터가 함께 삭제되며 복구되지 않습니다.
-          </p>
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+            <p className="text-[11px] font-medium text-amber-600 dark:text-amber-400">
+              ⚠ 채널 삭제 시 해당 채널의 분석 데이터가 함께 삭제되며 복구되지 않습니다.
+            </p>
+            <p className="text-[11px] text-muted-foreground/60">
+              월간 리포트는 월 1회 발행됩니다.
+            </p>
+          </div>
         )}
         {loading ? (
           <ul className="divide-y rounded-xl border border-border bg-card">
