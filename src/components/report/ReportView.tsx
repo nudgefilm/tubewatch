@@ -308,32 +308,56 @@ function GrowthSection({ data, scorecard }: { data: ManusReportJson["section2_gr
 }
 
 /* ══ SECTION 3: 데이터 시그널 ═════════════════════════════════ */
-function DataSignalsSection({ data }: { data: ManusReportJson["section3_data_signals"] }) {
+function DataSignalsSection({ data, growth, patterns }: {
+  data: ManusReportJson["section3_data_signals"];
+  growth: ManusReportJson["section2_growth_metrics"];
+  patterns: ManusReportJson["section4_channel_patterns"];
+}) {
   if (!data) return null;
-  const high  = data.high_performance_patterns ?? [];
-  const low   = data.low_performance_patterns ?? [];
-  const kw    = data.keyword_analysis;
-  const title = data.title_pattern_analysis;
+  const high   = data.high_performance_patterns ?? [];
+  const low    = data.low_performance_patterns ?? [];
+  const kw     = data.keyword_analysis;
+  const title  = data.title_pattern_analysis;
+  const stats  = growth?.view_statistics;
+  const eng    = growth?.engagement_metrics;
+  const trend  = growth?.growth_trend;
+  const thumb  = patterns?.thumbnail_and_title_patterns;
+  const upload = patterns?.upload_patterns;
+  const seriesEntries = Object.values(patterns?.series_performance ?? {}).filter(Boolean);
 
-  type SI = { n: string; t: string; v: string; dot: "g" | "r" | "y" | "b" };
+  type SIRaw = { t: string; v: string; dot: "g" | "r" | "y" | "b" };
+  type SI = SIRaw & { n: string };
+  const mkSI = (arr: (SIRaw | null)[]): SI[] =>
+    arr.filter((x): x is SIRaw => x !== null).slice(0, 10).map((item, i) => ({ n: String(i + 1).padStart(2, "0"), ...item }));
 
-  const g1: SI[] = ([
-    title?.avg_title_length != null          ? { n: "01", t: "평균 제목 길이", v: `${title.avg_title_length}자`, dot: "g" } : null,
-    title?.optimal_title_length              ? { n: "02", t: "최적 제목 길이", v: title.optimal_title_length, dot: "g" } : null,
-    title?.hashtag_usage?.avg_tags != null   ? { n: "03", t: "평균 해시태그 수", v: `${title.hashtag_usage.avg_tags}개`, dot: "b" } : null,
-    title?.hashtag_usage?.effective_tags     ? { n: "04", t: "효과적 태그", v: title.hashtag_usage.effective_tags.slice(0, 40), dot: "g" } : null,
-    ...(title?.effective_structures ?? []).slice(0, 6).map((s, i) => ({ n: String(5 + i).padStart(2, "0"), t: "효과적 제목 구조", v: s.slice(0, 45), dot: "g" as const })),
-  ] as (SI | null)[]).filter((x): x is SI => x !== null).slice(0, 10);
+  const g1 = mkSI([
+    title?.avg_title_length != null          ? { t: "평균 제목 길이",      v: `${title.avg_title_length}자`,                                                          dot: "g" } : null,
+    title?.optimal_title_length              ? { t: "최적 제목 길이",      v: title.optimal_title_length,                                                             dot: "g" } : null,
+    title?.hashtag_usage?.avg_tags != null   ? { t: "평균 해시태그 수",    v: `${title.hashtag_usage.avg_tags}개`,                                                    dot: "b" } : null,
+    title?.hashtag_usage?.effective_tags     ? { t: "효과적 태그",         v: title.hashtag_usage.effective_tags.slice(0, 40),                                        dot: "g" } : null,
+    ...(title?.effective_structures ?? []).slice(0, 6).map(s => ({ t: "효과적 제목 구조", v: s.slice(0, 45), dot: "g" as const })),
+    stats?.max_views?.title                  ? { t: "최고 조회 영상 제목", v: stats.max_views.title.slice(0, 45),                                                     dot: "g" } : null,
+    (kw?.high_ctr_keywords ?? []).length > 3 ? { t: "추가 고CTR 키워드",  v: (kw!.high_ctr_keywords!).slice(3, 6).map(k => `#${k}`).join("  "),                     dot: "y" } : null,
+    (thumb?.effective_thumbnail_elements ?? []).length > 0
+                                             ? { t: "효과적 썸네일 요소",  v: (thumb!.effective_thumbnail_elements!).slice(0, 2).join(" · ").slice(0, 45),            dot: "b" } : null,
+  ]);
 
-  const g2: SI[] = [
-    ...high.slice(0, 7).map((p, i) => ({ n: String(i + 1).padStart(2, "0"), t: p.pattern ?? "-", v: p.avg_views != null ? `평균 ${fmt(p.avg_views)}회` : (p.insight ?? p.description ?? "").slice(0, 35), dot: "g" as const })),
-    ...(kw?.high_ctr_keywords ?? []).slice(0, 3).map((k, i) => ({ n: String(high.slice(0, 7).length + i + 1).padStart(2, "0"), t: "고 CTR 키워드", v: `#${k}`, dot: "y" as const })),
-  ].slice(0, 10);
+  const g2 = mkSI([
+    ...high.slice(0, 7).map(p => ({ t: p.pattern ?? "-", v: p.avg_views != null ? `평균 ${fmt(p.avg_views)}회` : (p.insight ?? p.description ?? "").slice(0, 35), dot: "g" as const })),
+    ...(kw?.high_ctr_keywords ?? []).slice(0, 3).map(k => ({ t: "고 CTR 키워드", v: `#${k}`, dot: "y" as const })),
+    eng?.avg_likes_per_video != null         ? { t: "영상당 평균 좋아요",  v: `${fmt(eng.avg_likes_per_video)}개`,                                                    dot: "g" } : null,
+    eng?.avg_comments_per_video != null      ? { t: "영상당 평균 댓글",    v: `${fmt(eng.avg_comments_per_video)}개`,                                                 dot: "g" } : null,
+    (trend?.recent_10_avg_views != null && trend?.previous_10_avg_views != null)
+      ? { t: "최근 모멘텀 변화", v: `최근 ${fmt(trend.recent_10_avg_views)} vs 이전 ${fmt(trend.previous_10_avg_views)}`, dot: trend.recent_10_avg_views >= trend.previous_10_avg_views ? "g" : "r" as const }
+      : null,
+  ]);
 
-  const g3: SI[] = [
-    ...low.slice(0, 7).map((p, i) => ({ n: String(i + 1).padStart(2, "0"), t: p.pattern ?? "-", v: (p.insight ?? p.description ?? "").slice(0, 35), dot: "r" as const })),
-    ...(kw?.topic_performance ? Object.entries(kw.topic_performance).map(([topic, perf], i) => ({ n: String(low.length + i + 1).padStart(2, "0"), t: `주제: ${topic}`, v: perf?.avg_views != null ? `평균 ${fmt(perf.avg_views)}회 · ${perf.share_pct ?? 0}%` : `${perf?.video_count ?? 0}개 영상`, dot: "b" as const })) : []),
-  ].slice(0, 10);
+  const g3 = mkSI([
+    ...low.slice(0, 7).map(p => ({ t: p.pattern ?? "-", v: (p.insight ?? p.description ?? "").slice(0, 35), dot: "r" as const })),
+    ...(kw?.topic_performance ? Object.entries(kw.topic_performance).map(([topic, perf]) => ({ t: `주제: ${topic}`, v: perf?.avg_views != null ? `평균 ${fmt(perf.avg_views)}회 · ${perf.share_pct ?? 0}%` : `${perf?.video_count ?? 0}개 영상`, dot: "b" as const })) : []),
+    ...seriesEntries.slice(0, 3).map(s => ({ t: `시리즈 · ${s!.name ?? "-"}`, v: `평균 ${fmt(s!.avg_views)}회 · ${s!.video_count ?? 0}편`, dot: "b" as const })),
+    upload?.peak_upload_period               ? { t: "업로드 피크 시점",    v: upload.peak_upload_period.slice(0, 45),                                                 dot: "y" } : null,
+  ]);
 
   const total = g1.length + g2.length + g3.length;
   const groups = [
@@ -922,7 +946,7 @@ export default function ReportView({ report, generatedAt }: Props) {
         <HeroSection        info={report.channel_info} scorecard={report.section1_scorecard} growth={report.section2_growth_metrics} signals={report.section3_data_signals} date={date} />
         <GrowthSection      data={report.section2_growth_metrics} scorecard={report.section1_scorecard} />
         <hr style={{ border: "none", borderTop: `1px solid ${G200}`, margin: 0 }} />
-        <DataSignalsSection data={report.section3_data_signals} />
+        <DataSignalsSection data={report.section3_data_signals} growth={report.section2_growth_metrics} patterns={report.section4_channel_patterns} />
         <ChannelPatternsSection data={report.section4_channel_patterns} />
         <hr style={{ border: "none", borderTop: `1px solid ${G200}`, margin: 0 }} />
         <ChannelDNASection  data={report.section5_channel_dna} scorecard={report.section1_scorecard} />
