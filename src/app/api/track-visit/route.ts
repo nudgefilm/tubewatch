@@ -22,7 +22,7 @@ function getClientIp(req: NextRequest): string {
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
   const ipHash = await hashIp(ip);
-  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10); // YYYY-MM-DD (KST)
 
   await supabaseAdmin
     .from("site_visits")

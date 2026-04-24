@@ -27,8 +27,12 @@ function truncateError(raw: string | null, maxLen: number): string | null {
 }
 
 export async function getAdminDashboardData(): Promise<AdminDashboardData> {
-  const today = new Date().toISOString().slice(0, 10);
-  const tomorrow = new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
+  const KST = 9 * 60 * 60 * 1000;
+  const todayKST = new Date(Date.now() + KST).toISOString().slice(0, 10);
+  const tomorrowKST = new Date(Date.now() + KST + 86_400_000).toISOString().slice(0, 10);
+  // KST 자정 기준 UTC 타임스탬프 (timestamptz 컬럼 범위 쿼리용)
+  const todayKSTStart = `${todayKST}T00:00:00+09:00`;
+  const tomorrowKSTStart = `${tomorrowKST}T00:00:00+09:00`;
 
   const [
     usersCountRes,
@@ -69,26 +73,26 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     supabaseAdmin
       .from("site_visits")
       .select("*", { count: "exact", head: true })
-      .eq("visit_date", today),
+      .eq("visit_date", todayKST),
     supabaseAdmin
       .from("site_visits")
       .select("*", { count: "exact", head: true }),
     supabaseAdmin
       .from("user_signup_log")
       .select("*", { count: "exact", head: true })
-      .gte("joined_at", today)
-      .lt("joined_at", tomorrow),
+      .gte("joined_at", todayKSTStart)
+      .lt("joined_at", tomorrowKSTStart),
     supabaseAdmin
       .from("user_signup_log")
       .select("*", { count: "exact", head: true })
-      .gte("withdrawn_at", today)
-      .lt("withdrawn_at", tomorrow),
+      .gte("withdrawn_at", todayKSTStart)
+      .lt("withdrawn_at", tomorrowKSTStart),
     supabaseAdmin
       .from("subscription_changes")
       .select("*", { count: "exact", head: true })
       .in("change_type", ["new", "upgrade"])
-      .gte("changed_at", today)
-      .lt("changed_at", tomorrow),
+      .gte("changed_at", todayKSTStart)
+      .lt("changed_at", tomorrowKSTStart),
   ]);
 
   const kpi: AdminDashboardKpi = {
