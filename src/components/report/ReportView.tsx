@@ -112,6 +112,21 @@ function gradeToSub(score: number): string {
   return "도약 준비 단계";
 }
 
+const ORANGE_LIGHT = "rgba(255,122,0,0.35)";
+const ORANGE_DARK  = "#C85000";
+
+function ActionCheckbox({ checked, onToggle }: { checked: boolean; onToggle: () => void }) {
+  return (
+    <button
+      onClick={onToggle}
+      aria-label={checked ? "완료됨" : "실행하기"}
+      style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "18px", height: "18px", border: `2px solid ${checked ? ORANGE_DARK : ORANGE_LIGHT}`, borderRadius: "3px", background: checked ? ORANGE_DARK : "transparent", cursor: "pointer", flexShrink: 0, padding: 0, outline: "none", transition: "all .15s" }}
+    >
+      {checked && <Check size={11} color="#fff" strokeWidth={3} />}
+    </button>
+  );
+}
+
 function nextTargetScore(score: number): number | null {
   if (score < 40) return 40;
   if (score < 55) return 55;
@@ -129,6 +144,7 @@ function HeroSection({ info, scorecard, growth, signals, date }: {
   signals: ManusReportJson["section3_data_signals"];
   date: string;
 }) {
+  const [triggerChecked, setTriggerChecked] = useState(false);
   const score = scorecard?.overall_score ?? 0;
   const grade = scorecard?.grade ?? "-";
   const name  = info?.channel_name ?? "채널명";
@@ -214,7 +230,7 @@ function HeroSection({ info, scorecard, growth, signals, date }: {
 
         {scorecard?.top_action_trigger && (
           <div style={{ background: "#1A0A00", border: `1px solid ${ORANGE}`, padding: "14px 20px", marginTop: "28px", display: "flex", alignItems: "flex-start", gap: "12px" }}>
-            <span style={{ flexShrink: 0, marginTop: "2px" }}><Check size={16} color={ORANGE} strokeWidth={2.5} /></span>
+            <span style={{ flexShrink: 0, marginTop: "2px" }}><ActionCheckbox checked={triggerChecked} onToggle={() => setTriggerChecked(v => !v)} /></span>
             <div>
               <div style={{ fontFamily: MONO, fontSize: "11px", color: ORANGE, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "4px" }}>지금 가장 먼저 해야 할 것</div>
               <div style={{ fontSize: "15px", color: "#F0F0F0", lineHeight: 1.6 }}>{scorecard.top_action_trigger}</div>
@@ -283,6 +299,7 @@ function HeroSection({ info, scorecard, growth, signals, date }: {
 
 /* ══ SECTION 2: 9개 성장 지표 ═════════════════════════════════ */
 function GrowthSection({ data, scorecard }: { data: ManusReportJson["section2_growth_metrics"]; scorecard: ManusReportJson["section1_scorecard"] }) {
+  const [metricChecked, setMetricChecked] = useState(false);
   if (!data) return null;
   const trend = data.growth_trend;
   const stats = data.view_statistics;
@@ -321,7 +338,7 @@ function GrowthSection({ data, scorecard }: { data: ManusReportJson["section2_gr
             return metrics.map((m, i) => (
             <div key={i} style={{ background: "#fff", padding: "22px 18px", borderRight: `1px solid ${G200}`, borderBottom: `1px solid ${G200}`, display: "flex", flexDirection: "column", position: "relative" }}>
               {i === firstDnIdx && (
-                <span style={{ position: "absolute", top: "10px", right: "10px" }}><Check size={14} color={ORANGE} strokeWidth={2.5} /></span>
+                <span style={{ position: "absolute", top: "10px", right: "10px" }}><ActionCheckbox checked={metricChecked} onToggle={() => setMetricChecked(v => !v)} /></span>
               )}
               <div style={{ fontFamily: MONO, fontSize: "12px", color: G400, marginBottom: "8px" }}>{m.n}</div>
               <DotBadge status={m.st} />
@@ -348,6 +365,7 @@ function DataSignalsSection({ data, growth, patterns }: {
   growth: ManusReportJson["section2_growth_metrics"];
   patterns: ManusReportJson["section4_channel_patterns"];
 }) {
+  const [signalChecked, setSignalChecked] = useState(false);
   if (!data) return null;
   const high   = data.high_performance_patterns ?? [];
   const low    = data.low_performance_patterns ?? [];
@@ -427,7 +445,7 @@ function DataSignalsSection({ data, growth, patterns }: {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: "15px", fontWeight: 700, color: "#F0F0F0", marginBottom: "2px", fontFamily: SANS, display: "flex", alignItems: "center", gap: "6px" }}>
                       {item.t}
-                      {isTopAlert && <Check size={13} color={ORANGE} strokeWidth={2.5} />}
+                      {isTopAlert && <ActionCheckbox checked={signalChecked} onToggle={() => setSignalChecked(v => !v)} />}
                     </div>
                     <div style={{ fontFamily: MONO, fontSize: "12px", color: "#CCCCCC" }}><SiDot t={item.dot} />{item.v}</div>
                     {item.desc && item.desc !== item.v && (
@@ -447,6 +465,7 @@ function DataSignalsSection({ data, growth, patterns }: {
 
 /* ══ SECTION 4: 채널 운영 패턴 ═══════════════════════════════ */
 function ChannelPatternsSection({ data }: { data: ManusReportJson["section4_channel_patterns"] }) {
+  const [patternChecked, setPatternChecked] = useState(false);
   if (!data) return null;
   const upload = data.upload_patterns;
   const thumb  = data.thumbnail_and_title_patterns;
@@ -511,7 +530,7 @@ function ChannelPatternsSection({ data }: { data: ManusReportJson["section4_chan
               <div key={p.n} className="g-pattern" style={{ border: `1px solid ${G200}` }}>
                 <div style={{ background: BLK, color: LIME, fontFamily: MONO, fontSize: "14px", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
                 {String(rank).padStart(2, "0")}
-                {rank === 1 && <Check size={13} color={ORANGE} strokeWidth={2.5} />}
+                {rank === 1 && <ActionCheckbox checked={patternChecked} onToggle={() => setPatternChecked(v => !v)} />}
               </div>
                 <div className="g-pattern-body" style={{ padding: "16px 18px" }}>
                   <div style={{ fontSize: "16px", fontWeight: 700, marginBottom: "4px", fontFamily: SANS }}>{p.name}</div>
@@ -810,6 +829,7 @@ function ContentPlansSection({ data, signals }: {
 /* ══ SECTION 7: 30일 실행 계획 (4탭) ════════════════════════ */
 function ActionPlanSection({ report }: { report: ManusReportJson }) {
   const [activeTab, setActiveTab] = useState<0 | 1 | 2>(0);
+  const [topChecked, setTopChecked] = useState(false);
   const data = report.section7_action_plan;
   if (!data) return null;
 
@@ -844,7 +864,7 @@ function ActionPlanSection({ report }: { report: ManusReportJson }) {
         {topTask && (
           <div style={{ background: BLK, padding: "20px 24px", marginBottom: "28px", borderLeft: `4px solid ${LIME}` }}>
             <div style={{ fontFamily: MONO, fontSize: "11px", color: LIME, letterSpacing: "2px", textTransform: "uppercase", marginBottom: "10px", display: "flex", alignItems: "center", gap: "6px" }}>
-              <Check size={13} color={ORANGE} strokeWidth={2.5} />
+              <ActionCheckbox checked={topChecked} onToggle={() => setTopChecked(v => !v)} />
               지금 당장 · Top Priority
             </div>
             <div style={{ fontSize: "17px", fontWeight: 800, color: "#fff", fontFamily: SANS, marginBottom: "6px" }}>{topTask.task ?? "-"}</div>
