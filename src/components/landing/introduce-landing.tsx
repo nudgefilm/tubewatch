@@ -56,7 +56,7 @@ function HeroSection() {
       <div className="absolute top-0 right-1/3 w-[600px] h-[400px] bg-orange-500/[0.05] rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative z-10 max-w-[1100px] mx-auto px-8 lg:px-16">
-        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-6">
 
           {/* ── 왼쪽: 텍스트 영역 ── */}
           <div className="flex-1 min-w-0">
@@ -70,7 +70,7 @@ function HeroSection() {
 
             {/* Headline */}
             <h1 className={`font-heading font-bold leading-[1.1] tracking-[-0.04em] transition-all duration-1000 delay-100 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
-              <span className="block text-[clamp(2.4rem,5vw,4.2rem)] text-foreground">
+              <span className="block text-[clamp(2.4rem,5vw,4.2rem)] text-foreground whitespace-nowrap">
                 성장 채널로 가는
               </span>
               <span className="block text-[clamp(1.6rem,3.2vw,2.8rem)] text-foreground whitespace-nowrap">
