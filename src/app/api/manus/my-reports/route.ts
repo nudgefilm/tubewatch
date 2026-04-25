@@ -13,12 +13,17 @@ export async function GET() {
 
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
-  const { data } = await supabaseAdmin
+  const { data, error: queryError } = await supabaseAdmin
     .from("manus_reports")
     .select("id, user_channel_id, status, access_token, created_at")
     .eq("user_id", user.id)
     .gte("created_at", thirtyDaysAgo)
     .order("created_at", { ascending: false });
+
+  if (queryError) {
+    console.error("[my-reports] DB query failed:", queryError.message);
+    return NextResponse.json({ error: "리포트 조회에 실패했습니다." }, { status: 500 });
+  }
 
   // user_channel_id → 최신 report 매핑 (created_at desc 정렬 기준 첫 번째만 보관)
   const map: Record<string, { id: string; status: string; access_token: string; created_at: string }> = {};

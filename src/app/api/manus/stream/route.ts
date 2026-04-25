@@ -187,10 +187,12 @@ export async function GET(req: Request) {
 
         // JSON 파싱 & 저장
         const resultJson = parseReportJson(fullText);
-        await supabaseAdmin
+        const { error: saveError } = await supabaseAdmin
           .from("manus_reports")
           .update({ status: "completed", result_json: resultJson, error_message: null })
           .eq("id", report.id);
+
+        if (saveError) throw new Error(`리포트 저장 실패: ${saveError.message}`);
 
         send(controller, { type: "done" });
       } catch (err) {

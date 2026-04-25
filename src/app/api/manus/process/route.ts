@@ -104,10 +104,11 @@ export async function POST(req: Request) {
 
   try {
     const resultJson = await generateReport(payload);
-    await supabaseAdmin
+    const { error: saveError } = await supabaseAdmin
       .from("manus_reports")
       .update({ status: "completed", result_json: resultJson, error_message: null })
       .eq("id", report.id);
+    if (saveError) throw new Error(`리포트 저장 실패: ${saveError.message}`);
     return NextResponse.json({ status: "completed" });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
