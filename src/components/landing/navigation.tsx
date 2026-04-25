@@ -60,13 +60,13 @@ export function Navigation() {
         void (async () => {
           const { data } = await supabase
             .from("user_subscriptions")
-            .select("plan_id, status")
+            .select("plan_id, subscription_status")
             .eq("user_id", session.user.id)
             .limit(1)
             .maybeSingle();
           const validStatuses = ["active", "trialing", "manual", "refunded"];
-          const status = typeof (data as { status?: string } | null)?.status === "string"
-            ? ((data as { status?: string }).status ?? "").trim().toLowerCase()
+          const status = typeof (data as { subscription_status?: string } | null)?.subscription_status === "string"
+            ? ((data as { subscription_status?: string }).subscription_status ?? "").trim().toLowerCase()
             : "";
           if (data?.plan_id && validStatuses.includes(status)) {
             const base = (data.plan_id as string).replace("_6m", "");
