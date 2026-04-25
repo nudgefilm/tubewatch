@@ -118,6 +118,9 @@ function HeroSection() {
                 className="relative w-full h-auto drop-shadow-2xl"
               />
             </div>
+            <p className="mt-3 text-center text-xs text-muted-foreground/60 tracking-wide">
+              채널 분석 전략 리포트 <span className="text-muted-foreground/40">|</span> 월간 발행
+            </p>
           </div>
 
         </div>
