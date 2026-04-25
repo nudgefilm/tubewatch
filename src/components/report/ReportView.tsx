@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Check } from "lucide-react";
 import type { ManusReportJson } from "@/lib/manus/types";
 
 type Props = { report: ManusReportJson; generatedAt: string };
@@ -213,7 +214,7 @@ function HeroSection({ info, scorecard, growth, signals, date }: {
 
         {scorecard?.top_action_trigger && (
           <div style={{ background: "#1A0A00", border: `1px solid ${ORANGE}`, padding: "14px 20px", marginTop: "28px", display: "flex", alignItems: "flex-start", gap: "12px" }}>
-            <span style={{ fontSize: "16px", flexShrink: 0 }}>🔥</span>
+            <span style={{ flexShrink: 0, marginTop: "2px" }}><Check size={16} color={ORANGE} strokeWidth={2.5} /></span>
             <div>
               <div style={{ fontFamily: MONO, fontSize: "11px", color: ORANGE, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "4px" }}>지금 가장 먼저 해야 할 것</div>
               <div style={{ fontSize: "15px", color: "#F0F0F0", lineHeight: 1.6 }}>{scorecard.top_action_trigger}</div>
@@ -315,8 +316,13 @@ function GrowthSection({ data, scorecard }: { data: ManusReportJson["section2_gr
           : null}
         <p style={{ fontSize: "14px", color: G600, marginBottom: "36px" }}>각 지표별 현재 수치와 진단을 확인하세요. 수치는 최근 50개 영상 기준입니다.</p>
         <div className="g-metrics" style={{ border: `1px solid ${G200}` }}>
-          {metrics.map((m, i) => (
-            <div key={i} style={{ background: "#fff", padding: "22px 18px", borderRight: `1px solid ${G200}`, borderBottom: `1px solid ${G200}`, display: "flex", flexDirection: "column" }}>
+          {(() => {
+            const firstDnIdx = metrics.findIndex(m => m.st === "dn");
+            return metrics.map((m, i) => (
+            <div key={i} style={{ background: "#fff", padding: "22px 18px", borderRight: `1px solid ${G200}`, borderBottom: `1px solid ${G200}`, display: "flex", flexDirection: "column", position: "relative" }}>
+              {i === firstDnIdx && (
+                <span style={{ position: "absolute", top: "10px", right: "10px" }}><Check size={14} color={ORANGE} strokeWidth={2.5} /></span>
+              )}
               <div style={{ fontFamily: MONO, fontSize: "12px", color: G400, marginBottom: "8px" }}>{m.n}</div>
               <DotBadge status={m.st} />
               <div style={{ fontSize: "22px", fontWeight: 800, fontFamily: MONO, marginBottom: "4px", color: m.st === "up" ? "#16A34A" : m.st === "dn" ? "#DC2626" : G600 }}>{m.val}</div>
@@ -328,7 +334,8 @@ function GrowthSection({ data, scorecard }: { data: ManusReportJson["section2_gr
                 </div>
               )}
             </div>
-          ))}
+          ));
+          })()}
         </div>
       </div>
     </section>
@@ -412,18 +419,24 @@ function DataSignalsSection({ data, growth, patterns }: {
             <div key={g.id} style={{ background: "#1E1E1E", padding: "28px 22px" }}>
               <div style={{ fontFamily: MONO, fontSize: "13px", fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "18px", paddingBottom: "12px", borderBottom: `2px solid #2E2E2E`, color: g.tc }}>{g.label}</div>
               {g.items.length === 0 && <p style={{ fontSize: "14px", color: "#777" }}>데이터 준비 중</p>}
-              {g.items.map((item, i) => (
+              {g.items.map((item, i) => {
+                const isTopAlert = g.id === "id" && i === 0;
+                return (
                 <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "10px", padding: "9px 0", borderBottom: i < g.items.length - 1 ? `1px solid #252525` : "none" }}>
                   <span style={{ fontFamily: MONO, fontSize: "11px", color: LIME, flexShrink: 0, minWidth: "18px", paddingTop: "3px", fontWeight: 700 }}>{item.n}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: "15px", fontWeight: 700, color: "#F0F0F0", marginBottom: "2px", fontFamily: SANS }}>{item.t}</div>
+                    <div style={{ fontSize: "15px", fontWeight: 700, color: "#F0F0F0", marginBottom: "2px", fontFamily: SANS, display: "flex", alignItems: "center", gap: "6px" }}>
+                      {item.t}
+                      {isTopAlert && <Check size={13} color={ORANGE} strokeWidth={2.5} />}
+                    </div>
                     <div style={{ fontFamily: MONO, fontSize: "12px", color: "#CCCCCC" }}><SiDot t={item.dot} />{item.v}</div>
                     {item.desc && item.desc !== item.v && (
                       <div style={{ fontSize: "13px", color: "#AAAAAA", lineHeight: 1.6, marginTop: "4px", fontFamily: SANS }}>{item.desc}</div>
                     )}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           ))}
         </div>
@@ -496,7 +509,10 @@ function ChannelPatternsSection({ data }: { data: ManusReportJson["section4_chan
             const rank = action?.rank ?? (idx + 1);
             return (
               <div key={p.n} className="g-pattern" style={{ border: `1px solid ${G200}` }}>
-                <div style={{ background: BLK, color: LIME, fontFamily: MONO, fontSize: "14px", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{String(rank).padStart(2, "0")}</div>
+                <div style={{ background: BLK, color: LIME, fontFamily: MONO, fontSize: "14px", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
+                {String(rank).padStart(2, "0")}
+                {rank === 1 && <Check size={13} color={ORANGE} strokeWidth={2.5} />}
+              </div>
                 <div className="g-pattern-body" style={{ padding: "16px 18px" }}>
                   <div style={{ fontSize: "16px", fontWeight: 700, marginBottom: "4px", fontFamily: SANS }}>{p.name}</div>
                   <div style={{ fontSize: "14px", color: G600, lineHeight: 1.6 }}>{p.char}</div>
@@ -827,7 +843,10 @@ function ActionPlanSection({ report }: { report: ManusReportJson }) {
         {/* 지금 당장 1개 */}
         {topTask && (
           <div style={{ background: BLK, padding: "20px 24px", marginBottom: "28px", borderLeft: `4px solid ${LIME}` }}>
-            <div style={{ fontFamily: MONO, fontSize: "11px", color: LIME, letterSpacing: "2px", textTransform: "uppercase", marginBottom: "10px" }}>지금 당장 · Top Priority</div>
+            <div style={{ fontFamily: MONO, fontSize: "11px", color: LIME, letterSpacing: "2px", textTransform: "uppercase", marginBottom: "10px", display: "flex", alignItems: "center", gap: "6px" }}>
+              <Check size={13} color={ORANGE} strokeWidth={2.5} />
+              지금 당장 · Top Priority
+            </div>
             <div style={{ fontSize: "17px", fontWeight: 800, color: "#fff", fontFamily: SANS, marginBottom: "6px" }}>{topTask.task ?? "-"}</div>
             {topTask.detail && <div style={{ fontSize: "14px", color: "#AAAAAA", lineHeight: 1.7 }}>{topTask.detail}</div>}
             {topTask.expected_impact && <div style={{ fontSize: "13px", color: ORANGE, marginTop: "8px", fontFamily: MONO }}>기대 효과: {topTask.expected_impact}</div>}
