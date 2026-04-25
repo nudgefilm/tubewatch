@@ -118,7 +118,11 @@ export const MANUS_PROJECT_INSTRUCTION = `당신은 '튜브워치(TubeWatch)'의
     "thumbnail_and_title_patterns": {
       "effective_title_formulas": ["효과적 제목 공식1", "공식2"],
       "effective_thumbnail_elements": ["썸네일 요소1", "요소2"]
-    }
+    },
+    "pattern_actions": [
+      {"rank": 1, "name": "패턴명 (위 패턴 카드 이름과 정확히 일치)", "immediate_action": "지금 당장 실행할 구체적 행동 1문장", "weekly_action": "이번 주 안에 실행할 구체적 행동 1문장"},
+      {"rank": 2, "name": "패턴명", "immediate_action": "...", "weekly_action": "..."}
+    ]
   },
   "section5_channel_dna": {
     "core_identity": "채널 핵심 정체성 2~3문장",
@@ -207,7 +211,7 @@ export const MANUS_PROJECT_INSTRUCTION = `당신은 '튜브워치(TubeWatch)'의
 - section1_scorecard.score_breakdown: 6개 항목 모두 포함 (comment 필드 필수)
 - section2_growth_metrics: 5개 하위 객체 모두 포함
 - section3_data_signals: high_performance_patterns 3개, low_performance_patterns 3개, high_ctr_keywords 5개 이상, topic_performance 3개 이상, effective_structures 3개 이상
-- section4_channel_patterns: content_evolution 3단계, series_performance 최대 3개
+- section4_channel_patterns: content_evolution 3단계, series_performance 최대 3개, pattern_actions는 실제 생성된 패턴 수만큼 포함 (name은 반드시 아래 중 해당하는 것과 정확히 일치: "업로드 주기 패턴", "업로드 최적 시점", "제목 전략 패턴", "썸네일 전략 패턴", "바이럴 트리거 패턴", "댓글 · 참여 유도 패턴", "콘텐츠 진화 타임라인", "시리즈 성과 패턴")
 - section5_channel_dna: content_pillars 3개, brand_keywords 5개 이상
 - section6_content_plans.immediate_opportunities: 2개 (structure_flow 4단계 필수)
 - section6_content_plans.series_concepts: 1개

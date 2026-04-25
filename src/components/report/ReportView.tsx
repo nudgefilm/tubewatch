@@ -422,6 +422,7 @@ function ChannelPatternsSection({ data }: { data: ManusReportJson["section4_chan
   const evo    = data.content_evolution;
   const series = data.series_performance;
   const phases = evo ? (["phase1","phase2","phase3","phase4","phase5"] as const).map(k => evo[k]).filter(Boolean) : [];
+  const patternActions = data.pattern_actions ?? [];
 
   type Pat = { n: string; name: string; char: string; interp: string };
   const pats: Pat[] = [];
@@ -456,26 +457,50 @@ function ChannelPatternsSection({ data }: { data: ManusReportJson["section4_chan
 
   if (pats.length === 0) return null;
 
+  const sortedPats = patternActions.length > 0
+    ? [...pats].sort((a, b) => {
+        const ra = patternActions.find(pa => pa.name === a.name)?.rank ?? 99;
+        const rb = patternActions.find(pa => pa.name === b.name)?.rank ?? 99;
+        return ra - rb;
+      })
+    : pats;
+
   return (
     <section className="rpt-section" style={{ background: "#fff" }}>
       <div className="rpt-wrap">
         <SecLabel txt="Channel Patterns" section="섹션 4 / 7" />
-        <h2 style={{ fontSize: "clamp(22px,3vw,30px)", fontWeight: 900, letterSpacing: "-1px", lineHeight: 1.2, marginBottom: "8px", fontFamily: SANS }}>{pats.length}개 채널 운영 패턴</h2>
+        <h2 style={{ fontSize: "clamp(22px,3vw,30px)", fontWeight: 900, letterSpacing: "-1px", lineHeight: 1.2, marginBottom: "8px", fontFamily: SANS }}>{sortedPats.length}개 채널 운영 패턴</h2>
         <p style={{ fontSize: "16px", color: G600, marginBottom: "36px" }}>데이터에서 발견된 운영 패턴과 그 의미를 분석합니다.</p>
         <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-          {pats.map((p) => (
-            <div key={p.n} className="g-pattern" style={{ border: `1px solid ${G200}` }}>
-              <div style={{ background: BLK, color: LIME, fontFamily: MONO, fontSize: "14px", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{p.n}</div>
-              <div className="g-pattern-body" style={{ padding: "16px 18px" }}>
-                <div style={{ fontSize: "16px", fontWeight: 700, marginBottom: "4px", fontFamily: SANS }}>{p.name}</div>
-                <div style={{ fontSize: "14px", color: G600, lineHeight: 1.6 }}>{p.char}</div>
+          {sortedPats.map((p, idx) => {
+            const action = patternActions.find(pa => pa.name === p.name);
+            const rank = action?.rank ?? (idx + 1);
+            return (
+              <div key={p.n} className="g-pattern" style={{ border: `1px solid ${G200}` }}>
+                <div style={{ background: BLK, color: LIME, fontFamily: MONO, fontSize: "14px", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{String(rank).padStart(2, "0")}</div>
+                <div className="g-pattern-body" style={{ padding: "16px 18px" }}>
+                  <div style={{ fontSize: "16px", fontWeight: 700, marginBottom: "4px", fontFamily: SANS }}>{p.name}</div>
+                  <div style={{ fontSize: "14px", color: G600, lineHeight: 1.6 }}>{p.char}</div>
+                </div>
+                <div className="g-pattern-interp" style={{ padding: "16px 18px", background: "#F0FFF0" }}>
+                  <div style={{ fontFamily: MONO, fontSize: "11px", color: "#4A7C00", letterSpacing: "1px", textTransform: "uppercase", marginBottom: "4px", fontWeight: 700 }}>해석</div>
+                  <div style={{ fontSize: "14px", color: "#2D5A00", lineHeight: 1.6, fontWeight: 500 }}>{p.interp}</div>
+                  {action && (
+                    <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid #C6E8A0", display: "flex", flexDirection: "column", gap: "6px" }}>
+                      <div style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
+                        <span style={{ fontFamily: MONO, fontSize: "11px", fontWeight: 700, color: "#DC2626", whiteSpace: "nowrap", paddingTop: "1px" }}>당장</span>
+                        <span style={{ fontSize: "13px", color: "#1A1A1A", lineHeight: 1.6 }}>{action.immediate_action}</span>
+                      </div>
+                      <div style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
+                        <span style={{ fontFamily: MONO, fontSize: "11px", fontWeight: 700, color: "#D97706", whiteSpace: "nowrap", paddingTop: "1px" }}>이번 주</span>
+                        <span style={{ fontSize: "13px", color: "#1A1A1A", lineHeight: 1.6 }}>{action.weekly_action}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="g-pattern-interp" style={{ padding: "16px 18px", background: "#F0FFF0" }}>
-                <div style={{ fontFamily: MONO, fontSize: "11px", color: "#4A7C00", letterSpacing: "1px", textTransform: "uppercase", marginBottom: "4px", fontWeight: 700 }}>해석</div>
-                <div style={{ fontSize: "14px", color: "#2D5A00", lineHeight: 1.6, fontWeight: 500 }}>{p.interp}</div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

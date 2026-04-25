@@ -138,6 +138,12 @@ export type ManusReportJson = {
       effective_title_formulas?: string[];
       effective_thumbnail_elements?: string[];
     };
+    pattern_actions?: Array<{
+      rank: number;
+      name: string;
+      immediate_action: string;
+      weekly_action: string;
+    }>;
   };
 
   section5_channel_dna?: {
