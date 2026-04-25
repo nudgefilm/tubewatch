@@ -88,7 +88,7 @@ function HeroSection() {
             <div className={`flex items-center gap-4 mt-8 transition-all duration-700 delay-250 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
               <a
                 href="/channels"
-                className="inline-flex items-center gap-2 bg-foreground text-background px-7 py-3.5 rounded-xl font-semibold text-sm hover:bg-foreground/85 transition-colors shadow-lg shadow-foreground/10"
+                className="inline-flex items-center gap-2 bg-foreground text-background px-7 py-3.5 rounded-xl font-semibold text-sm hover:bg-foreground/85 transition-colors shadow-lg shadow-foreground/10 animate-float-half"
               >
                 내 채널 무료 분석하기
                 <ArrowRight className="w-4 h-4" />
@@ -115,7 +115,7 @@ function HeroSection() {
               <img
                 src="/hero-folder.png"
                 alt="채널 분석 리포트 미리보기"
-                className="relative w-full h-auto drop-shadow-2xl animate-float-half"
+                className="relative w-full h-auto drop-shadow-2xl"
               />
             </div>
             <p className="mt-3 text-center text-xs text-muted-foreground/60 tracking-wide">
