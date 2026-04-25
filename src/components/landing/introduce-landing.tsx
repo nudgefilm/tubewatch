@@ -70,7 +70,10 @@ function HeroSection() {
 
             <h1 className={`font-heading font-medium leading-[1.15] tracking-[-0.03em] transition-all duration-1000 delay-100 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
               <span className="block text-[clamp(1.4rem,3.2vw,2.6rem)]">
-                채널 성장의 시작!
+                성장 채널로 가는
+              </span>
+              <span className="block text-[clamp(1.4rem,3.2vw,2.6rem)]">
+                가장 정밀한 네비게이션!
               </span>
               <span className="block text-[clamp(1rem,2.4vw,1.9rem)] text-muted-foreground mt-2">
                 채널 분석 진단 리포트 <span className="text-orange-500">무료</span> 제공
@@ -94,10 +97,6 @@ function HeroSection() {
               <div className="flex items-start gap-2">
                 <span className="mt-1 w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0" />
                 <span className="text-sm text-muted-foreground">다음 영상을 위한 완성형 기획문서</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="mt-1 w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0" />
-                <span className="text-sm text-muted-foreground">30일간의 구체적 실행 계획 제시</span>
               </div>
             </div>
           </div>
