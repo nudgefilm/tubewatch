@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import dynamic from "next/dynamic"
 import { useRouter } from "next/navigation"
-import { RefreshCw, Clock, Activity, Gauge, TrendingUp, History as HistoryIcon, BarChart3, ArrowDownToLine } from "lucide-react"
+import { RefreshCw, Clock, Activity, Gauge, TrendingUp, History as HistoryIcon, BarChart3 } from "lucide-react"
 import { OverloadRetryBanner, isOverloadError } from "@/components/features/shared/OverloadRetryBanner"
 import { AnalysisProgressBar } from "@/components/features/shared/AnalysisProgressBar"
 import { AnalysisHeaderSection } from "./sections/HeaderSection"
@@ -143,54 +143,6 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
   const router = useRouter()
   const [isRequesting, setIsRequesting] = useState(false)
   const [requestError, setRequestError] = useState<string | null>(null)
-  const [isDownloading, setIsDownloading] = useState(false)
-  const [showShareMenu, setShowShareMenu] = useState(false)
-  const diagnosisCaptureRef = useRef<HTMLElement>(null)
-  const shareLeaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  function onShareEnter() {
-    if (shareLeaveTimer.current) clearTimeout(shareLeaveTimer.current)
-    setShowShareMenu(true)
-  }
-
-  function onShareLeave() {
-    shareLeaveTimer.current = setTimeout(() => setShowShareMenu(false), 1000)
-  }
-
-  function handleSharePlatform(platform: "kakao" | "twitter" | "telegram") {
-    const url = encodeURIComponent(window.location.href)
-    const text = encodeURIComponent("채널 진단 분석 결과 | TubeWatch")
-    if (platform === "kakao")
-      window.open(`https://story.kakao.com/share?url=${url}`, "_blank", "noopener,noreferrer")
-    if (platform === "twitter")
-      window.open(`https://x.com/intent/tweet?text=${text}&url=${url}`, "_blank", "noopener,noreferrer")
-    if (platform === "telegram")
-      window.open(`https://t.me/share/url?url=${url}&text=${text}`, "_blank", "noopener,noreferrer")
-  }
-
-  async function handleDiagnosisDownload() {
-    if (!diagnosisCaptureRef.current || isDownloading) return
-    setIsDownloading(true)
-    try {
-      const { toPng } = await import("html-to-image")
-      const dataUrl = await toPng(diagnosisCaptureRef.current, {
-        pixelRatio: 1,
-        backgroundColor: "#ffffff",
-      })
-      const link = document.createElement("a")
-      link.href = dataUrl
-      link.download = `채널진단지표_${viewModel?.channel?.title ?? "분석"}.png`
-      link.style.position = "fixed"
-      link.style.opacity = "0"
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-    } catch (e) {
-      console.error("[download]", e)
-    } finally {
-      setIsDownloading(false)
-    }
-  }
 
   async function handleReanalyze(force = false) {
     if (!viewModel?.selectedChannelId) {
@@ -393,60 +345,10 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
         </section>
 
         {/* 채널 진단 지표 */}
-        <section ref={diagnosisCaptureRef} className="space-y-4">
+        <section className="space-y-4">
           <div className="border-l-4 pl-3" style={{ borderColor: "var(--primary)" }}>
             <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><Gauge className="size-5 shrink-0 text-primary" />채널 진단 지표</h2>
-            <div className="flex items-center justify-between mt-0.5">
-              <p className="text-xs text-muted-foreground">업로드 빈도·조회 반응·콘텐츠 구조 등 핵심 수치를 구간별로 확인합니다</p>
-              <div className="flex items-center gap-3 ml-3 shrink-0">
-                <button
-                  onClick={handleDiagnosisDownload}
-                  disabled={isDownloading}
-                  title="이미지로 저장"
-                  className="flex items-center gap-1 text-primary/80 hover:text-primary transition-colors disabled:opacity-50"
-                >
-                  <ArrowDownToLine className="size-5" strokeWidth={2} />
-                  {isDownloading && <span className="text-xs">저장 중…</span>}
-                </button>
-                <div
-                  className="relative"
-                  onMouseEnter={onShareEnter}
-                  onMouseLeave={onShareLeave}
-                >
-                  <span className="text-[20px] leading-none select-none cursor-pointer opacity-80 hover:opacity-100 transition-opacity" title="공유하기">🔗</span>
-                  {showShareMenu && (
-                    <div className="absolute right-0 top-full mt-1.5 z-50 min-w-[148px] rounded-lg border bg-popover shadow-md overflow-hidden">
-                      <button
-                        onClick={() => handleSharePlatform("kakao")}
-                        className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-muted transition-colors"
-                      >
-                        <span className="flex w-5 justify-center text-base">💬</span>
-                        <span>카카오톡</span>
-                      </button>
-                      <button
-                        onClick={() => handleSharePlatform("twitter")}
-                        className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-muted transition-colors"
-                      >
-                        <span className="flex w-5 justify-center text-base font-bold">𝕏</span>
-                        <span>트위터(X)</span>
-                      </button>
-                      <button
-                        onClick={() => handleSharePlatform("telegram")}
-                        className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-muted transition-colors"
-                      >
-                        <span className="flex w-5 justify-center">
-                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
-                          </svg>
-                        </span>
-                        <span>텔레그램</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-                <span className="text-base font-heading font-medium tracking-[-0.02em] leading-none text-foreground opacity-100">TubeWatch™</span>
-              </div>
-            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">업로드 빈도·조회 반응·콘텐츠 구조 등 핵심 수치를 구간별로 확인합니다</p>
           </div>
           <ScorecardSection score={score} sectionScores={sectionScores} />
 
