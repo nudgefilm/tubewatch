@@ -354,7 +354,7 @@ function DataSignalsSection({ data, growth, patterns }: {
   const seriesPerf = patterns?.series_performance;
   const seriesEntries = (Array.isArray(seriesPerf) ? seriesPerf : seriesPerf && typeof seriesPerf === "object" ? Object.values(seriesPerf) : []).filter(Boolean);
 
-  type SIRaw = { t: string; v: string; dot: "g" | "r" | "y" | "b" };
+  type SIRaw = { t: string; v: string; dot: "g" | "r" | "y" | "b"; desc?: string };
   type SI = SIRaw & { n: string };
   const mkSI = (arr: (SIRaw | null)[], offset = 0): SI[] =>
     arr.filter((x): x is SIRaw => x !== null).slice(0, 10).map((item, i) => ({ n: String(offset + i + 1).padStart(2, "0"), ...item }));
@@ -372,7 +372,10 @@ function DataSignalsSection({ data, growth, patterns }: {
   ]);
 
   const g2 = mkSI([
-    ...high.slice(0, 7).map(p => ({ t: p.pattern ?? "-", v: p.avg_views != null ? `평균 ${fmt(p.avg_views)}회` : (p.insight ?? p.description ?? "").slice(0, 35), dot: "g" as const })),
+    ...high.slice(0, 7).map(p => {
+      const insight = (p.insight ?? p.description ?? "").trim();
+      return { t: p.pattern ?? "-", v: p.avg_views != null ? `평균 ${fmt(p.avg_views)}회` : insight, desc: insight || undefined, dot: "g" as const };
+    }),
     ...(kw?.high_ctr_keywords ?? []).slice(0, 3).map(k => ({ t: "클릭 유도 키워드", v: `#${k}`, dot: "y" as const })),
     eng?.avg_likes_per_video != null         ? { t: "영상당 평균 좋아요",  v: `${fmt(eng.avg_likes_per_video)}개`,                                                    dot: "g" } : null,
     eng?.avg_comments_per_video != null      ? { t: "영상당 평균 댓글",    v: `${fmt(eng.avg_comments_per_video)}개`,                                                 dot: "g" } : null,
@@ -382,7 +385,10 @@ function DataSignalsSection({ data, growth, patterns }: {
   ], g1.length);
 
   const g3 = mkSI([
-    ...low.slice(0, 7).map(p => ({ t: p.pattern ?? "-", v: (p.insight ?? p.description ?? "").slice(0, 35), dot: "r" as const })),
+    ...low.slice(0, 7).map(p => {
+      const insight = (p.insight ?? p.description ?? "").trim();
+      return { t: p.pattern ?? "-", v: insight, dot: "r" as const };
+    }),
     ...(kw?.topic_performance && !Array.isArray(kw.topic_performance) && typeof kw.topic_performance === "object" ? Object.entries(kw.topic_performance).map(([topic, perf]) => ({ t: `주제: ${topic}`, v: perf?.avg_views != null ? `평균 ${fmt(perf.avg_views)}회 · ${perf.share_pct ?? 0}%` : `${perf?.video_count ?? 0}개 영상`, dot: "b" as const })) : []),
     ...seriesEntries.slice(0, 3).map(s => ({ t: `시리즈 · ${s!.name ?? "-"}`, v: `평균 ${fmt(s!.avg_views)}회 · ${s!.video_count ?? 0}편`, dot: "b" as const })),
     upload?.peak_upload_period               ? { t: "업로드 피크 시점",    v: upload.peak_upload_period.slice(0, 45),                                                 dot: "y" } : null,
@@ -409,9 +415,12 @@ function DataSignalsSection({ data, growth, patterns }: {
               {g.items.map((item, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "10px", padding: "9px 0", borderBottom: i < g.items.length - 1 ? `1px solid #252525` : "none" }}>
                   <span style={{ fontFamily: MONO, fontSize: "11px", color: LIME, flexShrink: 0, minWidth: "18px", paddingTop: "3px", fontWeight: 700 }}>{item.n}</span>
-                  <div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: "15px", fontWeight: 700, color: "#F0F0F0", marginBottom: "2px", fontFamily: SANS }}>{item.t}</div>
                     <div style={{ fontFamily: MONO, fontSize: "12px", color: "#CCCCCC" }}><SiDot t={item.dot} />{item.v}</div>
+                    {item.desc && item.desc !== item.v && (
+                      <div style={{ fontSize: "13px", color: "#AAAAAA", lineHeight: 1.6, marginTop: "4px", fontFamily: SANS }}>{item.desc}</div>
+                    )}
                   </div>
                 </div>
               ))}
