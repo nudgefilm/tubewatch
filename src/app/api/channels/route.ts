@@ -7,7 +7,8 @@ import { getChannelInfo } from "@/lib/youtube/getChannelInfo";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { isAdminUser } from "@/lib/server/isAdminUser";
-import { getEffectiveLimits } from "@/lib/server/subscription/getEffectiveLimits";
+import { getEffectiveLimits } from "@/lib/server/subscription/getEffectiveLimits"
+import { ACTIVE_JOB_STATUSES } from "@/lib/server/analysis/status";
 
 function createSupabaseWithBearer(request: Request) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -360,6 +361,20 @@ export async function DELETE(request: Request) {
     return NextResponse.json(
       { error: "삭제할 채널을 찾을 수 없거나 권한이 없습니다." },
       { status: 404 }
+    );
+  }
+
+  // ─── 진행 중인 분석 차단 (크레딧 소모 후 결과 유실 방지)
+  const { count: activeJobCount } = await supabaseAdmin
+    .from("analysis_jobs")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .eq("user_channel_id", idRaw)
+    .in("status", ACTIVE_JOB_STATUSES);
+  if ((activeJobCount ?? 0) > 0) {
+    return NextResponse.json(
+      { error: "분석이 진행 중입니다. 완료 후 다시 시도해주세요." },
+      { status: 409 }
     );
   }
 
