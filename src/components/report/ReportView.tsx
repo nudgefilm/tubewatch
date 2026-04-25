@@ -111,6 +111,15 @@ function gradeToSub(score: number): string {
   return "도약 준비 단계";
 }
 
+function nextTargetScore(score: number): number | null {
+  if (score < 40) return 40;
+  if (score < 55) return 55;
+  if (score < 70) return 70;
+  if (score < 85) return 85;
+  if (score < 100) return 100;
+  return null;
+}
+
 /* ══ SECTION 1: HERO ══════════════════════════════════════════ */
 function HeroSection({ info, scorecard, growth, signals, date }: {
   info: ManusReportJson["channel_info"];
@@ -194,6 +203,11 @@ function HeroSection({ info, scorecard, growth, signals, date }: {
             <div style={{ fontSize: "12px", color: "#AAAAAA", letterSpacing: "1.5px", textTransform: "uppercase", marginTop: "6px", fontFamily: MONO }}>Channel Score</div>
             <div style={{ marginTop: "12px", display: "inline-block", fontSize: "22px", fontWeight: 900, background: ORANGE, color: "#fff", padding: "7px 22px", borderRadius: "4px", fontFamily: MONO, letterSpacing: "2px" }}>{grade}</div>
             <div style={{ marginTop: "8px", fontSize: "12px", color: "#888", fontFamily: MONO }}>{gradeToSub(score)}</div>
+            {nextTargetScore(score) != null && (
+              <div style={{ marginTop: "10px", fontSize: "12px", color: "#AAAAAA", fontFamily: MONO }}>
+                다음 목표 <span style={{ color: LIME, fontWeight: 700 }}>{nextTargetScore(score)}점</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -286,7 +300,10 @@ function GrowthSection({ data, scorecard }: { data: ManusReportJson["section2_gr
       <div className="rpt-wrap">
         <SecLabel txt="Growth Metrics" section="섹션 2 / 7" />
         <h2 style={{ fontSize: "clamp(22px,3vw,30px)", fontWeight: 900, letterSpacing: "-1px", lineHeight: 1.2, marginBottom: "8px", fontFamily: SANS }}>9개 성장 지표</h2>
-        <p style={{ fontSize: "16px", color: G600, marginBottom: "36px" }}>각 지표별 현재 수치와 진단을 확인하세요. 수치는 최근 50개 영상 기준입니다.</p>
+        {trend?.trend_comment
+          ? <p style={{ fontSize: "16px", color: BLK, fontWeight: 600, marginBottom: "8px", lineHeight: 1.6 }}>{trend.trend_comment}</p>
+          : null}
+        <p style={{ fontSize: "14px", color: G600, marginBottom: "36px" }}>각 지표별 현재 수치와 진단을 확인하세요. 수치는 최근 50개 영상 기준입니다.</p>
         <div className="g-metrics" style={{ border: `1px solid ${G200}` }}>
           {metrics.map((m, i) => (
             <div key={i} style={{ background: "#fff", padding: "22px 18px", borderRight: `1px solid ${G200}`, borderBottom: `1px solid ${G200}`, display: "flex", flexDirection: "column" }}>
@@ -479,7 +496,10 @@ function ChannelDNASection({ data, scorecard }: { data: ManusReportJson["section
       <div className="rpt-wrap">
         <SecLabel txt="Channel DNA" section="섹션 5 / 7" dark />
         <h2 style={{ fontSize: "clamp(22px,3vw,30px)", fontWeight: 900, letterSpacing: "-1px", lineHeight: 1.2, marginBottom: "8px", color: "#fff", fontFamily: SANS }}>채널 DNA 진단</h2>
-        <p style={{ fontSize: "16px", color: "#BBBBBB", marginBottom: "36px" }}>채널 고유의 정체성과 성장 구조를 분석합니다.</p>
+        {data.unique_value_proposition
+          ? <p style={{ fontSize: "16px", color: "#E0E0E0", fontWeight: 600, marginBottom: "36px", lineHeight: 1.6 }}>{data.unique_value_proposition}</p>
+          : <p style={{ fontSize: "16px", color: "#BBBBBB", marginBottom: "36px" }}>채널 고유의 정체성과 성장 구조를 분석합니다.</p>}
+
 
         {data.core_identity && (
           <div style={{ border: `1px solid #2E2E2E`, background: DARK2, padding: "28px 32px", marginBottom: "24px", position: "relative" }}>
@@ -747,12 +767,28 @@ function ActionPlanSection({ report }: { report: ManusReportJson }) {
 
   type Task = { task?: string; detail?: string; priority?: string; expected_impact?: string; kpi?: string; timeline?: string };
 
+  const allImmediateTasks = (data.immediate_actions?.tasks ?? []) as Task[];
+  const topTask: Task | undefined =
+    allImmediateTasks.find(t => (t.priority ?? "").toUpperCase() === "긴급" || (t.priority ?? "").toUpperCase() === "URGENT") ??
+    allImmediateTasks.find(t => (t.priority ?? "").toUpperCase() === "높음"  || (t.priority ?? "").toUpperCase() === "HIGH")   ??
+    allImmediateTasks[0];
+
   return (
     <section className="rpt-section" style={{ background: "#fff" }}>
       <div className="rpt-wrap">
         <SecLabel txt="Action Plan" section="섹션 7 / 7" />
         <h2 style={{ fontSize: "clamp(22px,3vw,30px)", fontWeight: 900, letterSpacing: "-1px", lineHeight: 1.2, marginBottom: "8px", fontFamily: SANS }}>30일 실행 계획</h2>
         <p style={{ fontSize: "16px", color: G600, marginBottom: "24px" }}>우선순위별 액션 아이템과 목표 수치를 확인하세요.</p>
+
+        {/* 지금 당장 1개 */}
+        {topTask && (
+          <div style={{ background: BLK, padding: "20px 24px", marginBottom: "28px", borderLeft: `4px solid ${LIME}` }}>
+            <div style={{ fontFamily: MONO, fontSize: "11px", color: LIME, letterSpacing: "2px", textTransform: "uppercase", marginBottom: "10px" }}>지금 당장 · Top Priority</div>
+            <div style={{ fontSize: "17px", fontWeight: 800, color: "#fff", fontFamily: SANS, marginBottom: "6px" }}>{topTask.task ?? "-"}</div>
+            {topTask.detail && <div style={{ fontSize: "14px", color: "#AAAAAA", lineHeight: 1.7 }}>{topTask.detail}</div>}
+            {topTask.expected_impact && <div style={{ fontSize: "13px", color: ORANGE, marginTop: "8px", fontFamily: MONO }}>기대 효과: {topTask.expected_impact}</div>}
+          </div>
+        )}
 
         {/* 탭 3개 — 선택 탭은 블랙 배경 */}
         <div style={{ display: "flex", gap: "6px", marginBottom: "20px" }}>
