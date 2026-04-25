@@ -80,8 +80,8 @@ function HeroSection() {
 
             {/* Sub description */}
             <p className={`text-base text-muted-foreground mt-5 leading-relaxed max-w-lg transition-all duration-700 delay-150 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-              영상 <span className="text-orange-500 font-semibold">50</span>개와 채널 데이터를{" "}
-              <span className="font-medium"><span className="text-orange-500 font-semibold">30</span>개 시그널 · <span className="text-orange-500 font-semibold">9</span>개 성장 지표 · <span className="text-orange-500 font-semibold">7</span>개 운영 패턴</span>으로 정밀 분석해 성장 전략을 제시합니다.
+              최근 영상 <span className="text-orange-500 font-semibold">50</span>개와 채널 데이터를{" "}
+              <span className="font-medium"><span className="text-orange-500 font-semibold">30</span>개 시그널 · <span className="text-orange-500 font-semibold">9</span>개 성장 지표 · <span className="text-orange-500 font-semibold">7</span>개 운영 패턴</span>으로 정밀 분석하여 다음 성장 전략을 제시합니다.
             </p>
 
             {/* CTA */}
