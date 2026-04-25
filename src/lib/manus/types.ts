@@ -22,6 +22,7 @@ export type ManusReportJson = {
   section1_scorecard?: {
     grade?: string;
     overall_score?: number;
+    top_action_trigger?: string;
     strengths?: string[];
     weaknesses?: string[];
     score_breakdown?: {

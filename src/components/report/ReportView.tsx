@@ -211,6 +211,16 @@ function HeroSection({ info, scorecard, growth, signals, date }: {
           </div>
         </div>
 
+        {scorecard?.top_action_trigger && (
+          <div style={{ background: "#1A0A00", border: `1px solid ${ORANGE}`, padding: "14px 20px", marginTop: "28px", display: "flex", alignItems: "flex-start", gap: "12px" }}>
+            <span style={{ fontSize: "16px", flexShrink: 0 }}>🔥</span>
+            <div>
+              <div style={{ fontFamily: MONO, fontSize: "11px", color: ORANGE, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "4px" }}>지금 가장 먼저 해야 할 것</div>
+              <div style={{ fontSize: "15px", color: "#F0F0F0", lineHeight: 1.6 }}>{scorecard.top_action_trigger}</div>
+            </div>
+          </div>
+        )}
+
         {/* 대형 KPI 2개 */}
         <div className="g-kpi-lg" style={{ background: DARK3, border: `1px solid ${DARK3}`, marginBottom: "1px" }}>
           {[

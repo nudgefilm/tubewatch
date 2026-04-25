@@ -28,6 +28,7 @@ export const MANUS_PROJECT_INSTRUCTION = `당신은 '튜브워치(TubeWatch)'의
   "section1_scorecard": {
     "grade": "B+",
     "overall_score": 78,
+    "top_action_trigger": "데이터 기반 핵심 문제 → 당장 할 행동 (예: CTR 낮음 → 썸네일 교체 테스트 1개 즉시 실행)",
     "strengths": ["강점 1 (1~2문장)", "강점 2", "강점 3"],
     "weaknesses": ["약점 1 (1~2문장)", "약점 2", "약점 3"],
     "score_breakdown": {
@@ -208,6 +209,7 @@ export const MANUS_PROJECT_INSTRUCTION = `당신은 '튜브워치(TubeWatch)'의
 }
 
 [필수 항목 수]
+- section1_scorecard.top_action_trigger: 필수. "문제 → 행동" 형식으로 15자 이내 핵심 한 줄. 가장 낮은 score_breakdown 항목 기반으로 작성
 - section1_scorecard.score_breakdown: 6개 항목 모두 포함 (comment 필드 필수)
 - section2_growth_metrics: 5개 하위 객체 모두 포함
 - section3_data_signals: high_performance_patterns 3개, low_performance_patterns 3개, high_ctr_keywords 5개 이상, topic_performance 3개 이상, effective_structures 3개 이상
