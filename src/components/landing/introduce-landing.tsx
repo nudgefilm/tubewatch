@@ -115,7 +115,7 @@ function HeroSection() {
               <img
                 src="/hero-folder.png"
                 alt="채널 분석 리포트 미리보기"
-                className="relative w-full h-auto drop-shadow-2xl"
+                className="relative w-full h-auto drop-shadow-2xl animate-float-half"
               />
             </div>
             <p className="mt-3 text-center text-xs text-muted-foreground/60 tracking-wide">

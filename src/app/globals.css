@@ -217,6 +217,21 @@
     }
   }
 
+  .animate-float-half {
+    animation: float-half 3s ease-in-out infinite;
+  }
+
+  @keyframes float-half {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-4px);
+    }
+  }
+
   .animate-ping-slow {
     animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
   }
