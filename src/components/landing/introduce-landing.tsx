@@ -82,16 +82,6 @@ function HeroSection() {
               <span className="text-orange-500 font-medium">30개 데이터 시그널 · 9개 성장 지표 · 7개 채널 운영 패턴</span>으로 정밀 분석
             </p>
 
-            <div className={`grid grid-cols-2 gap-x-8 gap-y-2 mt-6 transition-all duration-700 delay-200 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-              <div className="flex items-start gap-2">
-                <span className="mt-1 w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0" />
-                <span className="text-sm text-muted-foreground">채널의 정체성과 성공 패턴 분석</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="mt-1 w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0" />
-                <span className="text-sm text-muted-foreground">채널 현재 상태 종합 진단</span>
-              </div>
-            </div>
           </div>
 
           {/* 프리뷰 이미지 */}
