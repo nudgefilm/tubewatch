@@ -615,7 +615,14 @@ export default function ChannelsPageClient({
                   ) : null}
                 </button>
                 {/* 월간 리포트 버튼 */}
-                {(() => {
+                {isFreePlan ? (
+                  <span
+                    title="유료 플랜에서 이용 가능한 기능입니다."
+                    className="shrink-0 cursor-not-allowed rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground/40 select-none"
+                  >
+                    월간 리포트
+                  </span>
+                ) : (() => {
                   const report = reportMap[ch.id];
                   const isExpired = (createdAt: string) =>
                     Date.now() - new Date(createdAt).getTime() > 3 * 60 * 1000;
