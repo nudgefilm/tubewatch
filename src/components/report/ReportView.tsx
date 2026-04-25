@@ -115,17 +115,16 @@ function gradeToSub(score: number): string {
   return "도약 준비 단계";
 }
 
-const ORANGE_LIGHT = "rgba(255,122,0,0.35)";
-const ORANGE_DARK  = "#C85000";
-
 function ActionCheckbox({ checked, onToggle }: { checked: boolean; onToggle: () => void }) {
   return (
     <button
       onClick={onToggle}
       aria-label={checked ? "완료됨" : "실행하기"}
-      style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "18px", height: "18px", border: `2px solid ${checked ? ORANGE_DARK : ORANGE_LIGHT}`, borderRadius: "3px", background: checked ? ORANGE_DARK : "transparent", cursor: "pointer", flexShrink: 0, padding: 0, outline: "none", transition: "all .15s" }}
+      style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "20px", height: "20px", border: `2.5px solid ${checked ? "rgba(255,122,0,0.35)" : ORANGE}`, borderRadius: "3px", background: checked ? "rgba(255,122,0,0.18)" : ORANGE, cursor: "pointer", flexShrink: 0, padding: 0, outline: "none", transition: "all .2s" }}
     >
-      {checked && <Check size={11} color="#fff" strokeWidth={3} />}
+      {checked
+        ? <Check size={12} color="rgba(255,122,0,0.5)" strokeWidth={3} />
+        : <Check size={12} color="#fff" strokeWidth={3} />}
     </button>
   );
 }
@@ -218,6 +217,10 @@ function HeroSection({ info, scorecard, growth, signals, date, actionChecked, on
               <em style={{ fontStyle: "normal", color: LIME, fontSize: "clamp(13px,1.8vw,20px)", fontWeight: 400, letterSpacing: "0px", lineHeight: 1.5, display: "inline-block", marginTop: "4px" }}>{desc.slice(0, 80) || "채널 분석 리포트"}</em>
             </h1>
             {meta && <p style={{ fontSize: "14px", color: "#AAAAAA", fontFamily: MONO, marginTop: "8px" }}>{meta}</p>}
+            <p style={{ fontSize: "13px", color: ORANGE, fontFamily: MONO, marginTop: "6px", display: "flex", alignItems: "center", gap: "6px" }}>
+              <ActionCheckbox checked={actionChecked} onToggle={onActionToggle} />
+              리포트에서 반드시 실행하거나 점검해야 할 항목
+            </p>
           </div>
           <div style={{ border: `2px solid ${ORANGE}`, background: ORBG, padding: "28px 36px", textAlign: "center", minWidth: "160px", flexShrink: 0 }}>
             <div style={{ fontSize: "60px", fontWeight: 900, color: LIME, lineHeight: 1, fontFamily: MONO }}>{score}</div>
