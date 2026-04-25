@@ -38,7 +38,7 @@ const heroStats = [
   { value: "4", unit: "개", label: "핵심 분석 모듈" },
   { value: "50", unit: "개", label: "영상 심층 분석" },
   { value: "30+9+7", unit: "", label: "신호·지표·패턴 분석" },
-  { value: "무료", unit: "", label: "로 시작 가능", isFree: true },
+  { value: "무료", unit: "", label: "Free Start", isFree: true },
 ];
 
 function HeroSection() {
@@ -62,26 +62,26 @@ function HeroSection() {
           <div className="flex-1 min-w-0">
             {/* Badge */}
             <div className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-              <span className="inline-flex items-center gap-2 text-xs font-mono tracking-widest text-orange-500 border border-orange-500/30 bg-orange-500/5 rounded-full px-3 py-1 mb-8">
-                <span className="w-1.5 h-1.5 rounded-full bg-orange-500 inline-block" />
+              <span className="inline-flex items-center gap-2 text-xs font-mono tracking-widest text-foreground border border-foreground/20 bg-foreground/5 rounded-full px-3 py-1 mb-8">
+                <span className="w-1.5 h-1.5 rounded-full bg-foreground/60 inline-block" />
                 YouTube Channel Analytics
               </span>
             </div>
 
             {/* Headline */}
-            <h1 className={`font-heading font-semibold leading-[1.1] tracking-[-0.04em] transition-all duration-1000 delay-100 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
-              <span className="block text-[clamp(2rem,4vw,3.4rem)]">
+            <h1 className={`font-heading font-bold leading-[1.1] tracking-[-0.04em] transition-all duration-1000 delay-100 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+              <span className="block text-[clamp(2.4rem,5vw,4.2rem)] text-foreground">
                 성장 채널로 가는
               </span>
-              <span className="block text-[clamp(2rem,4vw,3.4rem)] text-orange-500">
+              <span className="block text-[clamp(1.6rem,3.2vw,2.8rem)] text-foreground whitespace-nowrap">
                 가장 정밀한 네비게이션
               </span>
             </h1>
 
             {/* Sub description */}
             <p className={`text-base text-muted-foreground mt-5 leading-relaxed max-w-lg transition-all duration-700 delay-150 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-              영상 <span className="text-foreground font-medium">50개</span>와 채널 데이터를{" "}
-              <span className="text-foreground/80 font-medium">30개 시그널 · 9개 성장 지표 · 7개 운영 패턴</span>으로 정밀 분석해 성장 전략을 제시합니다.
+              영상 <span className="text-orange-500 font-semibold">50</span>개와 채널 데이터를{" "}
+              <span className="font-medium"><span className="text-orange-500 font-semibold">30</span>개 시그널 · <span className="text-orange-500 font-semibold">9</span>개 성장 지표 · <span className="text-orange-500 font-semibold">7</span>개 운영 패턴</span>으로 정밀 분석해 성장 전략을 제시합니다.
             </p>
 
             {/* CTA */}
