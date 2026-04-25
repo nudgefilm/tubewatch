@@ -59,6 +59,7 @@ export default async function ReportPage({ params }: Props) {
       <ReportView
         report={data.result_json as ManusReportJson}
         generatedAt={data.created_at}
+        reportId={data.id}
       />
     </ReportErrorBoundary>
   );
