@@ -40,7 +40,7 @@ function fmtDuration(founded?: string): string {
 function SecLabel({ txt, section, dark }: { txt: string; section?: string; dark?: boolean }) {
   const c = dark ? "#999" : G400;
   return (
-    <div style={{ fontFamily: MONO, fontSize: "11px", color: c, letterSpacing: "2px", textTransform: "uppercase", display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
+    <div style={{ fontFamily: MONO, fontSize: "12px", color: c, letterSpacing: "2px", textTransform: "uppercase", display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
       <span style={{ display: "block", width: "28px", height: "1px", background: c }} />
       {txt}{section ? ` · ${section}` : ""}
     </div>
@@ -54,7 +54,7 @@ const annFlat = (t: string): Arrow => ({ symbol: "→", text: t, color: G400 });
 
 function Ann({ a }: { a: Arrow }) {
   return (
-    <div style={{ fontFamily: MONO, fontSize: "11px", color: a.color, marginTop: "5px", display: "flex", gap: "4px" }}>
+    <div style={{ fontFamily: MONO, fontSize: "12px", color: a.color, marginTop: "5px", display: "flex", gap: "4px" }}>
       <span style={{ fontWeight: 700 }}>{a.symbol}</span><span>{a.text}</span>
     </div>
   );
@@ -62,7 +62,7 @@ function Ann({ a }: { a: Arrow }) {
 
 function DotBadge({ status }: { status: "up" | "dn" | "fl" | "wn" }) {
   const m = { up: { bg: "#DCFCE7", c: "#16A34A", t: "▲ 양호" }, dn: { bg: "#FEE2E2", c: "#DC2626", t: "▼ 주의" }, fl: { bg: "#F3F4F6", c: "#6B7280", t: "→ 보통" }, wn: { bg: "#FEF3C7", c: "#D97706", t: "⚠ 둔화" } }[status];
-  return <span style={{ display: "inline-flex", alignItems: "center", fontFamily: MONO, fontSize: "10px", fontWeight: 700, padding: "2px 8px", borderRadius: "2px", background: m.bg, color: m.c, marginBottom: "8px" }}>{m.t}</span>;
+  return <span style={{ display: "inline-flex", alignItems: "center", fontFamily: MONO, fontSize: "11px", fontWeight: 700, padding: "2px 8px", borderRadius: "2px", background: m.bg, color: m.c, marginBottom: "8px" }}>{m.t}</span>;
 }
 
 function SiDot({ t }: { t: "g" | "r" | "y" | "b" }) {
@@ -71,10 +71,10 @@ function SiDot({ t }: { t: "g" | "r" | "y" | "b" }) {
 
 function PriBadge({ p }: { p?: string }) {
   const up = (p ?? "").toUpperCase();
-  if (up === "긴급" || up === "URGENT") return <span style={{ flexShrink: 0, fontFamily: MONO, fontSize: "10px", fontWeight: 700, padding: "3px 8px", borderRadius: "2px", background: "#FEE2E2", color: "#DC2626", letterSpacing: ".5px", whiteSpace: "nowrap" }}>URGENT</span>;
-  if (up === "높음" || up === "HIGH") return <span style={{ flexShrink: 0, fontFamily: MONO, fontSize: "10px", fontWeight: 700, padding: "3px 8px", borderRadius: "2px", background: "#FEF3C7", color: "#B45309", letterSpacing: ".5px", whiteSpace: "nowrap" }}>HIGH</span>;
+  if (up === "긴급" || up === "URGENT") return <span style={{ flexShrink: 0, fontFamily: MONO, fontSize: "11px", fontWeight: 700, padding: "3px 8px", borderRadius: "2px", background: "#FEE2E2", color: "#DC2626", letterSpacing: ".5px", whiteSpace: "nowrap" }}>URGENT</span>;
+  if (up === "높음" || up === "HIGH") return <span style={{ flexShrink: 0, fontFamily: MONO, fontSize: "11px", fontWeight: 700, padding: "3px 8px", borderRadius: "2px", background: "#FEF3C7", color: "#B45309", letterSpacing: ".5px", whiteSpace: "nowrap" }}>HIGH</span>;
   if (!p) return null;
-  return <span style={{ flexShrink: 0, fontFamily: MONO, fontSize: "10px", fontWeight: 700, padding: "3px 8px", borderRadius: "2px", background: "#EFF6FF", color: "#1D4ED8", letterSpacing: ".5px", whiteSpace: "nowrap" }}>NORMAL</span>;
+  return <span style={{ flexShrink: 0, fontFamily: MONO, fontSize: "11px", fontWeight: 700, padding: "3px 8px", borderRadius: "2px", background: "#EFF6FF", color: "#1D4ED8", letterSpacing: ".5px", whiteSpace: "nowrap" }}>NORMAL</span>;
 }
 
 function DkBar({ pct, color }: { pct: number; color?: string }) {
@@ -90,13 +90,13 @@ function ProgressBar({ label, current, target, unit = "", color = "#16A34A" }: {
   const pct = target > 0 ? Math.min(100, (current / target) * 100) : 0;
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "10px" }}>
-      <div style={{ fontSize: "12px", color: G600, minWidth: "80px", fontFamily: MONO, flexShrink: 0 }}>{label}</div>
+      <div style={{ fontSize: "13px", color: G600, minWidth: "80px", fontFamily: MONO, flexShrink: 0 }}>{label}</div>
       <div style={{ flex: 1, position: "relative" }}>
         <div style={{ height: "8px", background: G200, borderRadius: "4px", overflow: "hidden" }}>
           <div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: "4px" }} />
         </div>
       </div>
-      <div style={{ fontFamily: MONO, fontSize: "11px", color: G400, whiteSpace: "nowrap", minWidth: "160px", textAlign: "right" }}>
+      <div style={{ fontFamily: MONO, fontSize: "12px", color: G400, whiteSpace: "nowrap", minWidth: "160px", textAlign: "right" }}>
         {fmt(current)}{unit} → <span style={{ color: "#16A34A", fontWeight: 700 }}>{fmt(target)}{unit}+</span>
       </div>
     </div>
@@ -175,7 +175,7 @@ function HeroSection({ info, scorecard, growth, signals, date }: {
   return (
     <section style={{ background: BLK, paddingBottom: 0 }}>
       <div className="rpt-wrap rpt-hero-pad">
-        <div style={{ fontFamily: MONO, fontSize: "15px", fontWeight: 700, color: "#DDDDDD", letterSpacing: "3px", textTransform: "uppercase", display: "flex", alignItems: "center", justifyContent: "center", gap: "16px", marginBottom: "40px", padding: "14px 0", borderBottom: `1px solid ${DARK3}` }}>
+        <div style={{ fontFamily: MONO, fontSize: "16px", fontWeight: 700, color: "#DDDDDD", letterSpacing: "3px", textTransform: "uppercase", display: "flex", alignItems: "center", justifyContent: "center", gap: "16px", marginBottom: "40px", padding: "14px 0", borderBottom: `1px solid ${DARK3}` }}>
           <span style={{ display: "block", width: "40px", height: "1px", background: "#555" }} />
           Channel Report · {date} · 섹션 1 / 7
           <span style={{ display: "block", width: "40px", height: "1px", background: "#555" }} />
@@ -187,13 +187,13 @@ function HeroSection({ info, scorecard, growth, signals, date }: {
               {name}<br />
               <em style={{ fontStyle: "normal", color: LIME, fontSize: "clamp(13px,1.8vw,20px)", fontWeight: 400, letterSpacing: "0px", lineHeight: 1.5, display: "inline-block", marginTop: "4px" }}>{desc.slice(0, 80) || "채널 분석 리포트"}</em>
             </h1>
-            {meta && <p style={{ fontSize: "13px", color: "#AAAAAA", fontFamily: MONO, marginTop: "8px" }}>{meta}</p>}
+            {meta && <p style={{ fontSize: "14px", color: "#AAAAAA", fontFamily: MONO, marginTop: "8px" }}>{meta}</p>}
           </div>
           <div style={{ border: `2px solid ${ORANGE}`, background: ORBG, padding: "28px 36px", textAlign: "center", minWidth: "160px", flexShrink: 0 }}>
             <div style={{ fontSize: "60px", fontWeight: 900, color: LIME, lineHeight: 1, fontFamily: MONO }}>{score}</div>
-            <div style={{ fontSize: "11px", color: "#AAAAAA", letterSpacing: "1.5px", textTransform: "uppercase", marginTop: "6px", fontFamily: MONO }}>Channel Score</div>
+            <div style={{ fontSize: "12px", color: "#AAAAAA", letterSpacing: "1.5px", textTransform: "uppercase", marginTop: "6px", fontFamily: MONO }}>Channel Score</div>
             <div style={{ marginTop: "12px", display: "inline-block", fontSize: "22px", fontWeight: 900, background: ORANGE, color: "#fff", padding: "7px 22px", borderRadius: "4px", fontFamily: MONO, letterSpacing: "2px" }}>{grade}</div>
-            <div style={{ marginTop: "8px", fontSize: "11px", color: "#888", fontFamily: MONO }}>{gradeToSub(score)}</div>
+            <div style={{ marginTop: "8px", fontSize: "12px", color: "#888", fontFamily: MONO }}>{gradeToSub(score)}</div>
           </div>
         </div>
 
@@ -205,7 +205,7 @@ function HeroSection({ info, scorecard, growth, signals, date }: {
           ].map((k, i) => (
             <div key={i} style={{ background: DARK, padding: "24px 28px" }}>
               <div style={{ fontSize: "clamp(24px,3vw,36px)", fontWeight: 900, color: i === 0 ? LIME : "#fff", fontFamily: MONO, letterSpacing: "-1px", lineHeight: 1, marginBottom: "8px" }}>{k.v}</div>
-              <div style={{ fontSize: "13px", color: "#AAAAAA", fontFamily: MONO }}>{k.l}</div>
+              <div style={{ fontSize: "14px", color: "#AAAAAA", fontFamily: MONO }}>{k.l}</div>
               <Ann a={k.ann} />
             </div>
           ))}
@@ -216,8 +216,8 @@ function HeroSection({ info, scorecard, growth, signals, date }: {
           {smallKpi.map((k, i) => (
             <div key={i} style={{ background: "#1E1E1E", padding: "16px 14px" }}>
               <div style={{ fontSize: "18px", fontWeight: 800, color: "#fff", fontFamily: MONO, letterSpacing: "-.5px", lineHeight: 1.1, marginBottom: "6px" }}>{k.v}</div>
-              <div style={{ fontSize: "11px", color: "#AAAAAA", fontFamily: MONO, letterSpacing: ".3px", lineHeight: 1.4 }}>{k.l}</div>
-              {k.s && <div style={{ fontSize: "10px", color: "#666", fontFamily: MONO }}>{k.s}</div>}
+              <div style={{ fontSize: "12px", color: "#AAAAAA", fontFamily: MONO, letterSpacing: ".3px", lineHeight: 1.4 }}>{k.l}</div>
+              {k.s && <div style={{ fontSize: "11px", color: "#888", fontFamily: MONO }}>{k.s}</div>}
               <Ann a={k.ann} />
             </div>
           ))}
@@ -228,22 +228,22 @@ function HeroSection({ info, scorecard, growth, signals, date }: {
           <div className="g-sw" style={{ background: DARK3, border: `1px solid ${DARK3}` }}>
             {scorecard.strengths?.length ? (
               <div style={{ background: DARK, padding: "24px 28px" }}>
-                <div style={{ fontFamily: MONO, fontSize: "11px", color: LIME, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "16px", paddingBottom: "10px", borderBottom: `2px solid ${DARK3}` }}>// STRENGTH · 강점</div>
+                <div style={{ fontFamily: MONO, fontSize: "12px", color: LIME, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "16px", paddingBottom: "10px", borderBottom: `2px solid ${DARK3}` }}>// STRENGTH · 강점</div>
                 {scorecard.strengths.map((s, i) => (
                   <div key={i} style={{ display: "flex", gap: "12px", marginBottom: "12px", paddingBottom: "12px", borderBottom: `1px solid #222` }}>
-                    <span style={{ fontFamily: MONO, fontSize: "11px", color: "#888", flexShrink: 0, minWidth: "20px" }}>0{i + 1}</span>
-                    <span style={{ fontSize: "14px", color: "#F0F0F0", lineHeight: 1.7 }}>{s}</span>
+                    <span style={{ fontFamily: MONO, fontSize: "12px", color: "#888", flexShrink: 0, minWidth: "20px" }}>0{i + 1}</span>
+                    <span style={{ fontSize: "15px", color: "#F0F0F0", lineHeight: 1.7 }}>{s}</span>
                   </div>
                 ))}
               </div>
             ) : <div style={{ background: DARK, padding: "24px 28px" }} />}
             {scorecard.weaknesses?.length ? (
               <div style={{ background: DARK, padding: "24px 28px" }}>
-                <div style={{ fontFamily: MONO, fontSize: "11px", color: "#FF6B6B", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "16px", paddingBottom: "10px", borderBottom: `2px solid ${DARK3}` }}>// WEAKNESS · 약점</div>
+                <div style={{ fontFamily: MONO, fontSize: "12px", color: "#FF6B6B", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "16px", paddingBottom: "10px", borderBottom: `2px solid ${DARK3}` }}>// WEAKNESS · 약점</div>
                 {scorecard.weaknesses.map((w, i) => (
                   <div key={i} style={{ display: "flex", gap: "12px", marginBottom: "12px", paddingBottom: "12px", borderBottom: `1px solid #222` }}>
-                    <span style={{ fontFamily: MONO, fontSize: "11px", color: "#888", flexShrink: 0, minWidth: "20px" }}>0{i + 1}</span>
-                    <span style={{ fontSize: "14px", color: "#F0F0F0", lineHeight: 1.7 }}>{w}</span>
+                    <span style={{ fontFamily: MONO, fontSize: "12px", color: "#888", flexShrink: 0, minWidth: "20px" }}>0{i + 1}</span>
+                    <span style={{ fontSize: "15px", color: "#F0F0F0", lineHeight: 1.7 }}>{w}</span>
                   </div>
                 ))}
               </div>
@@ -286,17 +286,17 @@ function GrowthSection({ data, scorecard }: { data: ManusReportJson["section2_gr
       <div className="rpt-wrap">
         <SecLabel txt="Growth Metrics" section="섹션 2 / 7" />
         <h2 style={{ fontSize: "clamp(22px,3vw,30px)", fontWeight: 900, letterSpacing: "-1px", lineHeight: 1.2, marginBottom: "8px", fontFamily: SANS }}>9개 성장 지표</h2>
-        <p style={{ fontSize: "15px", color: G600, marginBottom: "36px" }}>각 지표별 현재 수치와 진단을 확인하세요. 수치는 최근 50개 영상 기준입니다.</p>
+        <p style={{ fontSize: "16px", color: G600, marginBottom: "36px" }}>각 지표별 현재 수치와 진단을 확인하세요. 수치는 최근 50개 영상 기준입니다.</p>
         <div className="g-metrics" style={{ border: `1px solid ${G200}` }}>
           {metrics.map((m, i) => (
             <div key={i} style={{ background: "#fff", padding: "22px 18px", borderRight: `1px solid ${G200}`, borderBottom: `1px solid ${G200}`, display: "flex", flexDirection: "column" }}>
-              <div style={{ fontFamily: MONO, fontSize: "11px", color: G400, marginBottom: "8px" }}>{m.n}</div>
+              <div style={{ fontFamily: MONO, fontSize: "12px", color: G400, marginBottom: "8px" }}>{m.n}</div>
               <DotBadge status={m.st} />
               <div style={{ fontSize: "22px", fontWeight: 800, fontFamily: MONO, marginBottom: "4px", color: m.st === "up" ? "#16A34A" : m.st === "dn" ? "#DC2626" : G600 }}>{m.val}</div>
-              <div style={{ fontSize: "13px", fontWeight: 700, color: BLK, marginBottom: "2px", fontFamily: SANS }}>{m.name}</div>
+              <div style={{ fontSize: "14px", fontWeight: 700, color: BLK, marginBottom: "2px", fontFamily: SANS }}>{m.name}</div>
               <Ann a={m.ann} />
               {m.comment && (
-                <div style={{ marginTop: "10px", paddingTop: "10px", borderTop: `1px solid ${G200}`, fontSize: "12px", color: G600, lineHeight: 1.65, fontFamily: SANS }}>
+                <div style={{ marginTop: "10px", paddingTop: "10px", borderTop: `1px solid ${G200}`, fontSize: "13px", color: G600, lineHeight: 1.65, fontFamily: SANS }}>
                   {m.comment}
                 </div>
               )}
@@ -373,18 +373,18 @@ function DataSignalsSection({ data, growth, patterns }: {
       <div className="rpt-wrap">
         <SecLabel txt="Data Signals" section="섹션 3 / 7" dark />
         <h2 style={{ fontSize: "clamp(22px,3vw,30px)", fontWeight: 900, letterSpacing: "-1px", lineHeight: 1.2, marginBottom: "8px", color: "#fff", fontFamily: SANS }}>{total >= 30 ? "30개 데이터 시그널" : "데이터 시그널"}</h2>
-        <p style={{ fontSize: "15px", color: "#BBBBBB", marginBottom: "36px" }}>콘텐츠 · 퍼포먼스 · 채널 정체성 3개 그룹 핵심 시그널</p>
+        <p style={{ fontSize: "16px", color: "#BBBBBB", marginBottom: "36px" }}>콘텐츠 · 퍼포먼스 · 채널 정체성 3개 그룹 핵심 시그널</p>
         <div className="g-signals" style={{ background: DARK3, border: `1px solid ${DARK3}` }}>
           {groups.map((g) => (
             <div key={g.id} style={{ background: "#1E1E1E", padding: "28px 22px" }}>
-              <div style={{ fontFamily: MONO, fontSize: "12px", fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "18px", paddingBottom: "12px", borderBottom: `2px solid #2E2E2E`, color: g.tc }}>{g.label}</div>
-              {g.items.length === 0 && <p style={{ fontSize: "13px", color: "#555" }}>데이터 준비 중</p>}
+              <div style={{ fontFamily: MONO, fontSize: "13px", fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "18px", paddingBottom: "12px", borderBottom: `2px solid #2E2E2E`, color: g.tc }}>{g.label}</div>
+              {g.items.length === 0 && <p style={{ fontSize: "14px", color: "#777" }}>데이터 준비 중</p>}
               {g.items.map((item, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "10px", padding: "9px 0", borderBottom: i < g.items.length - 1 ? `1px solid #252525` : "none" }}>
-                  <span style={{ fontFamily: MONO, fontSize: "10px", color: LIME, flexShrink: 0, minWidth: "18px", paddingTop: "3px", fontWeight: 700 }}>{item.n}</span>
+                  <span style={{ fontFamily: MONO, fontSize: "11px", color: LIME, flexShrink: 0, minWidth: "18px", paddingTop: "3px", fontWeight: 700 }}>{item.n}</span>
                   <div>
-                    <div style={{ fontSize: "14px", fontWeight: 700, color: "#F0F0F0", marginBottom: "2px", fontFamily: SANS }}>{item.t}</div>
-                    <div style={{ fontFamily: MONO, fontSize: "11px", color: "#CCCCCC" }}><SiDot t={item.dot} />{item.v}</div>
+                    <div style={{ fontSize: "15px", fontWeight: 700, color: "#F0F0F0", marginBottom: "2px", fontFamily: SANS }}>{item.t}</div>
+                    <div style={{ fontFamily: MONO, fontSize: "12px", color: "#CCCCCC" }}><SiDot t={item.dot} />{item.v}</div>
                   </div>
                 </div>
               ))}
@@ -444,18 +444,18 @@ function ChannelPatternsSection({ data }: { data: ManusReportJson["section4_chan
       <div className="rpt-wrap">
         <SecLabel txt="Channel Patterns" section="섹션 4 / 7" />
         <h2 style={{ fontSize: "clamp(22px,3vw,30px)", fontWeight: 900, letterSpacing: "-1px", lineHeight: 1.2, marginBottom: "8px", fontFamily: SANS }}>{pats.length}개 채널 운영 패턴</h2>
-        <p style={{ fontSize: "15px", color: G600, marginBottom: "36px" }}>데이터에서 발견된 운영 패턴과 그 의미를 분석합니다.</p>
+        <p style={{ fontSize: "16px", color: G600, marginBottom: "36px" }}>데이터에서 발견된 운영 패턴과 그 의미를 분석합니다.</p>
         <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
           {pats.map((p) => (
             <div key={p.n} className="g-pattern" style={{ border: `1px solid ${G200}` }}>
-              <div style={{ background: BLK, color: LIME, fontFamily: MONO, fontSize: "13px", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{p.n}</div>
+              <div style={{ background: BLK, color: LIME, fontFamily: MONO, fontSize: "14px", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{p.n}</div>
               <div className="g-pattern-body" style={{ padding: "16px 18px" }}>
-                <div style={{ fontSize: "15px", fontWeight: 700, marginBottom: "4px", fontFamily: SANS }}>{p.name}</div>
-                <div style={{ fontSize: "13px", color: G600, lineHeight: 1.6 }}>{p.char}</div>
+                <div style={{ fontSize: "16px", fontWeight: 700, marginBottom: "4px", fontFamily: SANS }}>{p.name}</div>
+                <div style={{ fontSize: "14px", color: G600, lineHeight: 1.6 }}>{p.char}</div>
               </div>
               <div className="g-pattern-interp" style={{ padding: "16px 18px", background: "#F0FFF0" }}>
-                <div style={{ fontFamily: MONO, fontSize: "10px", color: "#4A7C00", letterSpacing: "1px", textTransform: "uppercase", marginBottom: "4px", fontWeight: 700 }}>해석</div>
-                <div style={{ fontSize: "13px", color: "#2D5A00", lineHeight: 1.6, fontWeight: 500 }}>{p.interp}</div>
+                <div style={{ fontFamily: MONO, fontSize: "11px", color: "#4A7C00", letterSpacing: "1px", textTransform: "uppercase", marginBottom: "4px", fontWeight: 700 }}>해석</div>
+                <div style={{ fontSize: "14px", color: "#2D5A00", lineHeight: 1.6, fontWeight: 500 }}>{p.interp}</div>
               </div>
             </div>
           ))}
@@ -479,14 +479,14 @@ function ChannelDNASection({ data, scorecard }: { data: ManusReportJson["section
       <div className="rpt-wrap">
         <SecLabel txt="Channel DNA" section="섹션 5 / 7" dark />
         <h2 style={{ fontSize: "clamp(22px,3vw,30px)", fontWeight: 900, letterSpacing: "-1px", lineHeight: 1.2, marginBottom: "8px", color: "#fff", fontFamily: SANS }}>채널 DNA 진단</h2>
-        <p style={{ fontSize: "15px", color: "#BBBBBB", marginBottom: "36px" }}>채널 고유의 정체성과 성장 구조를 분석합니다.</p>
+        <p style={{ fontSize: "16px", color: "#BBBBBB", marginBottom: "36px" }}>채널 고유의 정체성과 성장 구조를 분석합니다.</p>
 
         {data.core_identity && (
           <div style={{ border: `1px solid #2E2E2E`, background: DARK2, padding: "28px 32px", marginBottom: "24px", position: "relative" }}>
-            <div style={{ position: "absolute", top: "-11px", left: "20px", fontFamily: MONO, fontSize: "11px", background: DARK2, color: LIME, padding: "0 10px", letterSpacing: "1px", fontWeight: 600 }}>CORE IDENTITY</div>
+            <div style={{ position: "absolute", top: "-11px", left: "20px", fontFamily: MONO, fontSize: "12px", background: DARK2, color: LIME, padding: "0 10px", letterSpacing: "1px", fontWeight: 600 }}>CORE IDENTITY</div>
             <div style={{ fontSize: "16px", color: "#F0F0F0", lineHeight: 1.9 }}>{data.core_identity}</div>
             {data.unique_value_proposition && (
-              <div style={{ marginTop: "18px", paddingTop: "18px", borderTop: `1px solid ${DARK3}`, fontFamily: MONO, fontSize: "13px", color: "#CCCCCC" }}>
+              <div style={{ marginTop: "18px", paddingTop: "18px", borderTop: `1px solid ${DARK3}`, fontFamily: MONO, fontSize: "14px", color: "#CCCCCC" }}>
                 <span style={{ color: ORANGE, marginRight: "10px", letterSpacing: "1px" }}>POSITIONING</span>
                 &ldquo;{data.unique_value_proposition}&rdquo;
               </div>
@@ -497,7 +497,7 @@ function ChannelDNASection({ data, scorecard }: { data: ManusReportJson["section
         {(data.brand_keywords ?? []).length > 0 && (
           <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "24px" }}>
             {(data.brand_keywords ?? []).map((kw, i) => (
-              <span key={i} style={{ fontFamily: MONO, fontSize: "12px", background: "#252525", color: "#CCCCCC", padding: "4px 12px", borderRadius: "2px" }}>{kw}</span>
+              <span key={i} style={{ fontFamily: MONO, fontSize: "13px", background: "#252525", color: "#CCCCCC", padding: "4px 12px", borderRadius: "2px" }}>{kw}</span>
             ))}
           </div>
         )}
@@ -506,22 +506,22 @@ function ChannelDNASection({ data, scorecard }: { data: ManusReportJson["section
           <div className="g-dna2" style={{ background: DARK3, border: `1px solid ${DARK3}`, marginBottom: "24px" }}>
             {data.creator_persona && (
               <div style={{ background: DARK2, padding: "22px" }}>
-                <div style={{ fontFamily: MONO, fontSize: "11px", color: LIME, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "14px", paddingBottom: "10px", borderBottom: `1px solid ${DARK3}` }}>// CREATOR PERSONA</div>
+                <div style={{ fontFamily: MONO, fontSize: "12px", color: LIME, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "14px", paddingBottom: "10px", borderBottom: `1px solid ${DARK3}` }}>// CREATOR PERSONA</div>
                 {([["캐릭터", data.creator_persona.character], ["스토리텔링", data.creator_persona.storytelling_style], ["관계", data.creator_persona.relationship_with_audience]] as [string, string | undefined][]).filter(([, v]) => v).map(([k, v], i) => (
                   <div key={i} style={{ marginBottom: "12px" }}>
-                    <div style={{ fontFamily: MONO, fontSize: "10px", color: "#888", marginBottom: "2px" }}>{k}</div>
-                    <div style={{ fontSize: "14px", color: "#F0F0F0", lineHeight: 1.7 }}>{v}</div>
+                    <div style={{ fontFamily: MONO, fontSize: "11px", color: "#888", marginBottom: "2px" }}>{k}</div>
+                    <div style={{ fontSize: "15px", color: "#F0F0F0", lineHeight: 1.7 }}>{v}</div>
                   </div>
                 ))}
               </div>
             )}
             {data.target_audience && (
               <div style={{ background: DARK2, padding: "22px" }}>
-                <div style={{ fontFamily: MONO, fontSize: "11px", color: "#FFAA55", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "14px", paddingBottom: "10px", borderBottom: `1px solid ${DARK3}` }}>// TARGET AUDIENCE</div>
+                <div style={{ fontFamily: MONO, fontSize: "12px", color: "#FFAA55", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "14px", paddingBottom: "10px", borderBottom: `1px solid ${DARK3}` }}>// TARGET AUDIENCE</div>
                 {([["1차 타겟", data.target_audience.primary], ["2차 타겟", data.target_audience.secondary], ["3차 타겟", data.target_audience.tertiary]] as [string, string | undefined][]).filter(([, v]) => v).map(([k, v], i) => (
                   <div key={i} style={{ marginBottom: "12px" }}>
-                    <div style={{ fontFamily: MONO, fontSize: "10px", color: "#888", marginBottom: "2px" }}>{k}</div>
-                    <div style={{ fontSize: "14px", color: "#F0F0F0", lineHeight: 1.7 }}>{v}</div>
+                    <div style={{ fontFamily: MONO, fontSize: "11px", color: "#888", marginBottom: "2px" }}>{k}</div>
+                    <div style={{ fontSize: "15px", color: "#F0F0F0", lineHeight: 1.7 }}>{v}</div>
                   </div>
                 ))}
               </div>
@@ -531,19 +531,19 @@ function ChannelDNASection({ data, scorecard }: { data: ManusReportJson["section
 
         {(data.content_pillars ?? []).length > 0 && (
           <div style={{ marginBottom: "24px" }}>
-            <div style={{ fontFamily: MONO, fontSize: "11px", color: "#999", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "10px", display: "flex", alignItems: "center", gap: "10px" }}>
+            <div style={{ fontFamily: MONO, fontSize: "12px", color: "#999", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "10px", display: "flex", alignItems: "center", gap: "10px" }}>
               <span style={{ width: "28px", height: "1px", background: "#999", display: "block" }} />콘텐츠 필러
             </div>
             {(data.content_pillars ?? []).map((pillar, i) => (
               <div key={i} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "11px 14px", background: "#1E1E1E", border: `1px solid ${DARK3}`, marginBottom: "4px" }}>
-                <span style={{ fontFamily: MONO, fontSize: "11px", color: "#888", minWidth: "20px" }}>0{i + 1}</span>
+                <span style={{ fontFamily: MONO, fontSize: "12px", color: "#888", minWidth: "20px" }}>0{i + 1}</span>
                 <div style={{ flex: 1 }}>
-                  <span style={{ fontSize: "14px", fontWeight: 700, color: "#F0F0F0" }}>{pillar.pillar}</span>
-                  {pillar.description && <span style={{ fontSize: "12px", color: "#AAAAAA", marginLeft: "8px" }}>{pillar.description.slice(0, 50)}</span>}
+                  <span style={{ fontSize: "15px", fontWeight: 700, color: "#F0F0F0" }}>{pillar.pillar}</span>
+                  {pillar.description && <span style={{ fontSize: "13px", color: "#AAAAAA", marginLeft: "8px" }}>{pillar.description.slice(0, 50)}</span>}
                 </div>
                 {pillar.contribution_pct != null && (
                   <div style={{ flexShrink: 0, minWidth: "90px" }}>
-                    <div style={{ fontFamily: MONO, fontSize: "12px", color: LIME, textAlign: "right", marginBottom: "4px" }}>{pillar.contribution_pct}%</div>
+                    <div style={{ fontFamily: MONO, fontSize: "13px", color: LIME, textAlign: "right", marginBottom: "4px" }}>{pillar.contribution_pct}%</div>
                     <DkBar pct={pillar.contribution_pct} />
                   </div>
                 )}
@@ -553,7 +553,7 @@ function ChannelDNASection({ data, scorecard }: { data: ManusReportJson["section
         )}
 
         {/* 코드 블록 — 원본 HTML 기준 8줄 */}
-        <div style={{ background: "#0F0F0F", border: `1px solid ${DARK3}`, borderLeft: `3px solid ${LIME}`, padding: "22px 26px", fontFamily: MONO, fontSize: "13px", lineHeight: 2, overflowX: "auto" }}>
+        <div style={{ background: "#0F0F0F", border: `1px solid ${DARK3}`, borderLeft: `3px solid ${LIME}`, padding: "22px 26px", fontFamily: MONO, fontSize: "14px", lineHeight: 2, overflowX: "auto" }}>
           {([
             { type: "c", v1: "// tubewatch — channel dna analysis v2.1" },
             { type: "k", k: "channel",         s: `"${data.core_identity?.slice(0, 40) ?? "-"}"` },
@@ -565,7 +565,7 @@ function ChannelDNASection({ data, scorecard }: { data: ManusReportJson["section
             { type: "k", k: "differentiation", s: `"${(data.competitive_differentiation ?? "").slice(0, 40)}"` },
           ] as { type: string; v1?: string; k?: string; s?: string; n?: string; c?: string }[]).map((row, i) => (
             <div key={i} style={{ display: "flex", gap: "14px" }}>
-              <span style={{ color: "#555", minWidth: "18px", textAlign: "right" }}>{i + 1}</span>
+              <span style={{ color: "#777", minWidth: "18px", textAlign: "right" }}>{i + 1}</span>
               <span>
                 {row.type === "c" && <span style={{ color: "#888" }}>{row.v1}</span>}
                 {row.type === "k" && (<>
@@ -605,8 +605,8 @@ function ContentPlansSection({ data, signals }: {
       <div className="rpt-wrap">
         <SecLabel txt="Content Plan" section="섹션 6 / 7" />
         <h2 style={{ fontSize: "clamp(22px,3vw,30px)", fontWeight: 900, letterSpacing: "-1px", lineHeight: 1.2, marginBottom: "8px", fontFamily: SANS }}>완성형 콘텐츠 기획안</h2>
-        <p style={{ fontSize: "15px", color: G600, marginBottom: "12px" }}>AI 분석 기반 · 채널 데이터 흐름에서 도출한 완성형 기획문서입니다.</p>
-        <p style={{ fontSize: "12px", color: "#D97706", marginBottom: "36px", fontFamily: MONO }}>* 상승기 패턴 기반의 기획으로, 현재 채널 상황과 교차 검토를 권장합니다.</p>
+        <p style={{ fontSize: "16px", color: G600, marginBottom: "12px" }}>AI 분석 기반 · 채널 데이터 흐름에서 도출한 완성형 기획문서입니다.</p>
+        <p style={{ fontSize: "13px", color: "#D97706", marginBottom: "36px", fontFamily: MONO }}>* 상승기 패턴 기반의 기획으로, 현재 채널 상황과 교차 검토를 권장합니다.</p>
 
         {opps.length > 0 && (
           <div className={opps.length >= 2 ? "g-plans2" : "g-plans2 g-plans-single"} style={{ marginBottom: "28px" }}>
@@ -615,8 +615,8 @@ function ContentPlansSection({ data, signals }: {
                 {/* 헤더 */}
                 <div style={{ background: BLK, padding: "18px 22px" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
-                    <span style={{ fontFamily: MONO, fontSize: "11px", color: G400, letterSpacing: "1px" }}>PLAN #{String(opp.priority ?? i + 1).padStart(2, "0")}</span>
-                    {opp.format && <span style={{ fontFamily: MONO, fontSize: "10px", background: "#252525", color: "#CCCCCC", padding: "2px 8px", borderRadius: "2px" }}>{opp.format}</span>}
+                    <span style={{ fontFamily: MONO, fontSize: "12px", color: G400, letterSpacing: "1px" }}>PLAN #{String(opp.priority ?? i + 1).padStart(2, "0")}</span>
+                    {opp.format && <span style={{ fontFamily: MONO, fontSize: "11px", background: "#252525", color: "#CCCCCC", padding: "2px 8px", borderRadius: "2px" }}>{opp.format}</span>}
                   </div>
                   <div style={{ fontSize: "16px", fontWeight: 800, color: "#fff", lineHeight: 1.35 }}>{opp.title ?? "-"}</div>
                 </div>
@@ -625,25 +625,25 @@ function ContentPlansSection({ data, signals }: {
                   {/* 기획 의도: concept + rationale 합산 2문장 */}
                   {(opp.concept || opp.rationale) && (
                     <div style={{ paddingBottom: "18px", borderBottom: `1px solid ${G200}` }}>
-                      <div style={{ fontFamily: MONO, fontSize: "10px", color: G400, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "8px" }}>기획 의도</div>
-                      {opp.concept && <div style={{ fontSize: "14px", color: G600, lineHeight: 1.8, marginBottom: opp.rationale ? "6px" : 0 }}>{opp.concept}</div>}
-                      {opp.rationale && <div style={{ fontSize: "14px", color: G600, lineHeight: 1.8 }}>{opp.rationale}</div>}
+                      <div style={{ fontFamily: MONO, fontSize: "11px", color: G400, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "8px" }}>기획 의도</div>
+                      {opp.concept && <div style={{ fontSize: "15px", color: G600, lineHeight: 1.8, marginBottom: opp.rationale ? "6px" : 0 }}>{opp.concept}</div>}
+                      {opp.rationale && <div style={{ fontSize: "15px", color: G600, lineHeight: 1.8 }}>{opp.rationale}</div>}
                     </div>
                   )}
 
                   {/* 제목 공식: A=공식, B=구체 예시 */}
                   {(opp.title_formula || opp.title) && (
                     <div style={{ paddingBottom: "18px", borderBottom: `1px solid ${G200}` }}>
-                      <div style={{ fontFamily: MONO, fontSize: "10px", color: G400, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "10px" }}>제목 공식</div>
+                      <div style={{ fontFamily: MONO, fontSize: "11px", color: G400, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "10px" }}>제목 공식</div>
                       {opp.title_formula && (
-                        <div style={{ display: "flex", gap: "10px", fontSize: "14px", marginBottom: "10px", lineHeight: 1.6, alignItems: "flex-start" }}>
-                          <span style={{ fontFamily: MONO, fontSize: "11px", fontWeight: 700, background: BLK, color: LIME, padding: "2px 7px", flexShrink: 0, marginTop: "2px" }}>A</span>
+                        <div style={{ display: "flex", gap: "10px", fontSize: "15px", marginBottom: "10px", lineHeight: 1.6, alignItems: "flex-start" }}>
+                          <span style={{ fontFamily: MONO, fontSize: "12px", fontWeight: 700, background: BLK, color: LIME, padding: "2px 7px", flexShrink: 0, marginTop: "2px" }}>A</span>
                           <span>{opp.title_formula}</span>
                         </div>
                       )}
                       {opp.title && (
-                        <div style={{ display: "flex", gap: "10px", fontSize: "14px", lineHeight: 1.6, alignItems: "flex-start" }}>
-                          <span style={{ fontFamily: MONO, fontSize: "11px", fontWeight: 700, background: DARK3, color: ORANGE, padding: "2px 7px", flexShrink: 0, marginTop: "2px" }}>B</span>
+                        <div style={{ display: "flex", gap: "10px", fontSize: "15px", lineHeight: 1.6, alignItems: "flex-start" }}>
+                          <span style={{ fontFamily: MONO, fontSize: "12px", fontWeight: 700, background: DARK3, color: ORANGE, padding: "2px 7px", flexShrink: 0, marginTop: "2px" }}>B</span>
                           <span style={{ color: G600 }}>{opp.title}</span>
                         </div>
                       )}
@@ -653,12 +653,12 @@ function ContentPlansSection({ data, signals }: {
                   {/* 구성 흐름 */}
                   {(opp.structure_flow ?? []).length > 0 && (
                     <div style={{ paddingBottom: "18px", borderBottom: `1px solid ${G200}` }}>
-                      <div style={{ fontFamily: MONO, fontSize: "10px", color: G400, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "10px" }}>구성 흐름</div>
+                      <div style={{ fontFamily: MONO, fontSize: "11px", color: G400, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "10px" }}>구성 흐름</div>
                       <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                         {opp.structure_flow!.map((step, si) => (
                           <div key={si} style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
-                            <span style={{ fontFamily: MONO, fontSize: "10px", fontWeight: 700, background: BLK, color: LIME, padding: "2px 6px", flexShrink: 0, marginTop: "2px", minWidth: "22px", textAlign: "center" }}>{si + 1}</span>
-                            <span style={{ fontSize: "13px", color: G600, lineHeight: 1.65 }}>{step}</span>
+                            <span style={{ fontFamily: MONO, fontSize: "11px", fontWeight: 700, background: BLK, color: LIME, padding: "2px 6px", flexShrink: 0, marginTop: "2px", minWidth: "22px", textAlign: "center" }}>{si + 1}</span>
+                            <span style={{ fontSize: "14px", color: G600, lineHeight: 1.65 }}>{step}</span>
                           </div>
                         ))}
                       </div>
@@ -668,7 +668,7 @@ function ContentPlansSection({ data, signals }: {
                   {/* 하단: 예상 조회수 */}
                   {opp.expected_views && (
                     <div>
-                      <span style={{ fontFamily: MONO, fontSize: "12px", background: "#F5F5F5", color: G600, padding: "4px 12px", borderRadius: "2px" }}>
+                      <span style={{ fontFamily: MONO, fontSize: "13px", background: "#F5F5F5", color: G600, padding: "4px 12px", borderRadius: "2px" }}>
                         예상 조회수: <strong style={{ color: ORANGE }}>{opp.expected_views}</strong>
                       </span>
                     </div>
@@ -682,10 +682,10 @@ function ContentPlansSection({ data, signals }: {
         {/* 추천 해시태그 */}
         {allTags.length > 0 && (
           <div style={{ marginBottom: "28px", padding: "18px 22px", border: `1px solid ${G200}` }}>
-            <div style={{ fontFamily: MONO, fontSize: "10px", color: G400, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "12px" }}>추천 해시태그</div>
+            <div style={{ fontFamily: MONO, fontSize: "11px", color: G400, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "12px" }}>추천 해시태그</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
               {allTags.map((tag, i) => (
-                <span key={i} style={{ fontFamily: MONO, fontSize: "13px", background: "#F5F5F5", color: BLK, padding: "4px 12px", borderRadius: "2px", cursor: "pointer" }}>#{tag}</span>
+                <span key={i} style={{ fontFamily: MONO, fontSize: "14px", background: "#F5F5F5", color: BLK, padding: "4px 12px", borderRadius: "2px", cursor: "pointer" }}>#{tag}</span>
               ))}
             </div>
           </div>
@@ -693,15 +693,15 @@ function ContentPlansSection({ data, signals }: {
 
         {series.length > 0 && (
           <div style={{ marginBottom: "24px" }}>
-            <div style={{ fontFamily: MONO, fontSize: "11px", color: G400, letterSpacing: "2px", textTransform: "uppercase", marginBottom: "12px", display: "flex", alignItems: "center", gap: "10px" }}>
+            <div style={{ fontFamily: MONO, fontSize: "12px", color: G400, letterSpacing: "2px", textTransform: "uppercase", marginBottom: "12px", display: "flex", alignItems: "center", gap: "10px" }}>
               <span style={{ width: "28px", height: "1px", background: G400, display: "block" }} />시리즈 기획
             </div>
             <div className="g-series2">
               {series.map((s, i) => (
                 <div key={i} style={{ border: `1px solid ${G200}`, padding: "18px" }}>
-                  <div style={{ fontSize: "15px", fontWeight: 700, marginBottom: "6px" }}>{s.series_name ?? "-"}</div>
-                  {s.concept && <div style={{ fontSize: "13px", color: G600, marginBottom: "10px", lineHeight: 1.6 }}>{s.concept}</div>}
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", fontFamily: MONO, fontSize: "12px", color: G600 }}>
+                  <div style={{ fontSize: "16px", fontWeight: 700, marginBottom: "6px" }}>{s.series_name ?? "-"}</div>
+                  {s.concept && <div style={{ fontSize: "14px", color: G600, marginBottom: "10px", lineHeight: 1.6 }}>{s.concept}</div>}
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", fontFamily: MONO, fontSize: "13px", color: G600 }}>
                     {s.episode_count != null && <span>에피소드 {s.episode_count}개</span>}
                     {s.target_views_per_episode && <span style={{ color: ORANGE }}>목표 {s.target_views_per_episode}</span>}
                     {s.content_calendar && <span>{s.content_calendar}</span>}
@@ -714,8 +714,8 @@ function ContentPlansSection({ data, signals }: {
 
         {sf && (
           <div style={{ border: `1px solid ${G200}`, padding: "18px 22px" }}>
-            <div style={{ fontFamily: MONO, fontSize: "10px", color: G400, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "10px" }}>숏폼 전략</div>
-            <div style={{ fontSize: "14px", color: G600, lineHeight: 1.7 }}>
+            <div style={{ fontFamily: MONO, fontSize: "11px", color: G400, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "10px" }}>숏폼 전략</div>
+            <div style={{ fontSize: "15px", color: G600, lineHeight: 1.7 }}>
               {sf.posting_frequency && <span><strong>빈도:</strong> {sf.posting_frequency} · </span>}
               {sf.hashtag_strategy && <span><strong>해시태그:</strong> {sf.hashtag_strategy}</span>}
               {(sf.recommended_formats ?? []).length > 0 && <div style={{ marginTop: "6px" }}><strong>추천 포맷:</strong> {sf.recommended_formats!.join(", ")}</div>}
@@ -752,7 +752,7 @@ function ActionPlanSection({ report }: { report: ManusReportJson }) {
       <div className="rpt-wrap">
         <SecLabel txt="Action Plan" section="섹션 7 / 7" />
         <h2 style={{ fontSize: "clamp(22px,3vw,30px)", fontWeight: 900, letterSpacing: "-1px", lineHeight: 1.2, marginBottom: "8px", fontFamily: SANS }}>30일 실행 계획</h2>
-        <p style={{ fontSize: "15px", color: G600, marginBottom: "24px" }}>우선순위별 액션 아이템과 목표 수치를 확인하세요.</p>
+        <p style={{ fontSize: "16px", color: G600, marginBottom: "24px" }}>우선순위별 액션 아이템과 목표 수치를 확인하세요.</p>
 
         {/* 탭 3개 — 선택 탭은 블랙 배경 */}
         <div style={{ display: "flex", gap: "6px", marginBottom: "20px" }}>
@@ -760,9 +760,9 @@ function ActionPlanSection({ report }: { report: ManusReportJson }) {
             const isActive = activeTab === idx;
             return (
               <button key={idx} onClick={() => setActiveTab(idx as 0 | 1 | 2)}
-                style={{ padding: "10px 18px", border: `1px solid ${isActive ? BLK : G200}`, borderRadius: "6px", background: isActive ? BLK : "#fff", cursor: "pointer", fontFamily: SANS, fontSize: "13px", fontWeight: 700, color: isActive ? "#fff" : G400, transition: "all .15s", whiteSpace: "nowrap", textAlign: "left" }}>
+                style={{ padding: "10px 18px", border: `1px solid ${isActive ? BLK : G200}`, borderRadius: "6px", background: isActive ? BLK : "#fff", cursor: "pointer", fontFamily: SANS, fontSize: "14px", fontWeight: 700, color: isActive ? "#fff" : G400, transition: "all .15s", whiteSpace: "nowrap", textAlign: "left" }}>
                 {tab.label}
-                <span style={{ display: "block", fontFamily: MONO, fontSize: "10px", color: isActive ? "rgba(255,255,255,.6)" : G400, fontWeight: 400, marginTop: "2px" }}>{tab.sub}</span>
+                <span style={{ display: "block", fontFamily: MONO, fontSize: "11px", color: isActive ? "rgba(255,255,255,.6)" : G400, fontWeight: 400, marginTop: "2px" }}>{tab.sub}</span>
               </button>
             );
           })}
@@ -770,7 +770,7 @@ function ActionPlanSection({ report }: { report: ManusReportJson }) {
 
         {/* 선택 탭 태스크 */}
         {tabs[activeTab].tasks.length === 0 && (
-          <p style={{ fontSize: "14px", color: G400, padding: "20px 0" }}>해당 구간 액션 아이템이 없습니다.</p>
+          <p style={{ fontSize: "15px", color: G400, padding: "20px 0" }}>해당 구간 액션 아이템이 없습니다.</p>
         )}
         <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "16px" }}>
           {(tabs[activeTab].tasks as Task[]).map((t, i) => {
@@ -780,11 +780,11 @@ function ActionPlanSection({ report }: { report: ManusReportJson }) {
               <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "14px", padding: "16px 20px", border: `1px solid ${G200}`, borderLeft: `3px solid ${bc}` }}>
                 <PriBadge p={t.priority} />
                 <div>
-                  <div style={{ fontSize: "15px", fontWeight: 700, marginBottom: "4px", fontFamily: SANS }}>{t.task ?? "-"}</div>
-                  {t.detail && <div style={{ fontSize: "14px", color: G600, lineHeight: 1.7 }}>{t.detail}</div>}
-                  {t.expected_impact && <div style={{ fontSize: "13px", color: "#D97706", marginTop: "4px" }}>기대 효과: {t.expected_impact}</div>}
-                  {t.kpi && <div style={{ fontSize: "13px", color: ORANGE, marginTop: "4px", fontFamily: MONO }}>KPI: {t.kpi}</div>}
-                  {t.timeline && <div style={{ fontSize: "12px", color: G400, marginTop: "4px", fontFamily: MONO }}>타임라인: {t.timeline}</div>}
+                  <div style={{ fontSize: "16px", fontWeight: 700, marginBottom: "4px", fontFamily: SANS }}>{t.task ?? "-"}</div>
+                  {t.detail && <div style={{ fontSize: "15px", color: G600, lineHeight: 1.7 }}>{t.detail}</div>}
+                  {t.expected_impact && <div style={{ fontSize: "14px", color: "#D97706", marginTop: "4px" }}>기대 효과: {t.expected_impact}</div>}
+                  {t.kpi && <div style={{ fontSize: "14px", color: ORANGE, marginTop: "4px", fontFamily: MONO }}>KPI: {t.kpi}</div>}
+                  {t.timeline && <div style={{ fontSize: "13px", color: G400, marginTop: "4px", fontFamily: MONO }}>타임라인: {t.timeline}</div>}
                 </div>
               </div>
             );
@@ -795,7 +795,7 @@ function ActionPlanSection({ report }: { report: ManusReportJson }) {
         {(data.risk_management ?? []).length > 0 && (
           <div style={{ border: `1px solid #F59E0B`, background: "#FFFBEB", padding: "14px 18px", display: "flex", gap: "10px", marginBottom: "32px" }}>
             <span>⚠</span>
-            <div style={{ fontSize: "14px", color: "#92400E", lineHeight: 1.75 }}>
+            <div style={{ fontSize: "15px", color: "#92400E", lineHeight: 1.75 }}>
               <strong>리스크 관리: </strong>{(data.risk_management ?? []).slice(0, 2).map(r => r.risk).filter(Boolean).join(" · ")}
             </div>
           </div>
@@ -804,14 +804,14 @@ function ActionPlanSection({ report }: { report: ManusReportJson }) {
         {/* 성과 지표 달성 예측 — 항상 노출 */}
         {kpi && (
           <div style={{ borderTop: `1px solid ${G200}`, paddingTop: "28px" }}>
-            <div style={{ fontFamily: MONO, fontSize: "11px", fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase", color: G400, marginBottom: "20px" }}>
+            <div style={{ fontFamily: MONO, fontSize: "12px", fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase", color: G400, marginBottom: "20px" }}>
               성과 지표 달성 예측
             </div>
 
             {/* 진행률 바: 현재 → 1개월 목표 */}
             {kpi["1_month"] && (
               <div style={{ marginBottom: "24px" }}>
-                <div style={{ fontFamily: MONO, fontSize: "10px", color: G400, letterSpacing: "1px", marginBottom: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
+                <div style={{ fontFamily: MONO, fontSize: "11px", color: G400, letterSpacing: "1px", marginBottom: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
                   <span style={{ width: "20px", height: "1px", background: G400, display: "block" }} />현재 → 1개월 목표
                 </div>
                 {score > 0 && kpi["1_month"]?.avg_views_per_video != null && (
@@ -837,11 +837,11 @@ function ActionPlanSection({ report }: { report: ManusReportJson }) {
                 const label = { "1_month": "1개월 목표", "3_months": "3개월 목표", "6_months": "6개월 목표", "12_months": "12개월 목표" }[key];
                 return (
                   <div key={key} style={{ background: "#fff", padding: "18px 16px" }}>
-                    <div style={{ fontFamily: MONO, fontSize: "11px", color: G400, marginBottom: "8px" }}>{label}</div>
+                    <div style={{ fontFamily: MONO, fontSize: "12px", color: G400, marginBottom: "8px" }}>{label}</div>
                     <div style={{ fontSize: "20px", fontWeight: 800, fontFamily: MONO, color: BLK, marginBottom: "2px" }}>{fmt(row.subscribers)}</div>
-                    <div style={{ fontSize: "12px", color: G600, marginBottom: "6px" }}>구독자 목표</div>
-                    {row.upload_count != null && <div style={{ fontSize: "11px", color: G400, fontFamily: MONO }}>업로드 {row.upload_count}회</div>}
-                    {row.avg_views_per_video != null && <div style={{ fontSize: "11px", color: G400, fontFamily: MONO }}>평균 조회 {fmt(row.avg_views_per_video)}</div>}
+                    <div style={{ fontSize: "13px", color: G600, marginBottom: "6px" }}>구독자 목표</div>
+                    {row.upload_count != null && <div style={{ fontSize: "12px", color: G400, fontFamily: MONO }}>업로드 {row.upload_count}회</div>}
+                    {row.avg_views_per_video != null && <div style={{ fontSize: "12px", color: G400, fontFamily: MONO }}>평균 조회 {fmt(row.avg_views_per_video)}</div>}
                   </div>
                 );
               })}
@@ -893,31 +893,31 @@ function NextMonthSection({ report, date, generatedAt }: { report: ManusReportJs
   return (
     <section className="rpt-section" style={{ background: "#111111" }}>
       <div className="rpt-wrap">
-        <div style={{ fontFamily: MONO, fontSize: "11px", color: "#555", letterSpacing: "2px", textTransform: "uppercase", display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
+        <div style={{ fontFamily: MONO, fontSize: "12px", color: "#777", letterSpacing: "2px", textTransform: "uppercase", display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
           <span style={{ display: "block", width: "28px", height: "1px", background: "#555" }} />Next Month Preview
         </div>
         <h2 style={{ fontSize: "clamp(22px,3vw,30px)", fontWeight: 900, letterSpacing: "-1px", lineHeight: 1.2, marginBottom: "8px", color: "#fff", fontFamily: SANS }}>다음달 리포트 예고</h2>
-        <p style={{ fontSize: "15px", color: "#666", marginBottom: "32px" }}>{channelName} 채널의 다음 분석 리포트 추적 항목을 미리 확인하세요.</p>
+        <p style={{ fontSize: "16px", color: "#888", marginBottom: "32px" }}>{channelName} 채널의 다음 분석 리포트 추적 항목을 미리 확인하세요.</p>
 
         {/* 3열 그리드 (원본 HTML 기준) */}
         <div className="g-preview3" style={{ background: "#1E1E1E", border: `1px solid #1E1E1E`, marginBottom: "24px" }}>
           {items.map((p, i) => (
             <div key={i} style={{ background: "#161616", padding: "26px 24px", borderLeft: `3px solid ${p.color}` }}>
-              <div style={{ fontFamily: MONO, fontSize: "10px", color: p.color, letterSpacing: "2px", marginBottom: "8px", fontWeight: 700 }}>{p.label}</div>
-              <div style={{ fontSize: "15px", fontWeight: 700, color: "#EEEEEE", marginBottom: "6px", fontFamily: SANS }}>{p.title}</div>
-              <div style={{ fontSize: "13px", color: "#888", lineHeight: 1.7 }}>{p.desc}</div>
+              <div style={{ fontFamily: MONO, fontSize: "11px", color: p.color, letterSpacing: "2px", marginBottom: "8px", fontWeight: 700 }}>{p.label}</div>
+              <div style={{ fontSize: "16px", fontWeight: 700, color: "#EEEEEE", marginBottom: "6px", fontFamily: SANS }}>{p.title}</div>
+              <div style={{ fontSize: "14px", color: "#888", lineHeight: 1.7 }}>{p.desc}</div>
             </div>
           ))}
         </div>
 
         <div style={{ padding: "18px 22px", border: `1px solid #2A2A2A`, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
           <div>
-            <div style={{ fontFamily: MONO, fontSize: "11px", color: "#888", marginBottom: "3px" }}>다음 리포트 발행 예정</div>
-            <div style={{ fontSize: "15px", fontWeight: 700, color: "#EEEEEE" }}>다음 리포트 신청일: {nextAvailable} 이후</div>
+            <div style={{ fontFamily: MONO, fontSize: "12px", color: "#888", marginBottom: "3px" }}>다음 리포트 발행 예정</div>
+            <div style={{ fontSize: "16px", fontWeight: 700, color: "#EEEEEE" }}>다음 리포트 신청일: {nextAvailable} 이후</div>
           </div>
-          <div style={{ fontFamily: MONO, fontSize: "11px", color: "#888", textAlign: "right" }}>
+          <div style={{ fontFamily: MONO, fontSize: "12px", color: "#888", textAlign: "right" }}>
             현재 리포트: {date}<br />
-            <span style={{ color: "#666" }}>Free | Creator | Pro</span>
+            <span style={{ color: "#888" }}>Free | Creator | Pro</span>
           </div>
         </div>
       </div>
@@ -1003,9 +1003,9 @@ export default function ReportView({ report, generatedAt }: Props) {
             TubeWatch<span style={{ color: LIME }}>™</span>
           </a>
           <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-            <span className="rpt-nav-label" style={{ fontFamily: MONO, fontSize: "13px", fontWeight: 800, letterSpacing: ".5px", textTransform: "uppercase" }}>Monthly Report</span>
-            <span className="rpt-nav-label" style={{ fontFamily: MONO, fontSize: "12px", fontWeight: 300 }}>{date} · Free | Creator | Pro</span>
-            <button onClick={handleShare} style={{ fontFamily: MONO, fontSize: "12px", fontWeight: 700, letterSpacing: ".5px", padding: "8px 18px", border: `1px solid ${BLK}`, borderRadius: "3px", background: copied ? "#22c55e" : BLK, color: "#fff", cursor: "pointer", whiteSpace: "nowrap", transition: "background .2s" }}
+            <span className="rpt-nav-label" style={{ fontFamily: MONO, fontSize: "14px", fontWeight: 800, letterSpacing: ".5px", textTransform: "uppercase" }}>Monthly Report</span>
+            <span className="rpt-nav-label" style={{ fontFamily: MONO, fontSize: "13px", fontWeight: 300 }}>{date} · Free | Creator | Pro</span>
+            <button onClick={handleShare} style={{ fontFamily: MONO, fontSize: "13px", fontWeight: 700, letterSpacing: ".5px", padding: "8px 18px", border: `1px solid ${BLK}`, borderRadius: "3px", background: copied ? "#22c55e" : BLK, color: "#fff", cursor: "pointer", whiteSpace: "nowrap", transition: "background .2s" }}
               onMouseEnter={e => { if (!copied) e.currentTarget.style.opacity = ".7"; }}
               onMouseLeave={e => (e.currentTarget.style.opacity = "1")}>
               {copied ? "✓ 링크 복사됨" : "↗ 리포트 공유"}
@@ -1027,7 +1027,7 @@ export default function ReportView({ report, generatedAt }: Props) {
 
         <footer style={{ background: "#0A0A0A", padding: "28px 48px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
           <div style={{ fontWeight: 900, fontSize: "16px", color: "#fff" }}>TubeWatch<span style={{ color: LIME }}>™</span></div>
-          <div style={{ fontFamily: MONO, fontSize: "11px", color: "#888", textAlign: "right", lineHeight: 1.8 }}>
+          <div style={{ fontFamily: MONO, fontSize: "12px", color: "#888", textAlign: "right", lineHeight: 1.8 }}>
             분석 기준일: {report.channel_info?.analysis_date ?? date} · 튜브워치 엔진 v2.1<br />
             © 2026 TubeWatch. All rights reserved.
           </div>
