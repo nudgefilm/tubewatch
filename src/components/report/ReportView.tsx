@@ -1,11 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { Check } from "lucide-react";
 import type { ManusReportJson } from "@/lib/manus/types";
-
-type SectionKey = "hero" | "growth" | "signals" | "patterns" | "action_plan";
-const INIT_CHECKED: Record<SectionKey, boolean> = { hero: false, growth: false, signals: false, patterns: false, action_plan: false };
 
 type Props = { report: ManusReportJson; generatedAt: string; reportId?: string };
 
@@ -115,17 +112,13 @@ function gradeToSub(score: number): string {
   return "도약 준비 단계";
 }
 
-function ActionCheckbox({ checked, onToggle }: { checked: boolean; onToggle: () => void }) {
+function ActionCheckbox() {
   return (
-    <button
-      onClick={onToggle}
-      aria-label={checked ? "완료됨" : "실행하기"}
-      style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "20px", height: "20px", border: `2.5px solid ${checked ? "rgba(255,122,0,0.35)" : ORANGE}`, borderRadius: "3px", background: checked ? "rgba(255,122,0,0.18)" : ORANGE, cursor: "pointer", flexShrink: 0, padding: 0, outline: "none", transition: "all .2s" }}
+    <span
+      style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "20px", height: "20px", border: `2.5px solid ${ORANGE}`, borderRadius: "3px", background: ORANGE, flexShrink: 0 }}
     >
-      {checked
-        ? <Check size={12} color="rgba(255,122,0,0.5)" strokeWidth={3} />
-        : <Check size={12} color="#fff" strokeWidth={3} />}
-    </button>
+      <Check size={12} color="#fff" strokeWidth={3} />
+    </span>
   );
 }
 
@@ -139,14 +132,12 @@ function nextTargetScore(score: number): number | null {
 }
 
 /* ══ SECTION 1: HERO ══════════════════════════════════════════ */
-function HeroSection({ info, scorecard, growth, signals, date, actionChecked, onActionToggle }: {
+function HeroSection({ info, scorecard, growth, signals, date }: {
   info: ManusReportJson["channel_info"];
   scorecard: ManusReportJson["section1_scorecard"];
   growth: ManusReportJson["section2_growth_metrics"];
   signals: ManusReportJson["section3_data_signals"];
   date: string;
-  actionChecked: boolean;
-  onActionToggle: () => void;
 }) {
   const score = scorecard?.overall_score ?? 0;
   const grade = scorecard?.grade ?? "-";
@@ -218,7 +209,7 @@ function HeroSection({ info, scorecard, growth, signals, date, actionChecked, on
             </h1>
             {meta && <p style={{ fontSize: "14px", color: "#AAAAAA", fontFamily: MONO, marginTop: "8px" }}>{meta}</p>}
             <p style={{ fontSize: "13px", color: ORANGE, fontFamily: MONO, marginTop: "6px", display: "flex", alignItems: "center", gap: "6px" }}>
-              <ActionCheckbox checked={actionChecked} onToggle={onActionToggle} />
+              <ActionCheckbox />
               리포트에서 반드시 실행하거나 점검해야 할 항목
             </p>
           </div>
@@ -237,7 +228,7 @@ function HeroSection({ info, scorecard, growth, signals, date, actionChecked, on
 
         {scorecard?.top_action_trigger && (
           <div style={{ background: "#1A0A00", border: `1px solid ${ORANGE}`, padding: "14px 20px", marginTop: "28px", display: "flex", alignItems: "flex-start", gap: "12px" }}>
-            <span style={{ flexShrink: 0, marginTop: "2px" }}><ActionCheckbox checked={actionChecked} onToggle={onActionToggle} /></span>
+            <span style={{ flexShrink: 0, marginTop: "2px" }}><ActionCheckbox /></span>
             <div>
               <div style={{ fontFamily: MONO, fontSize: "11px", color: ORANGE, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "4px" }}>지금 가장 먼저 해야 할 것</div>
               <div style={{ fontSize: "15px", color: "#F0F0F0", lineHeight: 1.6 }}>{scorecard.top_action_trigger}</div>
@@ -305,7 +296,7 @@ function HeroSection({ info, scorecard, growth, signals, date, actionChecked, on
 }
 
 /* ══ SECTION 2: 9개 성장 지표 ═════════════════════════════════ */
-function GrowthSection({ data, scorecard, actionChecked, onActionToggle }: { data: ManusReportJson["section2_growth_metrics"]; scorecard: ManusReportJson["section1_scorecard"]; actionChecked: boolean; onActionToggle: () => void }) {
+function GrowthSection({ data, scorecard }: { data: ManusReportJson["section2_growth_metrics"]; scorecard: ManusReportJson["section1_scorecard"] }) {
   if (!data) return null;
   const trend = data.growth_trend;
   const stats = data.view_statistics;
@@ -344,7 +335,7 @@ function GrowthSection({ data, scorecard, actionChecked, onActionToggle }: { dat
             return metrics.map((m, i) => (
             <div key={i} style={{ background: "#fff", padding: "22px 18px", borderRight: `1px solid ${G200}`, borderBottom: `1px solid ${G200}`, display: "flex", flexDirection: "column", position: "relative" }}>
               {i === firstDnIdx && (
-                <span style={{ position: "absolute", top: "10px", right: "10px" }}><ActionCheckbox checked={actionChecked} onToggle={onActionToggle} /></span>
+                <span style={{ position: "absolute", top: "10px", right: "10px" }}><ActionCheckbox /></span>
               )}
               <div style={{ fontFamily: MONO, fontSize: "12px", color: G400, marginBottom: "8px" }}>{m.n}</div>
               <DotBadge status={m.st} />
@@ -366,12 +357,10 @@ function GrowthSection({ data, scorecard, actionChecked, onActionToggle }: { dat
 }
 
 /* ══ SECTION 3: 데이터 시그널 ═════════════════════════════════ */
-function DataSignalsSection({ data, growth, patterns, actionChecked, onActionToggle }: {
+function DataSignalsSection({ data, growth, patterns }: {
   data: ManusReportJson["section3_data_signals"];
   growth: ManusReportJson["section2_growth_metrics"];
   patterns: ManusReportJson["section4_channel_patterns"];
-  actionChecked: boolean;
-  onActionToggle: () => void;
 }) {
   if (!data) return null;
   const high   = data.high_performance_patterns ?? [];
@@ -452,7 +441,7 @@ function DataSignalsSection({ data, growth, patterns, actionChecked, onActionTog
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: "15px", fontWeight: 700, color: "#F0F0F0", marginBottom: "2px", fontFamily: SANS, display: "flex", alignItems: "center", gap: "6px" }}>
                       {item.t}
-                      {isTopAlert && <ActionCheckbox checked={actionChecked} onToggle={onActionToggle} />}
+                      {isTopAlert && <ActionCheckbox />}
                     </div>
                     <div style={{ fontFamily: MONO, fontSize: "12px", color: "#CCCCCC" }}><SiDot t={item.dot} />{item.v}</div>
                     {item.desc && item.desc !== item.v && (
@@ -471,7 +460,7 @@ function DataSignalsSection({ data, growth, patterns, actionChecked, onActionTog
 }
 
 /* ══ SECTION 4: 채널 운영 패턴 ═══════════════════════════════ */
-function ChannelPatternsSection({ data, actionChecked, onActionToggle }: { data: ManusReportJson["section4_channel_patterns"]; actionChecked: boolean; onActionToggle: () => void }) {
+function ChannelPatternsSection({ data }: { data: ManusReportJson["section4_channel_patterns"] }) {
   if (!data) return null;
   const upload = data.upload_patterns;
   const thumb  = data.thumbnail_and_title_patterns;
@@ -536,7 +525,7 @@ function ChannelPatternsSection({ data, actionChecked, onActionToggle }: { data:
               <div key={p.n} className="g-pattern" style={{ border: `1px solid ${G200}` }}>
                 <div style={{ background: BLK, color: LIME, fontFamily: MONO, fontSize: "14px", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
                 {String(rank).padStart(2, "0")}
-                {rank === 1 && <ActionCheckbox checked={actionChecked} onToggle={onActionToggle} />}
+                {rank === 1 && <ActionCheckbox />}
               </div>
                 <div className="g-pattern-body" style={{ padding: "16px 18px" }}>
                   <div style={{ fontSize: "16px", fontWeight: 700, marginBottom: "4px", fontFamily: SANS }}>{p.name}</div>
@@ -833,7 +822,7 @@ function ContentPlansSection({ data, signals }: {
 }
 
 /* ══ SECTION 7: 30일 실행 계획 (4탭) ════════════════════════ */
-function ActionPlanSection({ report, actionChecked, onActionToggle }: { report: ManusReportJson; actionChecked: boolean; onActionToggle: () => void }) {
+function ActionPlanSection({ report }: { report: ManusReportJson }) {
   const [activeTab, setActiveTab] = useState<0 | 1 | 2>(0);
   const data = report.section7_action_plan;
   if (!data) return null;
@@ -869,7 +858,7 @@ function ActionPlanSection({ report, actionChecked, onActionToggle }: { report: 
         {topTask && (
           <div style={{ background: BLK, padding: "20px 24px", marginBottom: "28px", borderLeft: `4px solid ${LIME}` }}>
             <div style={{ fontFamily: MONO, fontSize: "11px", color: LIME, letterSpacing: "2px", textTransform: "uppercase", marginBottom: "10px", display: "flex", alignItems: "center", gap: "6px" }}>
-              <ActionCheckbox checked={actionChecked} onToggle={onActionToggle} />
+              <ActionCheckbox />
               지금 당장 · Top Priority
             </div>
             <div style={{ fontSize: "17px", fontWeight: 800, color: "#fff", fontFamily: SANS, marginBottom: "6px" }}>{topTask.task ?? "-"}</div>
@@ -1055,36 +1044,6 @@ export default function ReportView({ report, generatedAt, reportId }: Props) {
     .toLocaleDateString("ko-KR", { year: "numeric", month: "2-digit" })
     .replace(". ", ".").replace(".", "년 ").replace(".", "월");
   const [copied, setCopied] = useState(false);
-  const [checked, setChecked] = useState<Record<SectionKey, boolean>>(INIT_CHECKED);
-
-  useEffect(() => {
-    if (!reportId) return;
-    fetch(`/api/manus/action-checks?reportId=${reportId}`)
-      .then(r => r.json())
-      .then(({ checks }: { checks: { section: string; checked: boolean }[] }) => {
-        if (!Array.isArray(checks)) return;
-        setChecked(prev => {
-          const next = { ...prev };
-          for (const c of checks) if (c.section in next) next[c.section as SectionKey] = c.checked;
-          return next;
-        });
-      })
-      .catch(() => {});
-  }, [reportId]);
-
-  const toggle = useCallback((section: SectionKey) => {
-    setChecked(prev => {
-      const next = { ...prev, [section]: !prev[section] };
-      if (reportId) {
-        fetch("/api/manus/action-checks", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ reportId, section, checked: next[section] }),
-        }).catch(() => {});
-      }
-      return next;
-    });
-  }, [reportId]);
   const handleShare = () => {
     void navigator.clipboard.writeText(window.location.href).then(() => {
       setCopied(true);
@@ -1167,16 +1126,16 @@ export default function ReportView({ report, generatedAt, reportId }: Props) {
           </div>
         </nav>
 
-        <HeroSection        info={report.channel_info} scorecard={report.section1_scorecard} growth={report.section2_growth_metrics} signals={report.section3_data_signals} date={date} actionChecked={checked.hero} onActionToggle={() => toggle("hero")} />
-        <GrowthSection      data={report.section2_growth_metrics} scorecard={report.section1_scorecard} actionChecked={checked.growth} onActionToggle={() => toggle("growth")} />
+        <HeroSection        info={report.channel_info} scorecard={report.section1_scorecard} growth={report.section2_growth_metrics} signals={report.section3_data_signals} date={date} />
+        <GrowthSection      data={report.section2_growth_metrics} scorecard={report.section1_scorecard} />
         <hr style={{ border: "none", borderTop: `1px solid ${G200}`, margin: 0 }} />
-        <DataSignalsSection data={report.section3_data_signals} growth={report.section2_growth_metrics} patterns={report.section4_channel_patterns} actionChecked={checked.signals} onActionToggle={() => toggle("signals")} />
-        <ChannelPatternsSection data={report.section4_channel_patterns} actionChecked={checked.patterns} onActionToggle={() => toggle("patterns")} />
+        <DataSignalsSection data={report.section3_data_signals} growth={report.section2_growth_metrics} patterns={report.section4_channel_patterns} />
+        <ChannelPatternsSection data={report.section4_channel_patterns} />
         <hr style={{ border: "none", borderTop: `1px solid ${G200}`, margin: 0 }} />
         <ChannelDNASection  data={report.section5_channel_dna} scorecard={report.section1_scorecard} />
         <ContentPlansSection data={report.section6_content_plans} signals={report.section3_data_signals} />
         <hr style={{ border: "none", borderTop: `1px solid ${G200}`, margin: 0 }} />
-        <ActionPlanSection  report={report} actionChecked={checked.action_plan} onActionToggle={() => toggle("action_plan")} />
+        <ActionPlanSection  report={report} />
         <NextMonthSection   report={report} date={date} generatedAt={generatedAt} />
 
         <footer style={{ background: "#0A0A0A", padding: "28px 48px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
