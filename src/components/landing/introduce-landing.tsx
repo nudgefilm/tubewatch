@@ -46,81 +46,78 @@ function HeroSection() {
   useEffect(() => { setVisible(true); }, []);
 
   return (
-    <section className="relative flex flex-col justify-center pt-20 pb-12 lg:pt-28 lg:pb-16 overflow-hidden">
+    <section className="relative flex flex-col justify-center pt-20 pb-16 lg:pt-28 lg:pb-20 overflow-hidden">
       {/* Background grid */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{ backgroundImage: "radial-gradient(circle, hsl(var(--foreground)/0.04) 1px, transparent 1px)", backgroundSize: "32px 32px" }}
       />
-      {/* Subtle orange glow */}
-      <div className="absolute top-0 right-1/4 w-[500px] h-[300px] bg-orange-500/[0.04] rounded-full blur-3xl pointer-events-none" />
+      {/* Orange glow */}
+      <div className="absolute top-0 right-1/3 w-[600px] h-[400px] bg-orange-500/[0.05] rounded-full blur-3xl pointer-events-none" />
 
-      <div className="relative z-10 max-w-[1080px] mx-auto px-8 lg:px-20">
-        <div className="flex flex-col gap-8">
+      <div className="relative z-10 max-w-[1100px] mx-auto px-8 lg:px-16">
+        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
 
-          {/* 텍스트 + 스탯 */}
-          <div>
+          {/* ── 왼쪽: 텍스트 영역 ── */}
+          <div className="flex-1 min-w-0">
+            {/* Badge */}
             <div className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-              <span className="inline-flex items-center gap-3 text-sm font-mono text-muted-foreground mb-6">
-                <span className="w-8 h-px bg-foreground/30 inline-block" />
+              <span className="inline-flex items-center gap-2 text-xs font-mono tracking-widest text-orange-500 border border-orange-500/30 bg-orange-500/5 rounded-full px-3 py-1 mb-8">
+                <span className="w-1.5 h-1.5 rounded-full bg-orange-500 inline-block" />
                 YouTube Channel Analytics
-                <span className="w-8 h-px bg-foreground/30 inline-block" />
               </span>
             </div>
 
-            <h1 className={`font-heading font-medium leading-[1.15] tracking-[-0.03em] transition-all duration-1000 delay-100 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
-              <span className="block text-[clamp(1.4rem,3.2vw,2.6rem)]">
+            {/* Headline */}
+            <h1 className={`font-heading font-semibold leading-[1.1] tracking-[-0.04em] transition-all duration-1000 delay-100 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+              <span className="block text-[clamp(2rem,4vw,3.4rem)]">
                 성장 채널로 가는
               </span>
-              <span className="block text-[clamp(1.4rem,3.2vw,2.6rem)]">
-                가장 정밀한 네비게이션!
+              <span className="block text-[clamp(2rem,4vw,3.4rem)] text-orange-500">
+                가장 정밀한 네비게이션
               </span>
             </h1>
 
-            <p className={`text-sm text-muted-foreground mt-3 transition-all duration-700 delay-150 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+            {/* Sub description */}
+            <p className={`text-base text-muted-foreground mt-5 leading-relaxed max-w-lg transition-all duration-700 delay-150 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
               영상 <span className="text-foreground font-medium">50개</span>와 채널 데이터를{" "}
-              <span className="text-orange-500 font-medium">30개 데이터 시그널 · 9개 성장 지표 · 7개 채널 운영 패턴</span>으로 정밀 분석
+              <span className="text-foreground/80 font-medium">30개 시그널 · 9개 성장 지표 · 7개 운영 패턴</span>으로 정밀 분석해 성장 전략을 제시합니다.
             </p>
 
-          </div>
-
-          {/* 프리뷰 이미지 */}
-          <div className={`transition-all duration-700 delay-200 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
-            <div className="relative">
-              <div className="absolute -inset-2 bg-orange-500/10 rounded-3xl blur-2xl pointer-events-none" />
-              <div className="relative rounded-2xl overflow-hidden border border-foreground/10 shadow-2xl">
-                <img
-                  src="/hero-channel-preview.png"
-                  alt="튜브워치 채널 분석 미리보기"
-                  className="w-full h-auto"
-                />
-              </div>
+            {/* CTA */}
+            <div className={`flex items-center gap-4 mt-8 transition-all duration-700 delay-250 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+              <a
+                href="/channels"
+                className="inline-flex items-center gap-2 bg-foreground text-background px-7 py-3.5 rounded-xl font-semibold text-sm hover:bg-foreground/85 transition-colors shadow-lg shadow-foreground/10"
+              >
+                내 채널 무료 분석하기
+                <ArrowRight className="w-4 h-4" />
+              </a>
             </div>
-            <p className="mt-3 text-center text-xs text-muted-foreground/60">
-              채널 분석 후 텔레그램 커뮤니티 <span className="text-orange-500 font-medium">Tube Talk</span> 입장(메인페이지 우측 하단) 시 일부 데이터 접근제한이 해제됩니다.
-            </p>
+
+            {/* Stats row */}
+            <div className={`grid grid-cols-4 gap-6 border-t border-foreground/10 mt-10 pt-8 transition-all duration-700 delay-400 ${visible ? "opacity-100" : "opacity-0"}`}>
+              {heroStats.map(({ value, unit, label, isFree }) => (
+                <div key={label} className="flex flex-col">
+                  <p className={`font-heading text-2xl lg:text-3xl font-semibold tracking-[-0.04em] leading-none ${isFree ? "text-orange-500" : ""}`}>
+                    {value}<span className="text-sm lg:text-base font-normal ml-0.5">{unit}</span>
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2 leading-tight">{label}</p>
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* 버튼 */}
-          <div className={`flex items-center gap-3 transition-all duration-700 delay-300 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-            <a
-              href="/channels"
-              className="inline-flex items-center gap-2 bg-foreground text-background px-6 py-3 rounded-xl font-medium text-sm hover:bg-foreground/90 transition-colors"
-            >
-              내 채널 무료 분석하기
-            </a>
-          </div>
-
-          {/* Stats row */}
-          <div className={`grid grid-cols-4 gap-3 border-t border-foreground/10 pt-6 transition-all duration-700 delay-500 ${visible ? "opacity-100" : "opacity-0"}`}>
-            {heroStats.map(({ value, unit, label, isFree }) => (
-              <div key={label} className="flex flex-col">
-                <p className={`font-heading text-xl lg:text-2xl font-medium tracking-[-0.03em] leading-none ${isFree ? "text-orange-600 dark:text-orange-500" : ""}`}>
-                  {value}<span className="text-sm lg:text-base font-normal">{unit}</span>
-                </p>
-                <p className="text-[10px] lg:text-xs text-muted-foreground mt-1.5 leading-tight">{label}</p>
-              </div>
-            ))}
+          {/* ── 오른쪽: 폴더 이미지 ── */}
+          <div className={`flex-shrink-0 w-full lg:w-[420px] transition-all duration-1000 delay-200 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+            <div className="relative">
+              <div className="absolute -inset-4 bg-orange-500/8 rounded-3xl blur-2xl pointer-events-none" />
+              <img
+                src="/hero-folder.png"
+                alt="채널 분석 리포트 미리보기"
+                className="relative w-full h-auto drop-shadow-2xl"
+              />
+            </div>
           </div>
 
         </div>
