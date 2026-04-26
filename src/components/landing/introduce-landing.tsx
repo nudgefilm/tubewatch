@@ -79,7 +79,7 @@ function HeroSection() {
             </h1>
 
             {/* Patent */}
-            <p className={`text-xs text-muted-foreground/50 mt-2 transition-all duration-700 delay-150 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+            <p className={`text-xs text-muted-foreground/70 font-medium mt-2 tracking-wide transition-all duration-700 delay-150 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
               특허출원 제10-2026-0075318호
             </p>
 
@@ -123,8 +123,8 @@ function HeroSection() {
                 className="relative w-full h-auto drop-shadow-2xl"
               />
             </div>
-            <p className="mt-3 text-center text-xs text-muted-foreground/60 tracking-wide">
-              채널 분석 전략 리포트 <span className="text-muted-foreground/40">|</span> 월간 발행
+            <p className="mt-3 text-center text-xs text-muted-foreground/80 font-medium tracking-wide">
+              채널 분석 전략 리포트 <span className="text-muted-foreground/50">|</span> 월간 구독형
             </p>
           </div>
 
