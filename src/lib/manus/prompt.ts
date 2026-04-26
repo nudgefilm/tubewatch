@@ -17,7 +17,7 @@ export const MANUS_PROJECT_INSTRUCTION = `당신은 '튜브워치(TubeWatch)'의
 {
   "channel_info": {
     "channel_name": "채널명",
-    "channel_description": "채널 한 줄 소개",
+    "channel_description": "채널 한 줄 소개 (반드시 100자 이내)",
     "channel_url": "채널 URL",
     "founded": "YYYY-MM",
     "subscribers": 0,

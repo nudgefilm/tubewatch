@@ -205,7 +205,7 @@ function HeroSection({ info, scorecard, growth, signals, date }: {
           <div>
             <h1 style={{ fontSize: "clamp(24px,4vw,44px)", fontWeight: 900, color: "#fff", lineHeight: 1.1, letterSpacing: "-1.5px", marginBottom: "8px", fontFamily: SANS }}>
               {name}<br />
-              <em style={{ fontStyle: "normal", color: LIME, fontSize: "clamp(13px,1.8vw,20px)", fontWeight: 400, letterSpacing: "0px", lineHeight: 1.5, display: "block", marginTop: "4px", wordBreak: "keep-all", overflowWrap: "break-word" }}>{desc.slice(0, 150) || "채널 분석 리포트"}</em>
+              <em style={{ fontStyle: "normal", color: LIME, fontSize: "clamp(13px,1.8vw,20px)", fontWeight: 400, letterSpacing: "0px", lineHeight: 1.5, display: "block", marginTop: "4px", wordBreak: "keep-all", overflowWrap: "break-word" }}>{desc.length > 100 ? desc.slice(0, 100) + "…" : desc || "채널 분석 리포트"}</em>
             </h1>
             {meta && <p style={{ fontSize: "14px", color: "#AAAAAA", fontFamily: MONO, marginTop: "8px" }}>{meta}</p>}
             <p style={{ fontSize: "13px", color: ORANGE, fontFamily: MONO, marginTop: "6px", display: "flex", alignItems: "center", gap: "6px" }}>
