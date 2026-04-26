@@ -69,7 +69,7 @@ export function FooterSection() {
 
             {/* Row 2 - CEO + Business License + 통신판매업신고 */}
             <div>
-              <span>대표: 정재우 | 사업자등록번호: 136-11-23540 | 통신판매업신고: 제 2026-서울강남-XXXX 호</span>
+              <span>대표: 정재우 | 사업자등록번호: 136-11-23540 | 통신판매업신고: 제 2026-서울강남-XXXX 호 | 특허출원: 제10-2026-0075318호</span>
             </div>
 
             {/* Row 3 - Address (left) + Built by (right) */}
