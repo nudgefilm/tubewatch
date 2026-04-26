@@ -5,6 +5,7 @@ import { AnimatedWave } from "./animated-wave";
 import { AdminAuthModal } from "./admin-auth-modal";
 import { TermsModal } from "./terms-modal";
 import { PrivacyModal } from "./privacy-modal";
+import { SiteStatsModal } from "./SiteStatsModal";
 
 const footerLinks = {
   product: [
@@ -25,6 +26,7 @@ export function FooterSection() {
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
+  const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
 
   return (
     <footer className="relative border-t border-foreground/10">
@@ -38,9 +40,13 @@ export function FooterSection() {
         <div className="py-10 lg:py-12">
           {/* Brand */}
           <div className="mb-6">
-            <a href="/" className="inline-flex items-center cursor-pointer">
-              <span className="text-2xl font-heading font-medium tracking-[-0.02em]">TubeWatch™</span>
-            </a>
+            <button
+              onClick={() => setIsStatsModalOpen(true)}
+              className="inline-flex items-center cursor-pointer group"
+              title="서비스 현황 보기"
+            >
+              <span className="text-2xl font-heading font-medium tracking-[-0.02em] group-hover:text-foreground/70 transition-colors">TubeWatch™</span>
+            </button>
           </div>
 
           {/* Info Rows */}
@@ -102,6 +108,12 @@ export function FooterSection() {
           </p>
         </div>
       </div>
+
+      {/* Site Stats Modal */}
+      <SiteStatsModal
+        isOpen={isStatsModalOpen}
+        onClose={() => setIsStatsModalOpen(false)}
+      />
 
       {/* Admin Auth Modal */}
       <AdminAuthModal
