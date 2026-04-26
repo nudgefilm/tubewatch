@@ -78,6 +78,11 @@ function HeroSection() {
               </span>
             </h1>
 
+            {/* Patent */}
+            <p className={`text-xs text-muted-foreground/50 mt-2 transition-all duration-700 delay-150 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+              특허출원 제10-2026-0075318호
+            </p>
+
             {/* Sub description */}
             <p className={`text-base text-muted-foreground mt-5 leading-relaxed max-w-lg transition-all duration-700 delay-150 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
               최근 영상 <span className="text-orange-500 font-semibold">50</span>개와 채널 데이터를{" "}
