@@ -410,13 +410,32 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
           <SidebarGroupContent>
             {sidebarState === "expanded" ? (
               planId === null ? (
-                <span
-                  title="유료 플랜에서 이용 가능한 기능입니다."
-                  className="flex w-full cursor-not-allowed select-none items-center gap-2 rounded-lg bg-black px-3 py-2.5 text-sm font-semibold text-white/25"
-                >
-                  <CalendarDays className="size-4 shrink-0" />
-                  <span>월간 채널 분석 리포트</span>
-                </span>
+                <HoverCard.Root openDelay={150} closeDelay={0}>
+                  <HoverCard.Trigger asChild>
+                    <span
+                      title="유료 플랜에서 이용 가능한 기능입니다."
+                      className="flex w-full cursor-not-allowed select-none items-center gap-2 rounded-lg bg-black px-3 py-2.5 text-sm font-semibold text-white/50"
+                    >
+                      <CalendarDays className="size-4 shrink-0" />
+                      <span>월간 채널 분석 리포트</span>
+                    </span>
+                  </HoverCard.Trigger>
+                  <HoverCard.Content
+                    side="right"
+                    sideOffset={12}
+                    className="z-[200] rounded-xl overflow-hidden shadow-2xl border border-border p-0"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src="/minireport-preview.png"
+                      alt="월간 채널 분석 리포트 미리보기"
+                      className="block w-[320px]"
+                    />
+                    <div className="bg-zinc-900 px-4 py-2.5 text-center text-xs font-semibold tracking-wide text-white/50">
+                      Creator | Pro 전용
+                    </div>
+                  </HoverCard.Content>
+                </HoverCard.Root>
               ) : (
                 <HoverCard.Root openDelay={150} closeDelay={0}>
                   <HoverCard.Trigger asChild>
@@ -446,9 +465,28 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
               <SidebarMenu>
                 <SidebarMenuItem>
                   {planId === null ? (
-                    <SidebarMenuButton tooltip="월간 채널 분석 리포트 (유료 플랜)" className="cursor-not-allowed opacity-30 pointer-events-none">
-                      <CalendarDays />
-                    </SidebarMenuButton>
+                    <HoverCard.Root openDelay={150} closeDelay={0}>
+                      <HoverCard.Trigger asChild>
+                        <SidebarMenuButton className="cursor-not-allowed opacity-50">
+                          <CalendarDays />
+                        </SidebarMenuButton>
+                      </HoverCard.Trigger>
+                      <HoverCard.Content
+                        side="right"
+                        sideOffset={12}
+                        className="z-[200] rounded-xl overflow-hidden shadow-2xl border border-border p-0"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src="/minireport-preview.png"
+                          alt="월간 채널 분석 리포트 미리보기"
+                          className="block w-[320px]"
+                        />
+                        <div className="bg-zinc-900 px-4 py-2.5 text-center text-xs font-semibold tracking-wide text-white/50">
+                          Creator | Pro 전용
+                        </div>
+                      </HoverCard.Content>
+                    </HoverCard.Root>
                   ) : (
                     <SidebarMenuButton asChild tooltip="월간 채널 분석 리포트">
                       <Link href="/channels">
