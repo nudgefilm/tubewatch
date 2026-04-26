@@ -6,6 +6,8 @@ import { X, Activity, Globe, Tv2, BarChart3, Users, Film } from "lucide-react";
 interface SiteStatsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
 type Stats = {
@@ -70,7 +72,7 @@ const STATS_CONFIG = [
   },
 ];
 
-export function SiteStatsModal({ isOpen, onClose }: SiteStatsModalProps) {
+export function SiteStatsModal({ isOpen, onClose, onMouseEnter, onMouseLeave }: SiteStatsModalProps) {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -100,13 +102,14 @@ export function SiteStatsModal({ isOpen, onClose }: SiteStatsModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-background/80 backdrop-blur-sm animate-in fade-in duration-300"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm animate-in fade-in duration-300" />
 
       {/* Modal */}
-      <div className="relative w-full max-w-2xl bg-background border border-foreground/10 rounded-2xl shadow-2xl animate-in zoom-in-95 fade-in duration-300 overflow-hidden">
+      <div
+        className="relative w-full max-w-2xl bg-background border border-foreground/10 rounded-2xl shadow-2xl animate-in zoom-in-95 fade-in duration-300 overflow-hidden"
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+      >
 
         {/* Header */}
         <div className="flex items-start justify-between p-6 border-b border-foreground/10">

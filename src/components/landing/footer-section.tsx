@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { AnimatedWave } from "./animated-wave";
 import { AdminAuthModal } from "./admin-auth-modal";
 import { TermsModal } from "./terms-modal";
@@ -27,6 +27,16 @@ export function FooterSection() {
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleStatsEnter = () => {
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    setIsStatsModalOpen(true);
+  };
+
+  const handleStatsLeave = () => {
+    closeTimerRef.current = setTimeout(() => setIsStatsModalOpen(false), 2000);
+  };
 
   return (
     <footer className="relative border-t border-foreground/10">
@@ -40,13 +50,14 @@ export function FooterSection() {
         <div className="py-10 lg:py-12">
           {/* Brand */}
           <div className="mb-6">
-            <button
-              onClick={() => setIsStatsModalOpen(true)}
-              className="inline-flex items-center cursor-pointer group"
-              title="서비스 현황 보기"
+            <a
+              href="/"
+              className="inline-flex items-center group"
+              onMouseEnter={handleStatsEnter}
+              onMouseLeave={handleStatsLeave}
             >
               <span className="text-2xl font-heading font-medium tracking-[-0.02em] group-hover:text-foreground/70 transition-colors">TubeWatch™</span>
-            </button>
+            </a>
           </div>
 
           {/* Info Rows */}
@@ -113,6 +124,8 @@ export function FooterSection() {
       <SiteStatsModal
         isOpen={isStatsModalOpen}
         onClose={() => setIsStatsModalOpen(false)}
+        onMouseEnter={handleStatsEnter}
+        onMouseLeave={handleStatsLeave}
       />
 
       {/* Admin Auth Modal */}
