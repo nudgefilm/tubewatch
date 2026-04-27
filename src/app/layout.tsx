@@ -19,8 +19,14 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://tubewatch.kr"),
 
-  title: "TubeWatch™ - 유튜버 성장 플랫폼",
+  title: "튜브워치 - AI 유튜브 전략 솔루션",
   description: "당신의 데이터는 이미 다음 전략을 말하고 있습니다.",
+
+  verification: {
+    other: {
+      "naver-site-verification": "b2cd173a118068e212c11878c386fc3ce73fdd14",
+    },
+  },
   keywords: ["유튜브 분석", "채널 성장", "영상 기획", "튜브워치", "유튜버 도구"],
 
   alternates: {
