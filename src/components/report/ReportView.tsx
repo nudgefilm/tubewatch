@@ -497,10 +497,10 @@ function ChannelPatternsSection({ data }: { data: ManusReportJson["section4_chan
     pats.push({ n: "04", name: "썸네일 전략 패턴", char: (thumb.effective_thumbnail_elements ?? []).slice(0, 3).join(" · "), interp: "클릭률 향상에 기여한 썸네일 요소. 일관성 있게 적용 권장" });
 
   if (aud?.viral_trigger)
-    pats.push({ n: "05", name: "바이럴 트리거 패턴", char: aud.viral_trigger.slice(0, 80), interp: aud.engagement_peak_content ?? "바이럴 요인을 신규 콘텐츠에 의도적으로 배치 권장" });
+    pats.push({ n: "05", name: "바이럴 트리거 패턴", char: firstSentence(aud.viral_trigger), interp: aud.engagement_peak_content ?? "바이럴 요인을 신규 콘텐츠에 의도적으로 배치 권장" });
 
   if (aud?.comment_driver)
-    pats.push({ n: "06", name: "댓글 · 참여 유도 패턴", char: aud.comment_driver.slice(0, 80), interp: "참여 유도 질문을 영상 말미에 삽입하면 댓글 참여율 개선" });
+    pats.push({ n: "06", name: "댓글 · 참여 유도 패턴", char: firstSentence(aud.comment_driver), interp: "참여 유도 질문을 영상 말미에 삽입하면 댓글 참여율 개선" });
 
   if (phases.length > 0) {
     const last = phases[phases.length - 1];
