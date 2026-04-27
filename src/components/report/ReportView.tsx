@@ -19,6 +19,12 @@ const G600   = "#555555";
 const MONO   = "'JetBrains Mono','Fira Code',monospace";
 const SANS   = "'Inter','Noto Sans KR',sans-serif";
 
+function trunc(s: string, n: number): string {
+  if (s.length <= n) return s;
+  const cut = s.lastIndexOf(" ", n);
+  return (cut > n * 0.6 ? s.slice(0, cut) : s.slice(0, n)) + "…";
+}
+
 function fmt(n: number | undefined | null): string {
   if (n == null) return "-";
   if (n >= 100_000_000) return `${(n / 100_000_000).toFixed(1)}억`;
@@ -633,7 +639,7 @@ function ChannelDNASection({ data, scorecard }: { data: ManusReportJson["section
                 <span style={{ fontFamily: MONO, fontSize: "12px", color: "#888", minWidth: "20px" }}>0{i + 1}</span>
                 <div style={{ flex: 1 }}>
                   <span style={{ fontSize: "15px", fontWeight: 700, color: "#F0F0F0" }}>{pillar.pillar}</span>
-                  {pillar.description && <span style={{ fontSize: "13px", color: "#AAAAAA", marginLeft: "8px" }}>{pillar.description.slice(0, 50)}</span>}
+                  {pillar.description && <span style={{ fontSize: "13px", color: "#AAAAAA", marginLeft: "8px" }}>{trunc(pillar.description, 80)}</span>}
                 </div>
                 {pillar.contribution_pct != null && (
                   <div style={{ flexShrink: 0, minWidth: "90px" }}>
@@ -650,13 +656,13 @@ function ChannelDNASection({ data, scorecard }: { data: ManusReportJson["section
         <div style={{ background: "#0F0F0F", border: `1px solid ${DARK3}`, borderLeft: `3px solid ${LIME}`, padding: "22px 26px", fontFamily: MONO, fontSize: "14px", lineHeight: 2, overflowX: "auto" }}>
           {([
             { type: "c", v1: "// tubewatch — channel dna analysis v2.1" },
-            { type: "k", k: "channel",         s: `"${data.core_identity?.slice(0, 40) ?? "-"}"` },
+            { type: "k", k: "channel",         s: `"${trunc(data.core_identity ?? "-", 60)}"` },
             { type: "k", k: "signals",         n: "30",                  c: "// 데이터 시그널 추출 완료" },
             { type: "k", k: "metrics",         n: "9",                   c: "// 성장 지표 점수화 완료" },
             { type: "k", k: "patterns",        n: "7",                   c: "// 채널 운영 패턴 감지 완료" },
-            { type: "k", k: "dna_type",        s: `"${(data.core_identity ?? "").slice(0, 30)}"` },
-            { type: "k", k: "uvp",             s: `"${(data.unique_value_proposition ?? "").slice(0, 45)}"` },
-            { type: "k", k: "differentiation", s: `"${(data.competitive_differentiation ?? "").slice(0, 40)}"` },
+            { type: "k", k: "dna_type",        s: `"${trunc(data.core_identity ?? "", 50)}"` },
+            { type: "k", k: "uvp",             s: `"${trunc(data.unique_value_proposition ?? "", 70)}"` },
+            { type: "k", k: "differentiation", s: `"${trunc(data.competitive_differentiation ?? "", 65)}"` },
           ] as { type: string; v1?: string; k?: string; s?: string; n?: string; c?: string }[]).map((row, i) => (
             <div key={i} style={{ display: "flex", gap: "14px" }}>
               <span style={{ color: "#777", minWidth: "18px", textAlign: "right" }}>{i + 1}</span>
