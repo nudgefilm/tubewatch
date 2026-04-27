@@ -76,7 +76,7 @@ export function ActionPlanChecklistSection({ data, items, storageKey }: ActionPl
         {/* 진행 카운터 */}
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>업로드 전 체크리스트</span>
-          <span className={doneCount === items.length ? "font-semibold text-emerald-600" : ""}>
+          <span className={doneCount === items.length ? "font-semibold text-foreground" : ""}>
             {doneCount} / {items.length} 완료
           </span>
         </div>
@@ -137,10 +137,10 @@ export function ActionPlanChecklistSection({ data, items, storageKey }: ActionPl
     <div className="space-y-4">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {/* 먼저 바꿀 것 */}
-        <Card className="border-emerald-200 bg-emerald-50/50 dark:bg-emerald-950/20">
+        <Card className="border-foreground/20 bg-foreground/5">
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-base text-emerald-700 dark:text-emerald-400">
-              <div className="p-1 rounded-full bg-emerald-100 dark:bg-emerald-900">
+            <CardTitle className="flex items-center gap-2 text-base text-foreground">
+              <div className="p-1 rounded-full bg-foreground/10">
                 <Check className="h-4 w-4" />
               </div>
               먼저 바꿀 것
@@ -150,7 +150,7 @@ export function ActionPlanChecklistSection({ data, items, storageKey }: ActionPl
             <ul className="space-y-3">
               {data.changeFirst.map((item) => (
                 <li key={item.id} className="flex items-start gap-2">
-                  <div className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
+                  <div className="mt-1 h-1.5 w-1.5 rounded-full bg-foreground shrink-0" />
                   <div className="space-y-1">
                     <p className="text-sm">{item.text}</p>
                     {item.linked && (

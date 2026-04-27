@@ -52,7 +52,7 @@ export function ActionPlanDeficitSection({ seoDeficit, engagementGap, linguistic
                 <div className="grid grid-cols-2 gap-3">
                   {/* 설명란 짧음 */}
                   <div className="rounded-lg border bg-muted/20 px-4 py-3 space-y-0.5">
-                    <p className={`text-2xl font-bold tabular-nums ${seoDeficit.shortDescCount > 0 ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"}`}>
+                    <p className={`text-2xl font-bold tabular-nums ${seoDeficit.shortDescCount > 0 ? "text-orange-600 dark:text-orange-400" : "text-foreground"}`}>
                       {seoDeficit.shortDescCount}
                       <span className="text-sm font-normal ml-0.5">개</span>
                     </p>
@@ -63,7 +63,7 @@ export function ActionPlanDeficitSection({ seoDeficit, engagementGap, linguistic
                   </div>
                   {/* 태그 부족 */}
                   <div className="rounded-lg border bg-muted/20 px-4 py-3 space-y-0.5">
-                    <p className={`text-2xl font-bold tabular-nums ${seoDeficit.lowTagCount > 0 ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"}`}>
+                    <p className={`text-2xl font-bold tabular-nums ${seoDeficit.lowTagCount > 0 ? "text-orange-600 dark:text-orange-400" : "text-foreground"}`}>
                       {seoDeficit.lowTagCount}
                       <span className="text-sm font-normal ml-0.5">개</span>
                     </p>
@@ -96,7 +96,7 @@ export function ActionPlanDeficitSection({ seoDeficit, engagementGap, linguistic
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="rounded-lg border bg-muted/20 px-4 py-4 text-center space-y-1">
-                  <p className={`text-3xl font-bold tabular-nums ${engagementGap.hasLowEngagement ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"}`}>
+                  <p className={`text-3xl font-bold tabular-nums ${engagementGap.hasLowEngagement ? "text-orange-600 dark:text-orange-400" : "text-foreground"}`}>
                     {fmtRate(engagementGap.avgLikeRate)}
                   </p>
                   <p className="text-sm font-medium">평균 좋아요 비율</p>

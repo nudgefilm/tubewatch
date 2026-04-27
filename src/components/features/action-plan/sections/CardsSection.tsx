@@ -56,13 +56,13 @@ const PRIORITY_COLORS: Record<string, {
   text: string; border: string; badge: string; muted: string; bar: string; dot: string; stroke: string
 }> = {
   P1: {
-    text: "text-rose-600 dark:text-rose-400",
-    border: "border-l-rose-400 dark:border-l-rose-500",
-    badge: "bg-rose-500 text-white",
-    muted: "bg-rose-50 dark:bg-rose-950/30",
-    bar: "bg-rose-300 dark:bg-rose-600/50",
-    dot: "bg-rose-400 dark:bg-rose-500",
-    stroke: "stroke-rose-400 dark:stroke-rose-500",
+    text: "text-orange-600 dark:text-orange-400",
+    border: "border-l-orange-400 dark:border-l-orange-500",
+    badge: "bg-orange-500 text-white",
+    muted: "bg-orange-50 dark:bg-orange-950/30",
+    bar: "bg-orange-300 dark:bg-orange-600/50",
+    dot: "bg-orange-400 dark:bg-orange-500",
+    stroke: "stroke-orange-400 dark:stroke-orange-500",
   },
   P2: {
     text: "text-amber-600 dark:text-amber-400",
@@ -74,13 +74,13 @@ const PRIORITY_COLORS: Record<string, {
     stroke: "stroke-amber-400 dark:stroke-amber-500",
   },
   P3: {
-    text: "text-sky-600 dark:text-sky-400",
-    border: "border-l-sky-400 dark:border-l-sky-500",
-    badge: "bg-sky-500 text-white",
-    muted: "bg-sky-50 dark:bg-sky-950/30",
-    bar: "bg-sky-300 dark:bg-sky-600/50",
-    dot: "bg-sky-400 dark:bg-sky-500",
-    stroke: "stroke-sky-400 dark:stroke-sky-500",
+    text: "text-foreground/70",
+    border: "border-l-foreground/20",
+    badge: "bg-foreground/15 text-foreground",
+    muted: "bg-muted/50",
+    bar: "bg-foreground/20",
+    dot: "bg-foreground/40",
+    stroke: "stroke-foreground/40",
   },
 }
 
@@ -242,9 +242,9 @@ function PlanSummaryBlock({ data }: { data: ActionCard[] }) {
             <p className="text-lg font-bold tabular-nums text-center mt-1">{totalActions}<span className="text-xs font-normal ml-0.5">건</span></p>
             <p className="text-[10px] text-muted-foreground text-center mt-0.5">실행 액션</p>
           </div>
-          <div className="rounded-lg bg-emerald-50/60 dark:bg-emerald-950/20 p-3 relative">
-            <TrendingUp className="h-3 w-3 text-emerald-500 absolute top-2 left-2" />
-            <p className="text-lg font-bold tabular-nums text-emerald-600 dark:text-emerald-400 text-center mt-1">{totalBenefits}<span className="text-xs font-normal ml-0.5">건</span></p>
+          <div className="rounded-lg bg-foreground/5 p-3 relative">
+            <TrendingUp className="h-3 w-3 text-foreground/50 absolute top-2 left-2" />
+            <p className="text-lg font-bold tabular-nums text-foreground text-center mt-1">{totalBenefits}<span className="text-xs font-normal ml-0.5">건</span></p>
             <p className="text-[10px] text-muted-foreground text-center mt-0.5">개선 효과</p>
           </div>
           <div className="rounded-lg bg-violet-50/60 dark:bg-violet-950/20 p-3 relative">
@@ -252,9 +252,9 @@ function PlanSummaryBlock({ data }: { data: ActionCard[] }) {
             <p className="text-lg font-bold tabular-nums text-violet-600 dark:text-violet-400 text-center mt-1">{total * 3}<span className="text-xs font-normal ml-0.5">건</span></p>
             <p className="text-[10px] text-muted-foreground text-center mt-0.5">실행 단계</p>
           </div>
-          <div className="rounded-lg bg-rose-50/60 dark:bg-rose-950/20 p-3 relative">
-            <Zap className="h-3 w-3 text-rose-500 absolute top-2 left-2" />
-            <p className="text-lg font-bold tabular-nums text-rose-600 dark:text-rose-400 text-center mt-1">{p1Pct}%</p>
+          <div className="rounded-lg bg-orange-50/60 dark:bg-orange-950/20 p-3 relative">
+            <Zap className="h-3 w-3 text-orange-500 absolute top-2 left-2" />
+            <p className="text-lg font-bold tabular-nums text-orange-600 dark:text-orange-400 text-center mt-1">{p1Pct}%</p>
             <p className="text-[10px] text-muted-foreground text-center mt-0.5">P1 비중</p>
           </div>
         </div>
@@ -363,7 +363,7 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                         {action.priority}
                       </span>
                       {isFullInsight && (
-                        <Badge variant="outline" className="text-xs text-emerald-600 border-emerald-200">
+                        <Badge variant="outline" className="text-xs text-foreground border-foreground/20">
                           전체 분석
                         </Badge>
                       )}
@@ -408,7 +408,7 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                           <div className="grid grid-cols-3 gap-3">
                             <div className="p-3 bg-muted/50 rounded-lg">
                               <p className="text-xs text-muted-foreground">현재 수치</p>
-                              <p className="font-semibold text-sky-600 dark:text-sky-400">{action.evidenceData.current}</p>
+                              <p className="font-semibold text-foreground">{action.evidenceData.current}</p>
                             </div>
                             <div className="p-3 bg-muted/50 rounded-lg">
                               <p className="text-xs text-muted-foreground">기준점</p>
@@ -425,7 +425,7 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                       {/* 실행 액션 */}
                       <div className="space-y-3">
                         <div className="flex items-center gap-2 text-sm font-medium">
-                          <ListChecks className="h-4 w-4 text-emerald-500" />
+                          <ListChecks className="h-4 w-4 text-foreground/60" />
                           실행 액션
                         </div>
                         {action.executionSpec && (
@@ -461,7 +461,7 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                           <div className="flex items-center gap-2 text-sm flex-wrap">
                             <span className="text-muted-foreground">{action.performancePrediction!.current}</span>
                             <ArrowRight className="h-3 w-3 text-muted-foreground shrink-0" />
-                            <span className="font-semibold text-emerald-600 dark:text-emerald-400">{action.performancePrediction!.targetRange}</span>
+                            <span className="font-semibold text-foreground">{action.performancePrediction!.targetRange}</span>
                           </div>
                           {action.performancePrediction!.predictionBasis && (
                             <p className="text-xs text-muted-foreground">근거 — {action.performancePrediction!.predictionBasis}</p>
@@ -469,7 +469,7 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                           <ul className="space-y-1">
                             {validExpectedChanges.map((change, i) => (
                               <li key={i} className="text-sm text-muted-foreground flex items-center gap-1.5">
-                                <Check className="h-3 w-3 text-emerald-500 shrink-0" />
+                                <Check className="h-3 w-3 text-foreground/60 shrink-0" />
                                 {change}
                               </li>
                             ))}
@@ -558,7 +558,7 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                     <>
                       <div className="space-y-3">
                         <div className="flex items-center gap-2 text-sm font-medium">
-                          <ListChecks className="h-4 w-4 text-emerald-500" />
+                          <ListChecks className="h-4 w-4 text-foreground/60" />
                           실행 액션
                         </div>
                         {action.executionSpec && (
@@ -587,7 +587,7 @@ export function ActionPlanCardsSection({ data }: ActionPlanCardsProps) {
                       {action.expectedEffect && (
                         <div className="space-y-3">
                           <div className="flex items-center gap-2 text-sm font-medium">
-                            <TrendingUp className="h-4 w-4 text-emerald-500" />
+                            <TrendingUp className="h-4 w-4 text-foreground/60" />
                             예상 변화
                           </div>
                           <p className="text-sm text-muted-foreground pl-6">{action.expectedEffect}</p>

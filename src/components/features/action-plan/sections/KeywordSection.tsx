@@ -12,8 +12,8 @@ interface KeywordSectionProps {
 const DESC_STATUS_CONFIG = {
   too_short: {
     icon: AlertCircle,
-    iconClass: "text-rose-500",
-    badgeClass: "bg-rose-50 text-rose-700 border-rose-200",
+    iconClass: "text-orange-500",
+    badgeClass: "bg-orange-50 text-orange-700 border-orange-200",
     label: "개선 필요",
   },
   moderate: {
@@ -24,8 +24,8 @@ const DESC_STATUS_CONFIG = {
   },
   good: {
     icon: CheckCircle2,
-    iconClass: "text-emerald-500",
-    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    iconClass: "text-foreground",
+    badgeClass: "bg-foreground/10 text-foreground border-foreground/20",
     label: "양호",
   },
 }
@@ -91,7 +91,7 @@ export function ActionPlanKeywordSection({ data }: KeywordSectionProps) {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
-                <Search className="size-4 text-rose-500" />
+                <Search className="size-4 text-orange-500" />
                 누락 키워드
               </CardTitle>
               <p className="text-xs text-muted-foreground">
@@ -103,10 +103,10 @@ export function ActionPlanKeywordSection({ data }: KeywordSectionProps) {
                 {missingKeywords.map((k) => (
                   <div
                     key={k.tag}
-                    className="flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50/60 px-3 py-1.5"
+                    className="flex items-center gap-1.5 rounded-full border border-orange-200 bg-orange-50/60 px-3 py-1.5"
                   >
-                    <span className="text-sm font-medium text-rose-700">{k.tag}</span>
-                    <span className="tabular-nums text-xs text-rose-500/80">
+                    <span className="text-sm font-medium text-orange-700">{k.tag}</span>
+                    <span className="tabular-nums text-xs text-orange-500/80">
                       상위 {k.topOnlyCount}편
                     </span>
                   </div>
@@ -143,16 +143,16 @@ export function ActionPlanKeywordSection({ data }: KeywordSectionProps) {
                       <span className="ml-0.5 text-xs font-normal text-muted-foreground">자</span>
                     </p>
                   </div>
-                  <div className="rounded-lg bg-rose-50/60 p-3 text-center">
-                    <p className="text-xs text-rose-600/80">100자 미만</p>
-                    <p className="mt-0.5 text-lg font-semibold tabular-nums text-rose-700">
+                  <div className="rounded-lg bg-orange-50/60 p-3 text-center">
+                    <p className="text-xs text-orange-600/80">100자 미만</p>
+                    <p className="mt-0.5 text-lg font-semibold tabular-nums text-orange-700">
                       {descriptionStats.shortCount}
                       <span className="ml-0.5 text-xs font-normal">편</span>
                     </p>
                   </div>
-                  <div className="rounded-lg bg-emerald-50/60 p-3 text-center">
-                    <p className="text-xs text-emerald-600/80">300자 이상</p>
-                    <p className="mt-0.5 text-lg font-semibold tabular-nums text-emerald-700">
+                  <div className="rounded-lg bg-foreground/5 p-3 text-center">
+                    <p className="text-xs text-foreground/60">300자 이상</p>
+                    <p className="mt-0.5 text-lg font-semibold tabular-nums text-foreground">
                       {descriptionStats.goodCount}
                       <span className="ml-0.5 text-xs font-normal">편</span>
                     </p>

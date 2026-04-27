@@ -32,7 +32,7 @@ const priorityActionLabel: Record<string, string> = {
 const difficultyColors: Record<string, string> = {
   상: "text-destructive",
   중: "text-amber-600",
-  하: "text-emerald-600",
+  하: "text-foreground",
 }
 
 export function ActionPlanPrioritySection({ data }: ActionPlanPriorityProps) {

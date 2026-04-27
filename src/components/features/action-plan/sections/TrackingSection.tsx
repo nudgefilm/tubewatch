@@ -56,7 +56,7 @@ export function ActionPlanTrackingSection({ data }: ActionPlanTrackingProps) {
                     {Math.round(kpi.current).toLocaleString()}
                     <span className="text-lg text-muted-foreground ml-1">{kpi.unit}</span>
                   </p>
-                  <p className={`text-sm ${isPositive ? "text-emerald-600" : "text-destructive"}`}>
+                  <p className={`text-sm ${isPositive ? "text-foreground" : "text-destructive"}`}>
                     {isPositive ? "+" : ""}{changePercent}% from baseline
                   </p>
                 </div>

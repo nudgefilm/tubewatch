@@ -34,7 +34,7 @@ const ShellHeader = () => (
       <span className="font-heading font-medium text-sm leading-none tracking-[-0.01em]">TubeWatch™</span>
       <span className="text-muted-foreground/40 text-sm">|</span>
       <span className="text-sm font-semibold text-foreground">성장 전략 실행 플랜</span>
-      <Badge variant="outline" className="text-xs text-emerald-600 border-emerald-200">튜브워치 엔진</Badge>
+      <Badge variant="outline" className="text-xs text-foreground border-foreground/20">튜브워치 엔진</Badge>
     </div>
   </div>
 )

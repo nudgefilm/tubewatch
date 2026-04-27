@@ -67,9 +67,9 @@ export function ActionPlanAssistSection({ data }: ActionPlanAssistProps) {
               <div className="flex justify-center">
                 <ArrowRight className="h-4 w-4 text-muted-foreground" />
               </div>
-              <div className="p-2 bg-emerald-500/10 rounded text-sm">
+              <div className="p-2 bg-foreground/8 rounded text-sm">
                 <p className="text-xs text-muted-foreground mb-1">After</p>
-                <p className="font-medium text-emerald-700 dark:text-emerald-400">{data.thumbnailExample.after}</p>
+                <p className="font-medium text-foreground">{data.thumbnailExample.after}</p>
               </div>
             </div>
             <p className="text-xs text-muted-foreground">
