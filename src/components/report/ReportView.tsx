@@ -19,6 +19,11 @@ const G600   = "#555555";
 const MONO   = "'JetBrains Mono','Fira Code',monospace";
 const SANS   = "'Inter','Noto Sans KR',sans-serif";
 
+function firstSentence(s: string): string {
+  const idx = s.indexOf(".");
+  return idx !== -1 ? s.slice(0, idx + 1) : s;
+}
+
 function trunc(s: string, n: number): string {
   if (s.length <= n) return s;
   const cut = s.lastIndexOf(" ", n);
@@ -656,17 +661,17 @@ function ChannelDNASection({ data, scorecard }: { data: ManusReportJson["section
         <div style={{ background: "#0F0F0F", border: `1px solid ${DARK3}`, borderLeft: `3px solid ${LIME}`, padding: "22px 26px", fontFamily: MONO, fontSize: "14px", lineHeight: 2, overflowX: "auto" }}>
           {([
             { type: "c", v1: "// tubewatch — channel dna analysis v2.1" },
-            { type: "k", k: "channel",         s: `"${data.core_identity ?? "-"}"` },
+            { type: "k", k: "channel",         s: `"${firstSentence(data.core_identity ?? "-")}"` },
             { type: "k", k: "signals",         n: "30",                  c: "// 데이터 시그널 추출 완료" },
             { type: "k", k: "metrics",         n: "9",                   c: "// 성장 지표 점수화 완료" },
             { type: "k", k: "patterns",        n: "7",                   c: "// 채널 운영 패턴 감지 완료" },
-            { type: "k", k: "dna_type",        s: `"${data.core_identity ?? ""}"` },
-            { type: "k", k: "uvp",             s: `"${data.unique_value_proposition ?? ""}"` },
-            { type: "k", k: "differentiation", s: `"${data.competitive_differentiation ?? ""}"` },
+            { type: "k", k: "dna_type",        s: `"${firstSentence(data.core_identity ?? "")}"` },
+            { type: "k", k: "uvp",             s: `"${firstSentence(data.unique_value_proposition ?? "")}"` },
+            { type: "k", k: "differentiation", s: `"${firstSentence(data.competitive_differentiation ?? "")}"` },
           ] as { type: string; v1?: string; k?: string; s?: string; n?: string; c?: string }[]).map((row, i) => (
             <div key={i} style={{ display: "flex", gap: "14px" }}>
               <span style={{ color: "#777", minWidth: "18px", textAlign: "right" }}>{i + 1}</span>
-              <span style={{ display: "-webkit-box", WebkitLineClamp: 1, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+              <span style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                 {row.type === "c" && <span style={{ color: "#888" }}>{row.v1}</span>}
                 {row.type === "k" && (<>
                   <span style={{ color: LIME }}>{row.k}</span>{"    "}
