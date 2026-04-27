@@ -639,7 +639,7 @@ function ChannelDNASection({ data, scorecard }: { data: ManusReportJson["section
                 <span style={{ fontFamily: MONO, fontSize: "12px", color: "#888", minWidth: "20px" }}>0{i + 1}</span>
                 <div style={{ flex: 1 }}>
                   <span style={{ fontSize: "15px", fontWeight: 700, color: "#F0F0F0" }}>{pillar.pillar}</span>
-                  {pillar.description && <span style={{ fontSize: "13px", color: "#AAAAAA", marginLeft: "8px" }}>{trunc(pillar.description, 80)}</span>}
+                  {pillar.description && <span style={{ fontSize: "13px", color: "#AAAAAA", marginLeft: "8px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{pillar.description}</span>}
                 </div>
                 {pillar.contribution_pct != null && (
                   <div style={{ flexShrink: 0, minWidth: "90px" }}>
