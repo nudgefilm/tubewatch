@@ -4,9 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { SegmentGauge } from "@/components/ui/SegmentGauge"
 
 function pastelGaugeClass(score: number): string {
-  if (score >= 65) return "bg-sky-400/60 border-sky-400/60"
-  if (score >= 45) return "bg-amber-300/70 border-amber-300/70"
-  return "bg-rose-300/70 border-rose-300/70"
+  if (score >= 65) return "bg-foreground/20 border-foreground/20"
+  if (score >= 45) return "bg-amber-400/70 border-amber-400/70"
+  return "bg-orange-400/60 border-orange-400/60"
 }
 
 export type SectionScores = {
@@ -24,9 +24,9 @@ interface AnalysisScoreOverviewProps {
 }
 
 function getScoreColor(score: number) {
-  if (score >= 80) return "text-emerald-600"
+  if (score >= 80) return "text-foreground"
   if (score >= 60) return "text-amber-600"
-  return "text-rose-600"
+  return "text-orange-600"
 }
 
 function getScoreLabel(score: number) {
@@ -35,10 +35,10 @@ function getScoreLabel(score: number) {
   return "개선 필요"
 }
 
-function getScoreTrackColor(score: number) {
-  if (score >= 80) return "#10b981"
-  if (score >= 60) return "#f59e0b"
-  return "#f43f5e"
+function getScoreColorClass(score: number): string {
+  if (score >= 80) return "text-foreground"
+  if (score >= 60) return "text-amber-500"
+  return "text-orange-500"
 }
 
 type SectionKey = keyof Required<SectionScores>
@@ -138,13 +138,13 @@ export function AnalysisScoreOverview({ score, sectionScores }: AnalysisScoreOve
             <circle
               cx="60" cy="60" r="45"
               fill="none"
-              stroke={getScoreTrackColor(score)}
+              stroke="currentColor"
               strokeWidth="10"
               strokeLinecap="round"
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
               transform="rotate(-90 60 60)"
-              className="transition-all duration-500"
+              className={`transition-all duration-500 ${getScoreColorClass(score)}`}
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -159,10 +159,10 @@ export function AnalysisScoreOverview({ score, sectionScores }: AnalysisScoreOve
         <span
           className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
             score >= 80
-              ? "bg-emerald-50 text-emerald-700"
+              ? "bg-foreground/10 text-foreground"
               : score >= 60
                 ? "bg-amber-50 text-amber-700"
-                : "bg-rose-50 text-rose-700"
+                : "bg-orange-50 text-orange-700"
           }`}
         >
           {getScoreLabel(score)}

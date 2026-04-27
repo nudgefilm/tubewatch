@@ -4,21 +4,21 @@ import { Card, CardContent } from "@/components/ui/card"
 import type { AnalysisSectionScores } from "@/lib/engines/analysisPageEngine"
 
 function pastelBarClass(score: number): string {
-  if (score >= 65) return "bg-sky-400/70"
-  if (score >= 45) return "bg-amber-300/80"
-  return "bg-rose-300/80"
+  if (score >= 65) return "bg-foreground/20"
+  if (score >= 45) return "bg-amber-400/70"
+  return "bg-orange-400/60"
 }
 
 function scoreStyle(score: number): { text: string; cls: string } {
-  if (score >= 80) return { text: "양호", cls: "text-emerald-600 dark:text-emerald-400" }
+  if (score >= 80) return { text: "양호", cls: "text-foreground" }
   if (score >= 60) return { text: "보통", cls: "text-amber-600 dark:text-amber-400" }
-  return { text: "취약", cls: "text-rose-500 dark:text-rose-400" }
+  return { text: "취약", cls: "text-orange-600 dark:text-orange-400" }
 }
 
-function gaugeColor(score: number): string {
-  if (score >= 80) return "#10b981"
-  if (score >= 60) return "#f59e0b"
-  return "#f43f5e"
+function gaugeColorClass(score: number): string {
+  if (score >= 80) return "text-foreground"
+  if (score >= 60) return "text-amber-500"
+  return "text-orange-500"
 }
 
 const SECTIONS: { key: keyof Required<AnalysisSectionScores>; label: string; fullLabel: string }[] = [
@@ -104,13 +104,13 @@ export function ScorecardSection({ score, sectionScores }: ScorecardSectionProps
                 <circle
                   cx="60" cy="60" r={R}
                   fill="none"
-                  stroke={gaugeColor(score)}
+                  stroke="currentColor"
                   strokeWidth="10"
                   strokeLinecap="round"
                   strokeDasharray={circumference}
                   strokeDashoffset={offset}
                   transform="rotate(-90 60 60)"
-                  className="transition-all duration-500"
+                  className={`transition-all duration-500 ${gaugeColorClass(score)}`}
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -120,10 +120,10 @@ export function ScorecardSection({ score, sectionScores }: ScorecardSectionProps
             </div>
             <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
               score >= 80
-                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
+                ? "bg-foreground/10 text-foreground"
                 : score >= 60
                   ? "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
-                  : "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300"
+                  : "bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300"
             }`}>{grade}</span>
           </div>
 

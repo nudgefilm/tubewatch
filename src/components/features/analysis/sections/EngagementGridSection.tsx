@@ -5,15 +5,15 @@ import type { AnalysisSectionScores } from "@/lib/engines/analysisPageEngine"
 import type { AnalysisDiagnosisCardVm } from "@/lib/analysis/analysisPageViewModel"
 
 function pastelBarClass(score: number): string {
-  if (score >= 65) return "bg-sky-400/70"
-  if (score >= 45) return "bg-amber-300/80"
-  return "bg-rose-300/80"
+  if (score >= 65) return "bg-foreground/20"
+  if (score >= 45) return "bg-amber-400/70"
+  return "bg-orange-400/60"
 }
 
 function scoreStyle(score: number): { text: string; cls: string } {
-  if (score >= 80) return { text: "양호", cls: "text-emerald-600 dark:text-emerald-400" }
+  if (score >= 80) return { text: "양호", cls: "text-foreground" }
   if (score >= 60) return { text: "보통", cls: "text-amber-600 dark:text-amber-400" }
-  return { text: "취약", cls: "text-rose-500 dark:text-rose-400" }
+  return { text: "취약", cls: "text-orange-600 dark:text-orange-400" }
 }
 
 function formatNumber(n: number | null): string {

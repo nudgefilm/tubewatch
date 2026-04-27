@@ -11,9 +11,9 @@ interface AnalysisKpiCardsProps {
 }
 
 function pastelGaugeClass(score: number): string {
-  if (score >= 65) return "bg-sky-400/60 border-sky-400/60"
-  if (score >= 45) return "bg-amber-300/70 border-amber-300/70"
-  return "bg-rose-300/70 border-rose-300/70"
+  if (score >= 65) return "bg-foreground/20 border-foreground/20"
+  if (score >= 45) return "bg-amber-400/70 border-amber-400/70"
+  return "bg-orange-400/60 border-orange-400/60"
 }
 
 function getStatusBadgeStyle(status: string) {
@@ -21,14 +21,14 @@ function getStatusBadgeStyle(status: string) {
     case "양호":
     case "안정":
     case "상승":
-      return "bg-emerald-50 text-emerald-700 border-emerald-200"
+      return "bg-foreground/10 text-foreground border-foreground/15"
     case "보통":
     case "유지":
       return "bg-amber-50 text-amber-700 border-amber-200"
     case "부족":
     case "불안정":
     case "하락":
-      return "bg-rose-50 text-rose-700 border-rose-200"
+      return "bg-orange-50 text-orange-700 border-orange-200"
     default:
       return "bg-muted text-muted-foreground"
   }
@@ -43,9 +43,9 @@ function MiniSparkline({ trend }: { trend: "상승" | "유지" | "하락" }) {
     하락: "M0,4 L8,8 L16,6 L24,12 L32,10 L40,16",
   }
   const colors = {
-    상승: "stroke-emerald-500",
+    상승: "stroke-foreground",
     유지: "stroke-amber-500",
-    하락: "stroke-rose-500",
+    하락: "stroke-orange-500",
   }
   return (
     <svg width="40" height="20" viewBox="0 0 40 20" className="overflow-visible">
