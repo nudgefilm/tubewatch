@@ -665,7 +665,7 @@ function ChannelDNASection({ data, scorecard }: { data: ManusReportJson["section
             { type: "k", k: "signals",         n: "30",                  c: "// 데이터 시그널 추출 완료" },
             { type: "k", k: "metrics",         n: "9",                   c: "// 성장 지표 점수화 완료" },
             { type: "k", k: "patterns",        n: "7",                   c: "// 채널 운영 패턴 감지 완료" },
-            { type: "k", k: "dna_type",        s: `"${firstSentence(data.core_identity ?? "")}"` },
+            { type: "k", k: "dna_type",        s: `[${(data.brand_keywords ?? []).map(k => `"${k}"`).join(", ")}]` },
             { type: "k", k: "uvp",             s: `"${firstSentence(data.unique_value_proposition ?? "")}"` },
             { type: "k", k: "differentiation", s: `"${firstSentence(data.competitive_differentiation ?? "")}"` },
           ] as { type: string; v1?: string; k?: string; s?: string; n?: string; c?: string }[]).map((row, i) => (
