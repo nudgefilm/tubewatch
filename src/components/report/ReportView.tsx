@@ -666,7 +666,7 @@ function ChannelDNASection({ data, scorecard }: { data: ManusReportJson["section
           ] as { type: string; v1?: string; k?: string; s?: string; n?: string; c?: string }[]).map((row, i) => (
             <div key={i} style={{ display: "flex", gap: "14px" }}>
               <span style={{ color: "#777", minWidth: "18px", textAlign: "right" }}>{i + 1}</span>
-              <span style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+              <span style={{ display: "-webkit-box", WebkitLineClamp: 1, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                 {row.type === "c" && <span style={{ color: "#888" }}>{row.v1}</span>}
                 {row.type === "k" && (<>
                   <span style={{ color: LIME }}>{row.k}</span>{"    "}
