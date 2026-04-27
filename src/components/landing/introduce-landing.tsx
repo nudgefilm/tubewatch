@@ -37,8 +37,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 const heroStats = [
   { value: "4", unit: "개", label: "핵심 분석 모듈" },
   { value: "50", unit: "개", label: "영상 심층 분석" },
-  { value: "30+9+7", unit: "", label: "신호·지표·패턴 분석" },
-  { value: "무료", unit: "", label: "Free Start", isFree: true },
+  { value: "30+9+7", unit: "", label: "신호·지표·패턴 분석", isOrange: true },
 ];
 
 function HeroSection() {
@@ -95,16 +94,16 @@ function HeroSection() {
                 href="/channels"
                 className="inline-flex items-center gap-2 bg-foreground text-background px-7 py-3.5 rounded-xl font-semibold text-sm hover:bg-foreground/85 transition-colors shadow-lg shadow-foreground/10 animate-float-half"
               >
-                내 채널 무료 분석하기
+                내 채널 분석하기
                 <ArrowRight className="w-4 h-4" />
               </a>
             </div>
 
             {/* Stats row */}
             <div className={`grid grid-cols-4 gap-6 border-t border-foreground/10 mt-10 pt-8 transition-all duration-700 delay-400 ${visible ? "opacity-100" : "opacity-0"}`}>
-              {heroStats.map(({ value, unit, label, isFree }) => (
+              {heroStats.map(({ value, unit, label, isOrange }) => (
                 <div key={label} className="flex flex-col">
-                  <p className={`font-heading text-2xl lg:text-3xl font-semibold tracking-[-0.04em] leading-none ${isFree ? "text-orange-500" : ""}`}>
+                  <p className={`font-heading text-2xl lg:text-3xl font-semibold tracking-[-0.04em] leading-none ${isOrange ? "text-orange-500" : ""}`}>
                     {value}<span className="text-sm lg:text-base font-normal ml-0.5">{unit}</span>
                   </p>
                   <p className="text-xs text-muted-foreground mt-2 leading-tight">{label}</p>
@@ -1636,7 +1635,7 @@ function FinalCtaSection() {
               className={`flex flex-col sm:flex-row items-start gap-4 mt-8 transition-all duration-700 delay-300 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
             >
               <Button size="lg" className="bg-foreground hover:bg-foreground/90 text-background px-8 h-12 text-base rounded-xl shadow-lg" asChild>
-                <a href="/channels">내 채널 무료 분석하기</a>
+                <a href="/channels">내 채널 분석하기</a>
               </Button>
             </div>
 
