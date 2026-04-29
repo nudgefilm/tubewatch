@@ -88,17 +88,23 @@ export async function sendPaymentLinkEmail({
   inquiryId: string;
 }) {
   const paymentUrl = `https://tubewatch.kr/billing?enterprise=1&inquiry_id=${inquiryId}`;
-  await resend.emails.send({
-    from: FROM_EMAIL,
-    to,
-    subject: "채널 컨설팅 서비스 결제 안내 — Channel Report",
-    html: `
-      <h2>${agencyName} 담당자님께</h2>
-      <p>채널 컨설팅 서비스(Enterprise Standard) 신청을 접수했습니다.</p>
-      <p>아래 링크에서 카드 결제를 진행해주세요.</p>
-      <p><a href="${paymentUrl}" style="background:#000;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block;">결제하기 (₩330,000)</a></p>
-      <p style="color:#888;font-size:12px;">현금 결제를 원하시는 경우 담당자에게 별도 문의 바랍니다.</p>
-      <p style="color:#888;font-size:12px;">분석 대상 채널: ${channelUrl}</p>
-    `,
-  });
+
+  // 초기 수동 운영으로 인해 고객 자동 메일 비활성화
+  // 결제 링크는 관리자가 직접 별도 채널(이메일·메신저)로 전달
+  // await resend.emails.send({
+  //   from: FROM_EMAIL,
+  //   to,
+  //   subject: "채널 컨설팅 서비스 결제 안내 — Channel Report",
+  //   html: `
+  //     <h2>${agencyName} 담당자님께</h2>
+  //     <p>채널 컨설팅 서비스(Enterprise Standard) 신청을 접수했습니다.</p>
+  //     <p>아래 링크에서 카드 결제를 진행해주세요.</p>
+  //     <p><a href="${paymentUrl}" style="background:#000;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block;">결제하기 (₩330,000)</a></p>
+  //     <p style="color:#888;font-size:12px;">현금 결제를 원하시는 경우 담당자에게 별도 문의 바랍니다.</p>
+  //     <p style="color:#888;font-size:12px;">분석 대상 채널: ${channelUrl}</p>
+  //   `,
+  // });
+
+  // 관리자용 참고: 아래 URL을 직접 복사해 발송
+  void paymentUrl;
 }
