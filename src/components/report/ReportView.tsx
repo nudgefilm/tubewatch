@@ -1161,9 +1161,9 @@ export default function ReportView({ report, generatedAt, reportId, isChannelRep
         <NextMonthSection   report={report} date={date} generatedAt={generatedAt} isChannelReport={isChannelReport} />
 
         <footer style={{ background: "#0A0A0A", padding: "28px 48px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
-          <div style={{ fontWeight: 900, fontSize: "16px", color: "#fff" }}>
+          <a href="#" style={{ fontWeight: 900, fontSize: "16px", color: "#fff", textDecoration: "none", cursor: "pointer" }}>
             {brandName}{brandMark && <span style={{ color: LIME }}>{brandMark}</span>}
-          </div>
+          </a>
           <div style={{ fontFamily: MONO, fontSize: "12px", color: "#888", textAlign: "right", lineHeight: 1.8 }}>
             {!isChannelReport && <>분석 기준일: {report.channel_info?.analysis_date ?? date} · 채널 분석 엔진 v2.1<br /></>}
             © 2026 {brandName}. All rights reserved.
