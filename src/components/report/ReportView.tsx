@@ -1132,7 +1132,7 @@ export default function ReportView({ report, generatedAt, reportId, isChannelRep
 
       <div className="report-root">
         <nav className="rpt-nav">
-          <a href="#" style={{ fontWeight: 900, fontSize: "19px", letterSpacing: "-.5px", color: BLK, textDecoration: "none", cursor: "default" }}>
+          <a href="#" style={{ fontWeight: 900, fontSize: "19px", letterSpacing: "-.5px", color: BLK, textDecoration: "none", cursor: "pointer" }}>
             {brandName}{brandMark && <span style={{ color: LIME }}>{brandMark}</span>}
           </a>
           <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
