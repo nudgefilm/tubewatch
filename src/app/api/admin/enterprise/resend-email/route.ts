@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { ensureAdminOrRedirect } from "@/lib/auth/is-admin";
+import { processEnterpriseEmailSend } from "@/lib/server/enterprise/processEnterpriseEmailSend";
 
 export async function POST(request: Request) {
   try { await ensureAdminOrRedirect(); } catch {
@@ -10,17 +11,25 @@ export async function POST(request: Request) {
   const { orderId } = await request.json();
   if (!orderId) return NextResponse.json({ error: "orderId 필요" }, { status: 400 });
 
-  const { data, error } = await supabaseAdmin
+  // email_sent 리셋 (paid 상태만 허용)
+  const { data: reset, error: resetError } = await supabaseAdmin
     .from("enterprise_orders")
     .update({ email_sent: false })
     .eq("id", orderId)
     .eq("status", "paid")
-    .select("id");
+    .select("id, email, channel_url, contact_phone, source, inquiry_id")
+    .single();
 
-  if (error) return NextResponse.json({ error: "업데이트 실패" }, { status: 500 });
-  if (!data || data.length === 0) {
+  if (resetError || !reset) {
     return NextResponse.json({ ok: false, reason: "not_found_or_invalid_status" }, { status: 404 });
   }
 
-  return NextResponse.json({ ok: true, reset: true });
+  // 원자적 선점 + 이메일 발송 (기존 dedupe 로직 재사용)
+  const { skipped } = await processEnterpriseEmailSend(reset);
+
+  if (skipped) {
+    return NextResponse.json({ ok: false, reason: "claim_failed" }, { status: 409 });
+  }
+
+  return NextResponse.json({ ok: true, resent: true });
 }
