@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ArrowRight, Check, X } from "lucide-react";
 import { ProcessSection } from "./ProcessSection";
+import { IncludesSection } from "./IncludesSection";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -167,17 +168,6 @@ function B2BInquiryModal({ onClose }: { onClose: () => void }) {
 }
 
 
-// ─── 기능 목록 ────────────────────────────────────────────────────────────────
-
-const FEATURES = [
-  "영상 50개 전수 분석 — 조회수·유지율·CTR 등 핵심 지표 완전 파악",
-  "수석 전략가 1:1 맞춤형 진단 코멘터리",
-  "특허출원 기술 기반 병목(Bottleneck) 구간 정밀 탐지",
-  "향후 30일 콘텐츠 실행 로드맵",
-  "제안서·보고서에 바로 삽입 가능한 전용 리포트 URL",
-  "월 1회 전략 리포트 × 3회 (3개월 정기)",
-];
-
 // ─── 히어로 스탯 ─────────────────────────────────────────────────────────────
 
 const HERO_STATS = [
@@ -323,23 +313,10 @@ export default function ChannelReportLanding() {
         <ProcessSection />
       </div>
 
-      {/* 기능 목록 */}
-      <section className="border-t border-foreground/10">
-        <div className="mx-auto max-w-5xl px-6 py-16">
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold tracking-tight">포함 내용</h2>
-            <p className="mt-2 text-sm text-muted-foreground">3개월 동안 제공되는 전문가 진단 서비스</p>
-          </div>
-          <ul className="grid gap-4 sm:grid-cols-2">
-            {FEATURES.map((f) => (
-              <li key={f} className="flex items-start gap-3">
-                <Check className="mt-0.5 h-5 w-5 shrink-0 text-orange-500" />
-                <span className="text-sm text-foreground">{f}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
+      {/* 포함 내용 */}
+      <div className="border-t border-foreground/10">
+        <IncludesSection />
+      </div>
 
       {/* CTA */}
       <section className="border-t border-foreground/10 bg-foreground/[0.02]">
