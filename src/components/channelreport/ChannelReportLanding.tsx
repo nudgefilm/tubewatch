@@ -110,7 +110,7 @@ function B2BInquiryModal({ onClose }: { onClose: () => void }) {
                 value={form.contactEmail}
                 onChange={(e) => set("contactEmail", e.target.value)}
               />
-              <p className="mt-1 text-xs text-orange-500">결제 페이지 접속 시 Google 계정 로그인이 필요합니다. Google 이메일을 입력해 주세요.</p>
+              <p className="mt-1 text-xs text-orange-500">리포트를 수신하실 Google 계정 이메일을 입력해 주세요.</p>
             </div>
             <div>
               <Label className="text-sm">담당자 연락처</Label>
