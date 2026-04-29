@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowRight, Check, X, FileText, Search, BarChart3 } from "lucide-react";
+import { ArrowRight, Check, X } from "lucide-react";
+import { ProcessSection } from "./ProcessSection";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -165,28 +166,6 @@ function B2BInquiryModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-// ─── 프로세스 스텝 ────────────────────────────────────────────────────────────
-
-const STEPS = [
-  {
-    icon: FileText,
-    step: "01",
-    title: "서비스 신청",
-    desc: "채널 URL과 담당자 정보를 입력합니다. 접수 즉시 결제 안내 이메일이 발송됩니다.",
-  },
-  {
-    icon: Search,
-    step: "02",
-    title: "전문가 전수 분석",
-    desc: "수석 전략가가 최근 영상 50개와 30개 시그널을 직접 조사합니다. 데이터 기반 병목 구간을 정확히 탐지합니다.",
-  },
-  {
-    icon: BarChart3,
-    step: "03",
-    title: "리포트 수령",
-    desc: "열람 가능한 클라이언트 리포트 전용 URL과 1:1 맞춤형 전문가 진단 코멘터리가 제공됩니다. 클라이언트 보고서에 바로 활용하세요.",
-  },
-];
 
 // ─── 기능 목록 ────────────────────────────────────────────────────────────────
 
@@ -317,23 +296,9 @@ export default function ChannelReportLanding() {
       </section>
 
       {/* 프로세스 */}
-      <section className="border-t border-foreground/10 bg-foreground/[0.02]">
-        <div className="mx-auto max-w-5xl px-6 py-16">
-          <h2 className="mb-10 text-2xl font-bold tracking-tight">진행 프로세스</h2>
-          <div className="grid gap-8 sm:grid-cols-3">
-            {STEPS.map(({ icon: Icon, step, title, desc }) => (
-              <div key={step} className="flex flex-col gap-3">
-                <div className="flex items-center gap-3">
-                  <span className="font-mono text-xs font-bold text-orange-500">{step}</span>
-                  <Icon className="h-5 w-5 text-foreground/40" />
-                </div>
-                <h3 className="font-semibold">{title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <div className="border-t border-foreground/10">
+        <ProcessSection />
+      </div>
 
       {/* 기능 목록 */}
       <section className="border-t border-foreground/10">
