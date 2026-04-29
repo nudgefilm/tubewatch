@@ -131,12 +131,14 @@ export async function POST(request: Request) {
       .eq("portone_payment_id", paymentId)
       .maybeSingle();
 
-    if (existing?.email_sent) {
-      return NextResponse.json({ ok: true, skipped: true });
-    }
-
-    if (existing && existing.status !== "paid") {
-      return NextResponse.json({ ok: false, reason: "invalid_state" }, { status: 409 });
+    if (existing) {
+      if (existing.email_sent) {
+        return NextResponse.json({ ok: true, skipped: true });
+      }
+      // email_sent = false인 경우: paid 상태에서만 재시도 허용
+      if (existing.status !== "paid") {
+        return NextResponse.json({ ok: false, reason: "invalid_state_for_resend" }, { status: 409 });
+      }
     }
 
     // ── 신규 주문이면 INSERT, 이미 있으면 재시도(이메일만) ────────────────────
