@@ -141,12 +141,11 @@ export async function POST(request: Request) {
       }
     }
 
-    // ── 신규 주문이면 INSERT, 이미 있으면 재시도(이메일만) ────────────────────
-    let orderId: string;
-    if (!existing) {
-      const { data: order, error: insertError } = await supabaseAdmin
-        .from("enterprise_orders")
-        .insert({
+    // ── UPSERT: 중복 webhook 호출에도 row 1개 유지 ───────────────────────────
+    const { error: upsertError } = await supabaseAdmin
+      .from("enterprise_orders")
+      .upsert(
+        {
           source: inquiryId ? "channelreport" : "tubewatch",
           inquiry_id: inquiryId ?? null,
           user_id: user.id,
@@ -157,18 +156,27 @@ export async function POST(request: Request) {
           amount_krw: ENTERPRISE_PRODUCT.priceKrw,
           payment_status: "paid",
           status: "paid",
-        })
-        .select("id")
-        .single();
+        },
+        { onConflict: "portone_payment_id" }
+      );
 
-      if (insertError || !order) {
-        console.error("[portone/payment-complete] enterprise insert error:", insertError);
-        return NextResponse.json({ error: "주문 저장에 실패했습니다." }, { status: 500 });
-      }
-      orderId = order.id;
-    } else {
-      orderId = existing.id;
+    if (upsertError) {
+      console.error("[portone/payment-complete] enterprise upsert error:", upsertError);
+      return NextResponse.json({ error: "주문 저장에 실패했습니다." }, { status: 500 });
     }
+
+    const { data: order, error: fetchError } = await supabaseAdmin
+      .from("enterprise_orders")
+      .select("id, email_sent, status")
+      .eq("portone_payment_id", paymentId)
+      .single();
+
+    if (fetchError || !order) {
+      console.error("[portone/payment-complete] enterprise fetch error:", fetchError);
+      return NextResponse.json({ error: "주문 조회에 실패했습니다." }, { status: 500 });
+    }
+
+    const orderId = order.id;
 
     // ── 이메일 발송 + email_sent 업데이트 (단일 try/catch) ────────────────────
     const customerEmail = contactEmail || user.email!;
