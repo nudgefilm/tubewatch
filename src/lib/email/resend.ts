@@ -96,6 +96,7 @@ export async function sendPaymentLinkEmail({
       <h2>${agencyName} 담당자님께</h2>
       <p>채널 컨설팅 서비스(Enterprise Standard) 신청을 접수했습니다.</p>
       <p>아래 링크에서 결제를 진행해 주세요.</p>
+      <p style="color:#e85c00;font-size:13px;font-weight:600;">※ 결제 페이지는 Google 계정 로그인이 필요합니다. Google 이메일로 접속해 주세요.</p>
       <br>
       <p><a href="${paymentUrl}" style="background:#000;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block;">결제하기 (₩330,000)</a></p>
       <br>
