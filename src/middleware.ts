@@ -20,6 +20,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
+  // channelreport.net → /channelreport/* 내부 라우트로 매핑
+  const host = request.headers.get("host") ?? ""
+  if (host.includes("channelreport")) {
+    const pathname = request.nextUrl.pathname
+    if (!pathname.startsWith("/channelreport") && !pathname.startsWith("/api")) {
+      const url = request.nextUrl.clone()
+      url.pathname = `/channelreport${pathname === "/" ? "" : pathname}`
+      return NextResponse.rewrite(url)
+    }
+  }
+
   const ua = request.headers.get("user-agent") ?? ""
   if (BOT_UA_PATTERN.test(ua)) {
     return NextResponse.next()
