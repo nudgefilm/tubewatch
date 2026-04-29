@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Building2, ExternalLink, Mail, CheckCircle2, Loader2 } from "lucide-react";
+import { Building2, ExternalLink, Mail, CheckCircle2, Loader2, Link2, Copy, X, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -22,6 +22,7 @@ type EnterpriseOrder = {
   email_sent: boolean;
   reports_issued: number;
   total_reports: number;
+  report_tokens: string[] | null;
   tax_invoice_requested: boolean;
   tax_invoice_issued: boolean;
   admin_note: string | null;
@@ -68,6 +69,119 @@ function fmtDate(iso: string) {
 }
 
 // ─── 주문 행 ─────────────────────────────────────────────────────────────────
+
+function ReportLinks({ order, onRefresh }: { order: EnterpriseOrder; onRefresh: () => void }) {
+  const tokens: string[] = order.report_tokens ?? [];
+  const [showInput, setShowInput] = useState(false);
+  const [inputVal, setInputVal] = useState("");
+  const [linkLoading, setLinkLoading] = useState(false);
+  const [linkError, setLinkError] = useState<string | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
+
+  function extractToken(raw: string) {
+    // URL 전체 입력도 허용: tubewatch.kr/report/TOKEN 또는 channelreport.net/TOKEN
+    const match = raw.match(/\/([^/]+)\s*$/);
+    return match ? match[1].trim() : raw.trim();
+  }
+
+  async function handleLink() {
+    const token = extractToken(inputVal);
+    if (!token) return;
+    setLinkLoading(true);
+    setLinkError(null);
+    try {
+      const res = await fetch("/api/admin/enterprise/link-report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId: order.id, token }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setInputVal("");
+        setShowInput(false);
+        onRefresh();
+      } else {
+        setLinkError(data.error ?? "연결 실패");
+      }
+    } finally {
+      setLinkLoading(false);
+    }
+  }
+
+  async function handleUnlink(token: string) {
+    await fetch("/api/admin/enterprise/link-report", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId: order.id, token }),
+    });
+    onRefresh();
+  }
+
+  function copyUrl(token: string) {
+    const url = `https://channelreport.net/${token}`;
+    void navigator.clipboard.writeText(url).then(() => {
+      setCopied(token);
+      setTimeout(() => setCopied(null), 2000);
+    });
+  }
+
+  return (
+    <div className="mt-2 flex flex-col gap-1.5">
+      {tokens.map((token) => (
+        <div key={token} className="flex items-center gap-1.5 rounded-md bg-foreground/[0.03] px-2 py-1">
+          <a
+            href={`https://channelreport.net/${token}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 truncate font-mono text-[10px] text-muted-foreground hover:text-foreground hover:underline"
+          >
+            channelreport.net/{token.slice(0, 16)}…
+          </a>
+          <button onClick={() => copyUrl(token)} className="text-muted-foreground hover:text-foreground" title="URL 복사">
+            {copied === token ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+          </button>
+          <button onClick={() => void handleUnlink(token)} className="text-muted-foreground hover:text-destructive" title="연결 해제">
+            <X className="h-3 w-3" />
+          </button>
+        </div>
+      ))}
+
+      {showInput ? (
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1">
+            <input
+              className="h-7 flex-1 rounded border border-foreground/20 bg-background px-2 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-foreground/30"
+              placeholder="access_token 또는 리포트 URL"
+              value={inputVal}
+              onChange={(e) => setInputVal(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") void handleLink(); }}
+              autoFocus
+            />
+            <button
+              onClick={() => void handleLink()}
+              disabled={linkLoading || !inputVal.trim()}
+              className="flex h-7 items-center rounded bg-foreground px-2 text-xs font-medium text-background disabled:opacity-40"
+            >
+              {linkLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : "연결"}
+            </button>
+            <button onClick={() => { setShowInput(false); setLinkError(null); }} className="text-muted-foreground hover:text-foreground">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          {linkError && <p className="text-[10px] text-destructive">{linkError}</p>}
+        </div>
+      ) : (
+        <button
+          onClick={() => setShowInput(true)}
+          className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
+        >
+          <Link2 className="h-3 w-3" />
+          리포트 연결
+        </button>
+      )}
+    </div>
+  );
+}
 
 function OrderRow({ order, onRefresh }: { order: EnterpriseOrder; onRefresh: () => void }) {
   const [loading, setLoading] = useState(false);
@@ -143,6 +257,7 @@ function OrderRow({ order, onRefresh }: { order: EnterpriseOrder; onRefresh: () 
           {order.contact_phone && (
             <span className="text-xs text-muted-foreground">{order.contact_phone}</span>
           )}
+          <ReportLinks order={order} onRefresh={onRefresh} />
         </div>
       </td>
       <td className="py-3 pr-4">
