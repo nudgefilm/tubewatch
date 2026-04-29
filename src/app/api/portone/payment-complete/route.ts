@@ -178,7 +178,20 @@ export async function POST(request: Request) {
 
     const orderId = order.id;
 
-    // ── 이메일 발송 + email_sent 업데이트 (단일 try/catch) ────────────────────
+    // ── 원자적 선점: email_sent = false인 경우에만 true로 업데이트 ─────────────
+    // 동시 요청이 들어와도 update가 성공한 1건만 이메일 발송
+    const { data: claimed } = await supabaseAdmin
+      .from("enterprise_orders")
+      .update({ email_sent: true })
+      .eq("id", orderId)
+      .eq("email_sent", false)
+      .select("id");
+
+    if (!claimed || claimed.length === 0) {
+      return NextResponse.json({ ok: true, skipped: true });
+    }
+
+    // ── 선점 성공 → 이메일 발송 ───────────────────────────────────────────────
     const customerEmail = contactEmail || user.email!;
     try {
       await sendEnterpriseOrderAlert({
@@ -190,10 +203,6 @@ export async function POST(request: Request) {
         inquiryId,
       });
       await sendEnterpriseOrderConfirmation({ to: customerEmail, channelUrl, orderId });
-      await supabaseAdmin
-        .from("enterprise_orders")
-        .update({ email_sent: true })
-        .eq("id", orderId);
     } catch (emailErr) {
       console.error("[portone/payment-complete] enterprise email error:", emailErr);
     }
