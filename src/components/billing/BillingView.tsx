@@ -18,6 +18,7 @@ import {
   type BillingPlanId,
   type CreditProductId,
 } from "./types";
+import { readSelectedChannelIdFromStorage } from "@/lib/channels/selectedChannelStorage";
 import type { UserBillingStatus } from "@/lib/server/billing/getUserBillingStatus";
 
 // ─── Google Ads 구매 전환 이벤트 ──────────────────────────────────────────────
@@ -525,7 +526,7 @@ const ENTERPRISE_FEATURES = [
   "월 1회 전략 리포트 × 3회 (3개월 정기 발행)",
 ];
 
-function EnterpriseCard({ initialEmail }: { initialEmail: string }) {
+function EnterpriseCard({ initialEmail, userChannels }: { initialEmail: string; userChannels: { id: string; channel_url: string | null }[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const paramChannelUrl = searchParams.get("channel_url") ?? "";
@@ -534,6 +535,19 @@ function EnterpriseCard({ initialEmail }: { initialEmail: string }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [channelUrl, setChannelUrl] = useState(paramChannelUrl);
   const [contactEmail, setContactEmail] = useState(initialEmail);
+
+  useEffect(() => {
+    if (channelUrl) return; // URL 파라미터로 이미 채워진 경우 skip
+    const selectedId = readSelectedChannelIdFromStorage();
+    if (selectedId) {
+      const matched = userChannels.find((c) => c.id === selectedId);
+      if (matched?.channel_url) { setChannelUrl(matched.channel_url); return; }
+    }
+    if (userChannels.length === 1 && userChannels[0].channel_url) {
+      setChannelUrl(userChannels[0].channel_url);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [contactPhone, setContactPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -795,7 +809,7 @@ function CurrentPlanCard({ status }: { status: UserBillingStatus }) {
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
-export default function BillingView({ initialData, channelCount, userEmail = "" }: { initialData: UserBillingStatus; channelCount: number; userEmail?: string }) {
+export default function BillingView({ initialData, channelCount, userEmail = "", userChannels = [] }: { initialData: UserBillingStatus; channelCount: number; userEmail?: string; userChannels?: { id: string; channel_url: string | null }[] }) {
   const router = useRouter();
   const [period, setPeriod] = useState<BillingPeriod>("monthly");
   const [termsOpen, setTermsOpen] = useState(false);
@@ -966,7 +980,7 @@ export default function BillingView({ initialData, channelCount, userEmail = "" 
           <p className="mb-6 text-sm text-muted-foreground">
             튜브워치 엔진의 정밀함에 전문가의 통찰을 더한 채널 성장 컨설팅 서비스입니다.
           </p>
-          <EnterpriseCard initialEmail={userEmail} />
+          <EnterpriseCard initialEmail={userEmail} userChannels={userChannels} />
         </section>
 
         {/* Footer links */}
