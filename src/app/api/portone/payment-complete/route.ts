@@ -124,45 +124,68 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "결제 금액이 일치하지 않습니다." }, { status: 400 });
     }
 
-    const { data: order, error: insertError } = await supabaseAdmin
+    // ── Idempotency: 동일 paymentId로 처리된 주문 조회 ───────────────────────
+    const { data: existing } = await supabaseAdmin
       .from("enterprise_orders")
-      .insert({
-        source: inquiryId ? "channelreport" : "tubewatch",
-        inquiry_id: inquiryId ?? null,
-        user_id: user.id,
-        email: contactEmail || user.email,
-        contact_phone: contactPhone,
-        channel_url: channelUrl,
-        portone_payment_id: paymentId,
-        amount_krw: ENTERPRISE_PRODUCT.priceKrw,
-        payment_status: "paid",
-        status: "paid",
-      })
-      .select("id")
-      .single();
+      .select("id, email_sent, status")
+      .eq("portone_payment_id", paymentId)
+      .maybeSingle();
 
-    if (insertError || !order) {
-      console.error("[portone/payment-complete] enterprise insert error:", insertError);
-      return NextResponse.json({ error: "주문 저장에 실패했습니다." }, { status: 500 });
+    if (existing?.email_sent) {
+      return NextResponse.json({ ok: true, skipped: true });
     }
 
+    if (existing && existing.status !== "paid") {
+      return NextResponse.json({ ok: false, reason: "invalid_state" }, { status: 409 });
+    }
+
+    // ── 신규 주문이면 INSERT, 이미 있으면 재시도(이메일만) ────────────────────
+    let orderId: string;
+    if (!existing) {
+      const { data: order, error: insertError } = await supabaseAdmin
+        .from("enterprise_orders")
+        .insert({
+          source: inquiryId ? "channelreport" : "tubewatch",
+          inquiry_id: inquiryId ?? null,
+          user_id: user.id,
+          email: contactEmail || user.email,
+          contact_phone: contactPhone,
+          channel_url: channelUrl,
+          portone_payment_id: paymentId,
+          amount_krw: ENTERPRISE_PRODUCT.priceKrw,
+          payment_status: "paid",
+          status: "paid",
+        })
+        .select("id")
+        .single();
+
+      if (insertError || !order) {
+        console.error("[portone/payment-complete] enterprise insert error:", insertError);
+        return NextResponse.json({ error: "주문 저장에 실패했습니다." }, { status: 500 });
+      }
+      orderId = order.id;
+    } else {
+      orderId = existing.id;
+    }
+
+    // ── 이메일 발송 + email_sent 업데이트 (단일 try/catch) ────────────────────
     const customerEmail = contactEmail || user.email!;
     try {
       await sendEnterpriseOrderAlert({
-        orderId: order.id,
+        orderId,
         channelUrl,
         email: customerEmail,
         contactPhone,
         source: inquiryId ? "channelreport" : "tubewatch",
         inquiryId,
       });
+      await sendEnterpriseOrderConfirmation({ to: customerEmail, channelUrl, orderId });
+      await supabaseAdmin
+        .from("enterprise_orders")
+        .update({ email_sent: true })
+        .eq("id", orderId);
     } catch (emailErr) {
-      console.error("[portone/payment-complete] enterprise admin email error:", emailErr);
-    }
-    try {
-      await sendEnterpriseOrderConfirmation({ to: customerEmail, channelUrl, orderId: order.id });
-    } catch (emailErr) {
-      console.error("[portone/payment-complete] enterprise customer email error:", emailErr);
+      console.error("[portone/payment-complete] enterprise email error:", emailErr);
     }
 
     return NextResponse.json({ ok: true });
