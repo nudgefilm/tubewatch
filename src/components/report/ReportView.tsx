@@ -153,6 +153,19 @@ function HeroSection({ info, scorecard, growth, signals, date }: {
   const score = scorecard?.overall_score ?? 0;
   const grade = scorecard?.grade ?? "-";
   const name  = info?.channel_name ?? "채널명";
+  const [displayScore, setDisplayScore] = useState(0);
+  useEffect(() => {
+    if (score === 0) return;
+    const duration = 1400;
+    const startTime = performance.now();
+    function step(now: number) {
+      const progress = Math.min((now - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplayScore(Math.round(eased * score));
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }, [score]);
   const desc  = info?.channel_description ?? "";
   const meta  = [
     info?.founded && `채널 개설 ${info.founded}`,
@@ -225,7 +238,7 @@ function HeroSection({ info, scorecard, growth, signals, date }: {
             </p>
           </div>
           <div style={{ border: `2px solid ${ORANGE}`, background: ORBG, padding: "28px 36px", textAlign: "center", minWidth: "160px", flexShrink: 0 }}>
-            <div style={{ fontSize: "60px", fontWeight: 900, color: LIME, lineHeight: 1, fontFamily: MONO }}>{score}</div>
+            <div style={{ fontSize: "60px", fontWeight: 900, color: LIME, lineHeight: 1, fontFamily: MONO }}>{displayScore}</div>
             <div style={{ fontSize: "12px", color: "#AAAAAA", letterSpacing: "1.5px", textTransform: "uppercase", marginTop: "6px", fontFamily: MONO }}>Channel Score</div>
             <div style={{ marginTop: "12px", display: "inline-block", fontSize: "22px", fontWeight: 900, background: ORANGE, color: "#fff", padding: "7px 22px", borderRadius: "4px", fontFamily: MONO, letterSpacing: "2px" }}>{grade}</div>
             <div style={{ marginTop: "8px", fontSize: "12px", color: "#888", fontFamily: MONO }}>{gradeToSub(score)}</div>
