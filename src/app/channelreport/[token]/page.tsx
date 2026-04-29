@@ -60,6 +60,7 @@ export default async function ChannelReportTokenPage({ params }: Props) {
         report={data.result_json as ManusReportJson}
         generatedAt={data.created_at}
         reportId={data.id}
+        isChannelReport={true}
       />
     </ReportErrorBoundary>
   );

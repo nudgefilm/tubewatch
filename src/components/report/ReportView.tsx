@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Check } from "lucide-react";
 import type { ManusReportJson } from "@/lib/manus/types";
 
-type Props = { report: ManusReportJson; generatedAt: string; reportId?: string };
+type Props = { report: ManusReportJson; generatedAt: string; reportId?: string; isChannelReport?: boolean };
 
 const LIME   = "#AAFF00";
 const ORANGE = "#FF7A00";
@@ -1050,12 +1050,12 @@ function NextMonthSection({ report, date, generatedAt }: { report: ManusReportJs
 }
 
 /* ══ MAIN ════════════════════════════════════════════════════ */
-export default function ReportView({ report, generatedAt, reportId }: Props) {
+export default function ReportView({ report, generatedAt, reportId, isChannelReport: isChannelReportProp = false }: Props) {
   const date = new Date(generatedAt)
     .toLocaleDateString("ko-KR", { year: "numeric", month: "2-digit" })
     .replace(". ", ".").replace(".", "년 ").replace(".", "월");
   const [copied, setCopied] = useState(false);
-  const [isChannelReport, setIsChannelReport] = useState(false);
+  const [isChannelReport, setIsChannelReport] = useState(isChannelReportProp);
 
   useEffect(() => {
     setIsChannelReport(window.location.hostname.includes("channelreport"));
@@ -1136,8 +1136,10 @@ export default function ReportView({ report, generatedAt, reportId }: Props) {
             {brandName}{brandMark && <span style={{ color: LIME }}>{brandMark}</span>}
           </a>
           <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-            <span className="rpt-nav-label" style={{ fontFamily: MONO, fontSize: "14px", fontWeight: 800, letterSpacing: ".5px", textTransform: "uppercase" }}>Monthly Report</span>
-            <span className="rpt-nav-label" style={{ fontFamily: MONO, fontSize: "13px", fontWeight: 300 }}>{date} · Free | Creator | Pro</span>
+            <span className="rpt-nav-label" style={{ fontFamily: MONO, fontSize: "14px", fontWeight: 800, letterSpacing: ".5px", textTransform: "uppercase" }}>{isChannelReport ? "Strategy Report" : "Monthly Report"}</span>
+            {!isChannelReport && (
+              <span className="rpt-nav-label" style={{ fontFamily: MONO, fontSize: "13px", fontWeight: 300 }}>{date} · Free | Creator | Pro</span>
+            )}
             <button onClick={handleShare} style={{ fontFamily: MONO, fontSize: "13px", fontWeight: 700, letterSpacing: ".5px", padding: "8px 18px", border: `1px solid ${BLK}`, borderRadius: "3px", background: copied ? "#22c55e" : BLK, color: "#fff", cursor: "pointer", whiteSpace: "nowrap", transition: "background .2s" }}
               onMouseEnter={e => { if (!copied) e.currentTarget.style.opacity = ".7"; }}
               onMouseLeave={e => (e.currentTarget.style.opacity = "1")}>
