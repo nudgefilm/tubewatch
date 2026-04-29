@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { sendB2BInquiryAlert } from "@/lib/email/resend";
+import { sendB2BInquiryAlert, sendPaymentLinkEmail } from "@/lib/email/resend";
 
 export async function POST(request: Request) {
   let body: unknown;
@@ -44,15 +44,23 @@ export async function POST(request: Request) {
   }
 
   try {
-    await sendB2BInquiryAlert({
-      inquiryId: data.id,
-      agencyName,
-      contactName,
-      contactEmail,
-      contactPhone,
-      channelUrl,
-      taxInvoiceRequested,
-    });
+    await Promise.all([
+      sendB2BInquiryAlert({
+        inquiryId: data.id,
+        agencyName,
+        contactName,
+        contactEmail,
+        contactPhone,
+        channelUrl,
+        taxInvoiceRequested,
+      }),
+      sendPaymentLinkEmail({
+        to: contactEmail,
+        agencyName,
+        channelUrl,
+        inquiryId: data.id,
+      }),
+    ]);
   } catch (emailErr) {
     console.error("[b2b-inquiry] email error:", emailErr);
   }
