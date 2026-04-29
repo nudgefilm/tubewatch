@@ -29,7 +29,11 @@ import {
   type BillingPeriod,
   type CreditProductId,
 } from "@/components/billing/types";
-import { sendEnterpriseOrderAlert } from "@/lib/email/resend";
+import {
+  sendEnterpriseOrderAlert,
+  sendEnterpriseOrderConfirmation,
+  sendPaymentReceiptEmail,
+} from "@/lib/email/resend";
 
 type ExistingSubRow = {
   plan_id: string | null;
@@ -85,6 +89,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
   }
 
+  // ─── PortOne 결제 정보 조회 + 상태 검증 ──────────────────────────────────
+  // 구독 idempotency 체크는 아래 subscription 블록에서 별도 처리
+
+  let payment;
+  try {
+    payment = await getPortOnePayment(paymentId);
+  } catch (e) {
+    console.error("[portone/payment-complete] getPayment error:", e);
+    return NextResponse.json({ error: "결제 확인에 실패했습니다." }, { status: 502 });
+  }
+
+  if (payment.status !== "PAID") {
+    return NextResponse.json(
+      { error: `결제가 완료되지 않았습니다. (상태: ${payment.status})` },
+      { status: 400 }
+    );
+  }
+
   // ─── Enterprise 컨설팅 처리 ─────────────────────────────────────────────────
 
   if (type === "enterprise") {
@@ -124,17 +146,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "주문 저장에 실패했습니다." }, { status: 500 });
     }
 
+    const customerEmail = contactEmail || user.email!;
     try {
       await sendEnterpriseOrderAlert({
         orderId: order.id,
         channelUrl,
-        email: contactEmail || user.email!,
+        email: customerEmail,
         contactPhone,
         source: inquiryId ? "channelreport" : "tubewatch",
         inquiryId,
       });
     } catch (emailErr) {
-      console.error("[portone/payment-complete] enterprise email error:", emailErr);
+      console.error("[portone/payment-complete] enterprise admin email error:", emailErr);
+    }
+    try {
+      await sendEnterpriseOrderConfirmation({ to: customerEmail, channelUrl, orderId: order.id });
+    } catch (emailErr) {
+      console.error("[portone/payment-complete] enterprise customer email error:", emailErr);
     }
 
     return NextResponse.json({ ok: true });
@@ -161,23 +189,6 @@ export async function POST(request: Request) {
       console.log("[portone/payment-complete] idempotency: already processed", paymentId);
       return NextResponse.json({ ok: true });
     }
-  }
-
-  // ─── PortOne 결제 정보 조회 + 상태 검증 ──────────────────────────────────
-
-  let payment;
-  try {
-    payment = await getPortOnePayment(paymentId);
-  } catch (e) {
-    console.error("[portone/payment-complete] getPayment error:", e);
-    return NextResponse.json({ error: "결제 확인에 실패했습니다." }, { status: 502 });
-  }
-
-  if (payment.status !== "PAID") {
-    return NextResponse.json(
-      { error: `결제가 완료되지 않았습니다. (상태: ${payment.status})` },
-      { status: 400 }
-    );
   }
 
   // ─── 구독 처리 ────────────────────────────────────────────────────────────
@@ -251,6 +262,15 @@ export async function POST(request: Request) {
         }
 
         console.log("[portone/payment-complete] immediate upgrade:", planIdTyped, billingPeriodTyped, "for user:", user.id);
+        if (user.email) {
+          sendPaymentReceiptEmail({
+            to: user.email, type: "subscription",
+            planName: planIdTyped === "pro" ? "Pro" : "Creator",
+            billingPeriod: billingPeriodTyped,
+            amountKrw: payment.amount.total,
+            renewalAt: new Date(now.getTime() + PERIOD_MONTHS[billingPeriodTyped] * 30 * 24 * 60 * 60 * 1000).toISOString(),
+          }).catch((e) => console.error("[payment-complete] receipt email error:", e));
+        }
         return NextResponse.json({ ok: true, planId: planIdTyped, billingPeriod: billingPeriodTyped, deferred: false });
       } else {
         // ── 다운그레이드 → 만료 후 예약 변경 ────────────────────────────────
@@ -312,6 +332,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "구독 정보 저장에 실패했습니다." }, { status: 500 });
     }
 
+    if (user.email) {
+      sendPaymentReceiptEmail({
+        to: user.email, type: "subscription",
+        planName: planIdTyped === "pro" ? "Pro" : "Creator",
+        billingPeriod: billingPeriodTyped,
+        amountKrw: payment.amount.total,
+        renewalAt: expiresAtIso,
+      }).catch((e) => console.error("[payment-complete] receipt email error:", e));
+    }
+
     return NextResponse.json({ ok: true, planId: planIdTyped, billingPeriod: billingPeriodTyped });
   }
 
@@ -367,6 +397,14 @@ export async function POST(request: Request) {
   if (creditsUpdateError) {
     console.error("[portone/payment-complete] credits update error:", creditsUpdateError);
     return NextResponse.json({ error: "크레딧 반영에 실패했습니다." }, { status: 500 });
+  }
+
+  if (user.email) {
+    sendPaymentReceiptEmail({
+      to: user.email, type: "credit",
+      creditCount: product.creditCount,
+      amountKrw: payment.amount.total,
+    }).catch((e) => console.error("[payment-complete] credit receipt email error:", e));
   }
 
   return NextResponse.json({ ok: true, credits: product.creditCount });

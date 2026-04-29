@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { ensureAdminOrRedirect } from "@/lib/auth/is-admin";
+import { sendReportReadyEmail } from "@/lib/email/resend";
 
 export async function POST(request: Request) {
   try { await ensureAdminOrRedirect(); } catch {
@@ -12,7 +13,7 @@ export async function POST(request: Request) {
 
   const { data: order } = await supabaseAdmin
     .from("enterprise_orders")
-    .select("reports_issued, total_reports")
+    .select("reports_issued, total_reports, email, channel_url")
     .eq("id", orderId)
     .single();
 
@@ -30,6 +31,15 @@ export async function POST(request: Request) {
     .eq("id", orderId);
 
   if (error) return NextResponse.json({ error: "업데이트 실패" }, { status: 500 });
+
+  if (order.email) {
+    sendReportReadyEmail({
+      to: order.email,
+      channelUrl: order.channel_url,
+      reportNumber: newCount,
+      totalReports: order.total_reports,
+    }).catch((e) => console.error("[mark-report-sent] email error:", e));
+  }
 
   return NextResponse.json({ ok: true, reportsIssued: newCount, completed: isCompleted });
 }

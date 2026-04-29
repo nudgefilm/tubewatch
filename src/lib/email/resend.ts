@@ -88,23 +88,114 @@ export async function sendPaymentLinkEmail({
   inquiryId: string;
 }) {
   const paymentUrl = `https://tubewatch.kr/billing?enterprise=1&inquiry_id=${inquiryId}`;
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: "채널 컨설팅 서비스 결제 안내 — Channel Report",
+    html: `
+      <h2>${agencyName} 담당자님께</h2>
+      <p>채널 컨설팅 서비스(Enterprise Standard) 신청을 접수했습니다.</p>
+      <p>아래 링크에서 카드 결제를 진행해주세요.</p>
+      <p><a href="${paymentUrl}" style="background:#000;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block;">결제하기 (₩330,000)</a></p>
+      <p style="color:#888;font-size:12px;">현금 결제를 원하시는 경우 담당자에게 별도 문의 바랍니다.</p>
+      <p style="color:#888;font-size:12px;">분석 대상 채널: ${channelUrl}</p>
+    `,
+  });
+}
 
-  // 초기 수동 운영으로 인해 고객 자동 메일 비활성화
-  // 결제 링크는 관리자가 직접 별도 채널(이메일·메신저)로 전달
-  // await resend.emails.send({
-  //   from: FROM_EMAIL,
-  //   to,
-  //   subject: "채널 컨설팅 서비스 결제 안내 — Channel Report",
-  //   html: `
-  //     <h2>${agencyName} 담당자님께</h2>
-  //     <p>채널 컨설팅 서비스(Enterprise Standard) 신청을 접수했습니다.</p>
-  //     <p>아래 링크에서 카드 결제를 진행해주세요.</p>
-  //     <p><a href="${paymentUrl}" style="background:#000;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block;">결제하기 (₩330,000)</a></p>
-  //     <p style="color:#888;font-size:12px;">현금 결제를 원하시는 경우 담당자에게 별도 문의 바랍니다.</p>
-  //     <p style="color:#888;font-size:12px;">분석 대상 채널: ${channelUrl}</p>
-  //   `,
-  // });
+export async function sendPaymentReceiptEmail({
+  to,
+  type,
+  planName,
+  billingPeriod,
+  creditCount,
+  amountKrw,
+  renewalAt,
+}: {
+  to: string;
+  type: "subscription" | "credit";
+  planName?: string;
+  billingPeriod?: "monthly" | "semiannual";
+  creditCount?: number;
+  amountKrw: number;
+  renewalAt?: string;
+}) {
+  const periodLabel = billingPeriod === "semiannual" ? "6개월" : "1개월";
+  const subject =
+    type === "subscription"
+      ? `[TubeWatch] ${planName} 구독 결제 완료`
+      : "[TubeWatch] 분석 크레딧 결제 완료";
 
-  // 관리자용 참고: 아래 URL을 직접 복사해 발송
-  void paymentUrl;
+  const html =
+    type === "subscription"
+      ? `
+        <h2>${planName} 구독이 시작됐습니다.</h2>
+        <table>
+          <tr><td><b>플랜</b></td><td>${planName} (${periodLabel})</td></tr>
+          <tr><td><b>결제 금액</b></td><td>₩${amountKrw.toLocaleString("ko-KR")}</td></tr>
+          ${renewalAt ? `<tr><td><b>갱신일</b></td><td>${new Date(renewalAt).toLocaleDateString("ko-KR")}</td></tr>` : ""}
+        </table>
+        <p><a href="https://tubewatch.kr/billing">구독 관리하기</a></p>
+      `
+      : `
+        <h2>분석 크레딧이 충전됐습니다.</h2>
+        <table>
+          <tr><td><b>충전 크레딧</b></td><td>${creditCount}회</td></tr>
+          <tr><td><b>결제 금액</b></td><td>₩${amountKrw.toLocaleString("ko-KR")}</td></tr>
+        </table>
+        <p><a href="https://tubewatch.kr/analysis">분석 시작하기</a></p>
+      `;
+
+  await resend.emails.send({ from: FROM_EMAIL, to, subject, html });
+}
+
+export async function sendEnterpriseOrderConfirmation({
+  to,
+  channelUrl,
+  orderId,
+}: {
+  to: string;
+  channelUrl: string;
+  orderId: string;
+}) {
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: "[Channel Report] 채널 컨설팅 서비스 결제 완료",
+    html: `
+      <h2>채널 컨설팅 서비스 신청이 완료됐습니다.</h2>
+      <p>분석 대상 채널: <a href="${channelUrl}">${channelUrl}</a></p>
+      <p>담당자가 분석을 시작합니다. 완료 시 이메일로 안내드립니다.</p>
+      <p style="color:#888;font-size:12px;">주문 번호: ${orderId}</p>
+    `,
+  });
+}
+
+export async function sendReportReadyEmail({
+  to,
+  channelUrl,
+  reportNumber,
+  totalReports,
+}: {
+  to: string;
+  channelUrl: string;
+  reportNumber: number;
+  totalReports: number;
+}) {
+  const subject =
+    totalReports > 1
+      ? `[Channel Report] ${reportNumber}차 전략 리포트가 도착했습니다`
+      : "[Channel Report] 채널 전략 리포트가 도착했습니다";
+
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject,
+    html: `
+      <h2>${reportNumber}차 리포트가 발송됐습니다.</h2>
+      <p>분석 대상 채널: <a href="${channelUrl}">${channelUrl}</a></p>
+      <p>첨부된 리포트를 확인해주세요. 추가 문의는 이 이메일로 회신해주세요.</p>
+      ${totalReports > 1 ? `<p style="color:#888;font-size:12px;">${reportNumber} / ${totalReports}회 완료</p>` : ""}
+    `,
+  });
 }
