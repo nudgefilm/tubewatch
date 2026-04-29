@@ -259,13 +259,13 @@ export default function ChannelReportLanding() {
               </div>
 
               <h1 className={`font-heading font-bold leading-[1.1] tracking-[-0.04em] transition-all duration-1000 delay-100 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
-                <span className="block text-[clamp(2.4rem,5vw,4.2rem)] text-foreground">
+                <span className="block whitespace-nowrap text-[clamp(2.2rem,4vw,3.4rem)] text-foreground">
                   클라이언트 채널의
                 </span>
-                <span className="block text-[clamp(2.4rem,5vw,4.2rem)] text-foreground">
+                <span className="block whitespace-nowrap text-[clamp(2.2rem,4vw,3.4rem)] text-foreground">
                   <span className="text-orange-500">불확실성</span>,
                 </span>
-                <span className="block whitespace-nowrap text-[clamp(1.6rem,3.2vw,2.8rem)] text-foreground">
+                <span className="block whitespace-nowrap text-[clamp(1.5rem,2.8vw,2.4rem)] text-foreground">
                   데이터로 제거합니다.
                 </span>
               </h1>
