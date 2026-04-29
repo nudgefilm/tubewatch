@@ -668,6 +668,7 @@ function EnterpriseCard({ initialEmail, userChannels }: { initialEmail: string; 
                   onChange={(e) => setChannelUrl(e.target.value)}
                   className="mt-1.5"
                 />
+                <p className="mt-1 text-xs text-muted-foreground">분석을 원하시는 채널 URL을 확인하거나 직접 입력해 주세요.</p>
               </div>
               <div>
                 <Label htmlFor="ent-email" className="text-sm font-medium">
