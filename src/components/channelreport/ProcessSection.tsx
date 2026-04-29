@@ -252,7 +252,7 @@ export function ProcessSection() {
         <div className="absolute inset-0" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, currentColor 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
       </div>
 
-      <div className="relative z-10 mx-auto max-w-[1400px] px-6 lg:px-12">
+      <div className="relative z-10 mx-auto max-w-[1100px] px-8 lg:px-16">
         <div className="mb-12 text-center lg:mb-16">
           <span className="mb-6 inline-flex items-center gap-3 font-mono text-sm text-muted-foreground">
             <span className="h-px w-8 bg-foreground/30" />

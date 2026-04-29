@@ -192,17 +192,35 @@ const HERO_STATS = [
 export default function ChannelReportLanding() {
   const [modalOpen, setModalOpen] = useState(false);
   const [visible, setVisible] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
   useEffect(() => { setVisible(true); }, []);
+
+  useEffect(() => {
+    const handler = () => setIsScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handler, { passive: true });
+    return () => window.removeEventListener("scroll", handler);
+  }, []);
 
   function scrollToHero() {
     document.getElementById("hero")?.scrollIntoView({ behavior: "smooth" });
   }
 
   return (
-    <main className="relative min-h-screen overflow-x-hidden bg-background">
-      {/* 헤더 */}
-      <header className="sticky top-0 z-40 border-b border-foreground/10 bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto flex h-14 max-w-[1100px] items-center justify-between px-8 lg:px-16">
+    <>
+      {/* 헤더 — main 바깥에 위치해야 overflow-x-hidden에 의한 fixed 무력화 방지 */}
+      <header
+        className={`fixed z-50 transition-all duration-300 ${
+          isScrolled ? "top-4 left-4 right-4" : "top-0 left-0 right-0"
+        }`}
+      >
+        <div
+          className={`mx-auto flex items-center justify-between transition-all duration-300 ${
+            isScrolled
+              ? "max-w-[1100px] h-14 px-6 lg:px-8 rounded-2xl bg-background/80 backdrop-blur-xl border border-foreground/10 shadow-lg"
+              : "max-w-[1100px] h-20 px-8 lg:px-16"
+          }`}
+        >
           <button
             onClick={scrollToHero}
             className="font-heading text-lg font-semibold tracking-tight hover:opacity-80 transition-opacity"
@@ -216,6 +234,8 @@ export default function ChannelReportLanding() {
           </div>
         </div>
       </header>
+
+      <main className="relative min-h-screen overflow-x-hidden bg-background">
 
       {/* 히어로 */}
       <section id="hero" className="relative flex flex-col justify-center overflow-hidden pt-20 pb-16 lg:pt-28 lg:pb-20">
@@ -346,5 +366,6 @@ export default function ChannelReportLanding() {
 
       {modalOpen && <B2BInquiryModal onClose={() => setModalOpen(false)} />}
     </main>
+    </>
   );
 }
