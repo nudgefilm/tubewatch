@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, Check, X, Building2 } from "lucide-react";
+import { ArrowRight, Check, X, FileText, Search, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -83,7 +83,7 @@ function B2BInquiryModal({ onClose }: { onClose: () => void }) {
                 <Label className="text-sm">기관명 <span className="text-destructive">*</span></Label>
                 <Input
                   className="mt-1"
-                  placeholder="언폴드랩"
+                  placeholder="기관명"
                   value={form.agencyName}
                   onChange={(e) => set("agencyName", e.target.value)}
                 />
@@ -165,14 +165,37 @@ function B2BInquiryModal({ onClose }: { onClose: () => void }) {
   );
 }
 
+// ─── 프로세스 스텝 ────────────────────────────────────────────────────────────
+
+const STEPS = [
+  {
+    icon: FileText,
+    step: "01",
+    title: "서비스 신청",
+    desc: "채널 URL과 담당자 정보를 입력합니다. 접수 즉시 결제 안내 이메일이 발송됩니다.",
+  },
+  {
+    icon: Search,
+    step: "02",
+    title: "전문가 전수 분석",
+    desc: "수석 전략가가 최근 영상 50개와 30개 시그널을 직접 조사합니다. 데이터 기반 병목 구간을 정확히 탐지합니다.",
+  },
+  {
+    icon: BarChart3,
+    step: "03",
+    title: "리포트 수령",
+    desc: "전용 URL로 언제든 열람 가능한 리포트가 제공됩니다. 클라이언트 보고서에 바로 활용하세요.",
+  },
+];
+
 // ─── 기능 목록 ────────────────────────────────────────────────────────────────
 
 const FEATURES = [
-  "최근 영상 50개 메타데이터 + 30개 시그널 전수 조사",
+  "영상 50개 전수 분석 — 조회수·유지율·CTR 등 핵심 지표 완전 파악",
   "수석 전략가 1:1 맞춤형 진단 코멘터리",
-  "특허 출원 기술 기반 병목(Bottleneck) 구간 탐지",
-  "분석 기반 향후 30일 콘텐츠 실행 로드맵",
-  "클라이언트 보고용 전용 URL 제공",
+  "특허출원 기술 기반 병목(Bottleneck) 구간 정밀 탐지",
+  "향후 30일 콘텐츠 실행 로드맵",
+  "제안서·보고서에 바로 삽입 가능한 전용 리포트 URL",
   "월 1회 전략 리포트 × 3회 (3개월 정기)",
 ];
 
@@ -200,35 +223,56 @@ export default function ChannelReportLanding() {
         <div className="max-w-2xl">
           <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-foreground/15 bg-foreground/5 px-3 py-1 text-xs font-mono tracking-widest text-muted-foreground">
             <span className="h-1.5 w-1.5 rounded-full bg-foreground/50" />
-            전문가 채널 분석 컨설팅
+            광고기획사 · MCN 전문 채널 컨설팅
           </span>
           <h1 className="font-heading text-4xl font-bold leading-[1.1] tracking-[-0.03em] lg:text-6xl">
-            채널 성장의<br />
-            <span className="text-orange-500">다음 전략</span>을<br />
-            진단합니다.
+            클라이언트 채널,<br />
+            <span className="text-orange-500">데이터로</span><br />
+            설득하세요.
           </h1>
           <p className="mt-6 text-base text-muted-foreground lg:text-lg">
-            최근 영상 <strong>50</strong>개와 <strong>30개 시그널</strong>을 전수 조사하여
-            병목 구간을 찾고, 향후 30일 실행 가이드를 제공합니다.
+            최근 영상 <strong>50개</strong>와 <strong>30개 시그널</strong>을 전수 조사해
+            성장을 막는 병목을 찾고, 향후 <strong>30일 실행 전략</strong>을 제시합니다.
           </p>
           <p className="mt-2 text-xs text-muted-foreground/60">특허출원 제10-2026-0075318호</p>
-          <div className="mt-8 flex items-center gap-4">
+          <div className="mt-8 flex flex-wrap items-center gap-4">
             <Button size="lg" className="gap-2" onClick={() => setModalOpen(true)}>
               서비스 신청하기
               <ArrowRight className="h-4 w-4" />
             </Button>
-            <span className="text-sm text-muted-foreground">₩330,000 / 3개월</span>
+            <div className="flex flex-col">
+              <span className="text-sm font-semibold text-foreground">₩330,000 <span className="font-normal text-muted-foreground">VAT 포함</span></span>
+              <span className="text-xs text-muted-foreground">3개월 정기 · 월 ₩110,000 상당</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 프로세스 */}
+      <section className="border-t border-foreground/10 bg-foreground/[0.02]">
+        <div className="mx-auto max-w-5xl px-6 py-16">
+          <h2 className="mb-10 text-2xl font-bold tracking-tight">진행 프로세스</h2>
+          <div className="grid gap-8 sm:grid-cols-3">
+            {STEPS.map(({ icon: Icon, step, title, desc }) => (
+              <div key={step} className="flex flex-col gap-3">
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-xs font-bold text-orange-500">{step}</span>
+                  <Icon className="h-5 w-5 text-foreground/40" />
+                </div>
+                <h3 className="font-semibold">{title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* 기능 목록 */}
-      <section className="border-t border-foreground/10 bg-foreground/[0.02]">
+      <section className="border-t border-foreground/10">
         <div className="mx-auto max-w-5xl px-6 py-16">
           <div className="mb-8">
-            <Building2 className="mb-3 h-6 w-6 text-orange-500" />
             <h2 className="text-2xl font-bold tracking-tight">포함 내용</h2>
-            <p className="mt-2 text-sm text-muted-foreground">광고기획사 및 MCN 대상 전문가 진단 서비스</p>
+            <p className="mt-2 text-sm text-muted-foreground">3개월 동안 제공되는 전문가 진단 서비스</p>
           </div>
           <ul className="grid gap-4 sm:grid-cols-2">
             {FEATURES.map((f) => (
@@ -242,18 +286,23 @@ export default function ChannelReportLanding() {
       </section>
 
       {/* CTA */}
-      <section className="mx-auto max-w-5xl px-6 py-20">
-        <div className="rounded-2xl border border-foreground/15 bg-foreground/[0.01] p-10 text-center lg:p-16">
-          <h2 className="text-3xl font-bold tracking-tight lg:text-4xl">
-            지금 바로 신청하세요
-          </h2>
-          <p className="mt-4 text-muted-foreground">
-            신청 접수 후 담당자 이메일로 결제 안내가 발송됩니다.
-          </p>
-          <Button size="lg" className="mt-8 gap-2" onClick={() => setModalOpen(true)}>
-            서비스 신청하기
-            <ArrowRight className="h-4 w-4" />
-          </Button>
+      <section className="border-t border-foreground/10 bg-foreground/[0.02]">
+        <div className="mx-auto max-w-5xl px-6 py-20">
+          <div className="rounded-2xl border border-foreground/15 bg-background p-10 text-center lg:p-16">
+            <h2 className="text-3xl font-bold tracking-tight lg:text-4xl">
+              지금 바로 신청하세요
+            </h2>
+            <p className="mt-4 text-muted-foreground">
+              신청 접수 후 이메일로 결제 안내가 발송됩니다.
+            </p>
+            <div className="mt-8 flex flex-col items-center gap-3">
+              <Button size="lg" className="gap-2" onClick={() => setModalOpen(true)}>
+                서비스 신청하기
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+              <span className="text-sm text-muted-foreground">₩330,000 (VAT 포함) · 3개월 정기</span>
+            </div>
+          </div>
         </div>
       </section>
 
