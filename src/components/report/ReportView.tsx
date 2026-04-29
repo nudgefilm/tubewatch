@@ -237,7 +237,7 @@ function HeroSection({ info, scorecard, growth, signals, date }: {
               리포트에서 반드시 실행하거나 점검해야 할 항목
             </p>
           </div>
-          <div style={{ border: `2px solid ${ORANGE}`, background: ORBG, padding: "28px 36px", textAlign: "center", minWidth: "160px", flexShrink: 0 }}>
+          <div className="score-box-float" style={{ border: `2px solid ${ORANGE}`, background: ORBG, padding: "28px 36px", textAlign: "center", minWidth: "160px", flexShrink: 0 }}>
             <div style={{ fontSize: "60px", fontWeight: 900, color: LIME, lineHeight: 1, fontFamily: MONO }}>{displayScore}</div>
             <div style={{ fontSize: "12px", color: "#AAAAAA", letterSpacing: "1.5px", textTransform: "uppercase", marginTop: "6px", fontFamily: MONO }}>Channel Score</div>
             <div style={{ marginTop: "12px", display: "inline-block", fontSize: "22px", fontWeight: 900, background: ORANGE, color: "#fff", padding: "7px 22px", borderRadius: "4px", fontFamily: MONO, letterSpacing: "2px" }}>{grade}</div>
@@ -1141,6 +1141,11 @@ export default function ReportView({ report, generatedAt, reportId, isChannelRep
           .g-kpi-goal{grid-template-columns:repeat(2,1fr)}
           .g-preview3{grid-template-columns:1fr}
         }
+        @keyframes score-float {
+          0%,100% { transform: translateY(0px); }
+          50%      { transform: translateY(-8px); }
+        }
+        .score-box-float { animation: score-float 3s ease-in-out infinite; }
       `}</style>
 
       <div className="report-root">
