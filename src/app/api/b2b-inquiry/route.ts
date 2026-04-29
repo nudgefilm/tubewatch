@@ -13,7 +13,10 @@ export async function POST(request: Request) {
   const contactName   = typeof raw.contactName   === "string" ? raw.contactName.trim()   : "";
   const contactEmail  = typeof raw.contactEmail  === "string" ? raw.contactEmail.trim()  : "";
   const contactPhone  = typeof raw.contactPhone  === "string" ? raw.contactPhone.trim()  : null;
-  const channelUrl    = typeof raw.channelUrl    === "string" ? raw.channelUrl.trim()    : "";
+  const rawChannelUrl = typeof raw.channelUrl === "string" ? raw.channelUrl.trim() : "";
+  const channelUrl = rawChannelUrl && !/^https?:\/\//i.test(rawChannelUrl)
+    ? `https://${rawChannelUrl}`
+    : rawChannelUrl;
   const taxInvoiceRequested = raw.taxInvoiceRequested === true;
   const taxInvoiceInfo = typeof raw.taxInvoiceInfo === "string" ? raw.taxInvoiceInfo.trim() : null;
 
