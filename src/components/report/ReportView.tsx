@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Check } from "lucide-react";
 import type { ManusReportJson } from "@/lib/manus/types";
 
@@ -1055,6 +1055,15 @@ export default function ReportView({ report, generatedAt, reportId }: Props) {
     .toLocaleDateString("ko-KR", { year: "numeric", month: "2-digit" })
     .replace(". ", ".").replace(".", "년 ").replace(".", "월");
   const [copied, setCopied] = useState(false);
+  const [isChannelReport, setIsChannelReport] = useState(false);
+
+  useEffect(() => {
+    setIsChannelReport(window.location.hostname.includes("channelreport"));
+  }, []);
+
+  const brandName = isChannelReport ? "Channel Report" : "TubeWatch";
+  const brandMark = isChannelReport ? "" : "™";
+
   const handleShare = () => {
     void navigator.clipboard.writeText(window.location.href).then(() => {
       setCopied(true);
@@ -1124,7 +1133,7 @@ export default function ReportView({ report, generatedAt, reportId }: Props) {
       <div className="report-root">
         <nav className="rpt-nav">
           <a href="#" style={{ fontWeight: 900, fontSize: "19px", letterSpacing: "-.5px", color: BLK, textDecoration: "none" }}>
-            TubeWatch<span style={{ color: LIME }}>™</span>
+            {brandName}{brandMark && <span style={{ color: LIME }}>{brandMark}</span>}
           </a>
           <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
             <span className="rpt-nav-label" style={{ fontFamily: MONO, fontSize: "14px", fontWeight: 800, letterSpacing: ".5px", textTransform: "uppercase" }}>Monthly Report</span>
@@ -1150,10 +1159,12 @@ export default function ReportView({ report, generatedAt, reportId }: Props) {
         <NextMonthSection   report={report} date={date} generatedAt={generatedAt} />
 
         <footer style={{ background: "#0A0A0A", padding: "28px 48px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
-          <div style={{ fontWeight: 900, fontSize: "16px", color: "#fff" }}>TubeWatch<span style={{ color: LIME }}>™</span></div>
+          <div style={{ fontWeight: 900, fontSize: "16px", color: "#fff" }}>
+            {brandName}{brandMark && <span style={{ color: LIME }}>{brandMark}</span>}
+          </div>
           <div style={{ fontFamily: MONO, fontSize: "12px", color: "#888", textAlign: "right", lineHeight: 1.8 }}>
-            분석 기준일: {report.channel_info?.analysis_date ?? date} · 튜브워치 엔진 v2.1<br />
-            © 2026 TubeWatch. All rights reserved.
+            분석 기준일: {report.channel_info?.analysis_date ?? date} · 채널 분석 엔진 v2.1<br />
+            © 2026 {brandName}. All rights reserved.
           </div>
         </footer>
       </div>

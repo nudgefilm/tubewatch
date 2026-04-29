@@ -95,3 +95,15 @@ export const CREDIT_PRODUCTS: CreditProduct[] = [
 
 /** Free 플랜 생애 분석 한도 */
 export const FREE_LIFETIME_ANALYSIS_LIMIT = 3;
+
+// ─── Enterprise consulting product ───────────────────────────────────────────
+
+export const ENTERPRISE_PRODUCT = {
+  id: "enterprise-standard" as const,
+  name: "Enterprise Standard",
+  priceKrw: 330000,
+  durationMonths: 3,
+  reportsTotal: 3,
+  description: "전문가 진단 채널 분석 컨설팅",
+  badge: "VAT 포함",
+} as const;

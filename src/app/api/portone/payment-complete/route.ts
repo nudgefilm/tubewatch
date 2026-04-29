@@ -24,10 +24,12 @@ import { addPurchasedCredits } from "@/lib/server/analysis/checkUserCredits";
 import {
   BILLING_PLANS,
   CREDIT_PRODUCTS,
+  ENTERPRISE_PRODUCT,
   type BillingPlanId,
   type BillingPeriod,
   type CreditProductId,
 } from "@/components/billing/types";
+import { sendEnterpriseOrderAlert } from "@/lib/email/resend";
 
 type ExistingSubRow = {
   plan_id: string | null;
@@ -73,14 +75,69 @@ export async function POST(request: Request) {
   if (!paymentId) {
     return NextResponse.json({ error: "paymentId가 필요합니다." }, { status: 400 });
   }
-  if (type !== "subscription" && type !== "credit") {
-    return NextResponse.json({ error: "type은 subscription 또는 credit이어야 합니다." }, { status: 400 });
+  if (type !== "subscription" && type !== "credit" && type !== "enterprise") {
+    return NextResponse.json({ error: "type은 subscription, credit 또는 enterprise이어야 합니다." }, { status: 400 });
   }
 
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
     return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
+  }
+
+  // ─── Enterprise 컨설팅 처리 ─────────────────────────────────────────────────
+
+  if (type === "enterprise") {
+    const channelUrl = typeof raw.channelUrl === "string" ? raw.channelUrl.trim() : "";
+    const contactEmail = typeof raw.contactEmail === "string" ? raw.contactEmail.trim() : "";
+    const contactPhone = typeof raw.contactPhone === "string" ? raw.contactPhone.trim() : null;
+    const inquiryId = typeof raw.inquiryId === "string" ? raw.inquiryId.trim() : null;
+
+    if (!channelUrl) {
+      return NextResponse.json({ error: "채널 URL이 필요합니다." }, { status: 400 });
+    }
+
+    if (payment.amount.total !== ENTERPRISE_PRODUCT.priceKrw) {
+      console.error(`[portone/payment-complete] enterprise amount mismatch: expected=${ENTERPRISE_PRODUCT.priceKrw}, got=${payment.amount.total}`);
+      return NextResponse.json({ error: "결제 금액이 일치하지 않습니다." }, { status: 400 });
+    }
+
+    const { data: order, error: insertError } = await supabaseAdmin
+      .from("enterprise_orders")
+      .insert({
+        source: inquiryId ? "channelreport" : "tubewatch",
+        inquiry_id: inquiryId ?? null,
+        user_id: user.id,
+        email: contactEmail || user.email,
+        contact_phone: contactPhone,
+        channel_url: channelUrl,
+        portone_payment_id: paymentId,
+        amount_krw: ENTERPRISE_PRODUCT.priceKrw,
+        payment_status: "paid",
+        status: "paid",
+      })
+      .select("id")
+      .single();
+
+    if (insertError || !order) {
+      console.error("[portone/payment-complete] enterprise insert error:", insertError);
+      return NextResponse.json({ error: "주문 저장에 실패했습니다." }, { status: 500 });
+    }
+
+    try {
+      await sendEnterpriseOrderAlert({
+        orderId: order.id,
+        channelUrl,
+        email: contactEmail || user.email!,
+        contactPhone,
+        source: inquiryId ? "channelreport" : "tubewatch",
+        inquiryId,
+      });
+    } catch (emailErr) {
+      console.error("[portone/payment-complete] enterprise email error:", emailErr);
+    }
+
+    return NextResponse.json({ ok: true });
   }
 
   // ─── 구독: idempotency 체크 + 기존 구독 상태 조회 ────────────────────────────

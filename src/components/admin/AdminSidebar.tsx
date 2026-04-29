@@ -8,6 +8,7 @@ import {
   Briefcase,
   Activity,
   ClipboardList,
+  Building2,
   ArrowLeft,
 } from "lucide-react";
 
@@ -23,7 +24,8 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin/channels", label: "Channels", icon: <Youtube className="h-4 w-4" /> },
   { href: "/admin/jobs",     label: "Jobs",     icon: <Briefcase className="h-4 w-4" /> },
   { href: "/admin/monitor",    label: "Monitor",   icon: <Activity className="h-4 w-4" /> },
-  { href: "/admin/signup-log", label: "가입 로그", icon: <ClipboardList className="h-4 w-4" /> },
+  { href: "/admin/signup-log",       label: "가입 로그",   icon: <ClipboardList className="h-4 w-4" /> },
+  { href: "/admin/enterprise-orders", label: "채널 컨설팅", icon: <Building2 className="h-4 w-4" /> },
 ];
 
 function isActive(pathname: string, href: string): boolean {

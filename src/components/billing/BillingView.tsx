@@ -1,15 +1,18 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Check, Zap, Crown } from "lucide-react";
+import { Check, Zap, Crown, Building2, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { TermsModal } from "@/components/landing/terms-modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   BILLING_PLANS,
   CREDIT_PRODUCTS,
+  ENTERPRISE_PRODUCT,
   FREE_LIFETIME_ANALYSIS_LIMIT,
   type BillingPeriod,
   type BillingPlanId,
@@ -67,18 +70,25 @@ function usePortOneRedirectReturn(onSuccess: () => void) {
     const paymentId = searchParams.get("po_payment_id");
     if (!paymentId) return;
 
-    const type = searchParams.get("po_type") as "subscription" | "credit" | null;
+    const type = searchParams.get("po_type") as "subscription" | "credit" | "enterprise" | null;
     const planId = searchParams.get("po_plan");
     const billingPeriod = searchParams.get("po_period") as "monthly" | "semiannual" | null;
     const productId = searchParams.get("po_product");
+    const channelUrl = searchParams.get("po_channel_url");
+    const contactEmail = searchParams.get("po_email");
+    const contactPhone = searchParams.get("po_phone");
     if (!type) return;
 
     setReturnState("verifying");
 
-    const body =
-      type === "subscription"
-        ? { paymentId, type, planId, billingPeriod }
-        : { paymentId, type, productId };
+    let body: Record<string, unknown>;
+    if (type === "subscription") {
+      body = { paymentId, type, planId, billingPeriod };
+    } else if (type === "enterprise") {
+      body = { paymentId, type, channelUrl, contactEmail, contactPhone };
+    } else {
+      body = { paymentId, type, productId };
+    }
 
     // 금액 역산 (ROAS 측정용)
     let redirectAmount: number | undefined;
@@ -92,6 +102,8 @@ function usePortOneRedirectReturn(onSuccess: () => void) {
     } else if (type === "credit" && productId) {
       const matchedProduct = CREDIT_PRODUCTS.find((p) => p.id === productId);
       redirectAmount = matchedProduct?.priceKrw;
+    } else if (type === "enterprise") {
+      redirectAmount = ENTERPRISE_PRODUCT.priceKrw;
     }
 
     fetch("/api/portone/payment-complete", {
@@ -502,6 +514,189 @@ function CreditProductCard({ product }: { product: (typeof CREDIT_PRODUCTS)[numb
   );
 }
 
+// ─── Enterprise consulting card ───────────────────────────────────────────────
+
+const ENTERPRISE_FEATURES = [
+  "최근 영상 50개 메타데이터 + 30개 시그널 전수 조사",
+  "언폴드랩 수석 전략가 1:1 맞춤형 진단 코멘터리",
+  "특허 출원 기술 기반 병목(Bottleneck) 구간 탐지",
+  "분석 기반 향후 30일 콘텐츠 실행 로드맵",
+  "클라이언트 보고용 전용 URL + 전문가 별도 보고서",
+  "월 1회 전략 리포트 × 3회 (3개월 정기 발행)",
+];
+
+function EnterpriseCard() {
+  const router = useRouter();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [channelUrl, setChannelUrl] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const channelUrlRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (modalOpen) setTimeout(() => channelUrlRef.current?.focus(), 50);
+  }, [modalOpen]);
+
+  async function handlePayment() {
+    if (!channelUrl.trim()) {
+      setError("분석 대상 채널 URL을 입력해주세요.");
+      return;
+    }
+    if (!contactEmail.trim()) {
+      setError("담당자 이메일을 입력해주세요.");
+      return;
+    }
+    setError(null);
+    setLoading(true);
+
+    try {
+      const PortOne = (await import("@portone/browser-sdk/v2")).default;
+      const paymentId = `tw_ent_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+      const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+      const redirectUrl =
+        `${baseUrl}/billing?po_payment_id=${paymentId}` +
+        `&po_type=enterprise` +
+        `&po_channel_url=${encodeURIComponent(channelUrl.trim())}` +
+        `&po_email=${encodeURIComponent(contactEmail.trim())}` +
+        `&po_phone=${encodeURIComponent(contactPhone.trim())}`;
+
+      await PortOne.requestPayment({
+        storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID!,
+        channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY!,
+        paymentId,
+        orderName: `TubeWatch ${ENTERPRISE_PRODUCT.name} (3개월 컨설팅)`,
+        totalAmount: ENTERPRISE_PRODUCT.priceKrw,
+        currency: "CURRENCY_KRW",
+        payMethod: "CARD",
+        redirectUrl,
+      });
+    } catch {
+      setError("결제 요청 중 오류가 발생했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <>
+      <Card className="flex flex-col border-primary/30 bg-primary/[0.02]">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Building2 className="h-5 w-5 text-primary" />
+              <CardTitle className="text-base">{ENTERPRISE_PRODUCT.name}</CardTitle>
+            </div>
+            <Badge variant="outline" className="text-xs">
+              {ENTERPRISE_PRODUCT.badge}
+            </Badge>
+          </div>
+          <div className="mt-3">
+            <span className="text-3xl font-bold">
+              ₩{ENTERPRISE_PRODUCT.priceKrw.toLocaleString("ko-KR")}
+            </span>
+            <span className="ml-1 text-sm text-muted-foreground">/ 3개월</span>
+          </div>
+          <CardDescription className="mt-1">{ENTERPRISE_PRODUCT.description}</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-1 flex-col gap-4 pt-0">
+          <ul className="space-y-2">
+            {ENTERPRISE_FEATURES.map((f) => (
+              <li key={f} className="flex items-start gap-2 text-sm text-muted-foreground">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                {f}
+              </li>
+            ))}
+          </ul>
+          <Button className="mt-auto w-full" onClick={() => setModalOpen(true)}>
+            신청하기
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* 채널 URL 입력 모달 */}
+      {modalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setModalOpen(false); }}
+        >
+          <div className="w-full max-w-md rounded-xl border bg-background p-6 shadow-xl">
+            <div className="mb-5 flex items-center justify-between">
+              <h3 className="text-base font-semibold">Enterprise Standard 신청</h3>
+              <button
+                onClick={() => setModalOpen(false)}
+                className="rounded-md p-1 text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="ent-channel-url" className="text-sm font-medium">
+                  분석 대상 채널 URL <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="ent-channel-url"
+                  ref={channelUrlRef}
+                  placeholder="https://www.youtube.com/@channelname"
+                  value={channelUrl}
+                  onChange={(e) => setChannelUrl(e.target.value)}
+                  className="mt-1.5"
+                />
+              </div>
+              <div>
+                <Label htmlFor="ent-email" className="text-sm font-medium">
+                  담당자 이메일 <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="ent-email"
+                  type="email"
+                  placeholder="contact@example.com"
+                  value={contactEmail}
+                  onChange={(e) => setContactEmail(e.target.value)}
+                  className="mt-1.5"
+                />
+              </div>
+              <div>
+                <Label htmlFor="ent-phone" className="text-sm font-medium">
+                  연락처
+                </Label>
+                <Input
+                  id="ent-phone"
+                  type="tel"
+                  placeholder="010-0000-0000"
+                  value={contactPhone}
+                  onChange={(e) => setContactPhone(e.target.value)}
+                  className="mt-1.5"
+                />
+              </div>
+
+              {error && (
+                <p className="text-xs text-destructive" role="alert">{error}</p>
+              )}
+
+              <div className="rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground">
+                결제 완료 후 영업일 기준 2일 이내 담당 전략가가 배정되며,
+                첫 번째 리포트는 분석 완료 후 이메일로 전달됩니다.
+              </div>
+
+              <Button
+                className="w-full"
+                onClick={handlePayment}
+                disabled={loading}
+              >
+                {loading ? "처리 중..." : `₩${ENTERPRISE_PRODUCT.priceKrw.toLocaleString("ko-KR")} 결제하기`}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 // ─── Current plan status card ─────────────────────────────────────────────────
 
 function CurrentPlanCard({ status }: { status: UserBillingStatus }) {
@@ -752,6 +947,18 @@ export default function BillingView({ initialData, channelCount }: { initialData
               <CreditProductCard key={product.id} product={product} />
             ))}
           </div>
+        </section>
+
+        {/* Enterprise Standard */}
+        <section>
+          <div className="mb-2 flex items-center gap-3">
+            <Building2 className="h-5 w-5 text-primary" />
+            <h2 className="text-xl font-bold">전문가 컨설팅</h2>
+          </div>
+          <p className="mb-6 text-sm text-muted-foreground">
+            튜브워치 엔진의 정밀함에 전문가의 통찰을 더한 채널 성장 컨설팅 서비스입니다.
+          </p>
+          <EnterpriseCard />
         </section>
 
         {/* Footer links */}
