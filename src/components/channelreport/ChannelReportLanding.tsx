@@ -321,7 +321,7 @@ export default function ChannelReportLanding() {
 
       {/* CTA */}
       <div className="border-t border-foreground/10">
-        <TimerCtaSection onApply={() => setModalOpen(true)} />
+        <TimerCtaSection />
       </div>
 
       {/* 푸터 */}

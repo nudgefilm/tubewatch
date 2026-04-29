@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 const TOTAL_SECONDS = 12 * 60 * 60;
 
@@ -130,7 +128,7 @@ const TRUST_ITEMS = [
   },
 ];
 
-export function TimerCtaSection({ onApply }: { onApply: () => void }) {
+export function TimerCtaSection() {
   const { hours, minutes, seconds, timeLeft } = useCountdown();
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -197,15 +195,6 @@ export function TimerCtaSection({ onApply }: { onApply: () => void }) {
               <TimerSeparator isUrgent={isUrgent} />
               <TimerDigit value={seconds} label="초" isUrgent={isUrgent} />
             </div>
-          </div>
-
-          {/* CTA 버튼 */}
-          <div className={`mb-12 flex flex-col items-center gap-3 transition-all duration-700 delay-[350ms] ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-            <Button size="lg" className="gap-2" onClick={onApply}>
-              전략 컨설팅 채널 등록
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-            <span className="text-sm text-muted-foreground">₩330,000 (VAT 포함) · 3개월 정기</span>
           </div>
 
           {/* Trust indicators */}
