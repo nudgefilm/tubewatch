@@ -61,6 +61,11 @@ export async function POST(request: Request) {
         inquiryId: data.id,
       }),
     ]);
+    // 자동 발송 완료 → 어드민 재발송 방지
+    await supabaseAdmin
+      .from("b2b_inquiries")
+      .update({ status: "payment_sent" })
+      .eq("id", data.id);
   } catch (emailErr) {
     console.error("[b2b-inquiry] email error:", emailErr);
   }
