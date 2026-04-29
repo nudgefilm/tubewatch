@@ -184,7 +184,7 @@ const STEPS = [
     icon: BarChart3,
     step: "03",
     title: "리포트 수령",
-    desc: "전용 URL로 언제든 열람 가능한 리포트가 제공됩니다. 클라이언트 보고서에 바로 활용하세요.",
+    desc: "열람 가능한 클라이언트 리포트 전용 URL과 1:1 맞춤형 전문가 진단 코멘터리가 제공됩니다. 클라이언트 보고서에 바로 활용하세요.",
   },
 ];
 
@@ -215,22 +215,31 @@ export default function ChannelReportLanding() {
   const [visible, setVisible] = useState(false);
   useEffect(() => { setVisible(true); }, []);
 
+  function scrollToHero() {
+    document.getElementById("hero")?.scrollIntoView({ behavior: "smooth" });
+  }
+
   return (
     <main className="relative min-h-screen overflow-x-hidden bg-background">
       {/* 헤더 */}
       <header className="sticky top-0 z-40 border-b border-foreground/10 bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-6">
-          <span className="font-heading text-lg font-semibold tracking-tight">
+        <div className="mx-auto flex h-14 max-w-[1100px] items-center justify-between px-8 lg:px-16">
+          <button
+            onClick={scrollToHero}
+            className="font-heading text-lg font-semibold tracking-tight hover:opacity-80 transition-opacity"
+          >
             Channel Report
-          </span>
-          <Button size="sm" onClick={() => setModalOpen(true)}>
-            서비스 신청
-          </Button>
+          </button>
+          <div className="flex items-center gap-2 text-right text-xs text-muted-foreground">
+            <span className="hidden sm:inline">유튜브 채널 분석 진단 솔루션</span>
+            <span className="hidden sm:inline text-foreground/20">|</span>
+            <span className="font-mono text-[10px] text-muted-foreground/70">특허출원 제10-2026-0075318호&nbsp;&nbsp;2026.04 발행</span>
+          </div>
         </div>
       </header>
 
       {/* 히어로 */}
-      <section className="relative flex flex-col justify-center overflow-hidden pt-20 pb-16 lg:pt-28 lg:pb-20">
+      <section id="hero" className="relative flex flex-col justify-center overflow-hidden pt-20 pb-16 lg:pt-28 lg:pb-20">
         {/* 배경 그리드 */}
         <div
           className="pointer-events-none absolute inset-0"
@@ -245,43 +254,34 @@ export default function ChannelReportLanding() {
             {/* 왼쪽: 텍스트 */}
             <div className="min-w-0 flex-1">
               <div className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-                <span className="mb-8 inline-flex items-center gap-2 rounded-full border border-foreground/20 bg-foreground/5 px-3 py-1 text-xs font-mono tracking-widest text-foreground">
-                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-foreground/60" />
-                  광고기획사 · MCN 전문 채널 컨설팅
+                <span className="mb-8 inline-flex items-center gap-2 rounded-lg border border-foreground/20 bg-foreground/5 px-3 py-1 text-xs font-mono tracking-widest text-foreground">
+                  유튜브 채널 전략 컨설팅
                 </span>
               </div>
 
               <h1 className={`font-heading font-bold leading-[1.1] tracking-[-0.04em] transition-all duration-1000 delay-100 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
-                <span className="block whitespace-nowrap text-[clamp(2.4rem,5vw,4.2rem)] text-foreground">
-                  클라이언트 채널,
+                <span className="block text-[clamp(2.4rem,5vw,4.2rem)] text-foreground">
+                  클라이언트 채널의 <span className="text-orange-500">불확실성</span>,
                 </span>
-                <span className="block whitespace-nowrap text-[clamp(1.6rem,3.2vw,2.8rem)] text-orange-500">
-                  데이터로 설득하세요.
+                <span className="block whitespace-nowrap text-[clamp(1.6rem,3.2vw,2.8rem)] text-foreground">
+                  데이터로 제거합니다.
                 </span>
               </h1>
 
-              <p className={`mt-2 text-xs font-medium tracking-wide text-muted-foreground/70 transition-all duration-700 delay-150 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-                특허출원 제10-2026-0075318호
-              </p>
-
               <p className={`mt-5 max-w-lg text-base leading-relaxed text-muted-foreground transition-all duration-700 delay-150 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-                최근 영상 <span className="font-semibold text-orange-500">50</span>개와{" "}
-                <span className="font-semibold text-orange-500">30</span>개 시그널을 전수 조사해
-                성장을 막는 병목을 찾고, 향후 <span className="font-semibold text-orange-500">30일</span> 실행 전략을 제시합니다.
+                최근 영상 <span className="font-semibold text-orange-500">50</span>개와 채널 데이터를{" "}
+                <span className="font-medium"><span className="font-semibold text-orange-500">30</span>개 시그널 · <span className="font-semibold text-orange-500">9</span>개 성장 지표 · <span className="font-semibold text-orange-500">7</span>개 운영 패턴</span>으로 정밀 분석하여 다음 성장 전략을 제시합니다.
               </p>
 
-              <div className={`mt-8 flex flex-wrap items-center gap-4 transition-all duration-700 delay-[250ms] ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+              <div className={`mt-8 flex flex-col gap-2 transition-all duration-700 delay-[250ms] ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
                 <button
                   onClick={() => setModalOpen(true)}
-                  className="inline-flex animate-float-half items-center gap-2 rounded-xl bg-foreground px-7 py-3.5 text-sm font-semibold text-background shadow-lg shadow-foreground/10 transition-colors hover:bg-foreground/85"
+                  className="inline-flex w-fit animate-float-half items-center gap-2 rounded-xl bg-foreground px-7 py-3.5 text-sm font-semibold text-background shadow-lg shadow-foreground/10 transition-colors hover:bg-foreground/85"
                 >
-                  서비스 신청하기
+                  전략 컨설팅 채널 등록
                   <ArrowRight className="h-4 w-4" />
                 </button>
-                <div className="flex flex-col">
-                  <span className="text-sm font-semibold text-foreground">₩330,000 <span className="font-normal text-muted-foreground">VAT 포함</span></span>
-                  <span className="text-xs text-muted-foreground">3개월 정기 · 월 ₩110,000 상당</span>
-                </div>
+                <span className="text-xs text-muted-foreground">₩330,000 (VAT 포함, 3개월 정기 발행)</span>
               </div>
 
               {/* 스탯 */}
@@ -308,7 +308,7 @@ export default function ChannelReportLanding() {
                 />
               </div>
               <p className="mt-3 text-center text-xs font-medium tracking-wide text-muted-foreground/80">
-                채널 분석 전략 리포트 <span className="text-muted-foreground/50">|</span> 3개월 정기
+                채널 분석 전략 리포트 <span className="text-muted-foreground/50">|</span> 월간 정기 발행
               </p>
             </div>
 
