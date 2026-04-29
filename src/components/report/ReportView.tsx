@@ -978,7 +978,7 @@ function ActionPlanSection({ report }: { report: ManusReportJson }) {
 }
 
 /* ══ 다음달 리포트 예고 ════════════════════════════════════════ */
-function NextMonthSection({ report, date, generatedAt }: { report: ManusReportJson; date: string; generatedAt: string }) {
+function NextMonthSection({ report, date, generatedAt, isChannelReport = false }: { report: ManusReportJson; date: string; generatedAt: string; isChannelReport?: boolean }) {
   const nextAvailable = (() => {
     const d = new Date(generatedAt);
     d.setDate(d.getDate() + 30);
@@ -1040,8 +1040,8 @@ function NextMonthSection({ report, date, generatedAt }: { report: ManusReportJs
             <div style={{ fontSize: "16px", fontWeight: 700, color: "#EEEEEE" }}>다음 리포트 신청일: {nextAvailable} 이후</div>
           </div>
           <div style={{ fontFamily: MONO, fontSize: "12px", color: "#888", textAlign: "right" }}>
-            현재 리포트: {date}<br />
-            <span style={{ color: "#888" }}>Free | Creator | Pro</span>
+            현재 리포트: {date}
+            {!isChannelReport && <><br /><span style={{ color: "#888" }}>Free | Creator | Pro</span></>}
           </div>
         </div>
       </div>
@@ -1158,14 +1158,14 @@ export default function ReportView({ report, generatedAt, reportId, isChannelRep
         <ContentPlansSection data={report.section6_content_plans} signals={report.section3_data_signals} />
         <hr style={{ border: "none", borderTop: `1px solid ${G200}`, margin: 0 }} />
         <ActionPlanSection  report={report} />
-        <NextMonthSection   report={report} date={date} generatedAt={generatedAt} />
+        <NextMonthSection   report={report} date={date} generatedAt={generatedAt} isChannelReport={isChannelReport} />
 
         <footer style={{ background: "#0A0A0A", padding: "28px 48px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
           <div style={{ fontWeight: 900, fontSize: "16px", color: "#fff" }}>
             {brandName}{brandMark && <span style={{ color: LIME }}>{brandMark}</span>}
           </div>
           <div style={{ fontFamily: MONO, fontSize: "12px", color: "#888", textAlign: "right", lineHeight: 1.8 }}>
-            분석 기준일: {report.channel_info?.analysis_date ?? date} · 채널 분석 엔진 v2.1<br />
+            {!isChannelReport && <>분석 기준일: {report.channel_info?.analysis_date ?? date} · 채널 분석 엔진 v2.1<br /></>}
             © 2026 {brandName}. All rights reserved.
           </div>
         </footer>
