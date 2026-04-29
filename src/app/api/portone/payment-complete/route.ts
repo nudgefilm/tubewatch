@@ -164,7 +164,7 @@ export async function POST(request: Request) {
 
     const { data: order, error: fetchError } = await supabaseAdmin
       .from("enterprise_orders")
-      .select("id, email_sent, status")
+      .select("id, email_sent, status, email, channel_url, contact_phone, source, inquiry_id")
       .eq("portone_payment_id", paymentId)
       .single();
 
