@@ -19,6 +19,7 @@ type EnterpriseOrder = {
   amount_krw: number;
   payment_status: string;
   status: string;
+  email_sent: boolean;
   reports_issued: number;
   total_reports: number;
   tax_invoice_requested: boolean;
@@ -70,6 +71,7 @@ function fmtDate(iso: string) {
 
 function OrderRow({ order, onRefresh }: { order: EnterpriseOrder; onRefresh: () => void }) {
   const [loading, setLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
 
   async function markReportSent() {
     if (loading) return;
@@ -101,7 +103,28 @@ function OrderRow({ order, onRefresh }: { order: EnterpriseOrder; onRefresh: () 
     }
   }
 
+  async function handleResend() {
+    if (resendLoading) return;
+    setResendLoading(true);
+    try {
+      const res = await fetch("/api/admin/enterprise/resend-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId: order.id }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        onRefresh();
+      } else {
+        alert(`재발송 실패: ${data.reason ?? data.error ?? "알 수 없는 오류"}`);
+      }
+    } finally {
+      setResendLoading(false);
+    }
+  }
+
   const canMarkSent = order.status !== "completed" && order.reports_issued < order.total_reports;
+  const canResend = order.status === "paid" && order.email_sent;
 
   return (
     <tr className="border-b border-foreground/5 hover:bg-foreground/[0.02]">
@@ -150,11 +173,7 @@ function OrderRow({ order, onRefresh }: { order: EnterpriseOrder; onRefresh: () 
       <td className="py-3 pr-4 text-xs text-muted-foreground">{fmtDate(order.created_at)}</td>
       <td className="py-3">
         <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            asChild
-          >
+          <Button size="sm" variant="outline" asChild>
             <a href={order.channel_url} target="_blank" rel="noopener noreferrer">
               채널 분석 시작
             </a>
@@ -162,6 +181,13 @@ function OrderRow({ order, onRefresh }: { order: EnterpriseOrder; onRefresh: () 
           {canMarkSent && (
             <Button size="sm" onClick={markReportSent} disabled={loading}>
               {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : "발송 완료"}
+            </Button>
+          )}
+          {canResend && (
+            <Button size="sm" variant="outline" onClick={handleResend} disabled={resendLoading}>
+              {resendLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : (
+                <><Mail className="mr-1 h-3 w-3" />이메일 재발송</>
+              )}
             </Button>
           )}
         </div>
