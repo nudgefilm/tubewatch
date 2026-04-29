@@ -38,6 +38,7 @@ type B2BInquiry = {
   channel_url: string;
   tax_invoice_requested: boolean;
   tax_invoice_info: string | null;
+  report_tokens: string[] | null;
   status: string;
   admin_note: string | null;
   created_at: string;
@@ -311,6 +312,112 @@ function OrderRow({ order, onRefresh }: { order: EnterpriseOrder; onRefresh: () 
   );
 }
 
+// ─── B2B 문의 리포트 링크 ─────────────────────────────────────────────────────
+
+function InquiryReportLinks({ inquiry, onRefresh }: { inquiry: B2BInquiry; onRefresh: () => void }) {
+  const tokens: string[] = inquiry.report_tokens ?? [];
+  const [showInput, setShowInput] = useState(false);
+  const [inputVal, setInputVal] = useState("");
+  const [linkLoading, setLinkLoading] = useState(false);
+  const [linkError, setLinkError] = useState<string | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
+
+  function extractToken(raw: string) {
+    const match = raw.match(/\/([^/]+)\s*$/);
+    return match ? match[1].trim() : raw.trim();
+  }
+
+  async function handleLink() {
+    const token = extractToken(inputVal);
+    if (!token) return;
+    setLinkLoading(true);
+    setLinkError(null);
+    try {
+      const res = await fetch("/api/admin/enterprise/link-inquiry-report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ inquiryId: inquiry.id, token }),
+      });
+      const data = await res.json();
+      if (data.ok) { setInputVal(""); setShowInput(false); onRefresh(); }
+      else setLinkError(data.error ?? "연결 실패");
+    } finally { setLinkLoading(false); }
+  }
+
+  async function handleUnlink(token: string) {
+    await fetch("/api/admin/enterprise/link-inquiry-report", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ inquiryId: inquiry.id, token }),
+    });
+    onRefresh();
+  }
+
+  function copyUrl(token: string) {
+    const url = `https://channelreport.net/${token}`;
+    void navigator.clipboard.writeText(url).then(() => {
+      setCopied(token);
+      setTimeout(() => setCopied(null), 2000);
+    });
+  }
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      {tokens.map((token) => (
+        <div key={token} className="flex items-center gap-1.5 rounded-md bg-foreground/[0.03] px-2 py-1">
+          <a
+            href={`https://channelreport.net/${token}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 truncate font-mono text-[10px] text-muted-foreground hover:text-foreground hover:underline"
+          >
+            channelreport.net/{token.slice(0, 16)}…
+          </a>
+          <button onClick={() => copyUrl(token)} className="text-muted-foreground hover:text-foreground" title="URL 복사">
+            {copied === token ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+          </button>
+          <button onClick={() => void handleUnlink(token)} className="text-muted-foreground hover:text-destructive" title="연결 해제">
+            <X className="h-3 w-3" />
+          </button>
+        </div>
+      ))}
+      {showInput ? (
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1">
+            <input
+              className="h-7 flex-1 rounded border border-foreground/20 bg-background px-2 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-foreground/30"
+              placeholder="access_token 또는 리포트 URL"
+              value={inputVal}
+              onChange={(e) => setInputVal(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") void handleLink(); }}
+              autoFocus
+            />
+            <button
+              onClick={() => void handleLink()}
+              disabled={linkLoading || !inputVal.trim()}
+              className="flex h-7 items-center rounded bg-foreground px-2 text-xs font-medium text-background disabled:opacity-40"
+            >
+              {linkLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : "연결"}
+            </button>
+            <button onClick={() => { setShowInput(false); setLinkError(null); }} className="text-muted-foreground hover:text-foreground">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          {linkError && <p className="text-[10px] text-destructive">{linkError}</p>}
+        </div>
+      ) : (
+        <button
+          onClick={() => setShowInput(true)}
+          className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
+        >
+          <Link2 className="h-3 w-3" />
+          리포트 연결
+        </button>
+      )}
+    </div>
+  );
+}
+
 // ─── B2B 문의 행 ──────────────────────────────────────────────────────────────
 
 function InquiryRow({ inquiry, onRefresh }: { inquiry: B2BInquiry; onRefresh: () => void }) {
@@ -368,13 +475,16 @@ function InquiryRow({ inquiry, onRefresh }: { inquiry: B2BInquiry; onRefresh: ()
       </td>
       <td className="py-3 pr-4 text-xs text-muted-foreground">{fmtDate(inquiry.created_at)}</td>
       <td className="py-3">
-        {inquiry.status === "new" && (
-          <Button size="sm" onClick={sendPaymentLink} disabled={loading}>
-            {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : (
-              <><Mail className="mr-1 h-3 w-3" />결제 안내 발송</>
-            )}
-          </Button>
-        )}
+        <div className="flex flex-col gap-2">
+          {inquiry.status === "new" && (
+            <Button size="sm" onClick={sendPaymentLink} disabled={loading}>
+              {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : (
+                <><Mail className="mr-1 h-3 w-3" />결제 안내 발송</>
+              )}
+            </Button>
+          )}
+          <InquiryReportLinks inquiry={inquiry} onRefresh={onRefresh} />
+        </div>
       </td>
     </tr>
   );
