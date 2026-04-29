@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ArrowRight, Check, X } from "lucide-react";
 import { ProcessSection } from "./ProcessSection";
 import { IncludesSection } from "./IncludesSection";
+import { TimerCtaSection } from "./TimerCtaSection";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -319,25 +320,9 @@ export default function ChannelReportLanding() {
       </div>
 
       {/* CTA */}
-      <section className="border-t border-foreground/10 bg-foreground/[0.02]">
-        <div className="mx-auto max-w-5xl px-6 py-20">
-          <div className="rounded-2xl border border-foreground/15 bg-background p-10 text-center lg:p-16">
-            <h2 className="text-3xl font-bold tracking-tight lg:text-4xl">
-              지금 바로 신청하세요
-            </h2>
-            <p className="mt-4 text-muted-foreground">
-              신청 접수 후 이메일로 결제 안내가 발송됩니다.
-            </p>
-            <div className="mt-8 flex flex-col items-center gap-3">
-              <Button size="lg" className="gap-2" onClick={() => setModalOpen(true)}>
-                서비스 신청하기
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-              <span className="text-sm text-muted-foreground">₩330,000 (VAT 포함) · 3개월 정기</span>
-            </div>
-          </div>
-        </div>
-      </section>
+      <div className="border-t border-foreground/10">
+        <TimerCtaSection onApply={() => setModalOpen(true)} />
+      </div>
 
       {/* 푸터 */}
       <footer className="border-t border-foreground/10 py-8 text-center text-xs text-muted-foreground">
