@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, Check, X, FileText, Search, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -199,10 +199,21 @@ const FEATURES = [
   "월 1회 전략 리포트 × 3회 (3개월 정기)",
 ];
 
+// ─── 히어로 스탯 ─────────────────────────────────────────────────────────────
+
+const HERO_STATS = [
+  { value: "50", unit: "개", label: "영상 전수 분석" },
+  { value: "30", unit: "개", label: "채널 시그널" },
+  { value: "30", unit: "일", label: "실행 로드맵" },
+  { value: "3", unit: "회", label: "정기 전략 리포트" },
+];
+
 // ─── 메인 랜딩 ────────────────────────────────────────────────────────────────
 
 export default function ChannelReportLanding() {
   const [modalOpen, setModalOpen] = useState(false);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => { setVisible(true); }, []);
 
   return (
     <main className="relative min-h-screen overflow-x-hidden bg-background">
@@ -219,31 +230,88 @@ export default function ChannelReportLanding() {
       </header>
 
       {/* 히어로 */}
-      <section className="mx-auto max-w-5xl px-6 py-20 lg:py-28">
-        <div className="max-w-2xl">
-          <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-foreground/15 bg-foreground/5 px-3 py-1 text-xs font-mono tracking-widest text-muted-foreground">
-            <span className="h-1.5 w-1.5 rounded-full bg-foreground/50" />
-            광고기획사 · MCN 전문 채널 컨설팅
-          </span>
-          <h1 className="font-heading text-4xl font-bold leading-[1.1] tracking-[-0.03em] lg:text-6xl">
-            클라이언트 채널,<br />
-            <span className="text-orange-500">데이터로</span><br />
-            설득하세요.
-          </h1>
-          <p className="mt-6 text-base text-muted-foreground lg:text-lg">
-            최근 영상 <strong>50개</strong>와 <strong>30개 시그널</strong>을 전수 조사해
-            성장을 막는 병목을 찾고, 향후 <strong>30일 실행 전략</strong>을 제시합니다.
-          </p>
-          <p className="mt-2 text-xs text-muted-foreground/60">특허출원 제10-2026-0075318호</p>
-          <div className="mt-8 flex flex-wrap items-center gap-4">
-            <Button size="lg" className="gap-2" onClick={() => setModalOpen(true)}>
-              서비스 신청하기
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-            <div className="flex flex-col">
-              <span className="text-sm font-semibold text-foreground">₩330,000 <span className="font-normal text-muted-foreground">VAT 포함</span></span>
-              <span className="text-xs text-muted-foreground">3개월 정기 · 월 ₩110,000 상당</span>
+      <section className="relative flex flex-col justify-center overflow-hidden pt-20 pb-16 lg:pt-28 lg:pb-20">
+        {/* 배경 그리드 */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{ backgroundImage: "radial-gradient(circle, hsl(var(--foreground)/0.04) 1px, transparent 1px)", backgroundSize: "32px 32px" }}
+        />
+        {/* 오렌지 글로우 */}
+        <div className="pointer-events-none absolute top-0 right-1/3 h-[400px] w-[600px] rounded-full bg-orange-500/[0.05] blur-3xl" />
+
+        <div className="relative z-10 mx-auto w-full max-w-[1100px] px-8 lg:px-16">
+          <div className="flex flex-col items-center gap-12 lg:flex-row lg:gap-6">
+
+            {/* 왼쪽: 텍스트 */}
+            <div className="min-w-0 flex-1">
+              <div className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+                <span className="mb-8 inline-flex items-center gap-2 rounded-full border border-foreground/20 bg-foreground/5 px-3 py-1 text-xs font-mono tracking-widest text-foreground">
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-foreground/60" />
+                  광고기획사 · MCN 전문 채널 컨설팅
+                </span>
+              </div>
+
+              <h1 className={`font-heading font-bold leading-[1.1] tracking-[-0.04em] transition-all duration-1000 delay-100 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+                <span className="block whitespace-nowrap text-[clamp(2.4rem,5vw,4.2rem)] text-foreground">
+                  클라이언트 채널,
+                </span>
+                <span className="block whitespace-nowrap text-[clamp(1.6rem,3.2vw,2.8rem)] text-orange-500">
+                  데이터로 설득하세요.
+                </span>
+              </h1>
+
+              <p className={`mt-2 text-xs font-medium tracking-wide text-muted-foreground/70 transition-all duration-700 delay-150 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+                특허출원 제10-2026-0075318호
+              </p>
+
+              <p className={`mt-5 max-w-lg text-base leading-relaxed text-muted-foreground transition-all duration-700 delay-150 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+                최근 영상 <span className="font-semibold text-orange-500">50</span>개와{" "}
+                <span className="font-semibold text-orange-500">30</span>개 시그널을 전수 조사해
+                성장을 막는 병목을 찾고, 향후 <span className="font-semibold text-orange-500">30일</span> 실행 전략을 제시합니다.
+              </p>
+
+              <div className={`mt-8 flex flex-wrap items-center gap-4 transition-all duration-700 delay-[250ms] ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+                <button
+                  onClick={() => setModalOpen(true)}
+                  className="inline-flex animate-float-half items-center gap-2 rounded-xl bg-foreground px-7 py-3.5 text-sm font-semibold text-background shadow-lg shadow-foreground/10 transition-colors hover:bg-foreground/85"
+                >
+                  서비스 신청하기
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold text-foreground">₩330,000 <span className="font-normal text-muted-foreground">VAT 포함</span></span>
+                  <span className="text-xs text-muted-foreground">3개월 정기 · 월 ₩110,000 상당</span>
+                </div>
+              </div>
+
+              {/* 스탯 */}
+              <div className={`mt-10 grid grid-cols-4 gap-6 border-t border-foreground/10 pt-8 transition-all duration-700 delay-[400ms] ${visible ? "opacity-100" : "opacity-0"}`}>
+                {HERO_STATS.map(({ value, unit, label }) => (
+                  <div key={label} className="flex flex-col">
+                    <p className="font-heading text-2xl font-semibold leading-none tracking-[-0.04em] lg:text-3xl">
+                      {value}<span className="ml-0.5 text-sm font-normal lg:text-base">{unit}</span>
+                    </p>
+                    <p className="mt-2 text-xs leading-tight text-muted-foreground">{label}</p>
+                  </div>
+                ))}
+              </div>
             </div>
+
+            {/* 오른쪽: 이미지 */}
+            <div className={`w-full flex-shrink-0 transition-all duration-1000 delay-200 lg:w-[420px] ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+              <div className="relative">
+                <div className="pointer-events-none absolute -inset-4 rounded-3xl bg-orange-500/8 blur-2xl" />
+                <img
+                  src="/hero-folder.png"
+                  alt="채널 분석 리포트 미리보기"
+                  className="relative h-auto w-full drop-shadow-2xl"
+                />
+              </div>
+              <p className="mt-3 text-center text-xs font-medium tracking-wide text-muted-foreground/80">
+                채널 분석 전략 리포트 <span className="text-muted-foreground/50">|</span> 3개월 정기
+              </p>
+            </div>
+
           </div>
         </div>
       </section>
