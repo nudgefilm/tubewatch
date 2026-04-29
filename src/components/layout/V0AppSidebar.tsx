@@ -417,7 +417,7 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                       className="flex w-full cursor-not-allowed select-none items-center gap-2 rounded-lg bg-black px-3 py-2.5 text-sm font-semibold text-white/50"
                     >
                       <CalendarDays className="size-4 shrink-0" />
-                      <span>월간 채널 분석 리포트</span>
+                      <span>채널진단전략컨설팅</span>
                     </span>
                   </HoverCard.Trigger>
                   <HoverCard.Content
@@ -428,7 +428,7 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src="/minireport-preview.png"
-                      alt="월간 채널 분석 리포트 미리보기"
+                      alt="채널진단전략컨설팅 미리보기"
                       className="block w-[320px]"
                     />
                     <div className="bg-zinc-900 px-4 py-2.5 text-center text-xs font-semibold tracking-wide text-white/50">
@@ -444,7 +444,7 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                       className="flex w-full items-center gap-2 rounded-lg bg-black px-3 py-2.5 text-sm font-semibold text-white hover:bg-zinc-800 transition-colors"
                     >
                       <CalendarDays className="size-4 shrink-0" />
-                      <span>월간 채널 분석 리포트</span>
+                      <span>채널진단전략컨설팅</span>
                     </Link>
                   </HoverCard.Trigger>
                   <HoverCard.Content
@@ -455,7 +455,7 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src="/minireport-preview.png"
-                      alt="월간 채널 분석 리포트 미리보기"
+                      alt="채널진단전략컨설팅 미리보기"
                       className="block w-[320px]"
                     />
                   </HoverCard.Content>
@@ -479,7 +479,7 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src="/minireport-preview.png"
-                          alt="월간 채널 분석 리포트 미리보기"
+                          alt="채널진단전략컨설팅 미리보기"
                           className="block w-[320px]"
                         />
                         <div className="bg-zinc-900 px-4 py-2.5 text-center text-xs font-semibold tracking-wide text-white/50">
@@ -488,7 +488,7 @@ export function V0AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                       </HoverCard.Content>
                     </HoverCard.Root>
                   ) : (
-                    <SidebarMenuButton asChild tooltip="월간 채널 분석 리포트">
+                    <SidebarMenuButton asChild tooltip="채널진단전략컨설팅">
                       <Link href="/channels">
                         <CalendarDays />
                       </Link>
