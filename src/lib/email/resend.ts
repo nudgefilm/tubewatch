@@ -87,7 +87,7 @@ export async function sendPaymentLinkEmail({
   channelUrl: string;
   inquiryId: string;
 }) {
-  const paymentUrl = `https://tubewatch.kr/billing?enterprise=1&inquiry_id=${inquiryId}`;
+  const paymentUrl = `https://tubewatch.kr/billing?enterprise=1&inquiry_id=${inquiryId}&channel_url=${encodeURIComponent(channelUrl)}`;
   await resend.emails.send({
     from: FROM_EMAIL,
     to,

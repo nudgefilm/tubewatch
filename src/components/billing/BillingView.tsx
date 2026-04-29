@@ -525,19 +525,28 @@ const ENTERPRISE_FEATURES = [
   "월 1회 전략 리포트 × 3회 (3개월 정기 발행)",
 ];
 
-function EnterpriseCard() {
+function EnterpriseCard({ initialEmail }: { initialEmail: string }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const paramChannelUrl = searchParams.get("channel_url") ?? "";
+  const isEnterpriseFlow = !!searchParams.get("enterprise");
+
   const [modalOpen, setModalOpen] = useState(false);
-  const [channelUrl, setChannelUrl] = useState("");
-  const [contactEmail, setContactEmail] = useState("");
+  const [channelUrl, setChannelUrl] = useState(paramChannelUrl);
+  const [contactEmail, setContactEmail] = useState(initialEmail);
   const [contactPhone, setContactPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const channelUrlRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (modalOpen) setTimeout(() => channelUrlRef.current?.focus(), 50);
-  }, [modalOpen]);
+    if (isEnterpriseFlow) setModalOpen(true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (modalOpen && !paramChannelUrl) setTimeout(() => channelUrlRef.current?.focus(), 50);
+  }, [modalOpen, paramChannelUrl]);
 
   async function handlePayment() {
     if (!channelUrl.trim()) {
@@ -678,8 +687,7 @@ function EnterpriseCard() {
               )}
 
               <div className="rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground">
-                결제 완료 후 영업일 기준 2일 이내 담당 전략가가 배정되며,
-                첫 번째 리포트는 분석 완료 후 이메일로 전달됩니다.
+                결제 완료 당일 담당 전략가가 배정되며, 첫 리포트는 분석 완료 후 이메일로 전달됩니다.
               </div>
 
               <Button
@@ -787,7 +795,7 @@ function CurrentPlanCard({ status }: { status: UserBillingStatus }) {
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
-export default function BillingView({ initialData, channelCount }: { initialData: UserBillingStatus; channelCount: number }) {
+export default function BillingView({ initialData, channelCount, userEmail = "" }: { initialData: UserBillingStatus; channelCount: number; userEmail?: string }) {
   const router = useRouter();
   const [period, setPeriod] = useState<BillingPeriod>("monthly");
   const [termsOpen, setTermsOpen] = useState(false);
@@ -958,7 +966,7 @@ export default function BillingView({ initialData, channelCount }: { initialData
           <p className="mb-6 text-sm text-muted-foreground">
             튜브워치 엔진의 정밀함에 전문가의 통찰을 더한 채널 성장 컨설팅 서비스입니다.
           </p>
-          <EnterpriseCard />
+          <EnterpriseCard initialEmail={userEmail} />
         </section>
 
         {/* Footer links */}
