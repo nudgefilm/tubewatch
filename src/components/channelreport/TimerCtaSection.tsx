@@ -219,12 +219,9 @@ export function TimerCtaSection() {
               href="https://forms.gle/ACZTUa46yVyBoN256"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-lg border border-foreground/20 bg-foreground/[0.04] px-7 py-3.5 text-sm font-medium text-foreground/80 transition-colors hover:border-foreground/40 hover:bg-foreground/[0.08] hover:text-foreground"
+              className="inline-flex animate-float-half items-center rounded-lg border border-foreground/20 bg-foreground/[0.04] px-7 py-3.5 text-sm font-medium text-foreground/80 transition-colors hover:border-foreground/40 hover:bg-foreground/[0.08] hover:text-foreground"
             >
               데이터 진단 컨설팅 협업 신청
-              <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M3 8h10M9 4l4 4-4 4" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
             </a>
           </div>
 

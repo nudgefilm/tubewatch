@@ -272,7 +272,7 @@ export default function ChannelReportLanding() {
                   onClick={() => setModalOpen(true)}
                   className="inline-flex w-fit animate-float-half items-center gap-2 rounded-xl bg-foreground px-7 py-3.5 text-sm font-semibold text-background shadow-lg shadow-foreground/10 transition-colors hover:bg-foreground/85"
                 >
-                  전략 컨설팅 채널 등록
+                  데이터 컨설팅 채널 등록
                   <ArrowRight className="h-4 w-4" />
                 </button>
                 <span className="text-xs text-muted-foreground">₩330,000 (VAT 포함, 3개월 정기 발행)</span>
