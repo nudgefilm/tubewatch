@@ -222,7 +222,7 @@ export default function ChannelReportLanding() {
           <div className="flex items-center gap-2 text-right text-xs text-muted-foreground">
             <span className="hidden sm:inline">유튜브 채널 분석 진단 솔루션</span>
             <span className="hidden sm:inline text-foreground/20">|</span>
-            <span className="font-mono text-[10px] text-muted-foreground/70">특허출원 제10-2026-0075318호&nbsp;&nbsp;2026.04 발행</span>
+            <span className="font-mono text-[10px] text-orange-500/80">특허출원 제10-2026-0075318호&nbsp;&nbsp;2026.04 발행</span>
           </div>
         </div>
       </header>
