@@ -1642,7 +1642,7 @@ function FinalCtaSection() {
             <p
               className={`mt-8 font-mono text-xs text-muted-foreground/40 transition-all duration-700 delay-400 ${visible ? "opacity-100" : "opacity-0"}`}
             >
-              tubewatch.kr — 감이 아닌 데이터로 성장하는 유튜버를 위해
+              www.tubewatch.kr — 감이 아닌 데이터로 성장하는 유튜버를 위해
             </p>
           </div>
         </div>

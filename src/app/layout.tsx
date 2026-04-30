@@ -17,7 +17,7 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://tubewatch.kr"),
+  metadataBase: new URL("https://www.tubewatch.kr"),
 
   title: "튜브워치 - AI 유튜브 전략 솔루션",
   description: "당신의 데이터는 이미 다음 전략을 말하고 있습니다.",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   keywords: ["유튜브 분석", "채널 성장", "영상 기획", "튜브워치", "유튜버 도구"],
 
   alternates: {
-    canonical: "https://tubewatch.kr",
+    canonical: "https://www.tubewatch.kr",
   },
 
   icons: {
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
 
   openGraph: {
     type: "website",
-    url: "https://tubewatch.kr",
+    url: "https://www.tubewatch.kr",
     siteName: "TubeWatch",
     locale: "ko_KR",
     title: "TubeWatch™ - 유튜버 성장 플랫폼",

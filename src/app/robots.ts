@@ -6,6 +6,6 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
     },
-    sitemap: "https://tubewatch.kr/sitemap.xml",
+    sitemap: "https://www.tubewatch.kr/sitemap.xml",
   };
 }

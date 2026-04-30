@@ -34,7 +34,7 @@ export async function sendEnterpriseOrderAlert({
         <tr><td><b>연락처</b></td><td>${contactPhone ?? "—"}</td></tr>
         ${inquiryId ? `<tr><td><b>문의 ID</b></td><td>${inquiryId}</td></tr>` : ""}
       </table>
-      <p><a href="https://tubewatch.kr/admin/enterprise-orders">어드민에서 확인하기</a></p>
+      <p><a href="https://www.tubewatch.kr/admin/enterprise-orders">어드민에서 확인하기</a></p>
     `,
   });
 }
@@ -71,7 +71,7 @@ export async function sendB2BInquiryAlert({
         <tr><td><b>채널 URL</b></td><td><a href="${channelUrl}">${channelUrl}</a></td></tr>
         <tr><td><b>세금계산서 요청</b></td><td>${taxInvoiceRequested ? "예" : "아니오"}</td></tr>
       </table>
-      <p><a href="https://tubewatch.kr/admin/enterprise-orders">어드민에서 결제 안내 발송하기</a></p>
+      <p><a href="https://www.tubewatch.kr/admin/enterprise-orders">어드민에서 결제 안내 발송하기</a></p>
     `,
   });
 }
@@ -87,7 +87,7 @@ export async function sendPaymentLinkEmail({
   channelUrl: string;
   inquiryId: string;
 }) {
-  const paymentUrl = `https://tubewatch.kr/billing?enterprise=1&inquiry_id=${inquiryId}&channel_url=${encodeURIComponent(channelUrl)}`;
+  const paymentUrl = `https://www.tubewatch.kr/billing?enterprise=1&inquiry_id=${inquiryId}&channel_url=${encodeURIComponent(channelUrl)}`;
   await resend.emails.send({
     from: FROM_EMAIL,
     to,
@@ -138,7 +138,7 @@ export async function sendPaymentReceiptEmail({
           <tr><td><b>결제 금액</b></td><td>₩${amountKrw.toLocaleString("ko-KR")}</td></tr>
           ${renewalAt ? `<tr><td><b>갱신일</b></td><td>${new Date(renewalAt).toLocaleDateString("ko-KR")}</td></tr>` : ""}
         </table>
-        <p><a href="https://tubewatch.kr/billing">구독 관리하기</a></p>
+        <p><a href="https://www.tubewatch.kr/billing">구독 관리하기</a></p>
       `
       : `
         <h2>분석 크레딧이 충전됐습니다.</h2>
@@ -146,7 +146,7 @@ export async function sendPaymentReceiptEmail({
           <tr><td><b>충전 크레딧</b></td><td>${creditCount}회</td></tr>
           <tr><td><b>결제 금액</b></td><td>₩${amountKrw.toLocaleString("ko-KR")}</td></tr>
         </table>
-        <p><a href="https://tubewatch.kr/analysis">분석 시작하기</a></p>
+        <p><a href="https://www.tubewatch.kr/analysis">분석 시작하기</a></p>
       `;
 
   await resend.emails.send({ from: FROM_EMAIL, to, subject, html });
