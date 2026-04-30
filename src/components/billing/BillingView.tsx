@@ -214,7 +214,7 @@ function SubscriptionPlanCard({
 
   async function handleSubscribePortOne() {
     const orderName = `TubeWatch ${plan.name} ${isSemiannual ? "6개월" : "1개월"}`;
-    const paymentId = `tw_sub_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    const paymentId = `twsub${Date.now()}${Math.random().toString(36).slice(2, 7)}`;
 
     const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
     const redirectUrl =
@@ -418,7 +418,7 @@ function CreditProductCard({ product }: { product: (typeof CREDIT_PRODUCTS)[numb
 
   async function handlePurchasePortOne() {
     const productId: CreditProductId = product.id;
-    const paymentId = `tw_credit_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    const paymentId = `twcredit${Date.now()}${Math.random().toString(36).slice(2, 7)}`;
     const orderName = `TubeWatch ${product.name} (분석 ${product.creditCount}회)`;
 
     const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
@@ -576,7 +576,7 @@ function EnterpriseCard({ initialEmail, userChannels }: { initialEmail: string; 
 
     try {
       const PortOne = (await import("@portone/browser-sdk/v2")).default;
-      const paymentId = `tw_ent_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+      const paymentId = `twent${Date.now()}${Math.random().toString(36).slice(2, 7)}`;
       const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
       const redirectUrl =
         `${baseUrl}/billing?po_payment_id=${paymentId}` +
