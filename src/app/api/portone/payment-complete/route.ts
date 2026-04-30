@@ -25,6 +25,7 @@ import {
   BILLING_PLANS,
   CREDIT_PRODUCTS,
   ENTERPRISE_PRODUCT,
+  CONSULTING_PLANS,
   type BillingPlanId,
   type BillingPeriod,
   type CreditProductId,
@@ -116,8 +117,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "채널 URL이 필요합니다." }, { status: 400 });
     }
 
-    if (payment.amount.total !== ENTERPRISE_PRODUCT.priceKrw) {
-      console.error(`[portone/payment-complete] enterprise amount mismatch: expected=${ENTERPRISE_PRODUCT.priceKrw}, got=${payment.amount.total}`);
+    const validAmounts = CONSULTING_PLANS.map((p) => p.priceKrw);
+    if (!validAmounts.includes(payment.amount.total)) {
+      console.error(`[portone/payment-complete] enterprise amount mismatch: allowed=${validAmounts.join(",")}, got=${payment.amount.total}`);
       return NextResponse.json({ error: "결제 금액이 일치하지 않습니다." }, { status: 400 });
     }
 

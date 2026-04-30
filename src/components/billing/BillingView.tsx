@@ -11,11 +11,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   BILLING_PLANS,
+  CONSULTING_PLANS,
   CREDIT_PRODUCTS,
-  ENTERPRISE_PRODUCT,
   FREE_LIFETIME_ANALYSIS_LIMIT,
   type BillingPeriod,
   type BillingPlanId,
+  type ConsultingPlanId,
   type CreditProductId,
 } from "./types";
 import { readSelectedChannelIdFromStorage } from "@/lib/channels/selectedChannelStorage";
@@ -104,7 +105,9 @@ function usePortOneRedirectReturn(onSuccess: () => void) {
       const matchedProduct = CREDIT_PRODUCTS.find((p) => p.id === productId);
       redirectAmount = matchedProduct?.priceKrw;
     } else if (type === "enterprise") {
-      redirectAmount = ENTERPRISE_PRODUCT.priceKrw;
+      const consultingPlanId = searchParams.get("po_consulting_plan");
+      const matchedConsulting = CONSULTING_PLANS.find((p) => p.id === consultingPlanId);
+      redirectAmount = matchedConsulting?.priceKrw ?? CONSULTING_PLANS[0].priceKrw;
     }
 
     fetch("/api/portone/payment-complete", {
@@ -515,29 +518,26 @@ function CreditProductCard({ product }: { product: (typeof CREDIT_PRODUCTS)[numb
   );
 }
 
-// ─── Enterprise consulting card ───────────────────────────────────────────────
-
-const ENTERPRISE_FEATURES = [
-  "최근 영상 50개 메타데이터 + 30개 시그널 전수 조사",
-  "언폴드랩 수석 전략가 1:1 맞춤형 진단 코멘터리",
-  "특허 출원 기술 기반 병목(Bottleneck) 구간 탐지",
-  "분석 기반 향후 30일 콘텐츠 실행 로드맵",
-  "클라이언트 보고용 전용 URL + 전문가 별도 보고서",
-  "월 1회 전략 리포트 × 3회 (3개월 정기 발행)",
-];
+// ─── Consulting card (탭: Standard / Premium / Enterprise) ───────────────────
 
 function EnterpriseCard({ initialEmail, userChannels }: { initialEmail: string; userChannels: { id: string; channel_url: string | null }[] }) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const paramChannelUrl = searchParams.get("channel_url") ?? "";
   const isEnterpriseFlow = !!searchParams.get("enterprise");
 
+  const [activeTab, setActiveTab] = useState<ConsultingPlanId>("standard");
   const [modalOpen, setModalOpen] = useState(false);
   const [channelUrl, setChannelUrl] = useState(paramChannelUrl);
   const [contactEmail, setContactEmail] = useState(initialEmail);
+  const [contactPhone, setContactPhone] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const channelUrlRef = useRef<HTMLInputElement>(null);
+
+  const plan = CONSULTING_PLANS.find((p) => p.id === activeTab) ?? CONSULTING_PLANS[0];
 
   useEffect(() => {
-    if (channelUrl) return; // URL 파라미터로 이미 채워진 경우 skip
+    if (channelUrl) return;
     const selectedId = readSelectedChannelIdFromStorage();
     if (selectedId) {
       const matched = userChannels.find((c) => c.id === selectedId);
@@ -548,10 +548,6 @@ function EnterpriseCard({ initialEmail, userChannels }: { initialEmail: string; 
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const [contactPhone, setContactPhone] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const channelUrlRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isEnterpriseFlow) setModalOpen(true);
@@ -581,6 +577,7 @@ function EnterpriseCard({ initialEmail, userChannels }: { initialEmail: string; 
       const redirectUrl =
         `${baseUrl}/billing?po_payment_id=${paymentId}` +
         `&po_type=enterprise` +
+        `&po_consulting_plan=${plan.id}` +
         `&po_channel_url=${encodeURIComponent(channelUrl.trim())}` +
         `&po_email=${encodeURIComponent(contactEmail.trim())}` +
         `&po_phone=${encodeURIComponent(contactPhone.trim())}`;
@@ -589,8 +586,8 @@ function EnterpriseCard({ initialEmail, userChannels }: { initialEmail: string; 
         storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID!,
         channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY!,
         paymentId,
-        orderName: `TubeWatch ${ENTERPRISE_PRODUCT.name} (3개월 컨설팅)`,
-        totalAmount: ENTERPRISE_PRODUCT.priceKrw,
+        orderName: `TubeWatch ${plan.name} 컨설팅`,
+        totalAmount: plan.priceKrw,
         currency: "CURRENCY_KRW",
         payMethod: "CARD",
         redirectUrl,
@@ -602,30 +599,53 @@ function EnterpriseCard({ initialEmail, userChannels }: { initialEmail: string; 
     }
   }
 
+  const TAB_LABELS: { id: ConsultingPlanId; label: string }[] = [
+    { id: "standard", label: "Standard" },
+    { id: "premium", label: "Premium" },
+    { id: "enterprise", label: "Enterprise" },
+  ];
+
   return (
     <>
       <Card className="flex flex-col border-primary/30 bg-primary/[0.02]">
+        {/* 탭 */}
+        <div className="flex border-b border-border">
+          {TAB_LABELS.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setActiveTab(t.id)}
+              className={`flex-1 py-2.5 text-sm font-medium transition-colors first:rounded-tl-xl last:rounded-tr-xl ${
+                activeTab === t.id
+                  ? "border-b-2 border-primary text-primary"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Building2 className="h-5 w-5 text-primary" />
-              <CardTitle className="text-base">{ENTERPRISE_PRODUCT.name}</CardTitle>
+              <CardTitle className="text-base">{plan.name}</CardTitle>
             </div>
-            <Badge variant="outline" className="text-xs">
-              {ENTERPRISE_PRODUCT.badge}
-            </Badge>
+            <Badge variant="outline" className="text-xs">{plan.badge}</Badge>
           </div>
           <div className="mt-3">
             <span className="text-3xl font-bold">
-              ₩{ENTERPRISE_PRODUCT.priceKrw.toLocaleString("ko-KR")}
+              ₩{plan.priceKrw.toLocaleString("ko-KR")}
             </span>
-            <span className="ml-1 text-sm text-muted-foreground">/ 3개월</span>
+            <span className="ml-2 text-sm text-muted-foreground">{plan.reportsTotal}</span>
           </div>
-          <CardDescription className="mt-1">{ENTERPRISE_PRODUCT.description}</CardDescription>
+          <CardDescription className="mt-1">{plan.description}</CardDescription>
         </CardHeader>
+
         <CardContent className="flex flex-1 flex-col gap-4 pt-0">
           <ul className="space-y-2">
-            {ENTERPRISE_FEATURES.map((f) => (
+            {plan.features.map((f) => (
               <li key={f} className="flex items-start gap-2 text-sm text-muted-foreground">
                 <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                 {f}
@@ -646,7 +666,7 @@ function EnterpriseCard({ initialEmail, userChannels }: { initialEmail: string; 
         >
           <div className="w-full max-w-md rounded-xl border bg-background p-6 shadow-xl">
             <div className="mb-5 flex items-center justify-between">
-              <h3 className="text-base font-semibold">Enterprise Standard 신청</h3>
+              <h3 className="text-base font-semibold">{plan.name} 컨설팅 신청</h3>
               <button
                 onClick={() => setModalOpen(false)}
                 className="rounded-md p-1 text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
@@ -710,7 +730,7 @@ function EnterpriseCard({ initialEmail, userChannels }: { initialEmail: string; 
                 onClick={handlePayment}
                 disabled={loading}
               >
-                {loading ? "처리 중..." : `₩${ENTERPRISE_PRODUCT.priceKrw.toLocaleString("ko-KR")} 결제하기`}
+                {loading ? "처리 중..." : `₩${plan.priceKrw.toLocaleString("ko-KR")} 결제하기`}
               </Button>
             </div>
           </div>

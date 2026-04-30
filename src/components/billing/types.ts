@@ -96,14 +96,77 @@ export const CREDIT_PRODUCTS: CreditProduct[] = [
 /** Free 플랜 생애 분석 한도 */
 export const FREE_LIFETIME_ANALYSIS_LIMIT = 3;
 
-// ─── Enterprise consulting product ───────────────────────────────────────────
+// ─── Consulting products ──────────────────────────────────────────────────────
 
-export const ENTERPRISE_PRODUCT = {
-  id: "enterprise-standard" as const,
-  name: "Enterprise Standard",
-  priceKrw: 330000,
-  durationMonths: 3,
-  reportsTotal: 3,
-  description: "전문가 진단 채널 분석 컨설팅",
-  badge: "VAT 포함",
-} as const;
+export type ConsultingPlanId = "standard" | "premium" | "enterprise";
+
+export interface ConsultingPlan {
+  id: ConsultingPlanId;
+  name: string;
+  priceKrw: number;
+  reportsTotal: string;
+  frequency: string;
+  description: string;
+  badge: string;
+  features: string[];
+}
+
+export const CONSULTING_PLANS: ConsultingPlan[] = [
+  {
+    id: "standard",
+    name: "Standard",
+    priceKrw: 330000,
+    reportsTotal: "총 3회 제공",
+    frequency: "월 1회 정기 리포트",
+    description: "월 1회 정기 리포트 + 전문가 진단",
+    badge: "VAT 포함",
+    features: [
+      "월 1회 정기 리포트 발행",
+      "총 3회 전문가 진단 제공",
+      "최근 영상 50개 메타데이터 + 30개 시그널 전수 조사",
+      "언폴드랩 수석 전략가 1:1 맞춤형 진단 코멘터리",
+      "특허 출원 기술 기반 병목(Bottleneck) 구간 탐지",
+      "분석 기반 향후 30일 콘텐츠 실행 로드맵",
+      "클라이언트 보고용 전용 URL + 전문가 별도 보고서",
+    ],
+  },
+  {
+    id: "premium",
+    name: "Premium",
+    priceKrw: 550000,
+    reportsTotal: "총 6회 제공",
+    frequency: "월 2회 리포트",
+    description: "월 2회 리포트 + 전문가 진단",
+    badge: "VAT 포함",
+    features: [
+      "월 2회 정기 리포트 발행",
+      "총 6회 전문가 진단 제공",
+      "최근 영상 50개 메타데이터 + 30개 시그널 전수 조사",
+      "언폴드랩 수석 전략가 1:1 맞춤형 진단 코멘터리",
+      "특허 출원 기술 기반 병목(Bottleneck) 구간 탐지",
+      "분석 기반 향후 30일 콘텐츠 실행 로드맵",
+      "클라이언트 보고용 전용 URL + 전문가 별도 보고서",
+    ],
+  },
+  {
+    id: "enterprise",
+    name: "Enterprise",
+    priceKrw: 1100000,
+    reportsTotal: "12회~최대 24회/년",
+    frequency: "정기구독 연간",
+    description: "정기구독 리포트 연간 + 전문가 진단",
+    badge: "VAT 포함",
+    features: [
+      "연간 정기구독 리포트 12회~최대 24회",
+      "전문가 진단 전 기간 제공",
+      "최근 영상 50개 메타데이터 + 30개 시그널 전수 조사",
+      "언폴드랩 수석 전략가 1:1 맞춤형 진단 코멘터리",
+      "특허 출원 기술 기반 병목(Bottleneck) 구간 탐지",
+      "분석 기반 향후 30일 콘텐츠 실행 로드맵",
+      "클라이언트 보고용 전용 URL + 전문가 별도 보고서",
+    ],
+  },
+];
+
+/** 하위 호환: 기존 단일 상수 (payment-complete route에서 참조) */
+export const ENTERPRISE_PRODUCT = CONSULTING_PLANS[0];
