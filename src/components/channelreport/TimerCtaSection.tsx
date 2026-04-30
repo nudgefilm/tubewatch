@@ -8,14 +8,14 @@ function useCountdown() {
   const [timeLeft, setTimeLeft] = useState(TOTAL_SECONDS);
 
   useEffect(() => {
-    const storedEndTime = localStorage.getItem("cr_timerEndTime");
+    const storedEndTime = sessionStorage.getItem("cr_timerEndTime");
     let endTime: number;
 
     if (storedEndTime) {
       endTime = parseInt(storedEndTime, 10);
     } else {
       endTime = Date.now() + TOTAL_SECONDS * 1000;
-      localStorage.setItem("cr_timerEndTime", endTime.toString());
+      sessionStorage.setItem("cr_timerEndTime", endTime.toString());
     }
 
     const updateTimer = () => {
