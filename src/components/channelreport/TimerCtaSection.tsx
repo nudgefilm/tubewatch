@@ -213,6 +213,21 @@ export function TimerCtaSection() {
             ))}
           </div>
 
+          {/* 컨설팅 협업 신청 CTA */}
+          <div className={`mt-12 flex justify-center transition-all duration-700 delay-500 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+            <a
+              href="https://forms.gle/ACZTUa46yVyBoN256"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-lg border border-foreground/20 bg-foreground/[0.04] px-7 py-3.5 text-sm font-medium text-foreground/80 transition-colors hover:border-foreground/40 hover:bg-foreground/[0.08] hover:text-foreground"
+            >
+              데이터 진단 컨설팅 협업 신청
+              <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M3 8h10M9 4l4 4-4 4" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </a>
+          </div>
+
         </div>
       </div>
     </section>
