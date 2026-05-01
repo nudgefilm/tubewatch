@@ -164,6 +164,56 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "주문 저장에 실패했습니다." }, { status: 500 });
     }
 
+    // ── 컨설팅 구매자 Creator 플랜 부여 (Free 회원에 한함) ──────────────────
+    {
+      let grantPlanId = typeof raw.consultingPlanId === "string" ? raw.consultingPlanId.trim() : "";
+      if (!grantPlanId) {
+        const matched = CONSULTING_PLANS.find((p) => p.priceKrw === payment.amount.total);
+        grantPlanId = matched?.id ?? "";
+      }
+      const grantMonths = grantPlanId === "enterprise" ? 12 : 3;
+
+      const { data: currentSub } = await supabaseAdmin
+        .from("user_subscriptions")
+        .select("subscription_status, renewal_at")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      const isActivePaidSub =
+        currentSub?.subscription_status === "active" &&
+        !!currentSub.renewal_at &&
+        new Date(currentSub.renewal_at as string).getTime() > Date.now();
+
+      if (!isActivePaidSub) {
+        const grantNow = new Date();
+        const grantRenewalAt = new Date(grantNow);
+        grantRenewalAt.setMonth(grantRenewalAt.getMonth() + grantMonths);
+
+        const { error: grantError } = await supabaseAdmin
+          .from("user_subscriptions")
+          .upsert(
+            {
+              user_id: user.id,
+              plan_id: "creator" as BillingPlanId,
+              billing_period: "monthly" as BillingPeriod,
+              subscription_status: "active",
+              payment_status: "paid",
+              renewal_at: grantRenewalAt.toISOString(),
+              portone_payment_id: paymentId,
+              grant_type: "consulting",
+              pending_plan_id: null,
+              pending_billing_period: null,
+              updated_at: grantNow.toISOString(),
+            },
+            { onConflict: "user_id", ignoreDuplicates: false }
+          );
+
+        if (grantError) {
+          console.error("[portone/payment-complete] consulting creator grant error:", grantError);
+        }
+      }
+    }
+
     const { data: order, error: fetchError } = await supabaseAdmin
       .from("enterprise_orders")
       .select("id, email_sent, status, email, channel_url, contact_phone, source, inquiry_id")

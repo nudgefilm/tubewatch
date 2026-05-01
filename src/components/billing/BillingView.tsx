@@ -87,7 +87,8 @@ function usePortOneRedirectReturn(onSuccess: () => void) {
     if (type === "subscription") {
       body = { paymentId, type, planId, billingPeriod };
     } else if (type === "enterprise") {
-      body = { paymentId, type, channelUrl, contactEmail, contactPhone };
+      const consultingPlanId = searchParams.get("po_consulting_plan");
+      body = { paymentId, type, channelUrl, contactEmail, contactPhone, consultingPlanId };
     } else {
       body = { paymentId, type, productId };
     }
