@@ -174,6 +174,75 @@ export async function sendEnterpriseOrderConfirmation({
   });
 }
 
+export async function sendB2CConsultingAlert({
+  inquiryId,
+  channelName,
+  channelUrl,
+  contactEmail,
+  concerns,
+  concernOther,
+  contactPhone,
+}: {
+  inquiryId: string;
+  channelName: string;
+  channelUrl: string;
+  contactEmail: string;
+  concerns: string[];
+  concernOther?: string | null;
+  contactPhone?: string | null;
+}) {
+  const concernsList = [
+    ...concerns,
+    ...(concernOther ? [`기타: ${concernOther}`] : []),
+  ].join(", ") || "—";
+
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to: ADMIN_EMAIL,
+    subject: `[B2C 컨설팅 신청] ${channelName} — ${contactEmail}`,
+    html: `
+      <h2>채널 데이터 컨설팅 B2C 신규 신청</h2>
+      <table>
+        <tr><td><b>신청 ID</b></td><td>${inquiryId}</td></tr>
+        <tr><td><b>채널명</b></td><td>${channelName}</td></tr>
+        <tr><td><b>채널 URL</b></td><td><a href="${channelUrl}">${channelUrl}</a></td></tr>
+        <tr><td><b>이메일</b></td><td>${contactEmail}</td></tr>
+        <tr><td><b>고민 항목</b></td><td>${concernsList}</td></tr>
+        <tr><td><b>연락처</b></td><td>${contactPhone ?? "—"}</td></tr>
+      </table>
+      <p><a href="https://www.tubewatch.kr/admin/enterprise-orders">어드민에서 확인하기</a></p>
+    `,
+  });
+}
+
+export async function sendB2CConsultingPaymentLink({
+  to,
+  channelName,
+  channelUrl,
+}: {
+  to: string;
+  channelName: string;
+  channelUrl: string;
+}) {
+  const paymentUrl = `https://www.tubewatch.kr/billing?enterprise=1&channel_url=${encodeURIComponent(channelUrl)}`;
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: "[TubeWatch] 채널 데이터 컨설팅 결제 안내",
+    html: `
+      <h2>${channelName} 채널 운영자님께</h2>
+      <p>채널 데이터 컨설팅 신청을 접수했습니다.</p>
+      <p>아래 링크에서 컨설팅 플랜을 선택하고 결제를 진행해 주세요.</p>
+      <p style="color:#e85c00;font-size:13px;font-weight:600;">※ 결제 페이지는 Google 계정 로그인이 필요합니다. Google 이메일로 접속해 주세요.</p>
+      <br>
+      <p><a href="${paymentUrl}" style="background:#000;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block;">컨설팅 플랜 선택 및 결제하기</a></p>
+      <br>
+      <p style="color:#888;font-size:12px;">신청 채널: ${channelUrl}</p>
+      <p style="font-size:14px;font-weight:bold;">TubeWatch</p>
+    `,
+  });
+}
+
 export async function sendReportReadyEmail({
   to,
   channelUrl,

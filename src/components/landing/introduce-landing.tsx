@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight, Check, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Navigation } from "./navigation";
 import { FooterSection } from "./footer-section";
 
@@ -1581,73 +1584,266 @@ function PlanCard({ plan, index, visible }: { plan: typeof plans[0]; index: numb
   );
 }
 
-// ─── 07. Final CTA ──────────────────────────────────────────────────────────
+// ─── 07. Consulting CTA ──────────────────────────────────────────────────────
 
-function FinalCtaSection() {
-  const { ref, visible } = useFadeIn(0.2);
+const CONCERN_OPTIONS = [
+  "조회수가 정체되어 있어요.",
+  "구독자 전환이 안 돼요. (조회수 대비 구독자가 늘지 않아요)",
+  "어떤 콘텐츠를 다음 트렌드로 잡아야 할지 모르겠어요.",
+] as const;
 
-  const chips = ["채널 분석", "액션 플랜", "채널 DNA", "넥스트 트렌드"];
+function ConsultingModal({ onClose }: { onClose: () => void }) {
+  const [channelName,   setChannelName]   = useState("");
+  const [channelUrl,    setChannelUrl]    = useState("");
+  const [contactEmail,  setContactEmail]  = useState("");
+  const [concerns,      setConcerns]      = useState<string[]>([]);
+  const [concernOther,  setConcernOther]  = useState("");
+  const [contactPhone,  setContactPhone]  = useState("");
+  const [loading,       setLoading]       = useState(false);
+  const [error,         setError]         = useState<string | null>(null);
+  const [success,       setSuccess]       = useState(false);
+
+  function toggleConcern(val: string) {
+    setConcerns((prev) =>
+      prev.includes(val) ? prev.filter((c) => c !== val) : [...prev, val]
+    );
+  }
+
+  async function handleSubmit() {
+    if (!channelName.trim() || !channelUrl.trim() || !contactEmail.trim()) {
+      setError("필수 항목(*)을 모두 입력해주세요.");
+      return;
+    }
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await fetch("/api/b2c-consulting", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ channelName, channelUrl, contactEmail, concerns, concernOther, contactPhone }),
+      });
+      const json = await res.json() as { error?: string };
+      if (!res.ok) { setError(json.error ?? "오류가 발생했습니다."); return; }
+      setSuccess(true);
+    } catch {
+      setError("네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
-    <section className="relative py-10 lg:py-20 border-t border-foreground/10 overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute bottom-0 left-1/3 w-[600px] h-[300px] bg-orange-500/[0.05] rounded-full blur-3xl" />
-        <div className="absolute top-0 right-0 w-[400px] h-[200px] bg-foreground/[0.02] rounded-full blur-3xl" />
-      </div>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="w-full max-w-md rounded-xl border bg-background p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+        <div className="mb-5 flex items-center justify-between">
+          <h3 className="text-base font-semibold">채널 데이터 컨설팅 신청</h3>
+          <button
+            onClick={onClose}
+            className="rounded-md p-1 text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
 
-      <div className="relative z-10 max-w-[1080px] mx-auto px-8 lg:px-20">
-        <div
-          ref={ref}
-          className={`relative border border-foreground/15 rounded-2xl px-8 lg:px-14 py-10 lg:py-16 transition-all duration-700 bg-foreground/[0.01] ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
-        >
-          {/* Corner decorations */}
-          <div className="absolute top-0 right-0 w-24 h-24 border-b border-l border-foreground/10 rounded-tr-2xl" />
-          <div className="absolute bottom-0 left-0 w-24 h-24 border-t border-r border-foreground/10 rounded-bl-2xl" />
-
-          <div className="relative z-10">
-            {/* Chips */}
-            <div
-              className={`flex flex-wrap gap-2 mb-8 transition-all duration-700 delay-100 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
-            >
-              {chips.map((chip, i) => (
-                <span
-                  key={chip}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-foreground/10 text-xs font-mono text-muted-foreground bg-background"
-                  style={{ transitionDelay: `${i * 60}ms` }}
-                >
-                  <span className="w-1 h-1 rounded-full bg-orange-500" />
-                  {chip}
-                </span>
-              ))}
+        {success ? (
+          <div className="py-8 text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-foreground/5">
+              <Check className="h-6 w-6 text-orange-500" />
+            </div>
+            <p className="text-sm font-medium mb-1">신청이 완료됐습니다!</p>
+            <p className="text-xs text-muted-foreground">입력하신 이메일로 결제 안내를 보내드렸습니다.</p>
+            <Button size="sm" onClick={onClose} className="mt-6">닫기</Button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="b2c-channel-name" className="text-sm font-medium">
+                채널명 <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="b2c-channel-name"
+                placeholder="내 채널 이름"
+                value={channelName}
+                onChange={(e) => setChannelName(e.target.value)}
+                className="mt-1.5"
+              />
             </div>
 
-            <p className="font-mono text-xs tracking-[0.15em] uppercase text-muted-foreground mb-4">Get Started</p>
-            <h2
-              className={`font-heading text-4xl lg:text-6xl font-medium tracking-[-0.03em] leading-[1.1] mb-6 break-keep transition-all duration-700 delay-200 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
-            >
-              지금 채널을 등록하면<br />
-              5분 안에 첫 성장 인사이트를<br />
-              <span className="text-orange-600 dark:text-orange-500">확인할 수 있습니다.</span>
-            </h2>
+            <div>
+              <Label htmlFor="b2c-channel-url" className="text-sm font-medium">
+                유튜브 채널 URL <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="b2c-channel-url"
+                placeholder="youtube.com/@mychannel"
+                value={channelUrl}
+                onChange={(e) => setChannelUrl(e.target.value)}
+                className="mt-1.5"
+              />
+            </div>
 
-            <div
-              className={`flex flex-col sm:flex-row items-start gap-4 mt-8 transition-all duration-700 delay-300 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+            <div>
+              <Label htmlFor="b2c-email" className="text-sm font-medium">
+                구글 이메일 주소 <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="b2c-email"
+                type="email"
+                placeholder="example@gmail.com"
+                value={contactEmail}
+                onChange={(e) => setContactEmail(e.target.value)}
+                className="mt-1.5"
+              />
+            </div>
+
+            <div>
+              <p className="text-sm font-medium mb-2">현재 채널의 가장 큰 고민</p>
+              <div className="space-y-2">
+                {CONCERN_OPTIONS.map((opt) => (
+                  <div key={opt} className="flex items-start gap-2">
+                    <Checkbox
+                      id={`concern-${opt}`}
+                      checked={concerns.includes(opt)}
+                      onCheckedChange={() => toggleConcern(opt)}
+                      className="mt-0.5"
+                    />
+                    <Label htmlFor={`concern-${opt}`} className="text-sm text-muted-foreground leading-snug cursor-pointer">
+                      {opt}
+                    </Label>
+                  </div>
+                ))}
+                <div className="flex items-start gap-2">
+                  <Checkbox
+                    id="concern-other-check"
+                    checked={concerns.includes("기타")}
+                    onCheckedChange={() => toggleConcern("기타")}
+                    className="mt-0.5"
+                  />
+                  <div className="flex-1">
+                    <Label htmlFor="concern-other-check" className="text-sm text-muted-foreground cursor-pointer">기타</Label>
+                    {concerns.includes("기타") && (
+                      <Input
+                        placeholder="직접 입력해주세요"
+                        value={concernOther}
+                        onChange={(e) => setConcernOther(e.target.value)}
+                        className="mt-1.5 h-8 text-sm"
+                      />
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="b2c-phone" className="text-sm font-medium">연락처</Label>
+              <Input
+                id="b2c-phone"
+                type="tel"
+                placeholder="010-0000-0000"
+                value={contactPhone}
+                onChange={(e) => setContactPhone(e.target.value)}
+                className="mt-1.5"
+              />
+            </div>
+
+            {error && <p className="text-xs text-destructive" role="alert">{error}</p>}
+
+            <Button
+              onClick={handleSubmit}
+              disabled={loading}
+              className="w-full bg-foreground hover:bg-foreground/90 text-background"
             >
-              <Button size="lg" className="bg-foreground hover:bg-foreground/90 text-background px-8 h-12 text-base rounded-xl shadow-lg" asChild>
-                <a href="/channels">내 채널 분석하기</a>
-              </Button>
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "신청하기"}
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ConsultingCtaSection() {
+  const { ref, visible } = useFadeIn(0.2);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  return (
+    <>
+      <section className="relative py-10 lg:py-20 border-t border-foreground/10 overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute bottom-0 left-1/3 w-[600px] h-[300px] bg-orange-500/[0.05] rounded-full blur-3xl" />
+          <div className="absolute top-0 right-0 w-[400px] h-[200px] bg-foreground/[0.02] rounded-full blur-3xl" />
+        </div>
+
+        <div className="relative z-10 max-w-[1080px] mx-auto px-8 lg:px-20">
+          <div
+            ref={ref}
+            className={`relative border border-foreground/15 rounded-2xl px-8 lg:px-14 py-10 lg:py-16 transition-all duration-700 bg-foreground/[0.01] ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+          >
+            <div className="absolute top-0 right-0 w-24 h-24 border-b border-l border-foreground/10 rounded-tr-2xl" />
+            <div className="absolute bottom-0 left-0 w-24 h-24 border-t border-r border-foreground/10 rounded-bl-2xl" />
+
+            <div className="relative z-10 flex flex-col lg:flex-row lg:items-center gap-10">
+              <div className="flex-1 min-w-0">
+                <p className="font-mono text-xs tracking-[0.15em] uppercase text-muted-foreground mb-4">Monthly Consulting</p>
+                <h2
+                  className={`font-heading text-3xl lg:text-5xl font-medium tracking-[-0.03em] leading-[1.15] mb-4 break-keep transition-all duration-700 delay-100 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+                >
+                  채널 데이터 컨설팅<br />
+                  <span className="text-orange-600 dark:text-orange-500">정기구독</span>
+                </h2>
+                <p
+                  className={`text-base text-muted-foreground mb-6 break-keep leading-relaxed transition-all duration-700 delay-150 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+                >
+                  매달 자신의 &apos;채널 DNA&apos;를 점검하고<br className="hidden sm:block" /> 성장 인사이트를 만나보세요.
+                </p>
+                <p
+                  className={`text-sm text-muted-foreground/70 mb-8 break-keep leading-relaxed transition-all duration-700 delay-200 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+                >
+                  튜브워치의 데이터 컨설턴트가 매달 변화하는 알고리즘 트렌드와<br className="hidden lg:block" />
+                  채널의 성과 편차를 분석하여 정밀 리포트를 보내드립니다.
+                </p>
+
+                <div
+                  className={`flex items-start gap-3 p-4 rounded-xl border border-foreground/10 bg-foreground/[0.02] mb-8 transition-all duration-700 delay-250 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+                >
+                  <span className="mt-0.5 flex-shrink-0 w-5 h-5 rounded-full bg-orange-500/10 flex items-center justify-center">
+                    <Check className="h-3 w-3 text-orange-500" />
+                  </span>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">월간 정밀 진단 리포트</p>
+                    <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                      매월 초, 지난달 성과와 이번 달 집중해야 할 &apos;채널 트렌드&apos;를 요약한 맞춤형 리포트와 전문가 진단 제공
+                    </p>
+                  </div>
+                </div>
+
+                <div className={`transition-all duration-700 delay-300 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+                  <Button
+                    size="lg"
+                    onClick={() => setModalOpen(true)}
+                    className="bg-foreground hover:bg-foreground/90 text-background px-8 h-12 text-base rounded-xl shadow-lg"
+                  >
+                    채널 데이터 컨설팅 신청하기
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
             </div>
 
             <p
-              className={`mt-8 font-mono text-xs text-muted-foreground/40 transition-all duration-700 delay-400 ${visible ? "opacity-100" : "opacity-0"}`}
+              className={`mt-10 font-mono text-xs text-muted-foreground/40 transition-all duration-700 delay-400 ${visible ? "opacity-100" : "opacity-0"}`}
             >
               www.tubewatch.kr — 감이 아닌 데이터로 성장하는 유튜버를 위해
             </p>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      {modalOpen && <ConsultingModal onClose={() => setModalOpen(false)} />}
+    </>
   );
 }
 
@@ -1662,7 +1858,7 @@ export default function IntroduceLanding() {
       <FeaturesSection />
       <HowItWorksSection />
       <WhySection />
-      <FinalCtaSection />
+      <ConsultingCtaSection />
       <FooterSection />
     </main>
   );

@@ -56,6 +56,18 @@ type B2BInquiry = {
   created_at: string;
 };
 
+type B2CInquiry = {
+  id: string;
+  channel_name: string;
+  channel_url: string;
+  contact_email: string;
+  concerns: string[] | null;
+  concern_other: string | null;
+  contact_phone: string | null;
+  status: string;
+  created_at: string;
+};
+
 // ─── 상태 뱃지 ────────────────────────────────────────────────────────────────
 
 const STATUS_LABELS: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
@@ -544,6 +556,59 @@ function InquiryRow({ inquiry, onRefresh }: { inquiry: B2BInquiry; onRefresh: ()
   );
 }
 
+// ─── B2C 신청 행 ──────────────────────────────────────────────────────────────
+
+function B2CRow({ inquiry }: { inquiry: B2CInquiry }) {
+  const allConcerns = [
+    ...(inquiry.concerns ?? []),
+    ...(inquiry.concern_other ? [`기타: ${inquiry.concern_other}`] : []),
+  ];
+
+  return (
+    <tr className="border-b border-foreground/5 hover:bg-foreground/[0.02]">
+      <td className="py-3 pl-0 pr-4">
+        <div className="flex flex-col gap-0.5">
+          <span className="text-sm font-medium">{inquiry.channel_name}</span>
+          <a
+            href={inquiry.channel_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:underline"
+          >
+            {inquiry.channel_url.replace(/^https?:\/\/(www\.)?/, "").slice(0, 30)}
+            <ExternalLink className="h-3 w-3" />
+          </a>
+        </div>
+      </td>
+      <td className="py-3 pr-4">
+        <div className="flex flex-col gap-0.5">
+          <span className="text-sm">{inquiry.contact_email}</span>
+          {inquiry.contact_phone && (
+            <span className="text-xs text-muted-foreground">{inquiry.contact_phone}</span>
+          )}
+        </div>
+      </td>
+      <td className="py-3 pr-4">
+        {allConcerns.length > 0 ? (
+          <div className="flex flex-col gap-0.5">
+            {allConcerns.map((c) => (
+              <span key={c} className="text-xs text-muted-foreground">{c}</span>
+            ))}
+          </div>
+        ) : (
+          <span className="text-xs text-muted-foreground">—</span>
+        )}
+      </td>
+      <td className="py-3 pr-4">
+        <Badge variant={inquiry.status === "new" ? "outline" : "secondary"}>
+          {inquiry.status === "new" ? "접수" : inquiry.status === "payment_sent" ? "안내 발송" : inquiry.status}
+        </Badge>
+      </td>
+      <td className="py-3 text-xs text-muted-foreground">{fmtDate(inquiry.created_at)}</td>
+    </tr>
+  );
+}
+
 // ─── 리포트 목록 뷰 ───────────────────────────────────────────────────────────
 
 function ReportsTab({ reports }: { reports: ManusReportRow[] }) {
@@ -638,14 +703,16 @@ function ReportsTab({ reports }: { reports: ManusReportRow[] }) {
 export default function EnterpriseOrdersView({
   orders,
   inquiries,
+  b2cInquiries = [],
   reports = [],
 }: {
   orders: EnterpriseOrder[];
   inquiries: B2BInquiry[];
+  b2cInquiries?: B2CInquiry[];
   reports?: ManusReportRow[];
 }) {
   const router = useRouter();
-  const [tab, setTab] = useState<"orders" | "inquiries" | "reports">("orders");
+  const [tab, setTab] = useState<"orders" | "inquiries" | "b2c" | "reports">("orders");
 
   function refresh() {
     router.refresh();
@@ -654,6 +721,7 @@ export default function EnterpriseOrdersView({
   const tabs = [
     { id: "orders" as const,    label: `주문 내역 (${orders.length})` },
     { id: "inquiries" as const, label: `B2B 문의 (${inquiries.length})` },
+    { id: "b2c" as const,       label: `B2C 신청 (${b2cInquiries.length})` },
     { id: "reports" as const,   label: `리포트 목록 (${reports.length})` },
   ];
 
@@ -711,6 +779,32 @@ export default function EnterpriseOrdersView({
 
       {/* 리포트 목록 */}
       {tab === "reports" && <ReportsTab reports={reports} />}
+
+      {/* B2C 신청 목록 */}
+      {tab === "b2c" && (
+        b2cInquiries.length === 0 ? (
+          <p className="text-sm text-muted-foreground">접수된 B2C 신청이 없습니다.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-foreground/10 text-xs text-muted-foreground">
+                  <th className="pb-2 pr-4 font-medium">채널명 / URL</th>
+                  <th className="pb-2 pr-4 font-medium">이메일 / 연락처</th>
+                  <th className="pb-2 pr-4 font-medium">고민 항목</th>
+                  <th className="pb-2 pr-4 font-medium">상태</th>
+                  <th className="pb-2 font-medium">접수일</th>
+                </tr>
+              </thead>
+              <tbody>
+                {b2cInquiries.map((i) => (
+                  <B2CRow key={i.id} inquiry={i} />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
+      )}
 
       {/* B2B 문의 목록 */}
       {tab === "inquiries" && (

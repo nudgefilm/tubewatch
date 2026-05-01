@@ -4,13 +4,17 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import EnterpriseOrdersView from "@/components/admin/EnterpriseOrdersView";
 
 export default async function EnterpriseOrdersPage() {
-  const [{ data: orders }, { data: inquiries }, { data: reports }] = await Promise.all([
+  const [{ data: orders }, { data: inquiries }, { data: b2cInquiries }, { data: reports }] = await Promise.all([
     supabaseAdmin
       .from("enterprise_orders")
       .select("*")
       .order("created_at", { ascending: false }),
     supabaseAdmin
       .from("b2b_inquiries")
+      .select("*")
+      .order("created_at", { ascending: false }),
+    supabaseAdmin
+      .from("b2c_consulting_inquiries")
       .select("*")
       .order("created_at", { ascending: false }),
     supabaseAdmin
@@ -24,6 +28,7 @@ export default async function EnterpriseOrdersPage() {
     <EnterpriseOrdersView
       orders={orders ?? []}
       inquiries={inquiries ?? []}
+      b2cInquiries={b2cInquiries ?? []}
       reports={(reports ?? []).map((r) => ({
         ...r,
         user_channels: Array.isArray(r.user_channels) ? (r.user_channels[0] ?? null) : r.user_channels,
