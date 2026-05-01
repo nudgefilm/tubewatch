@@ -252,13 +252,15 @@ analysis_runs.run_id
 
 ## 📋 현재 DB 스키마 vs 마스터 플랜 갭 (구현 체크리스트)
 
-| 항목 | 현재 상태 | 필요 작업 |
-|------|-----------|-----------|
-| `analysis_runs.progress_step` | ❌ 없음 | 필드 추가 마이그레이션 |
-| `analysis_runs.engine_version` | ❌ 없음 | 필드 추가 마이그레이션 |
-| `module_outputs` 테이블 | ❌ 없음 | 테이블 설계 및 생성 |
-| `module_outputs.module_version` | ❌ 없음 | 위와 동일 |
-| `credit_reservation_id` 연결 | ❌ 없음 | run_id ↔ reservation 연결 로직 |
-| Partial Update 라우팅 | ⚠️ 부분 구현 | `analysis_runs.analysis_type` 활용 |
-| Progress UI 컴포넌트 | ❌ 없음 | `progress_step` 기반 UI 구현 |
-| Engine Version UX | ❌ 없음 | version mismatch 감지 + UI |
+> 최종 점검일: 2026-05-01
+
+| 항목 | 현재 상태 | 비고 |
+|------|-----------|------|
+| `analysis_runs.progress_step` | ✅ 완료 | `analysis_jobs.progress_step` + API 폴링 + UI 연동 |
+| `analysis_runs.engine_version` | ✅ 완료 | `analysis_results` + `analysis_runs` 양쪽 필드 추가 |
+| `module_outputs` 테이블 | ✅ 완료 | `analysis_module_results` 테이블로 구현 |
+| `module_outputs.module_version` | ✅ 완료 | 마이그레이션 + insert 시 `CURRENT_ENGINE_VERSION` 기록 (2026-05-01) |
+| `credit_reservation_id` 연결 | ✅ 완료 | `credit_reservations.analysis_run_id` FK 단방향 연결 |
+| Partial Update 라우팅 | ✅ 완료 | `runType`·`requestedModules` DB 미저장 버그 수정 (2026-05-01) |
+| Progress UI 컴포넌트 | ✅ 완료 | `ChannelsPageClient` 폴링 + 단계별 메시지 표시 |
+| Engine Version UX | ✅ 완료 | "업데이트 권장" 배지 + "새로운 분석 엔진" 안내 텍스트 |
