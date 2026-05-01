@@ -1792,7 +1792,7 @@ function ConsultingCtaSection() {
                   className={`font-heading text-3xl lg:text-5xl font-medium tracking-[-0.03em] leading-[1.15] mb-4 break-keep transition-all duration-700 delay-100 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
                 >
                   <span className="font-bold">채널 데이터 컨설팅</span><br />
-                  <span className="text-orange-600 dark:text-orange-500">정기구독</span>
+                  <span className="text-orange-600 dark:text-orange-500 text-xl lg:text-2xl font-medium">정기구독</span>
                   <span className="text-orange-600 dark:text-orange-500 text-xl lg:text-2xl font-medium ml-2">| 3개월 단위</span>
                 </h2>
                 <p
