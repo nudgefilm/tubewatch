@@ -23,9 +23,18 @@ export type MonitorItem = {
   extraData?: unknown;
 };
 
+export type CostStats = {
+  todayJobCount: number;
+  weekJobCount: number;
+  todayCreditBurn: number;
+  weekCreditBurn: number;
+  weekEstimatedKrw: number;
+};
+
 export type AdminMonitorData = {
   checkedAt: string;
   items: MonitorItem[];
+  costStats: CostStats;
 };
 
 // ── 키 보안 헬퍼 ──────────────────────────────────────────────────────────────
@@ -71,6 +80,32 @@ function countLeakedPublicEnvVars(): { count: number; leaked: string[] } {
   return { count: leaked.length, leaked };
 }
 
+// ── 비용 추정 상수 ────────────────────────────────────────────────────────────
+// Gemini Flash 기준: 베이스 분석 1회 + 워커 모듈 6회 평균 추정
+// 실제 청구액은 Google Cloud Console에서 확인 필요
+const KRW_PER_ANALYSIS = 12;
+
+// ── KST 기준 시각 헬퍼 ────────────────────────────────────────────────────────
+function kstBoundary(offsetDays = 0): string {
+  const kstOffset = 9 * 60 * 60 * 1000;
+  const kstNow = new Date(Date.now() + kstOffset);
+  const boundary = new Date(
+    Date.UTC(kstNow.getUTCFullYear(), kstNow.getUTCMonth(), kstNow.getUTCDate() + offsetDays) - kstOffset
+  );
+  return boundary.toISOString();
+}
+
+function kstWeekStart(): string {
+  const kstOffset = 9 * 60 * 60 * 1000;
+  const kstNow = new Date(Date.now() + kstOffset);
+  const dayOfWeek = kstNow.getUTCDay();
+  const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  const monday = new Date(
+    Date.UTC(kstNow.getUTCFullYear(), kstNow.getUTCMonth(), kstNow.getUTCDate() - daysSinceMonday) - kstOffset
+  );
+  return monday.toISOString();
+}
+
 // ── 메인 ──────────────────────────────────────────────────────────────────────
 
 export async function getAdminMonitorData(): Promise<AdminMonitorData> {
@@ -78,6 +113,9 @@ export async function getAdminMonitorData(): Promise<AdminMonitorData> {
   const minus10m = new Date(now.getTime() - 10 * 60 * 1000).toISOString();
   const minus30m = new Date(now.getTime() - 30 * 60 * 1000).toISOString();
   const minus24h = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+
+  const todayStart = kstBoundary(0);
+  const weekStart = kstWeekStart();
 
   const geminiKeyCheckPromise = checkGeminiKeyStatus();
 
@@ -90,6 +128,10 @@ export async function getAdminMonitorData(): Promise<AdminMonitorData> {
     nullScoreRes,
     avgDurationRes,
     totalJobsRes,
+    todayJobRes,
+    weekJobRes,
+    todayCreditRes,
+    weekCreditRes,
   ] = await Promise.all([
     supabaseAdmin
       .from("analysis_module_results")
@@ -137,6 +179,33 @@ export async function getAdminMonitorData(): Promise<AdminMonitorData> {
       .from("analysis_jobs")
       .select("*", { count: "exact", head: true })
       .gte("created_at", minus24h),
+
+    // 비용 추정용 쿼리
+    supabaseAdmin
+      .from("analysis_jobs")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "completed")
+      .gte("created_at", todayStart),
+
+    supabaseAdmin
+      .from("analysis_jobs")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "completed")
+      .gte("created_at", weekStart),
+
+    supabaseAdmin
+      .from("credit_logs")
+      .select("credit_delta")
+      .eq("result_status", "applied")
+      .lt("credit_delta", 0)
+      .gte("created_at", todayStart),
+
+    supabaseAdmin
+      .from("credit_logs")
+      .select("credit_delta")
+      .eq("result_status", "applied")
+      .lt("credit_delta", 0)
+      .gte("created_at", weekStart),
   ]);
 
   const geminiKey = await geminiKeyCheckPromise;
@@ -150,6 +219,18 @@ export async function getAdminMonitorData(): Promise<AdminMonitorData> {
   const queuedRun = queuedRunRes.count ?? 0;
   const nullScore = nullScoreRes.count ?? 0;
   const totalJobs24h = totalJobsRes.count ?? 0;
+
+  const todayJobCount = todayJobRes.count ?? 0;
+  const weekJobCount = weekJobRes.count ?? 0;
+  const todayCreditBurn = (todayCreditRes.data ?? []).reduce(
+    (sum, r) => sum + Math.abs((r as { credit_delta: number }).credit_delta),
+    0
+  );
+  const weekCreditBurn = (weekCreditRes.data ?? []).reduce(
+    (sum, r) => sum + Math.abs((r as { credit_delta: number }).credit_delta),
+    0
+  );
+  const weekEstimatedKrw = weekJobCount * KRW_PER_ANALYSIS;
 
   let avgDurationSec = 0;
   const durationRows = avgDurationRes.data ?? [];
@@ -266,5 +347,13 @@ export async function getAdminMonitorData(): Promise<AdminMonitorData> {
     },
   ];
 
-  return { checkedAt: now.toISOString(), items };
+  const costStats: CostStats = {
+    todayJobCount,
+    weekJobCount,
+    todayCreditBurn,
+    weekCreditBurn,
+    weekEstimatedKrw,
+  };
+
+  return { checkedAt: now.toISOString(), items, costStats };
 }

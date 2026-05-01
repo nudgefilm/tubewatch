@@ -1,4 +1,4 @@
-import type { AdminMonitorData } from "@/lib/server/admin/getAdminMonitorData";
+import type { AdminMonitorData, CostStats } from "@/lib/server/admin/getAdminMonitorData";
 import { CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import { CleanupLegacyButton } from "@/components/admin/CleanupLegacyButton";
 
@@ -20,6 +20,36 @@ function valueColor(status: "ok" | "warn" | "error") {
   if (status === "ok") return "text-foreground";
   if (status === "warn") return "text-amber-600 dark:text-amber-400";
   return "text-red-600 dark:text-red-400";
+}
+
+function CostSection({ stats }: { stats: CostStats }) {
+  const cards = [
+    { label: "오늘 분석", value: stats.todayJobCount.toLocaleString("ko-KR"), unit: "건", sub: "KST 기준 오늘 완료" },
+    { label: "이번 주 분석", value: stats.weekJobCount.toLocaleString("ko-KR"), unit: "건", sub: "KST 기준 월~일" },
+    { label: "이번 주 크레딧 소모", value: stats.weekCreditBurn.toLocaleString("ko-KR"), unit: "cr", sub: "credit_logs 실 차감 합계" },
+    { label: "이번 주 추정 AI 비용", value: `₩${stats.weekEstimatedKrw.toLocaleString("ko-KR")}`, unit: "", sub: `분석수 × ₩12 (Gemini Flash 기준)` },
+  ];
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <h2 className="text-sm font-semibold text-foreground">운영 비용 추정</h2>
+        <span className="rounded-full bg-foreground/5 px-2 py-0.5 text-[10px] text-muted-foreground">추정값 — 실제 청구액은 Google Cloud Console 확인</span>
+      </div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {cards.map((c) => (
+          <div key={c.label} className="rounded-xl border border-foreground/10 p-4">
+            <p className="text-xs font-medium text-muted-foreground">{c.label}</p>
+            <p className="mt-2 font-heading text-2xl font-medium tabular-nums tracking-[-0.03em] text-foreground">
+              {c.value}
+              {c.unit && <span className="ml-1 text-sm font-normal text-muted-foreground">{c.unit}</span>}
+            </p>
+            <p className="mt-1 text-[10px] text-muted-foreground">{c.sub}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function overallStatus(items: AdminMonitorData["items"]): "ok" | "warn" | "error" {
@@ -97,6 +127,9 @@ export default function AdminMonitorView({ data }: { data: AdminMonitorData }) {
           </div>
         ))}
       </div>
+
+      {/* Cost Stats */}
+      <CostSection stats={data.costStats} />
 
       {/* Legend */}
       <div className="flex items-center gap-6 rounded-lg border border-foreground/10 bg-foreground/[0.02] px-4 py-3">
