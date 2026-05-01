@@ -15,7 +15,17 @@
       "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
       "Bash(find:*)",
       "Bash(grep -A 100 \"CREATE TABLE.*analysis_results\" \"C:\\\\★Tube Watch\\\\Tubewatch/supabase/migrations\"/*.sql)",
-      "Bash(cd \"C:\\\\\\\\★Tube Watch\\\\\\\\Tubewatch\")"
+      "Bash(cd \"C:\\\\\\\\★Tube Watch\\\\\\\\Tubewatch\")",
+      "Bash(grep -l \"user_subscriptions\" supabase/migrations/*.sql)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git show *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(curl *)",
+      "Bash(node -e ' *)",
+      "Bash(npx vercel *)",
+      "Bash(grep *)"
     ]
   }
 }
