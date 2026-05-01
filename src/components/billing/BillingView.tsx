@@ -996,7 +996,7 @@ export default function BillingView({ initialData, channelCount, userEmail = "",
         <section>
           <div className="mb-2 flex items-center gap-3">
             <Building2 className="h-5 w-5 text-primary" />
-            <h2 className="text-xl font-bold">전문가 컨설팅</h2>
+            <h2 className="text-xl font-bold">전문가 데이터 컨설팅</h2>
           </div>
           <p className="mb-6 text-sm text-muted-foreground">
             튜브워치 엔진의 정밀함에 전문가의 통찰을 더한 채널 성장 컨설팅 서비스입니다.
