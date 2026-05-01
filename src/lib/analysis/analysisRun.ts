@@ -466,6 +466,8 @@ export async function createAnalysisRun(
     channelId: input.channelId,
     analysisType: input.analysisType,
     inputSnapshotId: input.inputSnapshotId ?? null,
+    runType: input.runType,
+    requestedModules: input.requestedModules,
   });
   const row = recordToDbInsertRow(record);
   const { data, error } = await client
