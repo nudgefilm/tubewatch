@@ -19,6 +19,7 @@ import {
 } from "@/lib/server/analysis/checkUserCredits";
 import { insertCreditLog } from "@/lib/server/analysis/creditLog";
 import { insertAnalysisModuleResults } from "@/lib/server/analysis/moduleResults";
+import { CURRENT_ENGINE_VERSION } from "@/lib/analysis/engineVersion";
 
 function analysisRunToResponseBody(r: AnalysisRunRecord) {
   return {
@@ -199,6 +200,7 @@ export async function POST(request: Request) {
       requestedModules: parsed.requestedModules,
       resultRow: latestResult as Record<string, unknown>,
       analyzedAt: moduleAnalyzedAt,
+      moduleVersion: CURRENT_ENGINE_VERSION,
     });
   } catch (moduleErr) {
     console.error("[analysis-run] module results insertion error:", moduleErr);

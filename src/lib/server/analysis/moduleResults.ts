@@ -75,6 +75,8 @@ export type InsertModuleResultsParams = {
   /** analysis_results 전체 row (select("*") 결과) */
   resultRow: Record<string, unknown>;
   analyzedAt: string;
+  /** engineVersion.ts의 CURRENT_ENGINE_VERSION */
+  moduleVersion: string;
 };
 
 /**
@@ -101,6 +103,7 @@ export async function insertAnalysisModuleResults(
     requestedModules,
     resultRow,
     analyzedAt,
+    moduleVersion,
   } = params;
 
   const insertedModules: string[] = [];
@@ -138,6 +141,7 @@ export async function insertAnalysisModuleResults(
       status: "completed",
       started_at: analyzedAt,
       analyzed_at: analyzedAt,
+      module_version: moduleVersion,
     });
 
     if (error) {
