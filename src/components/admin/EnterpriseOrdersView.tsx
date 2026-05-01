@@ -27,11 +27,13 @@ type EnterpriseOrder = {
   channel_url: string;
   portone_payment_id: string | null;
   amount_krw: number;
+  consulting_plan_id: string | null;
   payment_status: string;
   status: string;
   email_sent: boolean;
   reports_issued: number;
   total_reports: number;
+  completed_months: string[] | null;
   report_tokens: string[] | null;
   tax_invoice_requested: boolean;
   tax_invoice_issued: boolean;
@@ -68,6 +70,40 @@ const STATUS_LABELS: Record<string, { label: string; variant: "default" | "secon
 function StatusBadge({ status }: { status: string }) {
   const s = STATUS_LABELS[status] ?? { label: status, variant: "outline" as const };
   return <Badge variant={s.variant}>{s.label}</Badge>;
+}
+
+// ─── 월별 완료 현황 ───────────────────────────────────────────────────────────
+
+function MonthlyCompletions({ completedMonths }: { completedMonths: string[] }) {
+  if (completedMonths.length === 0) return null;
+
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  // 월별 발송 횟수 집계
+  const counts: Record<string, number> = {};
+  for (const m of completedMonths) counts[m] = (counts[m] ?? 0) + 1;
+
+  const sortedMonths = Object.keys(counts).sort();
+
+  return (
+    <div className="flex flex-wrap gap-1">
+      {sortedMonths.map((month) => {
+        const isCurrent = month === currentMonth;
+        const label = month.slice(5); // "MM"
+        return (
+          <span
+            key={month}
+            className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium ${
+              isCurrent
+                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400"
+                : "bg-foreground/[0.06] text-muted-foreground"
+            }`}
+          >
+            {label}월{counts[month] > 1 ? ` ×${counts[month]}` : ""} ✓
+          </span>
+        );
+      })}
+    </div>
+  );
 }
 
 // ─── 날짜 포맷 ────────────────────────────────────────────────────────────────
@@ -272,15 +308,23 @@ function OrderRow({ order, onRefresh }: { order: EnterpriseOrder; onRefresh: () 
         </div>
       </td>
       <td className="py-3 pr-4">
-        <StatusBadge status={order.status} />
-        {order.source === "channelreport" && (
-          <Badge variant="outline" className="ml-1 text-xs">B2B</Badge>
-        )}
+        <div className="flex flex-wrap items-center gap-1">
+          <StatusBadge status={order.status} />
+          {order.source === "channelreport" && (
+            <Badge variant="outline" className="text-xs">B2B</Badge>
+          )}
+          {order.consulting_plan_id && (
+            <Badge variant="secondary" className="text-xs capitalize">{order.consulting_plan_id}</Badge>
+          )}
+        </div>
       </td>
       <td className="py-3 pr-4">
-        <span className="text-sm font-semibold">
-          {order.reports_issued}/{order.total_reports}
-        </span>
+        <div className="flex flex-col gap-1">
+          <span className="text-sm font-semibold">
+            {order.reports_issued}/{order.total_reports}
+          </span>
+          <MonthlyCompletions completedMonths={order.completed_months ?? []} />
+        </div>
       </td>
       <td className="py-3 pr-4">
         {order.tax_invoice_requested ? (

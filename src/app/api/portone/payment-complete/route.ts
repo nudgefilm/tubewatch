@@ -123,6 +123,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "결제 금액이 일치하지 않습니다." }, { status: 400 });
     }
 
+    // 결제 금액 또는 body에서 컨설팅 플랜 확정
+    let consultingPlanId = typeof raw.consultingPlanId === "string" ? raw.consultingPlanId.trim() : "";
+    if (!consultingPlanId) {
+      const matched = CONSULTING_PLANS.find((p) => p.priceKrw === payment.amount.total);
+      consultingPlanId = matched?.id ?? "";
+    }
+
     // ── Idempotency: 동일 paymentId로 처리된 주문 조회 ───────────────────────
     const { data: existing } = await supabaseAdmin
       .from("enterprise_orders")
@@ -153,6 +160,7 @@ export async function POST(request: Request) {
           channel_url: channelUrl,
           portone_payment_id: paymentId,
           amount_krw: ENTERPRISE_PRODUCT.priceKrw,
+          consulting_plan_id: consultingPlanId || null,
           payment_status: "paid",
           status: "paid",
         },
@@ -167,12 +175,7 @@ export async function POST(request: Request) {
     // ── 컨설팅 구매자 구독 혜택 부여 ────────────────────────────────────────
     // Free: Creator 플랜 신규 부여 / 유료 구독 중: renewal_at 연장
     {
-      let grantPlanId = typeof raw.consultingPlanId === "string" ? raw.consultingPlanId.trim() : "";
-      if (!grantPlanId) {
-        const matched = CONSULTING_PLANS.find((p) => p.priceKrw === payment.amount.total);
-        grantPlanId = matched?.id ?? "";
-      }
-      const grantMonths = grantPlanId === "enterprise" ? 12 : 3;
+      const grantMonths = consultingPlanId === "enterprise" ? 12 : 3;
 
       const { data: currentSub } = await supabaseAdmin
         .from("user_subscriptions")

@@ -13,7 +13,7 @@ export async function POST(request: Request) {
 
   const { data: order } = await supabaseAdmin
     .from("enterprise_orders")
-    .select("reports_issued, total_reports, email, channel_url")
+    .select("reports_issued, total_reports, email, channel_url, completed_months")
     .eq("id", orderId)
     .single();
 
@@ -21,12 +21,15 @@ export async function POST(request: Request) {
 
   const newCount = order.reports_issued + 1;
   const isCompleted = newCount >= order.total_reports;
+  const currentMonth = new Date().toISOString().slice(0, 7); // "YYYY-MM"
+  const completedMonths = [...((order.completed_months as string[] | null) ?? []), currentMonth];
 
   const { error } = await supabaseAdmin
     .from("enterprise_orders")
     .update({
       reports_issued: newCount,
       status: isCompleted ? "completed" : "analysis_progress",
+      completed_months: completedMonths,
     })
     .eq("id", orderId);
 
