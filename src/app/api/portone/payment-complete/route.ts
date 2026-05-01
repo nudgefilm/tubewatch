@@ -164,7 +164,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "주문 저장에 실패했습니다." }, { status: 500 });
     }
 
-    // ── 컨설팅 구매자 Creator 플랜 부여 (Free 회원에 한함) ──────────────────
+    // ── 컨설팅 구매자 구독 혜택 부여 ────────────────────────────────────────
+    // Free: Creator 플랜 신규 부여 / 유료 구독 중: renewal_at 연장
     {
       let grantPlanId = typeof raw.consultingPlanId === "string" ? raw.consultingPlanId.trim() : "";
       if (!grantPlanId) {
@@ -185,6 +186,7 @@ export async function POST(request: Request) {
         new Date(currentSub.renewal_at as string).getTime() > Date.now();
 
       if (!isActivePaidSub) {
+        // Free → Creator 플랜 신규 부여
         const grantNow = new Date();
         const grantRenewalAt = new Date(grantNow);
         grantRenewalAt.setMonth(grantRenewalAt.getMonth() + grantMonths);
@@ -210,6 +212,22 @@ export async function POST(request: Request) {
 
         if (grantError) {
           console.error("[portone/payment-complete] consulting creator grant error:", grantError);
+        }
+      } else {
+        // 유료 구독 중 → 현재 renewal_at 기준으로 grantMonths 연장
+        const currentRenewalAt = new Date(currentSub!.renewal_at as string);
+        currentRenewalAt.setMonth(currentRenewalAt.getMonth() + grantMonths);
+
+        const { error: extendError } = await supabaseAdmin
+          .from("user_subscriptions")
+          .update({
+            renewal_at: currentRenewalAt.toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("user_id", user.id);
+
+        if (extendError) {
+          console.error("[portone/payment-complete] consulting renewal extend error:", extendError);
         }
       }
     }
