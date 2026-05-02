@@ -19,12 +19,12 @@ type NavItem = {
 };
 
 const NAV_ITEMS: NavItem[] = [
-  { href: "/admin",          label: "Overview", icon: <BarChart3 className="h-4 w-4" /> },
-  { href: "/admin/users",    label: "Users",    icon: <Users className="h-4 w-4" /> },
-  { href: "/admin/channels", label: "Channels", icon: <Youtube className="h-4 w-4" /> },
-  { href: "/admin/jobs",     label: "Jobs",     icon: <Briefcase className="h-4 w-4" /> },
-  { href: "/admin/monitor",    label: "Monitor",   icon: <Activity className="h-4 w-4" /> },
-  { href: "/admin/signup-log",       label: "가입 로그",   icon: <ClipboardList className="h-4 w-4" /> },
+  { href: "/admin",                   label: "대시보드",    icon: <BarChart3 className="h-4 w-4" /> },
+  { href: "/admin/users",             label: "사용자",      icon: <Users className="h-4 w-4" /> },
+  { href: "/admin/channels",          label: "채널",        icon: <Youtube className="h-4 w-4" /> },
+  { href: "/admin/jobs",              label: "분석 작업",   icon: <Briefcase className="h-4 w-4" /> },
+  { href: "/admin/monitor",           label: "시스템 모니터", icon: <Activity className="h-4 w-4" /> },
+  { href: "/admin/signup-log",        label: "가입 로그",   icon: <ClipboardList className="h-4 w-4" /> },
   { href: "/admin/enterprise-orders", label: "채널 컨설팅", icon: <Building2 className="h-4 w-4" /> },
 ];
 

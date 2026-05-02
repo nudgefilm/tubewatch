@@ -4,6 +4,7 @@ type AdminStatCardProps = {
   label: string;
   value: number | string;
   subtitle?: string;
+  secondary?: string;
   variant?: "default" | "danger" | "highlight" | "success";
 };
 
@@ -11,6 +12,7 @@ export default function AdminStatCard({
   label,
   value,
   subtitle,
+  secondary,
   variant = "default",
 }: AdminStatCardProps): JSX.Element {
   const displayValue: ReactNode =
@@ -34,6 +36,9 @@ export default function AdminStatCard({
       <p className={`mt-2 font-heading text-3xl font-medium tabular-nums tracking-[-0.03em] ${valueColor}`}>
         {displayValue}
       </p>
+      {secondary ? (
+        <p className="mt-1 text-[10px] text-muted-foreground/60">{secondary}</p>
+      ) : null}
     </div>
   );
 }

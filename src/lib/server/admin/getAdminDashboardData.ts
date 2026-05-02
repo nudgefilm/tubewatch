@@ -37,24 +37,31 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
   const [
     usersCountRes,
     channelsCountRes,
-    resultsCountRes,
-    failedJobsRes,
+    todayAnalysisRes,
+    todayFailedJobsRes,
     activeSubsRes,
     jobsRes,
     failuresRes,
     todayVisitorsRes,
-    totalVisitorsRes,
     todaySignupsRes,
     todayWithdrawalsRes,
     todayPaymentsRes,
+    consultingTodayRes,
+    consultingTotalRes,
   ] = await Promise.all([
     supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1 }),
     supabaseAdmin.from("user_channels").select("*", { count: "exact", head: true }),
-    supabaseAdmin.from("analysis_results").select("*", { count: "exact", head: true }),
+    supabaseAdmin
+      .from("analysis_results")
+      .select("*", { count: "exact", head: true })
+      .gte("created_at", todayKSTStart)
+      .lt("created_at", tomorrowKSTStart),
     supabaseAdmin
       .from("analysis_jobs")
       .select("*", { count: "exact", head: true })
-      .eq("status", "failed"),
+      .eq("status", "failed")
+      .gte("created_at", todayKSTStart)
+      .lt("created_at", tomorrowKSTStart),
     supabaseAdmin
       .from("user_subscriptions")
       .select("*", { count: "exact", head: true })
@@ -75,9 +82,6 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       .select("*", { count: "exact", head: true })
       .eq("visit_date", todayKST),
     supabaseAdmin
-      .from("site_visits")
-      .select("*", { count: "exact", head: true }),
-    supabaseAdmin
       .from("user_signup_log")
       .select("*", { count: "exact", head: true })
       .gte("joined_at", todayKSTStart)
@@ -93,19 +97,28 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       .in("change_type", ["new", "upgrade"])
       .gte("changed_at", todayKSTStart)
       .lt("changed_at", tomorrowKSTStart),
+    supabaseAdmin
+      .from("b2c_consulting_inquiries")
+      .select("*", { count: "exact", head: true })
+      .gte("created_at", todayKSTStart)
+      .lt("created_at", tomorrowKSTStart),
+    supabaseAdmin
+      .from("b2c_consulting_inquiries")
+      .select("*", { count: "exact", head: true }),
   ]);
 
   const kpi: AdminDashboardKpi = {
     usersCount: (usersCountRes.data as { total?: number } | null)?.total ?? 0,
     channelsCount: channelsCountRes.count ?? 0,
-    analysisRunsCount: resultsCountRes.count ?? 0,
-    failedJobsCount: failedJobsRes.count ?? 0,
+    todayAnalysisCount: todayAnalysisRes.count ?? 0,
+    todayFailedCount: todayFailedJobsRes.count ?? 0,
     activeSubscribersCount: activeSubsRes.count ?? 0,
     todayVisitorsCount: todayVisitorsRes.count ?? 0,
-    totalVisitorsCount: totalVisitorsRes.count ?? 0,
     todaySignupsCount: todaySignupsRes.count ?? 0,
     todayWithdrawalsCount: todayWithdrawalsRes.count ?? 0,
     todayPaymentsCount: todayPaymentsRes.count ?? 0,
+    consultingTodayCount: consultingTodayRes.count ?? 0,
+    consultingTotalCount: consultingTotalRes.count ?? 0,
   };
 
   const jobData = (jobsRes.data ?? []) as unknown as JobDbRow[];

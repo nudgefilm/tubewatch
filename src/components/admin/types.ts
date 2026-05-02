@@ -6,14 +6,15 @@
 export type AdminDashboardKpi = {
   usersCount: number;
   channelsCount: number;
-  analysisRunsCount: number;
-  failedJobsCount: number;
+  todayAnalysisCount: number;
+  todayFailedCount: number;
   activeSubscribersCount: number;
   todayVisitorsCount: number;
-  totalVisitorsCount: number;
   todaySignupsCount: number;
   todayWithdrawalsCount: number;
   todayPaymentsCount: number;
+  consultingTodayCount: number;
+  consultingTotalCount: number;
 };
 
 export type AdminQueueRow = {
