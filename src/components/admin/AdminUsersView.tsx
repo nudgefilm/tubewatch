@@ -1011,7 +1011,7 @@ function RefundModal({
 
 // ─── 메인 컴포넌트 ────────────────────────────────────────────────────────────
 
-export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.Element {
+export default function AdminUsersView({ data, hideHeader }: { data: AdminUsersData; hideHeader?: boolean }): JSX.Element {
   const { rows, total } = data;
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -1114,33 +1114,35 @@ export default function AdminUsersView({ data }: { data: AdminUsersData }): JSX.
       )}
 
       {/* 헤더 */}
-      <div className="border-b border-foreground/8 pb-5 flex items-end justify-between gap-4">
-        <div>
-          <h1 className="font-heading text-2xl font-medium tracking-[-0.03em] text-foreground">Users</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            총 {formatNum(total)}명
-            {search && ` · 검색결과 ${formatNum(filtered.length)}명`}
-            {totalPages > 1 && ` · ${page}/${totalPages} 페이지`}
-          </p>
+      {!hideHeader && (
+        <div className="border-b border-foreground/8 pb-5 flex items-end justify-between gap-4">
+          <div>
+            <h1 className="font-heading text-2xl font-medium tracking-[-0.03em] text-foreground">사용자</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              총 {formatNum(total)}명
+              {search && ` · 검색결과 ${formatNum(filtered.length)}명`}
+              {totalPages > 1 && ` · ${page}/${totalPages} 페이지`}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => startTransition(() => router.refresh())}
+              disabled={isPending}
+              className="rounded-lg border border-foreground/10 px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-foreground/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              {isPending ? "새로고침 중…" : "새로고침"}
+            </button>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="이메일 · 이름 · ID 검색"
+              className="w-64 rounded-lg border border-foreground/10 bg-foreground/[0.02] px-3 py-2 text-xs placeholder:text-muted-foreground/40 focus:outline-none focus:border-foreground/30"
+            />
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => startTransition(() => router.refresh())}
-            disabled={isPending}
-            className="rounded-lg border border-foreground/10 px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-foreground/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          >
-            {isPending ? "새로고침 중…" : "새로고침"}
-          </button>
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="이메일 · 이름 · ID 검색"
-            className="w-64 rounded-lg border border-foreground/10 bg-foreground/[0.02] px-3 py-2 text-xs placeholder:text-muted-foreground/40 focus:outline-none focus:border-foreground/30"
-          />
-        </div>
-      </div>
+      )}
 
       {/* 테이블 */}
       <div className="rounded-xl border border-foreground/10 bg-foreground/[0.02] overflow-hidden">

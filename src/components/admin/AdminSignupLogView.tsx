@@ -33,7 +33,7 @@ function StatusBadge({ row }: { row: SignupLogRow }) {
   );
 }
 
-export default function AdminSignupLogView({ data }: { data: AdminSignupLogData }): JSX.Element {
+export default function AdminSignupLogView({ data, hideHeader }: { data: AdminSignupLogData; hideHeader?: boolean }): JSX.Element {
   const { rows, total } = data;
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -51,28 +51,30 @@ export default function AdminSignupLogView({ data }: { data: AdminSignupLogData 
   return (
     <div className="space-y-6">
       {/* 헤더 */}
-      <div className="border-b border-foreground/8 pb-5 flex items-end justify-between gap-4">
-        <div>
-          <h1 className="font-heading text-2xl font-medium tracking-[-0.03em] text-foreground">
-            가입 로그
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            총 {total}건 · 활성 {activeCount} · 탈퇴 {withdrawnCount}
-            {totalPages > 1 && ` · ${page}/${totalPages}페이지`}
-          </p>
-          <p className="mt-0.5 text-xs text-muted-foreground/50">
-            최신 100건 보관 · 10건 × 10페이지 · 탈퇴 후에도 기록 유지
-          </p>
+      {!hideHeader && (
+        <div className="border-b border-foreground/8 pb-5 flex items-end justify-between gap-4">
+          <div>
+            <h1 className="font-heading text-2xl font-medium tracking-[-0.03em] text-foreground">
+              가입 로그
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              총 {total}건 · 활성 {activeCount} · 탈퇴 {withdrawnCount}
+              {totalPages > 1 && ` · ${page}/${totalPages}페이지`}
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground/50">
+              최신 100건 보관 · 10건 × 10페이지 · 탈퇴 후에도 기록 유지
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => startTransition(() => router.refresh())}
+            disabled={isPending}
+            className="rounded-lg border border-foreground/10 px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-foreground/5 disabled:opacity-40 transition-colors"
+          >
+            {isPending ? "새로고침 중…" : "새로고침"}
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={() => startTransition(() => router.refresh())}
-          disabled={isPending}
-          className="rounded-lg border border-foreground/10 px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-foreground/5 disabled:opacity-40 transition-colors"
-        >
-          {isPending ? "새로고침 중…" : "새로고침"}
-        </button>
-      </div>
+      )}
 
       {/* 테이블 */}
       <div className="rounded-xl border border-foreground/10 bg-foreground/[0.02] overflow-hidden">

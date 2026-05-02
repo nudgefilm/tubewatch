@@ -17,15 +17,17 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-export default function AdminJobsView({ data }: { data: AdminJobsData }): JSX.Element {
+export default function AdminJobsView({ data, hideHeader }: { data: AdminJobsData; hideHeader?: boolean }): JSX.Element {
   const { kpi, rows, total } = data;
 
   return (
     <div className="space-y-6">
-      <div className="border-b border-foreground/8 pb-5">
-        <h1 className="font-heading text-2xl font-medium tracking-[-0.03em] text-foreground">Jobs</h1>
-        <p className="mt-1 text-sm text-muted-foreground">분석 큐 — 최근 {total}건</p>
-      </div>
+      {!hideHeader && (
+        <div className="border-b border-foreground/8 pb-5">
+          <h1 className="font-heading text-2xl font-medium tracking-[-0.03em] text-foreground">분석 작업</h1>
+          <p className="mt-1 text-sm text-muted-foreground">분석 큐 — 최근 {total}건</p>
+        </div>
+      )}
 
       {/* Status KPI */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

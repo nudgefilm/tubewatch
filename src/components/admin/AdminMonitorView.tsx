@@ -58,7 +58,7 @@ function overallStatus(items: AdminMonitorData["items"]): "ok" | "warn" | "error
   return "ok";
 }
 
-export default function AdminMonitorView({ data }: { data: AdminMonitorData }) {
+export default function AdminMonitorView({ data, hideHeader }: { data: AdminMonitorData; hideHeader?: boolean }) {
   const overall = overallStatus(data.items);
   const checkedAt = new Date(data.checkedAt).toLocaleString("ko-KR", {
     timeZone: "Asia/Seoul",
@@ -72,27 +72,26 @@ export default function AdminMonitorView({ data }: { data: AdminMonitorData }) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold">System Monitor</h1>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            기준 시각: {checkedAt} (KST)
-          </p>
+      {!hideHeader && (
+        <div className="flex items-center justify-between border-b border-foreground/8 pb-5">
+          <div>
+            <h1 className="font-heading text-2xl font-medium tracking-[-0.03em] text-foreground">시스템 모니터</h1>
+            <p className="mt-0.5 text-xs text-muted-foreground">기준 시각: {checkedAt} (KST)</p>
+          </div>
+          <div
+            className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium ${
+              overall === "ok"
+                ? "border-emerald-400/40 bg-emerald-50/40 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400"
+                : overall === "warn"
+                  ? "border-amber-400/40 bg-amber-50/40 text-amber-700 dark:bg-amber-950/20 dark:text-amber-400"
+                  : "border-red-400/40 bg-red-50/40 text-red-700 dark:bg-red-950/20 dark:text-red-400"
+            }`}
+          >
+            <StatusIcon status={overall} />
+            {overall === "ok" ? "전체 정상" : overall === "warn" ? "주의 필요" : "오류 감지"}
+          </div>
         </div>
-        <div
-          className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium ${
-            overall === "ok"
-              ? "border-emerald-400/40 bg-emerald-50/40 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400"
-              : overall === "warn"
-                ? "border-amber-400/40 bg-amber-50/40 text-amber-700 dark:bg-amber-950/20 dark:text-amber-400"
-                : "border-red-400/40 bg-red-50/40 text-red-700 dark:bg-red-950/20 dark:text-red-400"
-          }`}
-        >
-          <StatusIcon status={overall} />
-          {overall === "ok" ? "전체 정상" : overall === "warn" ? "주의 필요" : "오류 감지"}
-        </div>
-      </div>
+      )}
 
       {/* Items grid */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
