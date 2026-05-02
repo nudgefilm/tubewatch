@@ -3,6 +3,8 @@ import Link from "next/link";
 import { ensureAdminOrRedirect } from "@/lib/auth/is-admin";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   await ensureAdminOrRedirect();
 
