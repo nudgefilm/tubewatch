@@ -48,7 +48,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     todayWithdrawalsRes,
     todayPaymentsRes,
   ] = await Promise.all([
-    supabaseAdmin.from("users").select("*", { count: "exact", head: true }),
+    supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1 }),
     supabaseAdmin.from("user_channels").select("*", { count: "exact", head: true }),
     supabaseAdmin.from("analysis_results").select("*", { count: "exact", head: true }),
     supabaseAdmin
@@ -96,7 +96,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
   ]);
 
   const kpi: AdminDashboardKpi = {
-    usersCount: usersCountRes.count ?? 0,
+    usersCount: (usersCountRes.data as { total?: number } | null)?.total ?? 0,
     channelsCount: channelsCountRes.count ?? 0,
     analysisRunsCount: resultsCountRes.count ?? 0,
     failedJobsCount: failedJobsRes.count ?? 0,
