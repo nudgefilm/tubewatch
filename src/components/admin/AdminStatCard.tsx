@@ -29,7 +29,7 @@ export default function AdminStatCard({
 
   return (
     <div className="rounded-xl border border-foreground/10 bg-foreground/[0.02] p-5">
-      <p className="text-xs font-medium text-muted-foreground">{label}</p>
+      <p className="text-sm font-semibold text-muted-foreground">{label}</p>
       {subtitle ? (
         <p className="mt-0.5 text-[10px] text-muted-foreground/60">{subtitle}</p>
       ) : null}

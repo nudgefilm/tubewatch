@@ -17,22 +17,22 @@ export default function AdminChannelsView({ data }: { data: AdminChannelsData })
   return (
     <div className="space-y-6">
       <div className="border-b border-foreground/8 pb-5">
-        <h1 className="font-heading text-2xl font-medium tracking-[-0.03em] text-foreground">Channels</h1>
+        <h1 className="font-heading text-2xl font-medium tracking-[-0.03em] text-foreground">채널</h1>
         <p className="mt-1 text-sm text-muted-foreground">총 {formatNum(total)}개의 등록 채널</p>
       </div>
 
       <div className="rounded-xl border border-foreground/10 bg-foreground/[0.02]">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-foreground/8 text-muted-foreground">
-                <th className="px-4 pb-2 pt-3 font-medium">채널명</th>
-                <th className="px-4 pb-2 pt-3 font-medium">YouTube ID</th>
-                <th className="px-4 pb-2 pt-3 font-medium">구독자</th>
-                <th className="px-4 pb-2 pt-3 font-medium">영상</th>
-                <th className="px-4 pb-2 pt-3 font-medium">소유자</th>
-                <th className="px-4 pb-2 pt-3 font-medium">마지막 분석</th>
-                <th className="px-4 pb-2 pt-3 font-medium">등록일</th>
+              <tr className="border-b border-foreground/8">
+                <th className="px-4 pb-2 pt-3 font-semibold text-foreground">채널명</th>
+                <th className="px-4 pb-2 pt-3 font-semibold text-foreground">YouTube ID</th>
+                <th className="px-4 pb-2 pt-3 font-semibold text-foreground">구독자</th>
+                <th className="px-4 pb-2 pt-3 font-semibold text-foreground">영상</th>
+                <th className="px-4 pb-2 pt-3 font-semibold text-foreground">소유자</th>
+                <th className="px-4 pb-2 pt-3 font-semibold text-foreground">마지막 분석</th>
+                <th className="px-4 pb-2 pt-3 font-semibold text-foreground">등록일</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-foreground/5">

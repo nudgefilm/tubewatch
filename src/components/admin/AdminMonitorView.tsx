@@ -39,7 +39,7 @@ function CostSection({ stats }: { stats: CostStats }) {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {cards.map((c) => (
           <div key={c.label} className="rounded-xl border border-foreground/10 p-4">
-            <p className="text-xs font-medium text-muted-foreground">{c.label}</p>
+            <p className="text-sm font-semibold text-muted-foreground">{c.label}</p>
             <p className="mt-2 font-heading text-2xl font-medium tabular-nums tracking-[-0.03em] text-foreground">
               {c.value}
               {c.unit && <span className="ml-1 text-sm font-normal text-muted-foreground">{c.unit}</span>}
@@ -101,7 +101,7 @@ export default function AdminMonitorView({ data, hideHeader }: { data: AdminMoni
             className={`rounded-xl border p-5 ${statusBorder(item.status)}`}
           >
             <div className="flex items-start justify-between gap-2">
-              <p className="text-sm font-medium text-foreground leading-snug">
+              <p className="text-sm font-semibold text-foreground leading-snug">
                 {item.label}
               </p>
               <StatusIcon status={item.status} />

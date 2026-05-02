@@ -38,7 +38,7 @@ export default function AdminJobsView({ data, hideHeader }: { data: AdminJobsDat
           { label: "Failed",    value: kpi.failed,    color: "text-red-600" },
         ].map(({ label, value, color }) => (
           <div key={label} className="rounded-xl border border-foreground/10 bg-foreground/[0.02] p-4">
-            <p className="text-xs font-medium text-muted-foreground">{label}</p>
+            <p className="text-sm font-semibold text-muted-foreground">{label}</p>
             <p className={`mt-1.5 font-heading text-2xl font-medium tabular-nums tracking-[-0.03em] ${color}`}>
               {value.toLocaleString("ko-KR")}
             </p>
@@ -49,18 +49,18 @@ export default function AdminJobsView({ data, hideHeader }: { data: AdminJobsDat
       {/* Jobs Table */}
       <div className="rounded-xl border border-foreground/10 bg-foreground/[0.02]">
         <div className="border-b border-foreground/8 px-4 py-3">
-          <p className="text-sm font-heading font-medium tracking-[-0.01em] text-foreground">
+          <p className="text-sm font-heading font-semibold tracking-[-0.01em] text-foreground">
             최근 분석 요청
           </p>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-foreground/8 text-muted-foreground">
-                <th className="px-4 pb-2 pt-3 font-medium">Job ID</th>
-                <th className="px-4 pb-2 pt-3 font-medium">채널</th>
-                <th className="px-4 pb-2 pt-3 font-medium">상태</th>
-                <th className="px-4 pb-2 pt-3 font-medium">생성일</th>
+              <tr className="border-b border-foreground/8">
+                <th className="px-4 pb-2 pt-3 font-semibold text-foreground">Job ID</th>
+                <th className="px-4 pb-2 pt-3 font-semibold text-foreground">채널</th>
+                <th className="px-4 pb-2 pt-3 font-semibold text-foreground">상태</th>
+                <th className="px-4 pb-2 pt-3 font-semibold text-foreground">생성일</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-foreground/5">

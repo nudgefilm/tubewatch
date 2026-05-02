@@ -23,7 +23,7 @@ export default function AdminDashboardView({
 
       {/* 사용자 */}
       <section className="space-y-2">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground/60">사용자</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">사용자</p>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <AdminStatCard label="전체 유저" value={kpi.usersCount} />
           <AdminStatCard label="유료 구독자" value={kpi.activeSubscribersCount} variant="highlight" />
@@ -34,7 +34,7 @@ export default function AdminDashboardView({
 
       {/* 오늘 현황 */}
       <section className="space-y-2">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground/60">오늘 현황</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">오늘 현황</p>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <AdminStatCard label="분석 요청" value={kpi.todayAnalysisCount} />
           <AdminStatCard label="실패 잡" value={kpi.todayFailedCount} variant="danger" />
@@ -45,7 +45,7 @@ export default function AdminDashboardView({
 
       {/* 서비스 */}
       <section className="space-y-2">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground/60">서비스</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">서비스</p>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <AdminStatCard label="등록 채널" value={kpi.channelsCount} />
           <AdminStatCard

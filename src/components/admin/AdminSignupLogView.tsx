@@ -79,17 +79,17 @@ export default function AdminSignupLogView({ data, hideHeader }: { data: AdminSi
       {/* 테이블 */}
       <div className="rounded-xl border border-foreground/10 bg-foreground/[0.02] overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-foreground/8 text-muted-foreground">
-                <th className="px-4 pb-2 pt-3 font-medium">#</th>
-                <th className="px-4 pb-2 pt-3 font-medium">상태</th>
-                <th className="px-4 pb-2 pt-3 font-medium">이메일</th>
-                <th className="px-4 pb-2 pt-3 font-medium">등록 채널</th>
-                <th className="px-4 pb-2 pt-3 font-medium">가입일시</th>
-                <th className="px-4 pb-2 pt-3 font-medium">탈퇴일시</th>
-                <th className="px-4 pb-2 pt-3 font-medium text-right">성공</th>
-                <th className="px-4 pb-2 pt-3 font-medium text-right">실패</th>
+              <tr className="border-b border-foreground/8">
+                <th className="px-4 pb-2 pt-3 font-semibold text-foreground">#</th>
+                <th className="px-4 pb-2 pt-3 font-semibold text-foreground">상태</th>
+                <th className="px-4 pb-2 pt-3 font-semibold text-foreground">이메일</th>
+                <th className="px-4 pb-2 pt-3 font-semibold text-foreground">등록 채널</th>
+                <th className="px-4 pb-2 pt-3 font-semibold text-foreground">가입일시</th>
+                <th className="px-4 pb-2 pt-3 font-semibold text-foreground">탈퇴일시</th>
+                <th className="px-4 pb-2 pt-3 font-semibold text-foreground text-right">성공</th>
+                <th className="px-4 pb-2 pt-3 font-semibold text-foreground text-right">실패</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-foreground/5">

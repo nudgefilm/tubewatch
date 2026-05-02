@@ -1147,17 +1147,17 @@ export default function AdminUsersView({ data, hideHeader }: { data: AdminUsersD
       {/* 테이블 */}
       <div className="rounded-xl border border-foreground/10 bg-foreground/[0.02] overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-foreground/8 text-muted-foreground">
-                <th className="px-4 pb-2 pt-3 font-medium">이메일</th>
-                <th className="px-4 pb-2 pt-3 font-medium">역할</th>
-                <th className="px-4 pb-2 pt-3 font-medium">플랜</th>
-                <th className="px-4 pb-2 pt-3 font-medium">만료일</th>
-                <th className="px-4 pb-2 pt-3 font-medium">채널</th>
-                <th className="px-4 pb-2 pt-3 font-medium">채널분석</th>
-                <th className="px-4 pb-2 pt-3 font-medium">가입일</th>
-                <th className="px-4 pb-2 pt-3 font-medium">액션</th>
+              <tr className="border-b border-foreground/8">
+                <th className="px-4 pb-2 pt-3 font-semibold text-foreground">이메일</th>
+                <th className="px-4 pb-2 pt-3 font-semibold text-foreground">역할</th>
+                <th className="px-4 pb-2 pt-3 font-semibold text-foreground">플랜</th>
+                <th className="px-4 pb-2 pt-3 font-semibold text-foreground">만료일</th>
+                <th className="px-4 pb-2 pt-3 font-semibold text-foreground">채널</th>
+                <th className="px-4 pb-2 pt-3 font-semibold text-foreground">채널분석</th>
+                <th className="px-4 pb-2 pt-3 font-semibold text-foreground">가입일</th>
+                <th className="px-4 pb-2 pt-3 font-semibold text-foreground">액션</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-foreground/5">
