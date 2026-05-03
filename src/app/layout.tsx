@@ -24,7 +24,10 @@ export const metadata: Metadata = {
 
   verification: {
     other: {
-      "naver-site-verification": "0e5f73555a87d2cc405a37a1c10c2cc73d41f944",
+      "naver-site-verification": [
+        "0e5f73555a87d2cc405a37a1c10c2cc73d41f944",
+        "49a6948e5c45cf6a932bb3feff98df403ccf91a6",
+      ],
     },
   },
   keywords: ["유튜브 분석", "채널 성장", "영상 기획", "튜브워치", "유튜버 도구"],
