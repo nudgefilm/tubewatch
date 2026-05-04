@@ -52,8 +52,7 @@ function fmtDuration(founded?: string): string {
 function SecLabel({ txt, section, dark }: { txt: string; section?: string; dark?: boolean }) {
   const c = dark ? "#999" : G400;
   return (
-    <div style={{ fontFamily: MONO, fontSize: "12px", color: c, letterSpacing: "2px", textTransform: "uppercase", display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
-      <span style={{ display: "block", width: "28px", height: "1px", background: c }} />
+    <div style={{ fontFamily: MONO, fontSize: "12px", color: c, letterSpacing: "2px", textTransform: "uppercase", marginBottom: "20px" }}>
       {txt}{section ? ` · ${section}` : ""}
     </div>
   );
@@ -1070,18 +1069,17 @@ function NextTrendSection({ report }: { report: ManusReportJson }) {
       <div className="rpt-wrap">
 
         {/* ── 다크 헤더 박스 (헤더 영역만) ── */}
-        <div style={{ background: '#111', padding: '28px 28px 24px', marginBottom: '20px' }}>
-          <div style={{ fontFamily: MONO, fontSize: '12px', color: '#666', letterSpacing: '2px', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-            <span style={{ display: 'block', width: '28px', height: '1px', background: '#444' }} />
+        <div style={{ background: '#FFFBEB', border: '1px solid rgba(0,0,0,0.18)', padding: '28px 28px 24px', marginBottom: '20px' }}>
+          <div style={{ fontFamily: MONO, fontSize: '12px', color: '#92400E', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '20px' }}>
             Next Trend Signal · 네이버 데이터랩
           </div>
-          <h2 style={{ fontSize: 'clamp(22px,3vw,30px)', fontWeight: 900, letterSpacing: '-1px', lineHeight: 1.2, marginBottom: '8px', color: '#fff', fontFamily: SANS }}>
+          <h2 style={{ fontSize: 'clamp(22px,3vw,30px)', fontWeight: 900, letterSpacing: '-1px', lineHeight: 1.2, marginBottom: '8px', color: BLK, fontFamily: SANS }}>
             이 채널의 검색 트렌드
           </h2>
-          <p style={{ fontSize: '16px', color: '#888', marginBottom: '4px' }}>
+          <p style={{ fontSize: '16px', color: G600, marginBottom: '4px' }}>
             채널 핵심 키워드의 최근 4주 검색 흐름과 뉴스 버즈를 분석합니다.
           </p>
-          <p style={{ fontFamily: MONO, fontSize: '12px', color: '#555', marginBottom: 0 }}>
+          <p style={{ fontFamily: MONO, fontSize: '12px', color: '#BBBBBB', marginBottom: 0 }}>
             검색 트렌드는 리포트 오픈 시점에 업데이트 반영됩니다.
           </p>
         </div>
@@ -1251,8 +1249,8 @@ function NextMonthSection({ report, date, generatedAt, isChannelReport = false }
   return (
     <section className="rpt-section" style={{ background: "#111111" }}>
       <div className="rpt-wrap">
-        <div style={{ fontFamily: MONO, fontSize: "12px", color: "#777", letterSpacing: "2px", textTransform: "uppercase", display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
-          <span style={{ display: "block", width: "28px", height: "1px", background: "#555" }} />Next Month Preview
+        <div style={{ fontFamily: MONO, fontSize: "12px", color: "#777", letterSpacing: "2px", textTransform: "uppercase", marginBottom: "20px" }}>
+          Next Month Preview
         </div>
         <h2 style={{ fontSize: "clamp(22px,3vw,30px)", fontWeight: 900, letterSpacing: "-1px", lineHeight: 1.2, marginBottom: "8px", color: "#fff", fontFamily: SANS }}>다음달 리포트 예고</h2>
         <p style={{ fontSize: "16px", color: "#888", marginBottom: "32px" }}>{channelName} 채널의 다음 분석 리포트 추적 항목을 미리 확인하세요.</p>
