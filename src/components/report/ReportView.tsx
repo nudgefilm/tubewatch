@@ -53,7 +53,7 @@ function SecLabel({ txt, section, dark }: { txt: string; section?: string; dark?
   const c = dark ? "#999" : G400;
   return (
     <div style={{ fontFamily: MONO, fontSize: "12px", color: c, letterSpacing: "2px", textTransform: "uppercase", marginBottom: "20px" }}>
-      {txt}{section ? ` · ${section}` : ""}
+      {txt}
     </div>
   );
 }
