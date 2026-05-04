@@ -134,7 +134,7 @@ function HeroSection() {
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-2.5 max-w-md">
-                  <p className="text-xs font-semibold text-foreground/70 uppercase tracking-wider">채널 진단 리포트 신청</p>
+                  <p className="text-xs font-semibold text-foreground/70 uppercase tracking-wider">내 채널 무료 진단받기</p>
                   <input
                     type="url"
                     placeholder="채널 주소 (예: youtube.com/@channel)"
@@ -162,7 +162,7 @@ function HeroSection() {
                     {formState === "loading" ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
-                      <>신청하기 <ArrowRight className="w-4 h-4" /></>
+                      <>채널 진단 리포트 신청 <ArrowRight className="w-4 h-4" /></>
                     )}
                   </button>
                   <p className="text-[11px] text-muted-foreground/50 text-center">무료 · 24시간 내 이메일 발송 · 가입 불필요</p>
