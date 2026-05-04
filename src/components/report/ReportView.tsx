@@ -994,7 +994,7 @@ function ActionPlanSection({ report }: { report: ManusReportJson }) {
 type TrendPoint = { period: string; ratio: number };
 type TrendResult = { keyword: string; data: TrendPoint[]; currentRatio: number; prevRatio: number; trend: 'up' | 'down' | 'flat'; changePct: number };
 type NewsItem   = { title: string; link: string; pubDate: string };
-type NaverTrendsData = { trends: TrendResult[]; news: NewsItem[]; topKeyword: string };
+type NaverTrendsData = { trends: TrendResult[]; news: NewsItem[]; topKeyword: string; tags: string[]; insight: string | null };
 
 
 /* ══ 상대 시간 ════════════════════════════════════════════════ */
@@ -1040,8 +1040,15 @@ function NextTrendSection({ report }: { report: ManusReportJson }) {
     return (merged.length > 0 ? merged : [report.channel_info?.channel_name ?? '유튜브']).slice(0, 3);
   })();
 
+  const channelCtx = [
+    report.section5_channel_dna?.core_identity,
+    report.section5_channel_dna?.creator_persona?.storytelling_style,
+  ].filter(Boolean).join(' / ').slice(0, 200);
+
   useEffect(() => {
-    fetch(`/api/trends/naver?keywords=${encodeURIComponent(keywords.join(','))}`)
+    const params = new URLSearchParams({ keywords: keywords.join(',') });
+    if (channelCtx) params.set('channelCtx', channelCtx);
+    fetch(`/api/trends/naver?${params.toString()}`)
       .then(r => r.ok ? r.json() : null)
       .then((d: NaverTrendsData | null) => { if (d) setData(d); })
       .catch(() => {})
@@ -1050,79 +1057,79 @@ function NextTrendSection({ report }: { report: ManusReportJson }) {
   }, []);
 
   const trendIcon  = (t: TrendResult['trend']) => t === 'up' ? '▲' : t === 'down' ? '▼' : '→';
-  const trendColor = (t: TrendResult['trend']) => t === 'up' ? '#3A7A00' : t === 'down' ? '#DC2626' : G400;
+  const trendColor = (t: TrendResult['trend']) => t === 'up' ? '#3A7A00' : t === 'down' ? '#DC2626' : '#888';
+
+  /* ── 다크 헤더 + 파스텔 카드 팔레트 ── */
+  const DARK_BG   = '#0D0D0D';
+  const LIME_PAS  = '#F3FFDE';   // 라임 파스텔
+  const ORNG_PAS  = '#FFF5EC';   // 오렌지 파스텔
+  const CARD_LINE = 'rgba(0,0,0,0.08)';
 
   return (
-    <section className="rpt-section" style={{ background: '#fff', borderTop: `1px solid ${G200}` }}>
+    <section className="rpt-section" style={{ background: DARK_BG }}>
       <div className="rpt-wrap">
 
-        {/* 섹션 헤더 */}
-        <div style={{ fontFamily: MONO, fontSize: '12px', color: G400, letterSpacing: '2px', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-          <span style={{ display: 'block', width: '28px', height: '1px', background: G200 }} />
+        {/* ── 다크 헤더 ── */}
+        <div style={{ fontFamily: MONO, fontSize: '12px', color: '#555', letterSpacing: '2px', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+          <span style={{ display: 'block', width: '28px', height: '1px', background: '#333' }} />
           Next Trend Signal · 네이버 데이터랩
         </div>
-        <h2 style={{ fontSize: 'clamp(22px,3vw,30px)', fontWeight: 900, letterSpacing: '-1px', lineHeight: 1.2, marginBottom: '8px', color: BLK, fontFamily: SANS }}>
+        <h2 style={{ fontSize: 'clamp(22px,3vw,30px)', fontWeight: 900, letterSpacing: '-1px', lineHeight: 1.2, marginBottom: '8px', color: '#fff', fontFamily: SANS }}>
           이 채널의 검색 트렌드
         </h2>
-        <p style={{ fontSize: '16px', color: G600, marginBottom: '4px' }}>
+        <p style={{ fontSize: '16px', color: '#888', marginBottom: '4px' }}>
           채널 핵심 키워드의 최근 4주 검색 흐름과 뉴스 버즈를 분석합니다.
         </p>
-        <p style={{ fontFamily: MONO, fontSize: '12px', color: G400, marginBottom: '32px' }}>
+        <p style={{ fontFamily: MONO, fontSize: '12px', color: '#444', marginBottom: '32px' }}>
           검색 트렌드는 리포트 오픈 시점에 업데이트 반영됩니다.
         </p>
 
-        {/* 로딩 스켈레톤 */}
+        {/* ── 로딩 스켈레톤 ── */}
         {loading && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-            <div style={{ background: '#FAFAFA', padding: '26px 24px', border: `1px solid ${G200}`, borderLeft: `3px solid ${G200}` }}>
-              <div style={{ height: '11px', width: '90px', background: G200, borderRadius: '2px', marginBottom: '18px', animation: 'trend-pulse 1.5s ease-in-out infinite' }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '12px', padding: '26px 24px' }}>
+              <div style={{ height: '11px', width: '90px', background: 'rgba(255,255,255,0.08)', borderRadius: '4px', marginBottom: '18px', animation: 'trend-pulse 1.5s ease-in-out infinite' }} />
               <div className="g-trend3">
                 {[0, 1, 2].map(i => (
-                  <div key={i} style={{ background: '#fff', border: `1px solid ${G200}`, borderRadius: '12px', padding: '18px 16px' }}>
-                    <div style={{ height: '14px', width: '55%', background: '#ECECEC', borderRadius: '2px', marginBottom: '14px', animation: 'trend-pulse 1.5s ease-in-out infinite' }} />
-                    <div style={{ height: '30px', width: '40%', background: '#ECECEC', borderRadius: '2px', marginBottom: '8px', animation: 'trend-pulse 1.5s ease-in-out infinite' }} />
-                    <div style={{ height: '11px', width: '75%', background: '#F2F2F2', borderRadius: '2px', animation: 'trend-pulse 1.5s ease-in-out infinite' }} />
+                  <div key={i} style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '10px', padding: '18px 16px' }}>
+                    {[55, 38, 70].map((w, j) => (
+                      <div key={j} style={{ height: j === 1 ? '28px' : '12px', width: `${w}%`, background: 'rgba(255,255,255,0.08)', borderRadius: '4px', marginBottom: '10px', animation: 'trend-pulse 1.5s ease-in-out infinite' }} />
+                    ))}
                   </div>
                 ))}
               </div>
             </div>
-            <div style={{ background: '#FAFAFA', padding: '26px 24px', border: `1px solid ${G200}`, borderLeft: `3px solid ${G200}` }}>
-              <div style={{ height: '11px', width: '120px', background: G200, borderRadius: '2px', marginBottom: '18px', animation: 'trend-pulse 1.5s ease-in-out infinite' }} />
-              {[0, 1, 2, 3].map(i => (
-                <div key={i} style={{ height: '44px', background: '#fff', border: `1px solid ${G200}`, borderRadius: '8px', marginBottom: '8px', animation: 'trend-pulse 1.5s ease-in-out infinite' }} />
+            <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '12px', padding: '26px 24px' }}>
+              <div style={{ height: '11px', width: '130px', background: 'rgba(255,255,255,0.08)', borderRadius: '4px', marginBottom: '18px', animation: 'trend-pulse 1.5s ease-in-out infinite' }} />
+              {[0, 1, 2, 3, 4].map(i => (
+                <div key={i} style={{ height: '46px', background: 'rgba(255,255,255,0.06)', borderRadius: '8px', marginBottom: '8px', animation: 'trend-pulse 1.5s ease-in-out infinite' }} />
               ))}
             </div>
           </div>
         )}
 
-        {/* 데이터 로드 완료 */}
+        {/* ── 데이터 완료 ── */}
         {!loading && data && (
-          <div className="trend-fadein" style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <div className="trend-fadein" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
 
-            {/* SEARCH TREND — 키워드 카드 3열 그리드 */}
-            <div style={{ background: '#FAFAFA', padding: '26px 24px', border: `1px solid ${G200}`, borderLeft: `3px solid ${LIME}` }}>
+            {/* SEARCH TREND — 라임 파스텔 카드 */}
+            <div style={{ background: LIME_PAS, borderRadius: '12px', padding: '26px 24px', borderLeft: `4px solid ${LIME}` }}>
               <div style={{ fontFamily: MONO, fontSize: '11px', color: '#3A7A00', letterSpacing: '2px', marginBottom: '18px', fontWeight: 700 }}>SEARCH TREND</div>
               {data.trends.length === 0
                 ? <div style={{ fontSize: '14px', color: G400 }}>트렌드 데이터 없음</div>
                 : (
                   <div className="g-trend3">
                     {data.trends.map((t, i) => (
-                      <div key={i} style={{ background: '#fff', border: `1px solid ${G200}`, borderRadius: '12px', padding: '20px 18px', display: 'flex', flexDirection: 'column', gap: '0' }}>
-                        {/* 키워드 + 방향 아이콘 */}
-                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '12px' }}>
+                      <div key={i} style={{ background: '#fff', borderRadius: '10px', padding: '18px 16px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '10px' }}>
                           <div style={{ fontSize: '15px', fontWeight: 700, color: BLK, fontFamily: SANS, lineHeight: 1.3 }}>{t.keyword}</div>
-                          <span style={{ fontSize: '16px', color: trendColor(t.trend), fontWeight: 700, flexShrink: 0, marginLeft: '8px' }}>{trendIcon(t.trend)}</span>
+                          <span style={{ fontSize: '15px', color: trendColor(t.trend), fontWeight: 700, flexShrink: 0, marginLeft: '8px' }}>{trendIcon(t.trend)}</span>
                         </div>
-                        {/* 변화율 (크게) */}
-                        <div style={{ fontFamily: MONO, fontSize: '28px', fontWeight: 900, color: trendColor(t.trend), lineHeight: 1, marginBottom: '6px' }}>
+                        <div style={{ fontFamily: MONO, fontSize: '26px', fontWeight: 900, color: trendColor(t.trend), lineHeight: 1, marginBottom: '4px' }}>
                           {t.changePct > 0 ? '+' : ''}{t.changePct}%
                         </div>
-                        {/* 지수 */}
-                        <div style={{ fontFamily: MONO, fontSize: '12px', color: G400, marginBottom: '10px' }}>
-                          지수 {t.currentRatio}
-                        </div>
-                        {/* 해석 문구 */}
-                        <div style={{ fontSize: '12px', color: G400, lineHeight: 1.5, paddingTop: '10px', borderTop: `1px solid ${G200}` }}>
+                        <div style={{ fontFamily: MONO, fontSize: '11px', color: G400, marginBottom: '10px' }}>지수 {t.currentRatio}</div>
+                        <div style={{ fontSize: '12px', color: G600, lineHeight: 1.5, paddingTop: '8px', borderTop: `1px solid ${CARD_LINE}` }}>
                           {trendDesc(t.trend, t.changePct)}
                         </div>
                       </div>
@@ -1130,39 +1137,60 @@ function NextTrendSection({ report }: { report: ManusReportJson }) {
                   </div>
                 )
               }
-              <div style={{ marginTop: '16px', fontFamily: MONO, fontSize: '11px', color: G400, textAlign: 'right' }}>
+              <div style={{ marginTop: '14px', fontFamily: MONO, fontSize: '11px', color: '#7A9A50', textAlign: 'right' }}>
                 최근 4주 · 전주 평균 대비
               </div>
             </div>
 
-            {/* NEWS BUZZ — 행 리스트 */}
-            <div style={{ background: '#FAFAFA', padding: '26px 24px', border: `1px solid ${G200}`, borderLeft: `3px solid ${ORANGE}` }}>
-              <div style={{ fontFamily: MONO, fontSize: '11px', color: ORANGE, letterSpacing: '2px', marginBottom: '18px', fontWeight: 700 }}>
+            {/* NEWS BUZZ — 오렌지 파스텔 카드 */}
+            <div style={{ background: ORNG_PAS, borderRadius: '12px', padding: '26px 24px', borderLeft: `4px solid ${ORANGE}` }}>
+              <div style={{ fontFamily: MONO, fontSize: '11px', color: ORANGE, letterSpacing: '2px', marginBottom: '14px', fontWeight: 700 }}>
                 NEWS BUZZ · {data.topKeyword}
               </div>
+
+              {/* AI 인사이트 */}
+              {data.insight && (
+                <div style={{ background: `${ORBG}`, border: `1px solid rgba(255,122,0,.25)`, borderRadius: '8px', padding: '12px 14px', marginBottom: '16px', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                  <span style={{ fontFamily: MONO, fontSize: '11px', color: ORANGE, fontWeight: 700, flexShrink: 0, marginTop: '1px' }}>AI</span>
+                  <span style={{ fontSize: '13px', color: '#333', lineHeight: 1.6 }}>{data.insight}</span>
+                </div>
+              )}
+
+              {/* 뉴스 목록 */}
               {data.news.length === 0
                 ? <div style={{ fontSize: '14px', color: G400 }}>뉴스 데이터 없음</div>
                 : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
                     {data.news.map((n, i) => (
                       <a
                         key={i}
                         href={n.link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '13px 16px', background: '#fff', border: `1px solid ${G200}`, borderRadius: '8px', textDecoration: 'none', transition: 'background .15s' }}
-                        onMouseEnter={e => { e.currentTarget.style.background = '#F5F5F5'; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}
+                        style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '12px 14px', background: '#fff', borderRadius: '8px', textDecoration: 'none', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', transition: 'box-shadow .15s' }}
+                        onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.10)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)'; }}
                       >
-                        <span style={{ fontFamily: MONO, fontSize: '11px', color: G400, flexShrink: 0, minWidth: '52px' }}>{relTime(n.pubDate)}</span>
-                        <span style={{ fontSize: '14px', fontWeight: 600, color: '#222', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{truncTitle(n.title)}</span>
-                        <span style={{ flexShrink: 0, fontSize: '14px', color: G400 }}>↗</span>
+                        <span style={{ fontFamily: MONO, fontSize: '11px', color: G400, flexShrink: 0, minWidth: '50px', paddingTop: '2px' }}>{relTime(n.pubDate)}</span>
+                        <span style={{ fontSize: '14px', fontWeight: 600, color: '#222', flex: 1, lineHeight: 1.55 }}>{n.title}</span>
+                        <span style={{ flexShrink: 0, fontSize: '13px', color: G400, paddingTop: '2px' }}>↗</span>
                       </a>
                     ))}
                   </div>
                 )
               }
-              <div style={{ marginTop: '16px', fontFamily: MONO, fontSize: '11px', color: G400, textAlign: 'right' }}>
+
+              {/* 추천 태그 */}
+              {data.tags.length > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <span style={{ fontFamily: MONO, fontSize: '11px', color: '#B05A00', fontWeight: 700 }}>이번 주 추천 태그</span>
+                  {data.tags.map((tag, i) => (
+                    <span key={i} style={{ fontFamily: MONO, fontSize: '12px', fontWeight: 700, color: ORANGE, background: 'rgba(255,122,0,.12)', padding: '3px 10px', borderRadius: '4px' }}>#{tag}</span>
+                  ))}
+                </div>
+              )}
+
+              <div style={{ marginTop: '14px', fontFamily: MONO, fontSize: '11px', color: '#C07840', textAlign: 'right' }}>
                 네이버 뉴스 검색 기준
               </div>
             </div>
@@ -1170,9 +1198,9 @@ function NextTrendSection({ report }: { report: ManusReportJson }) {
           </div>
         )}
 
-        {/* 에러 상태 */}
+        {/* ── 에러 상태 ── */}
         {!loading && !data && (
-          <div style={{ background: '#FAFAFA', padding: '26px 24px', color: G400, fontSize: '14px', fontFamily: MONO, border: `1px solid ${G200}` }}>
+          <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '26px 24px', color: '#555', fontSize: '14px', fontFamily: MONO }}>
             트렌드 데이터를 불러올 수 없습니다.
           </div>
         )}
