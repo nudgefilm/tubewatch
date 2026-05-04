@@ -357,6 +357,9 @@ export async function sendDiagnoseLeadReport({
             무료로 시작하기
           </a>
         </div>
+        <p style="color:#555;font-size:13px;line-height:1.6;margin-top:20px;">
+          리포트 분석 데이터에 대해 더 깊은 인사이트를 나누고 싶다면, 'Tube Talk' 텔레그램방에서 튜브워치 팀의 피드백을 받아보세요.
+        </p>
         <p style="color:#aaa;font-size:11px;margin-top:24px;">TubeWatch™ — YouTube 채널 정밀 분석 서비스</p>
       </div>
     `,
