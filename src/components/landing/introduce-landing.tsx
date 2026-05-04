@@ -136,7 +136,7 @@ function HeroSection() {
                 <form onSubmit={handleSubmit} className="space-y-2.5 max-w-md">
                   <p className="text-xs font-semibold text-foreground/70 uppercase tracking-wider">내 채널 무료 진단받기</p>
                   <input
-                    type="url"
+                    type="text"
                     placeholder="채널 주소 (예: youtube.com/@channel)"
                     value={channelUrl}
                     onChange={(e) => setChannelUrl(e.target.value)}
