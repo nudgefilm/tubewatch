@@ -218,10 +218,8 @@ function HeroSection({ info, scorecard, growth, signals, date }: {
   return (
     <section style={{ background: BLK, paddingBottom: 0 }}>
       <div className="rpt-wrap rpt-hero-pad">
-        <div style={{ fontFamily: MONO, fontSize: "16px", fontWeight: 700, color: "#DDDDDD", letterSpacing: "3px", textTransform: "uppercase", display: "flex", alignItems: "center", justifyContent: "center", gap: "16px", marginBottom: "40px", padding: "14px 0", borderBottom: `1px solid ${DARK3}` }}>
-          <span style={{ display: "block", width: "40px", height: "1px", background: "#555" }} />
-          Channel Report · {date} · 섹션 1 / 7
-          <span style={{ display: "block", width: "40px", height: "1px", background: "#555" }} />
+        <div style={{ fontFamily: MONO, fontSize: "16px", fontWeight: 700, color: "#DDDDDD", letterSpacing: "3px", textTransform: "uppercase", textAlign: "center", marginBottom: "40px", padding: "14px 0", borderBottom: `1px solid ${DARK3}` }}>
+          Channel Report · {date}
         </div>
 
         <div className="g-hero-head">
