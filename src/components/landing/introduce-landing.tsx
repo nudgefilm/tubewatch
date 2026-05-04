@@ -112,8 +112,11 @@ function HeroSection() {
             </h1>
 
             {/* Patent */}
-            <p className={`text-xs text-muted-foreground/70 font-medium mt-2 tracking-wide transition-all duration-700 delay-150 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-              특허출원 제10-2026-0075318호
+            <p className={`mt-3 transition-all duration-700 delay-150 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary/80 tracking-wide">
+                <span className="size-1.5 rounded-full bg-primary/60" />
+                특허출원 제10-2026-0075318호
+              </span>
             </p>
 
             {/* Sub description */}
