@@ -96,7 +96,7 @@ function LeadRow({ lead }: { lead: DiagnoseLead }) {
       {!sent && (
         <div className="flex items-center gap-2">
           <Input
-            placeholder="리포트 access_token 입력"
+            placeholder="리포트 URL 또는 토큰 입력"
             value={token}
             onChange={(e) => setToken(e.target.value)}
             className="text-xs h-8 font-mono"

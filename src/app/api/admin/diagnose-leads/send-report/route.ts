@@ -16,8 +16,10 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json().catch(() => ({})) as Record<string, unknown>;
-  const leadId      = typeof body.leadId      === "string" ? body.leadId.trim()      : "";
-  const reportToken = typeof body.reportToken === "string" ? body.reportToken.trim() : "";
+  const leadId = typeof body.leadId === "string" ? body.leadId.trim() : "";
+  const rawToken = typeof body.reportToken === "string" ? body.reportToken.trim() : "";
+  // URL 전체를 붙여넣은 경우 마지막 path segment만 추출
+  const reportToken = rawToken.includes("/") ? rawToken.split("/").pop() ?? "" : rawToken;
 
   if (!leadId || !reportToken) {
     return NextResponse.json({ error: "leadId와 reportToken이 필요합니다." }, { status: 400 });
