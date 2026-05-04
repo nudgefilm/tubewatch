@@ -1069,14 +1069,14 @@ function NextTrendSection({ report }: { report: ManusReportJson }) {
       <div className="rpt-wrap">
 
         {/* ── 다크 헤더 박스 (헤더 영역만) ── */}
-        <div style={{ background: '#FFFBEB', border: '1px solid rgba(0,0,0,0.18)', padding: '28px 28px 24px', marginBottom: '20px' }}>
-          <div style={{ fontFamily: MONO, fontSize: '12px', color: '#92400E', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '20px' }}>
+        <div style={{ background: '#111', padding: '28px 28px 24px', marginBottom: '20px' }}>
+          <div style={{ fontFamily: MONO, fontSize: '12px', color: '#888', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '20px' }}>
             Next Trend Signal · 네이버 데이터랩
           </div>
-          <h2 style={{ fontSize: 'clamp(22px,3vw,30px)', fontWeight: 900, letterSpacing: '-1px', lineHeight: 1.2, marginBottom: '8px', color: BLK, fontFamily: SANS }}>
+          <h2 style={{ fontSize: 'clamp(22px,3vw,30px)', fontWeight: 900, letterSpacing: '-1px', lineHeight: 1.2, marginBottom: '8px', color: '#fff', fontFamily: SANS }}>
             이 채널의 검색 트렌드
           </h2>
-          <p style={{ fontSize: '16px', color: G600, marginBottom: '4px' }}>
+          <p style={{ fontSize: '16px', color: '#888', marginBottom: '4px' }}>
             채널 핵심 키워드의 최근 4주 검색 흐름과 뉴스 버즈를 분석합니다.
           </p>
           <p style={{ fontFamily: MONO, fontSize: '12px', color: '#BBBBBB', marginBottom: 0 }}>
@@ -1112,9 +1112,9 @@ function NextTrendSection({ report }: { report: ManusReportJson }) {
         {!loading && data && (
           <div className="trend-fadein" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
 
-            {/* SEARCH TREND — 라임 파스텔 카드 */}
-            <div style={{ background: LIME_PAS, padding: '26px 24px', border: `1px solid rgba(170,255,0,.55)` }}>
-              <div style={{ fontFamily: MONO, fontSize: '11px', color: '#3A7A00', letterSpacing: '2px', marginBottom: '18px', fontWeight: 700 }}>SEARCH TREND</div>
+            {/* SEARCH TREND */}
+            <div style={{ background: '#FFFBEB', padding: '26px 24px', border: '1px solid rgba(202,138,4,.45)' }}>
+              <div style={{ fontFamily: MONO, fontSize: '11px', color: '#92400E', letterSpacing: '2px', marginBottom: '18px', fontWeight: 700 }}>SEARCH TREND</div>
               {data.trends.length === 0
                 ? <div style={{ fontSize: '14px', color: G400 }}>트렌드 데이터 없음</div>
                 : (
@@ -1137,13 +1137,13 @@ function NextTrendSection({ report }: { report: ManusReportJson }) {
                   </div>
                 )
               }
-              <div style={{ marginTop: '14px', fontFamily: MONO, fontSize: '11px', color: '#7A9A50', textAlign: 'right' }}>
+              <div style={{ marginTop: '14px', fontFamily: MONO, fontSize: '11px', color: '#92400E', textAlign: 'right' }}>
                 최근 4주 · 전주 평균 대비
               </div>
             </div>
 
-            {/* NEWS BUZZ — 오렌지 파스텔 카드 */}
-            <div style={{ background: ORNG_PAS, padding: '26px 24px', border: `1px solid rgba(255,122,0,.4)` }}>
+            {/* NEWS BUZZ */}
+            <div style={{ background: '#FFFBEB', padding: '26px 24px', border: '1px solid rgba(202,138,4,.45)' }}>
               <div style={{ fontFamily: MONO, fontSize: '11px', color: ORANGE, letterSpacing: '2px', marginBottom: '14px', fontWeight: 700 }}>
                 NEWS BUZZ · {data.topKeyword}
               </div>
