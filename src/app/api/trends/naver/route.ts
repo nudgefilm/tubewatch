@@ -47,12 +47,21 @@ const STOP = new Set([
   '나타나', '정부', '분석', '전망', '예측', '발표', '추진', '계획', '방안', '기준',
 ]);
 
+// 동사·형용사 활용형 어미 — 이 패턴으로 끝나는 단어는 명사가 아님
+const VERB_ENDING = /(?:해놓고|놓고|해서|하고|이고|아서|어서|면서|지만|는데|라서|이라|처럼|해도|해야|하여|되어|보고|이며|하며|되며|한다|하는|된다|됩니|습니|하면|이면|있어|없어|라고|이라고)$/;
+
 function extractTags(titles: string[]): string[] {
   const cnt: Record<string, number> = {};
   for (const title of titles) {
     const words = title
-      .split(/[\s,.\[\]()?!…·:"'"「」『』\-/\\|<>②③④⑤]+/)
-      .filter(w => w.length >= 2 && !STOP.has(w) && !/^\d+[년월일]?$/.test(w) && !/^[a-zA-Z]{1,2}$/.test(w));
+      .split(/[\s,.\[\]()?!…·:"'"「」『』\-/\\|<>②③④⑤%+~=]+/)
+      .filter(w =>
+        w.length >= 2 &&
+        !STOP.has(w) &&
+        !/\d/.test(w) &&               // 숫자 포함 단어 제거 (6%, 2023 등)
+        !/^[a-zA-Z]{1,2}$/.test(w) &&  // 1-2자 영문 단독 제거
+        !VERB_ENDING.test(w)            // 동사·형용사 활용형 제거
+      );
     for (const w of words) cnt[w] = (cnt[w] ?? 0) + 1;
   }
   return Object.entries(cnt).sort(([, a], [, b]) => b - a).slice(0, 3).map(([w]) => w);
@@ -167,7 +176,7 @@ export async function GET(req: NextRequest) {
   if (!keywords.length) return NextResponse.json({ error: 'no keywords' }, { status: 400 });
 
   const channelCtx = req.nextUrl.searchParams.get('channelCtx') ?? undefined;
-  const cacheKey = `v4:${keywords.slice().sort().join(',')}:${channelCtx?.slice(0, 60) ?? ''}`;
+  const cacheKey = `v5:${keywords.slice().sort().join(',')}:${channelCtx?.slice(0, 60) ?? ''}`;
 
   const getCached = unstable_cache(
     () => fetchNaverTrends(keywords, channelCtx),

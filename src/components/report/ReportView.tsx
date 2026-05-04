@@ -1185,7 +1185,7 @@ function NextTrendSection({ report }: { report: ManusReportJson }) {
               {/* 추천 태그 */}
               {data.tags.length > 0 && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                  <span style={{ fontFamily: MONO, fontSize: '11px', color: '#B05A00', fontWeight: 700 }}>이번 주 추천 태그</span>
+                  <span style={{ fontFamily: MONO, fontSize: '11px', color: '#B05A00', fontWeight: 700 }}>뉴스 동향에서 뽑은 이번 주 추천 태그</span>
                   {data.tags.map((tag, i) => (
                     <span key={i} style={{ fontFamily: MONO, fontSize: '12px', fontWeight: 700, color: ORANGE, background: 'rgba(255,122,0,.12)', padding: '3px 10px', borderRadius: '4px' }}>#{tag}</span>
                   ))}
