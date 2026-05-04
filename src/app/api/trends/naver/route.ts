@@ -30,6 +30,18 @@ function fmtDate(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
+function decodeHtml(str: string): string {
+  return str
+    .replace(/&quot;/g, '"')
+    .replace(/&#34;/g, '"')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, ' ');
+}
+
 async function fetchNaverTrends(keywords: string[]): Promise<NaverTrendsResponse> {
   const today = new Date();
   const start = new Date(today);
@@ -100,10 +112,10 @@ async function fetchNaverTrends(keywords: string[]): Promise<NaverTrendsResponse
     };
     for (const item of json.items ?? []) {
       news.push({
-        title: item.title.replace(/<[^>]+>/g, ''),
+        title: decodeHtml(item.title.replace(/<[^>]+>/g, '')),
         link: item.originallink || item.link,
         pubDate: item.pubDate,
-        description: item.description.replace(/<[^>]+>/g, '').slice(0, 80),
+        description: decodeHtml(item.description.replace(/<[^>]+>/g, '')).slice(0, 80),
       });
     }
   } else {
