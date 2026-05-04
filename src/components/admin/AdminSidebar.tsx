@@ -7,6 +7,7 @@ import {
   Youtube,
   Activity,
   Building2,
+  Stethoscope,
   ArrowLeft,
 } from "lucide-react";
 
@@ -22,6 +23,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin/channels",          label: "채널",        icon: <Youtube className="h-4 w-4" /> },
   { href: "/admin/pipeline",          label: "파이프라인",  icon: <Activity className="h-4 w-4" /> },
   { href: "/admin/enterprise-orders", label: "채널 컨설팅", icon: <Building2 className="h-4 w-4" /> },
+  { href: "/admin/diagnose-leads",    label: "무료 진단",   icon: <Stethoscope className="h-4 w-4" /> },
 ];
 
 function isActive(pathname: string, href: string): boolean {

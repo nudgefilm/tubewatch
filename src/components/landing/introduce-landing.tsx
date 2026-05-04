@@ -43,9 +43,40 @@ const heroStats = [
   { value: "30+9+7", unit: "", label: "신호·지표·패턴 분석", isOrange: true },
 ];
 
+type DiagnoseFormState = "idle" | "loading" | "success" | "error";
+
 function HeroSection() {
   const [visible, setVisible] = useState(false);
   useEffect(() => { setVisible(true); }, []);
+
+  const [channelUrl, setChannelUrl] = useState("");
+  const [email, setEmail] = useState("");
+  const [formState, setFormState] = useState<DiagnoseFormState>("idle");
+  const [errorMsg, setErrorMsg] = useState("");
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!channelUrl.trim() || !email.trim()) return;
+    setFormState("loading");
+    setErrorMsg("");
+    try {
+      const res = await fetch("/api/diagnose-lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ channelUrl: channelUrl.trim(), contactEmail: email.trim() }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setErrorMsg(json.error ?? "오류가 발생했습니다.");
+        setFormState("error");
+      } else {
+        setFormState("success");
+      }
+    } catch {
+      setErrorMsg("네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+      setFormState("error");
+    }
+  }
 
   return (
     <section className="relative flex flex-col justify-center pt-20 pb-16 lg:pt-28 lg:pb-20 overflow-hidden">
@@ -91,15 +122,52 @@ function HeroSection() {
               <span className="font-medium"><span className="text-orange-500 font-semibold">30</span>개 시그널 · <span className="text-orange-500 font-semibold">9</span>개 성장 지표 · <span className="text-orange-500 font-semibold">7</span>개 운영 패턴</span>으로 정밀 분석하여 다음 성장 전략을 제시합니다.
             </p>
 
-            {/* CTA */}
-            <div className={`flex items-center gap-4 mt-8 transition-all duration-700 delay-250 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-              <a
-                href="/channels"
-                className="inline-flex items-center gap-2 bg-foreground text-background px-7 py-3.5 rounded-xl font-semibold text-sm hover:bg-foreground/85 transition-colors shadow-lg shadow-foreground/10 animate-float-half"
-              >
-                내 채널 분석하기
-                <ArrowRight className="w-4 h-4" />
-              </a>
+            {/* CTA — 인라인 진단 신청 폼 */}
+            <div className={`mt-8 transition-all duration-700 delay-250 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+              {formState === "success" ? (
+                <div className="flex items-start gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/8 px-5 py-4 max-w-md">
+                  <Check className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">신청이 접수됐습니다.</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">24시간 내에 분석 리포트를 이메일로 발송해 드립니다.</p>
+                  </div>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-2.5 max-w-md">
+                  <p className="text-xs font-semibold text-foreground/70 uppercase tracking-wider">내 채널 무료 진단받기</p>
+                  <input
+                    type="url"
+                    placeholder="채널 주소 (예: youtube.com/@channel)"
+                    value={channelUrl}
+                    onChange={(e) => setChannelUrl(e.target.value)}
+                    required
+                    className="w-full rounded-lg border border-foreground/15 bg-foreground/5 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-foreground/20"
+                  />
+                  <input
+                    type="email"
+                    placeholder="채널 소유자 이메일 주소"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="w-full rounded-lg border border-foreground/15 bg-foreground/5 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-foreground/20"
+                  />
+                  {formState === "error" && (
+                    <p className="text-xs text-red-500">{errorMsg}</p>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={formState === "loading"}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-foreground px-6 py-3 text-sm font-semibold text-background shadow-lg shadow-foreground/10 transition-colors hover:bg-foreground/85 disabled:opacity-60"
+                  >
+                    {formState === "loading" ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>진단 신청하기 <ArrowRight className="w-4 h-4" /></>
+                    )}
+                  </button>
+                  <p className="text-[11px] text-muted-foreground/50 text-center">무료 · 24시간 내 이메일 발송 · 가입 불필요</p>
+                </form>
+              )}
             </div>
 
             {/* Stats row */}

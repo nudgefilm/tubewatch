@@ -271,3 +271,94 @@ export async function sendReportReadyEmail({
     `,
   });
 }
+
+export async function sendDiagnoseLeadConfirmation({
+  to,
+  channelUrl,
+}: {
+  to: string;
+  channelUrl: string;
+}) {
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: "[TubeWatch] 채널 무료 진단 신청이 접수됐습니다",
+    html: `
+      <div style="font-family:sans-serif;max-width:520px;margin:0 auto;">
+        <h2 style="font-size:18px;font-weight:700;margin-bottom:8px;">채널 무료 진단 신청이 접수됐습니다.</h2>
+        <p style="color:#555;font-size:14px;line-height:1.6;">
+          신청하신 채널(<a href="${channelUrl}" style="color:#e85c00;">${channelUrl}</a>)을 TubeWatch™ 팀이 직접 분석합니다.<br>
+          <strong>24시간 내</strong>에 분석 리포트를 이 이메일로 발송해 드립니다.
+        </p>
+        <p style="color:#888;font-size:12px;margin-top:24px;">TubeWatch™ — YouTube 채널 정밀 분석 서비스</p>
+      </div>
+    `,
+  });
+}
+
+export async function sendDiagnoseLeadAlert({
+  leadId,
+  channelUrl,
+  contactEmail,
+}: {
+  leadId: string;
+  channelUrl: string;
+  contactEmail: string;
+}) {
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to: ADMIN_EMAIL,
+    subject: `[무료 진단 신청] ${contactEmail} — ${channelUrl}`,
+    html: `
+      <h2>채널 무료 진단 신규 신청</h2>
+      <table>
+        <tr><td><b>리드 ID</b></td><td>${leadId}</td></tr>
+        <tr><td><b>채널 URL</b></td><td><a href="${channelUrl}">${channelUrl}</a></td></tr>
+        <tr><td><b>이메일</b></td><td>${contactEmail}</td></tr>
+      </table>
+      <p><a href="https://www.tubewatch.kr/admin/diagnose-leads">어드민에서 리포트 발송하기</a></p>
+    `,
+  });
+}
+
+export async function sendDiagnoseLeadReport({
+  to,
+  channelUrl,
+  reportToken,
+}: {
+  to: string;
+  channelUrl: string;
+  reportToken: string;
+}) {
+  const reportUrl = `https://www.tubewatch.kr/report/${reportToken}`;
+  const signupUrl = "https://www.tubewatch.kr/channels";
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: "[TubeWatch] 채널 진단 리포트가 도착했습니다",
+    html: `
+      <div style="font-family:sans-serif;max-width:520px;margin:0 auto;">
+        <h2 style="font-size:18px;font-weight:700;margin-bottom:8px;">채널 진단 리포트가 준비됐습니다.</h2>
+        <p style="color:#555;font-size:14px;line-height:1.6;">
+          신청하신 채널(<a href="${channelUrl}" style="color:#e85c00;">${channelUrl}</a>)의 분석 리포트를 확인해보세요.
+        </p>
+        <p style="margin-top:20px;">
+          <a href="${reportUrl}" style="background:#000;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block;font-weight:600;font-size:14px;">
+            리포트 확인하기 →
+          </a>
+        </p>
+        <div style="margin-top:28px;padding:16px;background:#f7f7f7;border-radius:8px;">
+          <p style="font-size:14px;font-weight:700;margin:0 0 6px;">직접 운영하고 싶으신가요?</p>
+          <p style="color:#555;font-size:13px;line-height:1.6;margin:0 0 14px;">
+            TubeWatch에 가입하면 내 채널을 언제든지 직접 분석할 수 있습니다.<br>
+            최근 50개 영상 · 30개 시그널 · 9개 지표 · 7개 패턴 분석을 직접 실행해보세요.
+          </p>
+          <a href="${signupUrl}" style="background:#e85c00;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;display:inline-block;font-weight:600;font-size:13px;">
+            무료로 시작하기
+          </a>
+        </div>
+        <p style="color:#aaa;font-size:11px;margin-top:24px;">TubeWatch™ — YouTube 채널 정밀 분석 서비스</p>
+      </div>
+    `,
+  });
+}
