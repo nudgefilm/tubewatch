@@ -66,10 +66,14 @@ async function generateInsight(topKeyword: string, tags: string[], channelCtx: s
       max_tokens: 80,
       messages: [{
         role: 'user',
-        content: `채널 성격: ${channelCtx}
+        content: `채널 특성: ${channelCtx}
 뉴스 핫 이슈: ${topKeyword} / 연관 키워드: ${tags.slice(0, 2).join(', ')}
 
-이 채널이 위 이슈를 자신의 스타일로 다루면 어떤 효과가 있을지 한 줄로(35자 이내, 구체적 수치 포함) 예측해주세요.`,
+위 채널이 이 뉴스 이슈를 콘텐츠로 만들면 어떨지 크리에이터에게 자연스럽게 한 줄로 조언해주세요.
+- 40자 이내
+- 예상 효과를 구체적인 수치(조회수 배수 또는 % 상승)로 표현
+- 전문 용어 없이 누구나 이해할 수 있는 친근한 문장
+- "~다루면 조회수 X배 기대", "~주제로 영상 만들면 반응 클 것" 같은 실용적 형식`,
       }],
     });
     return (msg.content[0] as { type: 'text'; text: string }).text.trim();

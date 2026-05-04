@@ -1066,43 +1066,45 @@ function NextTrendSection({ report }: { report: ManusReportJson }) {
   const CARD_LINE = 'rgba(0,0,0,0.08)';
 
   return (
-    <section className="rpt-section" style={{ background: DARK_BG }}>
+    <section className="rpt-section" style={{ background: '#F8F8F8' }}>
       <div className="rpt-wrap">
 
-        {/* ── 다크 헤더 ── */}
-        <div style={{ fontFamily: MONO, fontSize: '12px', color: '#555', letterSpacing: '2px', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-          <span style={{ display: 'block', width: '28px', height: '1px', background: '#333' }} />
-          Next Trend Signal · 네이버 데이터랩
+        {/* ── 다크 헤더 박스 (헤더 영역만) ── */}
+        <div style={{ background: '#111', borderRadius: '14px', padding: '28px 28px 24px', marginBottom: '20px' }}>
+          <div style={{ fontFamily: MONO, fontSize: '12px', color: '#666', letterSpacing: '2px', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+            <span style={{ display: 'block', width: '28px', height: '1px', background: '#444' }} />
+            Next Trend Signal · 네이버 데이터랩
+          </div>
+          <h2 style={{ fontSize: 'clamp(22px,3vw,30px)', fontWeight: 900, letterSpacing: '-1px', lineHeight: 1.2, marginBottom: '8px', color: '#fff', fontFamily: SANS }}>
+            이 채널의 검색 트렌드
+          </h2>
+          <p style={{ fontSize: '16px', color: '#888', marginBottom: '4px' }}>
+            채널 핵심 키워드의 최근 4주 검색 흐름과 뉴스 버즈를 분석합니다.
+          </p>
+          <p style={{ fontFamily: MONO, fontSize: '12px', color: '#555', marginBottom: 0 }}>
+            검색 트렌드는 리포트 오픈 시점에 업데이트 반영됩니다.
+          </p>
         </div>
-        <h2 style={{ fontSize: 'clamp(22px,3vw,30px)', fontWeight: 900, letterSpacing: '-1px', lineHeight: 1.2, marginBottom: '8px', color: '#fff', fontFamily: SANS }}>
-          이 채널의 검색 트렌드
-        </h2>
-        <p style={{ fontSize: '16px', color: '#888', marginBottom: '4px' }}>
-          채널 핵심 키워드의 최근 4주 검색 흐름과 뉴스 버즈를 분석합니다.
-        </p>
-        <p style={{ fontFamily: MONO, fontSize: '12px', color: '#444', marginBottom: '32px' }}>
-          검색 트렌드는 리포트 오픈 시점에 업데이트 반영됩니다.
-        </p>
 
         {/* ── 로딩 스켈레톤 ── */}
         {loading && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '12px', padding: '26px 24px' }}>
-              <div style={{ height: '11px', width: '90px', background: 'rgba(255,255,255,0.08)', borderRadius: '4px', marginBottom: '18px', animation: 'trend-pulse 1.5s ease-in-out infinite' }} />
+            <div style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '12px', padding: '26px 24px' }}>
+              <div style={{ height: '11px', width: '90px', background: 'rgba(0,0,0,0.08)', borderRadius: '4px', marginBottom: '18px', animation: 'trend-pulse 1.5s ease-in-out infinite' }} />
               <div className="g-trend3">
                 {[0, 1, 2].map(i => (
-                  <div key={i} style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '10px', padding: '18px 16px' }}>
+                  <div key={i} style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '10px', padding: '18px 16px' }}>
                     {[55, 38, 70].map((w, j) => (
-                      <div key={j} style={{ height: j === 1 ? '28px' : '12px', width: `${w}%`, background: 'rgba(255,255,255,0.08)', borderRadius: '4px', marginBottom: '10px', animation: 'trend-pulse 1.5s ease-in-out infinite' }} />
+                      <div key={j} style={{ height: j === 1 ? '28px' : '12px', width: `${w}%`, background: 'rgba(0,0,0,0.08)', borderRadius: '4px', marginBottom: '10px', animation: 'trend-pulse 1.5s ease-in-out infinite' }} />
                     ))}
                   </div>
                 ))}
               </div>
             </div>
-            <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '12px', padding: '26px 24px' }}>
-              <div style={{ height: '11px', width: '130px', background: 'rgba(255,255,255,0.08)', borderRadius: '4px', marginBottom: '18px', animation: 'trend-pulse 1.5s ease-in-out infinite' }} />
+            <div style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '12px', padding: '26px 24px' }}>
+              <div style={{ height: '11px', width: '130px', background: 'rgba(0,0,0,0.08)', borderRadius: '4px', marginBottom: '18px', animation: 'trend-pulse 1.5s ease-in-out infinite' }} />
               {[0, 1, 2, 3, 4].map(i => (
-                <div key={i} style={{ height: '46px', background: 'rgba(255,255,255,0.06)', borderRadius: '8px', marginBottom: '8px', animation: 'trend-pulse 1.5s ease-in-out infinite' }} />
+                <div key={i} style={{ height: '46px', background: 'rgba(0,0,0,0.05)', borderRadius: '8px', marginBottom: '8px', animation: 'trend-pulse 1.5s ease-in-out infinite' }} />
               ))}
             </div>
           </div>
@@ -1151,7 +1153,7 @@ function NextTrendSection({ report }: { report: ManusReportJson }) {
               {/* AI 인사이트 */}
               {data.insight && (
                 <div style={{ background: `${ORBG}`, border: `1px solid rgba(255,122,0,.25)`, borderRadius: '8px', padding: '12px 14px', marginBottom: '16px', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                  <span style={{ fontFamily: MONO, fontSize: '11px', color: ORANGE, fontWeight: 700, flexShrink: 0, marginTop: '1px' }}>AI</span>
+                  <span style={{ fontFamily: MONO, fontSize: '11px', color: ORANGE, fontWeight: 700, flexShrink: 0, marginTop: '1px' }}>튜브워치 엔진</span>
                   <span style={{ fontSize: '13px', color: '#333', lineHeight: 1.6 }}>{data.insight}</span>
                 </div>
               )}
@@ -1172,7 +1174,7 @@ function NextTrendSection({ report }: { report: ManusReportJson }) {
                         onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)'; }}
                       >
                         <span style={{ fontFamily: MONO, fontSize: '11px', color: G400, flexShrink: 0, minWidth: '50px', paddingTop: '2px' }}>{relTime(n.pubDate)}</span>
-                        <span style={{ fontSize: '14px', fontWeight: 600, color: '#222', flex: 1, lineHeight: 1.55 }}>{n.title}</span>
+                        <span style={{ fontSize: '14px', fontWeight: 600, color: '#222', flex: 1, minWidth: 0, lineHeight: 1.55, wordBreak: 'break-word' }}>{n.title}</span>
                         <span style={{ flexShrink: 0, fontSize: '13px', color: G400, paddingTop: '2px' }}>↗</span>
                       </a>
                     ))}
@@ -1200,7 +1202,7 @@ function NextTrendSection({ report }: { report: ManusReportJson }) {
 
         {/* ── 에러 상태 ── */}
         {!loading && !data && (
-          <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '26px 24px', color: '#555', fontSize: '14px', fontFamily: MONO }}>
+          <div style={{ background: 'rgba(0,0,0,0.04)', borderRadius: '12px', padding: '26px 24px', color: '#555', fontSize: '14px', fontFamily: MONO }}>
             트렌드 데이터를 불러올 수 없습니다.
           </div>
         )}
