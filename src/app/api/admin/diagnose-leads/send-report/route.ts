@@ -37,12 +37,11 @@ export async function POST(request: Request) {
     .from("manus_reports")
     .select("id")
     .eq("access_token", reportToken)
-    .eq("status", "completed")
     .maybeSingle();
 
   if (!report) {
     return NextResponse.json(
-      { error: "유효하지 않은 리포트 토큰이거나 아직 완료되지 않은 리포트입니다." },
+      { error: "리포트 토큰을 찾을 수 없습니다." },
       { status: 400 },
     );
   }
