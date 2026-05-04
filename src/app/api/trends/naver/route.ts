@@ -63,16 +63,16 @@ async function generateInsight(topKeyword: string, tags: string[], channelCtx: s
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     const msg = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 80,
+      max_tokens: 150,
       messages: [{
         role: 'user',
         content: `채널 특성: ${channelCtx}
 뉴스 핫 이슈: ${topKeyword} / 연관 키워드: ${tags.slice(0, 2).join(', ')}
 
-위 채널이 이 뉴스 이슈를 콘텐츠로 만들면 어떨지 크리에이터에게 자연스럽게 한 줄로 조언해주세요.
-- 40자 이내
+위 채널이 이 뉴스 이슈를 콘텐츠로 만들면 어떨지 크리에이터에게 한 줄로 조언해주세요.
+- 반드시 완성된 한 문장으로만 출력 (40자 이내)
+- 마크다운·별표·특수기호 없이 순수 텍스트
 - 예상 효과를 구체적인 수치(조회수 배수 또는 % 상승)로 표현
-- 전문 용어 없이 누구나 이해할 수 있는 친근한 문장
 - "~다루면 조회수 X배 기대", "~주제로 영상 만들면 반응 클 것" 같은 실용적 형식`,
       }],
     });
@@ -167,7 +167,7 @@ export async function GET(req: NextRequest) {
   if (!keywords.length) return NextResponse.json({ error: 'no keywords' }, { status: 400 });
 
   const channelCtx = req.nextUrl.searchParams.get('channelCtx') ?? undefined;
-  const cacheKey = `v3:${keywords.slice().sort().join(',')}:${channelCtx?.slice(0, 60) ?? ''}`;
+  const cacheKey = `v4:${keywords.slice().sort().join(',')}:${channelCtx?.slice(0, 60) ?? ''}`;
 
   const getCached = unstable_cache(
     () => fetchNaverTrends(keywords, channelCtx),
