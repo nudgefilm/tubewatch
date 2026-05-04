@@ -1344,8 +1344,8 @@ export default function ReportView({ report, generatedAt, reportId, isChannelRep
         <ContentPlansSection data={report.section6_content_plans} signals={report.section3_data_signals} />
         <hr style={{ border: "none", borderTop: `1px solid ${G200}`, margin: 0 }} />
         <ActionPlanSection  report={report} />
-        <NextMonthSection   report={report} date={date} generatedAt={generatedAt} isChannelReport={isChannelReport} />
         {!isChannelReport && <NextTrendSection report={report} />}
+        <NextMonthSection   report={report} date={date} generatedAt={generatedAt} isChannelReport={isChannelReport} />
 
         <footer style={{ background: "#0A0A0A", padding: "28px 48px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
           <a href="#" style={{ fontWeight: 900, fontSize: "16px", color: "#fff", textDecoration: "none", cursor: "pointer" }}>

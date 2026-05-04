@@ -30,21 +30,21 @@ function fmtDate(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-const naverHeaders = () => ({
-  'X-Naver-Client-Id': CLIENT_ID,
-  'X-Naver-Client-Secret': CLIENT_SECRET,
-  'Content-Type': 'application/json',
-});
-
 async function fetchNaverTrends(keywords: string[]): Promise<NaverTrendsResponse> {
   const today = new Date();
   const start = new Date(today);
   start.setDate(start.getDate() - 28);
 
+  const naverHeaders = {
+    'X-Naver-Client-Id': CLIENT_ID,
+    'X-Naver-Client-Secret': CLIENT_SECRET,
+    'Content-Type': 'application/json',
+  };
+
   // DataLab 검색어 트렌드
   const datalabRes = await fetch('https://openapi.naver.com/v1/datalab/search', {
     method: 'POST',
-    headers: naverHeaders(),
+    headers: naverHeaders,
     body: JSON.stringify({
       startDate: fmtDate(start),
       endDate: fmtDate(today),
@@ -74,6 +74,9 @@ async function fetchNaverTrends(keywords: string[]): Promise<NaverTrendsResponse
         changePct,
       });
     }
+  } else {
+    const errText = await datalabRes.text();
+    console.error(`[naver/datalab] ${datalabRes.status}:`, errText);
   }
 
   // 가장 검색량 높은 키워드로 뉴스 조회
@@ -82,7 +85,12 @@ async function fetchNaverTrends(keywords: string[]): Promise<NaverTrendsResponse
 
   const newsRes = await fetch(
     `https://openapi.naver.com/v1/search/news.json?query=${encodeURIComponent(topKeyword)}&display=4&sort=date`,
-    { headers: { 'X-Naver-Client-Id': CLIENT_ID, 'X-Naver-Client-Secret': CLIENT_SECRET } }
+    {
+      headers: {
+        'X-Naver-Client-Id': CLIENT_ID,
+        'X-Naver-Client-Secret': CLIENT_SECRET,
+      },
+    }
   );
 
   const news: NewsItem[] = [];
@@ -98,6 +106,14 @@ async function fetchNaverTrends(keywords: string[]): Promise<NaverTrendsResponse
         description: item.description.replace(/<[^>]+>/g, '').slice(0, 80),
       });
     }
+  } else {
+    const errText = await newsRes.text();
+    console.error(`[naver/news] ${newsRes.status}:`, errText);
+  }
+
+  // 둘 다 실패하면 throw → unstable_cache가 빈 결과를 캐싱하지 않도록
+  if (trends.length === 0 && news.length === 0) {
+    throw new Error(`Naver API error: datalab=${datalabRes.status}, news=${newsRes.status}`);
   }
 
   return { trends, news, topKeyword, fetchedAt: new Date().toISOString() };
@@ -110,7 +126,8 @@ export async function GET(req: NextRequest) {
   const keywords = kw.split(',').map(k => k.trim()).filter(Boolean).slice(0, 3);
   if (!keywords.length) return NextResponse.json({ error: 'no keywords' }, { status: 400 });
 
-  const cacheKey = keywords.slice().sort().join(',');
+  // v2: 캐시 키 버전 포함 (빈 결과 캐시 bust)
+  const cacheKey = `v2:${keywords.slice().sort().join(',')}`;
 
   const getCached = unstable_cache(
     () => fetchNaverTrends(keywords),
@@ -121,7 +138,8 @@ export async function GET(req: NextRequest) {
   try {
     const data = await getCached();
     return NextResponse.json(data);
-  } catch {
+  } catch (e) {
+    console.error('[naver/route] fetch failed:', e);
     return NextResponse.json({ error: 'fetch failed' }, { status: 500 });
   }
 }
