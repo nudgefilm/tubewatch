@@ -17,22 +17,23 @@ export default async function AdminUsersPage({
   searchParams: Promise<{ tab?: string }>;
 }) {
   const { tab = "users" } = await searchParams;
+  const usersData = await getAdminUsersData();
 
   return (
     <div className="space-y-6">
-      <AdminTabHeader title="사용자" tabs={TABS} activeTab={tab} />
+      <AdminTabHeader
+        title="사용자"
+        subtitle={`총 ${usersData.total.toLocaleString("ko-KR")}명`}
+        tabs={TABS}
+        activeTab={tab}
+      />
       {tab === "signup-log" ? (
         <SignupLogTab />
       ) : (
-        <UsersTab />
+        <AdminUsersView data={usersData} hideHeader />
       )}
     </div>
   );
-}
-
-async function UsersTab() {
-  const data = await getAdminUsersData();
-  return <AdminUsersView data={data} hideHeader />;
 }
 
 async function SignupLogTab() {
