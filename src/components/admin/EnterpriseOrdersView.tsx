@@ -488,7 +488,7 @@ function InquiryReportLinks({ inquiry, onRefresh }: { inquiry: B2BInquiry; onRef
 
 // ─── B2B 문의 행 ──────────────────────────────────────────────────────────────
 
-function InquiryRow({ inquiry, onRefresh }: { inquiry: B2BInquiry; onRefresh: () => void }) {
+function InquiryRow({ inquiry, reportByToken, onRefresh }: { inquiry: B2BInquiry; reportByToken: Record<string, ManusReportRow>; onRefresh: () => void }) {
   const [loading, setLoading] = useState(false);
 
   async function sendPaymentLink() {
@@ -534,12 +534,25 @@ function InquiryRow({ inquiry, onRefresh }: { inquiry: B2BInquiry; onRefresh: ()
         </a>
       </td>
       <td className="py-3 pr-4">
-        <Badge variant={inquiry.status === "new" ? "outline" : "secondary"}>
-          {inquiry.status === "new" ? "접수" : inquiry.status === "payment_sent" ? "안내 발송" : inquiry.status}
-        </Badge>
-        {inquiry.tax_invoice_requested && (
-          <Badge variant="outline" className="ml-1 text-xs">세금계산서</Badge>
-        )}
+        <div className="flex flex-col gap-1">
+          <div className="flex flex-wrap gap-1">
+            <Badge variant={inquiry.status === "new" ? "outline" : "secondary"}>
+              {inquiry.status === "new" ? "접수" : inquiry.status === "payment_sent" ? "안내 발송" : inquiry.status}
+            </Badge>
+            {inquiry.tax_invoice_requested && (
+              <Badge variant="outline" className="text-xs">세금계산서</Badge>
+            )}
+          </div>
+          {(inquiry.report_tokens ?? []).map((token) => {
+            const r = reportByToken[token];
+            if (!r) return null;
+            return (
+              <Badge key={token} variant={r.status === "completed" ? "default" : r.status === "processing" ? "outline" : "destructive"} className="text-xs w-fit">
+                {r.status === "completed" ? "리포트 완료" : r.status === "processing" ? "생성 중" : r.status} {r.year_month}
+              </Badge>
+            );
+          })}
+        </div>
       </td>
       <td className="py-3 pr-4 text-xs text-muted-foreground">{fmtDate(inquiry.created_at)}</td>
       <td className="py-3">
@@ -748,95 +761,6 @@ function B2CRow({ inquiry, onRefresh }: { inquiry: B2CInquiry; onRefresh: () => 
   );
 }
 
-// ─── 리포트 목록 뷰 ───────────────────────────────────────────────────────────
-
-function ReportsTab({ reports }: { reports: ManusReportRow[] }) {
-  const [copied, setCopied] = useState<string | null>(null);
-
-  function copyToken(token: string) {
-    void navigator.clipboard.writeText(`https://channelreport.net/${token}`).then(() => {
-      setCopied(token);
-      setTimeout(() => setCopied(null), 2000);
-    });
-  }
-
-  if (reports.length === 0) {
-    return <p className="text-sm text-muted-foreground">생성된 리포트가 없습니다.</p>;
-  }
-
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-left">
-        <thead>
-          <tr className="border-b border-foreground/10 text-xs text-muted-foreground">
-            <th className="pb-2 pr-4 font-medium">채널</th>
-            <th className="pb-2 pr-4 font-medium">상태</th>
-            <th className="pb-2 pr-4 font-medium">발행월</th>
-            <th className="pb-2 pr-4 font-medium">생성일</th>
-            <th className="pb-2 font-medium">리포트 URL</th>
-          </tr>
-        </thead>
-        <tbody>
-          {reports.map((r) => (
-            <tr key={r.id} className="border-b border-foreground/5 hover:bg-foreground/[0.02]">
-              <td className="py-3 pr-4">
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-sm font-medium">
-                    {r.user_channels?.channel_title ?? "—"}
-                  </span>
-                  {r.user_channels?.channel_url && (
-                    <a
-                      href={r.user_channels.channel_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-xs text-muted-foreground hover:underline"
-                    >
-                      {r.user_channels.channel_url.replace("https://www.youtube.com/", "").slice(0, 28)}
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  )}
-                </div>
-              </td>
-              <td className="py-3 pr-4">
-                <Badge variant={r.status === "completed" ? "default" : r.status === "processing" ? "outline" : "destructive"}>
-                  {r.status === "completed" ? "완료" : r.status === "processing" ? "생성 중" : r.status}
-                </Badge>
-              </td>
-              <td className="py-3 pr-4 text-sm">{r.year_month}</td>
-              <td className="py-3 pr-4 text-xs text-muted-foreground">{fmtDate(r.created_at)}</td>
-              <td className="py-3">
-                {r.status === "completed" ? (
-                  <div className="flex items-center gap-2">
-                    <a
-                      href={`https://channelreport.net/${r.access_token}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-mono text-[11px] text-muted-foreground hover:text-foreground hover:underline"
-                    >
-                      /{r.access_token.slice(0, 16)}…
-                    </a>
-                    <button
-                      onClick={() => copyToken(r.access_token)}
-                      className="text-muted-foreground hover:text-foreground"
-                      title="URL 복사"
-                    >
-                      {copied === r.access_token
-                        ? <Check className="h-3 w-3 text-green-500" />
-                        : <Copy className="h-3 w-3" />}
-                    </button>
-                  </div>
-                ) : (
-                  <span className="text-xs text-muted-foreground">—</span>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
 // ─── 메인 뷰 ─────────────────────────────────────────────────────────────────
 
 export default function EnterpriseOrdersView({
@@ -851,17 +775,19 @@ export default function EnterpriseOrdersView({
   reports?: ManusReportRow[];
 }) {
   const router = useRouter();
-  const [tab, setTab] = useState<"orders" | "inquiries" | "b2c" | "reports">("orders");
+  const [tab, setTab] = useState<"orders" | "inquiries" | "b2c">("orders");
 
   function refresh() {
     router.refresh();
   }
 
+  const reportByToken: Record<string, ManusReportRow> = {};
+  for (const r of reports) reportByToken[r.access_token] = r;
+
   const tabs = [
     { id: "orders" as const,    label: `주문 내역 (${orders.length})` },
     { id: "inquiries" as const, label: `B2B 문의 (${inquiries.length})` },
     { id: "b2c" as const,       label: `B2C 신청 (${b2cInquiries.length})` },
-    { id: "reports" as const,   label: `리포트 목록 (${reports.length})` },
   ];
 
   return (
@@ -916,9 +842,6 @@ export default function EnterpriseOrdersView({
         )
       )}
 
-      {/* 리포트 목록 */}
-      {tab === "reports" && <ReportsTab reports={reports} />}
-
       {/* B2C 신청 목록 */}
       {tab === "b2c" && (
         b2cInquiries.length === 0 ? (
@@ -960,12 +883,12 @@ export default function EnterpriseOrdersView({
                   <th className="pb-2 pr-4 font-medium">채널 URL</th>
                   <th className="pb-2 pr-4 font-medium">상태</th>
                   <th className="pb-2 pr-4 font-medium">접수일</th>
-                  <th className="pb-2 font-medium">액션</th>
+                  <th className="pb-2 font-medium">리포트 URL</th>
                 </tr>
               </thead>
               <tbody>
                 {inquiries.map((i) => (
-                  <InquiryRow key={i.id} inquiry={i} onRefresh={refresh} />
+                  <InquiryRow key={i.id} inquiry={i} reportByToken={reportByToken} onRefresh={refresh} />
                 ))}
               </tbody>
             </table>
