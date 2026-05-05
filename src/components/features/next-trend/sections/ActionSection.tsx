@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { BarChart2, Tag, RefreshCw, Loader2 } from "lucide-react"
@@ -84,6 +84,13 @@ function ActionCard({ action, channelId }: { action: ExecutionAction; channelId?
   const [isRetrying, setIsRetrying] = useState(false)
   const [retryError, setRetryError] = useState<string | null>(null)
   const [retryDone, setRetryDone] = useState(false)
+
+  // router.refresh() 후 데이터가 여전히 없으면 재시도 버튼 복원
+  useEffect(() => {
+    if (!retryDone || action.videoPlanDocument) return
+    const id = setTimeout(() => setRetryDone(false), 8000)
+    return () => clearTimeout(id)
+  }, [retryDone, action.videoPlanDocument])
 
   async function handleRetry() {
     if (!channelId) return

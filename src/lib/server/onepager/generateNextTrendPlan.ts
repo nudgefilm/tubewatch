@@ -180,7 +180,15 @@ async function callGeminiOnce(prompt: string, signal: AbortSignal, model: string
   }
 
   try {
-    return JSON.parse(text) as NextTrendAIPlan;
+    const parsed = JSON.parse(text) as NextTrendAIPlan & Record<string, unknown>;
+    // vpd_sec1~6을 조합해 video_plan_document 생성 (스키마에 없어 Gemini가 직접 생성 안 함)
+    if (!parsed.video_plan_document) {
+      const sections = (["vpd_sec1", "vpd_sec2", "vpd_sec3", "vpd_sec4", "vpd_sec5", "vpd_sec6"] as const)
+        .map((k) => parsed[k])
+        .filter((s): s is string => typeof s === "string" && s.length > 0);
+      if (sections.length > 0) parsed.video_plan_document = sections.join("\n\n");
+    }
+    return parsed;
   } catch {
     throw new Error(`JSON parse error: ${text.slice(0, 200)}`);
   }
