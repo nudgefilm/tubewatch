@@ -139,9 +139,9 @@ function ReportLinks({ order, onRefresh }: { order: EnterpriseOrder; onRefresh: 
   const [copied, setCopied] = useState<string | null>(null);
 
   function extractToken(raw: string) {
-    // URL 전체 입력도 허용: tubewatch.kr/report/TOKEN 또는 channelreport.net/TOKEN
-    const match = raw.match(/\/([^/]+)\s*$/);
-    return match ? match[1].trim() : raw.trim();
+    const clean = raw.split("#")[0].split("?")[0];
+    const match = clean.match(/\/([^/]+)\s*$/);
+    return match ? match[1].trim() : clean.trim();
   }
 
   async function handleLink() {
@@ -390,8 +390,9 @@ function InquiryReportLinks({ inquiry, onRefresh }: { inquiry: B2BInquiry; onRef
   const [copied, setCopied] = useState<string | null>(null);
 
   function extractToken(raw: string) {
-    const match = raw.match(/\/([^/]+)\s*$/);
-    return match ? match[1].trim() : raw.trim();
+    const clean = raw.split("#")[0].split("?")[0];
+    const match = clean.match(/\/([^/]+)\s*$/);
+    return match ? match[1].trim() : clean.trim();
   }
 
   async function handleLink() {
@@ -569,8 +570,9 @@ function B2CReportLinks({ inquiry, onRefresh }: { inquiry: B2CInquiry; onRefresh
   const [sendingToken, setSendingToken] = useState<string | null>(null);
 
   function extractToken(raw: string) {
-    const match = raw.match(/\/([^/]+)\s*$/);
-    return match ? match[1].trim() : raw.trim();
+    const clean = raw.split("#")[0].split("?")[0];
+    const match = clean.match(/\/([^/]+)\s*$/);
+    return match ? match[1].trim() : clean.trim();
   }
 
   async function handleLink() {
