@@ -92,13 +92,18 @@ export async function POST(req: NextRequest) {
     // 기존 row 조회 — pending 중복 실행 방지 + 기존 result 보존용
     const { data: existing } = await supabaseAdmin
       .from("analysis_module_results")
-      .select("status, result")
+      .select("status, result, started_at")
       .eq("snapshot_id", snapshotId)
       .eq("module_key", moduleKey)
       .maybeSingle();
 
     if (existing?.status === "pending") {
-      return NextResponse.json({ error: "이미 처리 중입니다. 잠시 후 다시 시도해주세요." }, { status: 409 });
+      // 2분 이상 지난 pending은 고착 상태로 간주하고 재생성 허용
+      const startedAt = (existing as Record<string, unknown>).started_at as string | undefined;
+      const stalePending = !startedAt || Date.now() - new Date(startedAt).getTime() > 2 * 60 * 1000;
+      if (!stalePending) {
+        return NextResponse.json({ error: "이미 처리 중입니다. 잠시 후 다시 시도해주세요." }, { status: 409 });
+      }
     }
 
     const now = new Date().toISOString();

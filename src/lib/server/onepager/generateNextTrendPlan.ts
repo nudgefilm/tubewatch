@@ -2,7 +2,7 @@ import { NEXT_TREND_PLAN_SCHEMA, type NextTrendAIPlan } from "@/lib/ai/getGemini
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
 const MODEL = "gemini-2.5-flash"; // thinking ON — quality critical path
-const TIMEOUT_MS = 60_000;
+const TIMEOUT_MS = 100_000;
 
 const SYSTEM_TEXT =
   "당신은 시청률에 미친 방송 작가입니다. 채널 데이터를 바탕으로 다음 영상 기획안을 작성합니다. 반드시 JSON만 반환하세요.";
@@ -190,7 +190,9 @@ export async function generateNextTrendPlan(
     return null;
   }
 
-  const text = (data as any)?.candidates?.[0]?.content?.parts?.[0]?.text;
+  // thinking 모드 응답은 parts 배열 마지막에 실제 JSON이 위치함
+  const parts: unknown[] = (data as any)?.candidates?.[0]?.content?.parts ?? [];
+  const text = (parts[parts.length - 1] as any)?.text;
   if (!text || typeof text !== "string") {
     console.error("[next-trend-plan] empty or invalid response");
     return null;
