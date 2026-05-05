@@ -272,6 +272,39 @@ export async function sendReportReadyEmail({
   });
 }
 
+export async function sendB2CReportReadyEmail({
+  to,
+  channelName,
+  channelUrl,
+  reportToken,
+}: {
+  to: string;
+  channelName: string;
+  channelUrl: string;
+  reportToken: string;
+}) {
+  const reportUrl = `https://channelreport.net/${reportToken}`;
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: "[Channel Report] 채널 컨설팅 리포트가 도착했습니다",
+    html: `
+      <div style="font-family:sans-serif;max-width:520px;margin:0 auto;">
+        <h2 style="font-size:18px;font-weight:700;margin-bottom:8px;">${channelName} 채널 리포트가 준비됐습니다.</h2>
+        <p style="color:#555;font-size:14px;line-height:1.6;">
+          신청하신 채널(<a href="${channelUrl}" style="color:#e85c00;">${channelUrl}</a>)의 컨설팅 리포트를 확인해보세요.
+        </p>
+        <p style="margin-top:20px;">
+          <a href="${reportUrl}" style="background:#000;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block;font-weight:600;font-size:14px;">
+            리포트 확인하기 →
+          </a>
+        </p>
+        <p style="color:#aaa;font-size:11px;margin-top:24px;">Channel Report — 채널 데이터 컨설팅 서비스</p>
+      </div>
+    `,
+  });
+}
+
 export async function sendDiagnoseLeadConfirmation({
   to,
   channelUrl,

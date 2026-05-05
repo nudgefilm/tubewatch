@@ -64,6 +64,7 @@ type B2CInquiry = {
   concerns: string[] | null;
   concern_other: string | null;
   contact_phone: string | null;
+  report_tokens: string[] | null;
   status: string;
   created_at: string;
 };
@@ -556,9 +557,142 @@ function InquiryRow({ inquiry, onRefresh }: { inquiry: B2BInquiry; onRefresh: ()
   );
 }
 
+// ─── B2C 리포트 연결 ──────────────────────────────────────────────────────────
+
+function B2CReportLinks({ inquiry, onRefresh }: { inquiry: B2CInquiry; onRefresh: () => void }) {
+  const tokens: string[] = inquiry.report_tokens ?? [];
+  const [showInput, setShowInput] = useState(false);
+  const [inputVal, setInputVal] = useState("");
+  const [linkLoading, setLinkLoading] = useState(false);
+  const [linkError, setLinkError] = useState<string | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
+  const [sendingToken, setSendingToken] = useState<string | null>(null);
+
+  function extractToken(raw: string) {
+    const match = raw.match(/\/([^/]+)\s*$/);
+    return match ? match[1].trim() : raw.trim();
+  }
+
+  async function handleLink() {
+    const token = extractToken(inputVal);
+    if (!token) return;
+    setLinkLoading(true);
+    setLinkError(null);
+    try {
+      const res = await fetch("/api/admin/enterprise/link-b2c-report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ inquiryId: inquiry.id, token }),
+      });
+      const data = await res.json();
+      if (data.ok) { setInputVal(""); setShowInput(false); onRefresh(); }
+      else setLinkError(data.error ?? "연결 실패");
+    } finally { setLinkLoading(false); }
+  }
+
+  async function handleUnlink(token: string) {
+    await fetch("/api/admin/enterprise/link-b2c-report", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ inquiryId: inquiry.id, token }),
+    });
+    onRefresh();
+  }
+
+  function copyUrl(token: string) {
+    const url = `https://channelreport.net/${token}`;
+    void navigator.clipboard.writeText(url).then(() => {
+      setCopied(token);
+      setTimeout(() => setCopied(null), 2000);
+    });
+  }
+
+  async function handleSend(token: string) {
+    if (sendingToken) return;
+    setSendingToken(token);
+    try {
+      const res = await fetch("/api/admin/enterprise/send-b2c-report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ inquiryId: inquiry.id, token }),
+      });
+      const data = await res.json();
+      if (!data.ok) alert(`발송 실패: ${data.error ?? "알 수 없는 오류"}`);
+    } finally { setSendingToken(null); }
+  }
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      {tokens.map((token) => (
+        <div key={token} className="flex flex-col gap-1 rounded-md bg-foreground/[0.03] px-2 py-1.5">
+          <div className="flex items-center gap-1.5">
+            <a
+              href={`https://channelreport.net/${token}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 truncate font-mono text-[10px] text-muted-foreground hover:text-foreground hover:underline"
+            >
+              channelreport.net/{token.slice(0, 16)}…
+            </a>
+            <button onClick={() => copyUrl(token)} className="text-muted-foreground hover:text-foreground" title="URL 복사">
+              {copied === token ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+            </button>
+            <button onClick={() => void handleUnlink(token)} className="text-muted-foreground hover:text-destructive" title="연결 해제">
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+          <button
+            onClick={() => void handleSend(token)}
+            disabled={sendingToken === token}
+            className="flex items-center gap-1 rounded bg-foreground/[0.06] px-2 py-0.5 text-[11px] text-muted-foreground hover:bg-foreground/10 hover:text-foreground disabled:opacity-40"
+          >
+            {sendingToken === token
+              ? <Loader2 className="h-3 w-3 animate-spin" />
+              : <Mail className="h-3 w-3" />}
+            이메일 발송
+          </button>
+        </div>
+      ))}
+      {showInput ? (
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1">
+            <input
+              className="h-7 flex-1 rounded border border-foreground/20 bg-background px-2 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-foreground/30"
+              placeholder="access_token 또는 리포트 URL"
+              value={inputVal}
+              onChange={(e) => setInputVal(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") void handleLink(); }}
+              autoFocus
+            />
+            <button
+              onClick={() => void handleLink()}
+              disabled={linkLoading || !inputVal.trim()}
+              className="flex h-7 items-center rounded bg-foreground px-2 text-xs font-medium text-background disabled:opacity-40"
+            >
+              {linkLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : "연결"}
+            </button>
+            <button onClick={() => { setShowInput(false); setLinkError(null); }} className="text-muted-foreground hover:text-foreground">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          {linkError && <p className="text-[10px] text-destructive">{linkError}</p>}
+        </div>
+      ) : (
+        <button
+          onClick={() => setShowInput(true)}
+          className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
+        >
+          <Link2 className="h-3 w-3" />
+          리포트 연결
+        </button>
+      )}
+    </div>
+  );
+}
+
 // ─── B2C 신청 행 ──────────────────────────────────────────────────────────────
 
-function B2CRow({ inquiry }: { inquiry: B2CInquiry }) {
+function B2CRow({ inquiry, onRefresh }: { inquiry: B2CInquiry; onRefresh: () => void }) {
   const allConcerns = [
     ...(inquiry.concerns ?? []),
     ...(inquiry.concern_other ? [`기타: ${inquiry.concern_other}`] : []),
@@ -604,7 +738,10 @@ function B2CRow({ inquiry }: { inquiry: B2CInquiry }) {
           {inquiry.status === "new" ? "접수" : inquiry.status === "payment_sent" ? "안내 발송" : inquiry.status}
         </Badge>
       </td>
-      <td className="py-3 text-xs text-muted-foreground">{fmtDate(inquiry.created_at)}</td>
+      <td className="py-3 pr-4 text-xs text-muted-foreground">{fmtDate(inquiry.created_at)}</td>
+      <td className="py-3">
+        <B2CReportLinks inquiry={inquiry} onRefresh={onRefresh} />
+      </td>
     </tr>
   );
 }
@@ -793,12 +930,13 @@ export default function EnterpriseOrdersView({
                   <th className="pb-2 pr-4 font-medium">이메일 / 연락처</th>
                   <th className="pb-2 pr-4 font-medium">고민 항목</th>
                   <th className="pb-2 pr-4 font-medium">상태</th>
-                  <th className="pb-2 font-medium">접수일</th>
+                  <th className="pb-2 pr-4 font-medium">접수일</th>
+                  <th className="pb-2 font-medium">액션</th>
                 </tr>
               </thead>
               <tbody>
                 {b2cInquiries.map((i) => (
-                  <B2CRow key={i.id} inquiry={i} />
+                  <B2CRow key={i.id} inquiry={i} onRefresh={refresh} />
                 ))}
               </tbody>
             </table>
