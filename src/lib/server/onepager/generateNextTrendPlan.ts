@@ -1,7 +1,7 @@
 import { NEXT_TREND_PLAN_SCHEMA, type NextTrendAIPlan } from "@/lib/ai/getGeminiConfig";
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
-const MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"];
+const MODEL = "gemini-2.5-flash";
 const TIMEOUT_MS = 100_000;
 
 const SYSTEM_TEXT =
@@ -190,21 +190,24 @@ export async function generateNextTrendPlan(
   row: Record<string, unknown>
 ): Promise<NextTrendAIPlan | null> {
   const prompt = buildNextTrendPlanPrompt(row);
+  const MAX_RETRIES = 2;
 
-  for (const model of MODELS) {
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
     try {
-      const result = await callGeminiOnce(prompt, controller.signal, model);
+      const result = await callGeminiOnce(prompt, controller.signal, MODEL);
       clearTimeout(timeout);
       return result;
     } catch (e) {
       clearTimeout(timeout);
       const status = (e as any)?.status as number | undefined;
-      console.error(`[next-trend-plan] model=${model}:`, e instanceof Error ? e.message : e);
-      // 503/429는 다음 모델로 폴백, 그 외 에러는 즉시 throw
+      console.error(`[next-trend-plan] attempt ${attempt}:`, e instanceof Error ? e.message : e);
       if (status !== 503 && status !== 429) throw e;
+      if (attempt < MAX_RETRIES) await new Promise((r) => setTimeout(r, 3000));
     }
   }
-  throw new Error("모든 모델 503/429 — Gemini 전체 과부하");
+  const err = new Error("GEMINI_OVERLOADED");
+  (err as any).overloaded = true;
+  throw err;
 }

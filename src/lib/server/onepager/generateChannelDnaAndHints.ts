@@ -1,7 +1,7 @@
 import type { ActionExecutionHint } from "@/lib/ai/getGeminiConfig";
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
-const MODELS = ["gemini-2.5-flash-lite", "gemini-2.0-flash"];
+const MODEL = "gemini-2.5-flash-lite";
 const GENERATION_CONFIG = {
   temperature: 0.4,
   maxOutputTokens: 2048,
@@ -59,21 +59,25 @@ async function callGeminiOnce(prompt: string, systemText: string, signal: AbortS
 }
 
 async function callGeminiText(prompt: string, systemText: string): Promise<string | null> {
-  for (const model of MODELS) {
+  const MAX_RETRIES = 2;
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
     try {
-      const result = await callGeminiOnce(prompt, systemText, controller.signal, model);
+      const result = await callGeminiOnce(prompt, systemText, controller.signal, MODEL);
       clearTimeout(timeout);
       return result;
     } catch (e) {
       clearTimeout(timeout);
       const status = (e as any)?.status as number | undefined;
-      console.error(`[channel-dna-hints] model=${model}:`, e instanceof Error ? e.message : e);
+      console.error(`[channel-dna-hints] attempt ${attempt}:`, e instanceof Error ? e.message : e);
       if (status !== 503 && status !== 429) throw e;
+      if (attempt < MAX_RETRIES) await new Promise((r) => setTimeout(r, 3000));
     }
   }
-  throw new Error("모든 모델 503/429 — Gemini 전체 과부하");
+  const err = new Error("GEMINI_OVERLOADED");
+  (err as any).overloaded = true;
+  throw err;
 }
 
 // ── channel_dna_narrative ─────────────────────────────────────────────────────
@@ -152,14 +156,15 @@ ${growthActionPlan.map((a, i) => `${i + 1}. ${a}`).join("\n")}
 - expected_effect: 이 액션 실행 시 기대할 수 있는 효과 1문장. 가능하면 메트릭 예상값 포함`.trim();
 
   const systemText = "당신은 유튜브 채널 성장 컨설턴트입니다. 반드시 JSON 배열만 반환하세요.";
+  const MAX_RETRIES = 2;
 
-  for (const model of MODELS) {
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
     let res: Response;
     try {
       res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_API_KEY}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -177,30 +182,35 @@ ${growthActionPlan.map((a, i) => `${i + 1}. ${a}`).join("\n")}
       );
     } catch (e) {
       clearTimeout(timeout);
-      console.error(`[action-hints] model=${model} fetch error:`, e);
-      continue;
+      console.error(`[action-hints] attempt ${attempt} fetch error:`, e);
+      if (attempt < MAX_RETRIES) { await new Promise((r) => setTimeout(r, 3000)); continue; }
+      break;
     }
     clearTimeout(timeout);
 
     let data: unknown;
-    try { data = await res.json(); } catch { continue; }
+    try { data = await res.json(); } catch { break; }
 
     if (!res.ok) {
-      const status = res.status;
-      console.error(`[action-hints] model=${model} HTTP ${status}`);
-      if (status === 503 || status === 429) continue;
+      console.error(`[action-hints] attempt ${attempt} HTTP ${res.status}`);
+      if ((res.status === 503 || res.status === 429) && attempt < MAX_RETRIES) {
+        await new Promise((r) => setTimeout(r, 3000));
+        continue;
+      }
+      if (res.status === 503 || res.status === 429) break;
       return null;
     }
 
     const text = (data as any)?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text || typeof text !== "string") continue;
+    if (!text || typeof text !== "string") return null;
 
     try {
       const parsed = JSON.parse(text) as ActionExecutionHint[];
       return Array.isArray(parsed) && parsed.length > 0 ? parsed : null;
-    } catch {
-      continue;
-    }
+    } catch { return null; }
   }
-  throw new Error("모든 모델 503/429 — Gemini 전체 과부하");
+
+  const err = new Error("GEMINI_OVERLOADED");
+  (err as any).overloaded = true;
+  throw err;
 }

@@ -32,7 +32,11 @@ export function ExecutionHintDocument({ markdown, channelId }: ExecutionHintDocu
       })
       const data = await res.json() as { error?: string }
       if (!res.ok) {
-        setRetryError(data.error ?? "재생성 실패")
+        setRetryError(
+          data.error === "GEMINI_OVERLOADED"
+            ? "현재 AI 서비스에 일시적인 과부하가 발생했습니다. 약 30분 후 다시 시도해 주세요."
+            : (data.error ?? "재생성 실패")
+        )
         return
       }
       router.refresh()

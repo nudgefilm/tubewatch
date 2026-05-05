@@ -154,11 +154,15 @@ export async function POST(req: NextRequest) {
       }
     } catch (e) {
       const errMsg = e instanceof Error ? e.message : String(e);
+      const isOverloaded = (e as any)?.overloaded === true;
       console.error("[regenerate-module]", { channelId, moduleKey, snapshotId, error: errMsg });
       await supabaseAdmin.from("analysis_module_results").upsert(
         { user_id: user.id, channel_id: channelId, snapshot_id: snapshotId, module_key: moduleKey, result: existingResult, status: "failed", error_message: errMsg, analyzed_at: now },
         { onConflict: "snapshot_id,module_key" }
       );
+      if (isOverloaded) {
+        return NextResponse.json({ error: "GEMINI_OVERLOADED" }, { status: 503 });
+      }
       return NextResponse.json({ error: `생성 실패: ${errMsg}` }, { status: 502 });
     }
 
