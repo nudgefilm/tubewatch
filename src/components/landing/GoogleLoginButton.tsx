@@ -7,6 +7,7 @@ import {
   getSafeOAuthReturnPath,
 } from "@/lib/auth/safe-return-path";
 import { createClient } from "@/lib/supabase/client";
+import { KakaoLoginButton } from "./KakaoLoginButton";
 
 function detectInAppBrowser(): boolean {
   if (typeof navigator === "undefined") return false;
@@ -94,20 +95,24 @@ export function GoogleLoginButton({
 
   if (isInApp) {
     return (
-      <div className="w-full rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 space-y-3 dark:border-amber-800 dark:bg-amber-950/30">
-        <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
-          카카오톡·인스타그램 등 앱 내 브라우저에서는 Google 로그인이 차단됩니다.
-        </p>
-        <p className="text-xs text-amber-700 dark:text-amber-400">
-          아래 버튼으로 주소를 복사한 뒤 <strong>Chrome</strong> 또는 <strong>Safari</strong>에서 열어주세요.
-        </p>
-        <button
-          type="button"
-          onClick={handleCopyUrl}
-          className="flex items-center gap-2 rounded-lg border border-amber-400 bg-white px-4 py-2 text-sm font-medium text-amber-800 hover:bg-amber-100 transition-colors dark:bg-amber-950 dark:text-amber-300"
-        >
-          {copied ? "복사됐습니다 ✓" : "주소 복사하기"}
-        </button>
+      <div className="w-full space-y-3">
+        <KakaoLoginButton
+          returnToPath={returnToPath}
+          label="카카오로 계속하기"
+          className="w-full flex items-center justify-center gap-3 bg-[#FEE500] text-[#191919] font-medium py-4 px-6 rounded-xl hover:bg-[#FEE500]/90 transition-all duration-300 cursor-pointer disabled:opacity-70 disabled:pointer-events-none"
+        />
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 space-y-2 dark:border-amber-800 dark:bg-amber-950/30">
+          <p className="text-xs text-amber-700 dark:text-amber-400">
+            앱 내 브라우저에서는 Google 로그인이 차단됩니다. Google로 가입하려면 주소를 복사해 <strong>Chrome</strong> 또는 <strong>Safari</strong>에서 열어주세요.
+          </p>
+          <button
+            type="button"
+            onClick={handleCopyUrl}
+            className="flex items-center gap-2 rounded-lg border border-amber-400 bg-white px-3 py-1.5 text-xs font-medium text-amber-800 hover:bg-amber-100 transition-colors dark:bg-amber-950 dark:text-amber-300"
+          >
+            {copied ? "복사됐습니다 ✓" : "주소 복사하기"}
+          </button>
+        </div>
       </div>
     );
   }

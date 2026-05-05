@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { X } from "lucide-react";
 
 import { GoogleLoginButton } from "./GoogleLoginButton";
+import { KakaoLoginButton } from "./KakaoLoginButton";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -68,16 +69,23 @@ export function AuthModal({ isOpen, onClose, returnToPath = null, hasError = fal
               데이터는 알고 있습니다.
             </p>
             <p className="text-sm text-muted-foreground">
-              Google 계정으로 계속하면 로그인 또는<br />첫 방문 시 자동으로 가입됩니다.
+              소셜 계정으로 계속하면 로그인 또는<br />첫 방문 시 자동으로 가입됩니다.
             </p>
           </div>
 
-          <GoogleLoginButton
-            returnToPath={returnToPath}
-            label="Google로 계속하기"
-            hasError={hasError}
-            className="w-full flex items-center justify-center gap-3 bg-foreground text-background font-medium py-4 px-6 rounded-xl hover:bg-foreground/90 transition-all duration-300 cursor-pointer group disabled:opacity-70 disabled:pointer-events-none"
-          />
+          <div className="space-y-3">
+            <KakaoLoginButton
+              returnToPath={returnToPath}
+              label="카카오로 계속하기"
+              className="w-full flex items-center justify-center gap-3 bg-[#FEE500] text-[#191919] font-medium py-4 px-6 rounded-xl hover:bg-[#FEE500]/90 transition-all duration-300 cursor-pointer disabled:opacity-70 disabled:pointer-events-none"
+            />
+            <GoogleLoginButton
+              returnToPath={returnToPath}
+              label="Google로 계속하기"
+              hasError={hasError}
+              className="w-full flex items-center justify-center gap-3 bg-foreground text-background font-medium py-4 px-6 rounded-xl hover:bg-foreground/90 transition-all duration-300 cursor-pointer group disabled:opacity-70 disabled:pointer-events-none"
+            />
+          </div>
 
           {/* Terms Notice */}
           <p className="text-xs text-muted-foreground text-center mt-6 leading-relaxed">
