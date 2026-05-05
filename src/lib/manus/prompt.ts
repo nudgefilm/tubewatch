@@ -23,7 +23,7 @@ export const MANUS_PROJECT_INSTRUCTION = `당신은 '튜브워치(TubeWatch)'의
     "subscribers": 0,
     "total_videos": 0,
     "total_views": 0,
-    "analysis_date": "YYYY-MM-DD"
+    "analysis_date": "제공된 분석 기준일을 그대로 사용하세요. 임의로 변경하지 마세요."
   },
   "section1_scorecard": {
     "grade": "B+",
@@ -226,6 +226,7 @@ export function buildReportPayload(data: {
   totalViewCount: number;
   videoCount: number;
   publishedAt: string | null;
+  analysisDate: string;
   metrics: {
     avgViewCount: number;
     medianViewCount: number;
@@ -245,6 +246,7 @@ export function buildReportPayload(data: {
   const lines: string[] = [];
 
   lines.push("=== TubeWatch 채널 분석 데이터 ===");
+  lines.push(`분석 기준일: ${data.analysisDate}  ← channel_info.analysis_date에 이 날짜를 그대로 사용하세요.`);
   lines.push("");
 
   // 채널 기본 정보

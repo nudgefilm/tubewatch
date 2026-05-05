@@ -114,7 +114,7 @@ export async function GET(req: Request) {
 
         const { data: result } = await supabaseAdmin
           .from("analysis_results")
-          .select("id, feature_snapshot")
+          .select("id, feature_snapshot, created_at")
           .eq("id", report.snapshot_id)
           .maybeSingle();
 
@@ -150,6 +150,8 @@ export async function GET(req: Request) {
           };
         } | null;
 
+        const analysisDate = (result.created_at as string).slice(0, 10);
+
         const payload = buildReportPayload({
           channelName: channel.channel_title ?? "채널",
           channelDescription: snapshot?.channel?.description ?? channel.description ?? "",
@@ -157,6 +159,7 @@ export async function GET(req: Request) {
           totalViewCount: channel.view_count ?? 0,
           videoCount: channel.video_count ?? 0,
           publishedAt: snapshot?.channel?.publishedAt ?? channel.published_at ?? null,
+          analysisDate,
           metrics: snapshot?.metrics ?? {
             avgViewCount: 0, medianViewCount: 0, avgLikeRatio: 0, avgCommentRatio: 0,
             avgVideoDuration: 0, avgUploadIntervalDays: 0, recent30dUploadCount: 0,
