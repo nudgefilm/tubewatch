@@ -379,6 +379,42 @@ function OrderRow({ order, onRefresh }: { order: EnterpriseOrder; onRefresh: () 
   );
 }
 
+// ─── 자동 매칭 리포트 URL 표시 ────────────────────────────────────────────────
+
+function MatchedReportUrl({ report: r }: { report: ManusReportRow }) {
+  const [copied, setCopied] = useState(false);
+  const url = `https://channelreport.net/${r.access_token}`;
+
+  function copy() {
+    void navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  return (
+    <div className="flex flex-col gap-0.5 rounded-md border border-foreground/10 bg-foreground/[0.02] px-2 py-1.5">
+      <div className="flex items-center gap-1.5">
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex-1 truncate font-mono text-xs text-foreground hover:underline"
+        >
+          channelreport.net/{r.access_token}
+        </a>
+        <button onClick={copy} className="shrink-0 text-muted-foreground hover:text-foreground" title="URL 복사">
+          {copied ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+        </button>
+      </div>
+      <span className="text-[11px] text-muted-foreground">
+        {r.status === "completed" ? "✓ 완료" : r.status === "processing" ? "생성 중" : r.status}
+        {r.year_month ? ` · ${r.year_month}` : ""}
+      </span>
+    </div>
+  );
+}
+
 // ─── B2B 문의 리포트 링크 ─────────────────────────────────────────────────────
 
 function InquiryReportLinks({ inquiry, reportByToken, onRefresh }: { inquiry: B2BInquiry; reportByToken: Record<string, ManusReportRow>; onRefresh: () => void }) {
@@ -499,7 +535,7 @@ function InquiryReportLinks({ inquiry, reportByToken, onRefresh }: { inquiry: B2
 
 // ─── B2B 문의 행 ──────────────────────────────────────────────────────────────
 
-function InquiryRow({ inquiry, reportByToken, onRefresh }: { inquiry: B2BInquiry; reportByToken: Record<string, ManusReportRow>; onRefresh: () => void }) {
+function InquiryRow({ inquiry, matchedReports, reportByToken, onRefresh }: { inquiry: B2BInquiry; matchedReports: ManusReportRow[]; reportByToken: Record<string, ManusReportRow>; onRefresh: () => void }) {
   const [loading, setLoading] = useState(false);
 
   async function sendPaymentLink() {
@@ -566,8 +602,18 @@ function InquiryRow({ inquiry, reportByToken, onRefresh }: { inquiry: B2BInquiry
         </div>
       </td>
       <td className="py-3 pr-4 text-xs text-muted-foreground">{fmtDate(inquiry.created_at)}</td>
-      <td className="py-3">
+      <td className="py-3 min-w-[220px]">
         <div className="flex flex-col gap-2">
+          {/* 채널 URL 자동 매칭된 리포트 */}
+          {matchedReports.length > 0 ? (
+            matchedReports.map((r) => (
+              <MatchedReportUrl key={r.id} report={r} />
+            ))
+          ) : (
+            <span className="text-xs text-muted-foreground">—</span>
+          )}
+          {/* 수동 연결 관리 */}
+          <InquiryReportLinks inquiry={inquiry} reportByToken={reportByToken} onRefresh={onRefresh} />
           {inquiry.status === "new" && (
             <Button size="sm" onClick={sendPaymentLink} disabled={loading}>
               {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : (
@@ -575,7 +621,6 @@ function InquiryRow({ inquiry, reportByToken, onRefresh }: { inquiry: B2BInquiry
               )}
             </Button>
           )}
-          <InquiryReportLinks inquiry={inquiry} reportByToken={reportByToken} onRefresh={onRefresh} />
         </div>
       </td>
     </tr>
@@ -795,6 +840,15 @@ export default function EnterpriseOrdersView({
   const reportByToken: Record<string, ManusReportRow> = {};
   for (const r of reports) reportByToken[r.access_token] = r;
 
+  function normalizeUrl(url: string) {
+    return url.trim().toLowerCase().replace(/\/$/, "");
+  }
+  const reportsByChannelUrl: Record<string, ManusReportRow[]> = {};
+  for (const r of reports) {
+    const url = normalizeUrl(r.user_channels?.channel_url ?? "");
+    if (url) (reportsByChannelUrl[url] ??= []).push(r);
+  }
+
   const tabs = [
     { id: "orders" as const,    label: `주문 내역 (${orders.length})` },
     { id: "inquiries" as const, label: `B2B 문의 (${inquiries.length})` },
@@ -898,9 +952,12 @@ export default function EnterpriseOrdersView({
                 </tr>
               </thead>
               <tbody>
-                {inquiries.map((i) => (
-                  <InquiryRow key={i.id} inquiry={i} reportByToken={reportByToken} onRefresh={refresh} />
-                ))}
+                {inquiries.map((i) => {
+                  const matchedReports = reportsByChannelUrl[normalizeUrl(i.channel_url)] ?? [];
+                  return (
+                    <InquiryRow key={i.id} inquiry={i} matchedReports={matchedReports} reportByToken={reportByToken} onRefresh={refresh} />
+                  );
+                })}
               </tbody>
             </table>
           </div>
