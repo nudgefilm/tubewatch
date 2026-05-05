@@ -1,7 +1,7 @@
 import type { ActionExecutionHint } from "@/lib/ai/getGeminiConfig";
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
-const MODEL = "gemini-2.5-flash-lite";
+const MODELS = ["gemini-2.5-flash-lite", "gemini-2.0-flash"];
 const GENERATION_CONFIG = {
   temperature: 0.4,
   maxOutputTokens: 2048,
@@ -24,9 +24,9 @@ function parseRawJson(row: Record<string, unknown>): Record<string, unknown> {
   }
 }
 
-async function callGeminiOnce(prompt: string, systemText: string, signal: AbortSignal): Promise<string> {
+async function callGeminiOnce(prompt: string, systemText: string, signal: AbortSignal, model: string): Promise<string> {
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -59,26 +59,21 @@ async function callGeminiOnce(prompt: string, systemText: string, signal: AbortS
 }
 
 async function callGeminiText(prompt: string, systemText: string): Promise<string | null> {
-  const MAX_RETRIES = 3;
-  const RETRY_DELAY_MS = 5000;
-
-  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+  for (const model of MODELS) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
     try {
-      const result = await callGeminiOnce(prompt, systemText, controller.signal);
+      const result = await callGeminiOnce(prompt, systemText, controller.signal, model);
       clearTimeout(timeout);
       return result;
     } catch (e) {
       clearTimeout(timeout);
       const status = (e as any)?.status as number | undefined;
-      const isRetryable = status === 503 || status === 429 || (e instanceof Error && e.name === "AbortError");
-      console.error(`[channel-dna-hints] attempt ${attempt}/${MAX_RETRIES}:`, e instanceof Error ? e.message : e);
-      if (!isRetryable || attempt === MAX_RETRIES) throw e;
-      await new Promise((r) => setTimeout(r, RETRY_DELAY_MS * attempt));
+      console.error(`[channel-dna-hints] model=${model}:`, e instanceof Error ? e.message : e);
+      if (status !== 503 && status !== 429) throw e;
     }
   }
-  return null;
+  throw new Error("모든 모델 503/429 — Gemini 전체 과부하");
 }
 
 // ── channel_dna_narrative ─────────────────────────────────────────────────────
@@ -156,59 +151,56 @@ ${growthActionPlan.map((a, i) => `${i + 1}. ${a}`).join("\n")}
 - execution_hint: 실제로 어떻게 실행할지 1~2문장. "~하세요" 형태의 구체적 행동 지시
 - expected_effect: 이 액션 실행 시 기대할 수 있는 효과 1문장. 가능하면 메트릭 예상값 포함`.trim();
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const systemText = "당신은 유튜브 채널 성장 컨설턴트입니다. 반드시 JSON 배열만 반환하세요.";
 
-  let res: Response;
-  try {
-    res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        signal: controller.signal,
-        body: JSON.stringify({
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          systemInstruction: {
-            parts: [{ text: "당신은 유튜브 채널 성장 컨설턴트입니다. 반드시 JSON 배열만 반환하세요." }],
-          },
-          generationConfig: {
-            ...GENERATION_CONFIG,
-            responseMimeType: "application/json",
-            responseSchema: HINTS_SCHEMA,
-          },
-        }),
-      }
-    );
-  } catch (e) {
+  for (const model of MODELS) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    let res: Response;
+    try {
+      res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+          body: JSON.stringify({
+            contents: [{ role: "user", parts: [{ text: prompt }] }],
+            systemInstruction: { parts: [{ text: systemText }] },
+            generationConfig: {
+              ...GENERATION_CONFIG,
+              responseMimeType: "application/json",
+              responseSchema: HINTS_SCHEMA,
+            },
+          }),
+        }
+      );
+    } catch (e) {
+      clearTimeout(timeout);
+      console.error(`[action-hints] model=${model} fetch error:`, e);
+      continue;
+    }
     clearTimeout(timeout);
-    console.error("[action-hints] fetch error:", e);
-    return null;
-  } finally {
-    clearTimeout(timeout);
-  }
 
-  let data: unknown;
-  try {
-    data = await res.json();
-  } catch {
-    console.error("[action-hints] response JSON parse error, status:", res.status);
-    return null;
-  }
+    let data: unknown;
+    try { data = await res.json(); } catch { continue; }
 
-  if (!res.ok) {
-    console.error("[action-hints] HTTP error:", res.status);
-    return null;
-  }
+    if (!res.ok) {
+      const status = res.status;
+      console.error(`[action-hints] model=${model} HTTP ${status}`);
+      if (status === 503 || status === 429) continue;
+      return null;
+    }
 
-  const text = (data as any)?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text || typeof text !== "string") return null;
+    const text = (data as any)?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text || typeof text !== "string") continue;
 
-  try {
-    const parsed = JSON.parse(text) as ActionExecutionHint[];
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : null;
-  } catch (e) {
-    console.error("[action-hints] JSON parse error:", e);
-    return null;
+    try {
+      const parsed = JSON.parse(text) as ActionExecutionHint[];
+      return Array.isArray(parsed) && parsed.length > 0 ? parsed : null;
+    } catch {
+      continue;
+    }
   }
+  throw new Error("모든 모델 503/429 — Gemini 전체 과부하");
 }

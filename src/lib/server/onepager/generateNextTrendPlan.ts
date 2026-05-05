@@ -1,7 +1,7 @@
 import { NEXT_TREND_PLAN_SCHEMA, type NextTrendAIPlan } from "@/lib/ai/getGeminiConfig";
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
-const MODEL = "gemini-2.5-flash";
+const MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"];
 const TIMEOUT_MS = 100_000;
 
 const SYSTEM_TEXT =
@@ -141,9 +141,9 @@ ${videoSampleBlock}
 - execution_hint_document: 제목·훅·썸네일 원페이퍼. 3섹션(## 제목 후보 / ## 훅 설계 / ## 썸네일 방향). 300자 내외. 빈 문자열 금지.`.trim();
 }
 
-async function callGeminiOnce(prompt: string, signal: AbortSignal): Promise<NextTrendAIPlan> {
+async function callGeminiOnce(prompt: string, signal: AbortSignal, model: string): Promise<NextTrendAIPlan> {
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -191,24 +191,20 @@ export async function generateNextTrendPlan(
 ): Promise<NextTrendAIPlan | null> {
   const prompt = buildNextTrendPlanPrompt(row);
 
-  const MAX_RETRIES = 3;
-  const RETRY_DELAY_MS = 5000;
-
-  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+  for (const model of MODELS) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
     try {
-      const result = await callGeminiOnce(prompt, controller.signal);
+      const result = await callGeminiOnce(prompt, controller.signal, model);
       clearTimeout(timeout);
       return result;
     } catch (e) {
       clearTimeout(timeout);
       const status = (e as any)?.status as number | undefined;
-      const isRetryable = status === 503 || status === 429 || (e instanceof Error && e.name === "AbortError");
-      console.error(`[next-trend-plan] attempt ${attempt}/${MAX_RETRIES}:`, e instanceof Error ? e.message : e);
-      if (!isRetryable || attempt === MAX_RETRIES) throw e;
-      await new Promise((r) => setTimeout(r, RETRY_DELAY_MS * attempt));
+      console.error(`[next-trend-plan] model=${model}:`, e instanceof Error ? e.message : e);
+      // 503/429는 다음 모델로 폴백, 그 외 에러는 즉시 throw
+      if (status !== 503 && status !== 429) throw e;
     }
   }
-  return null;
+  throw new Error("모든 모델 503/429 — Gemini 전체 과부하");
 }
