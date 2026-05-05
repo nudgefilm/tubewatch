@@ -61,12 +61,15 @@ async function callGeminiText(prompt: string, systemText: string): Promise<strin
   }
 
   if (!res.ok) {
-    console.error("[channel-dna-hints] HTTP error:", res.status);
-    return null;
+    const errDetail = JSON.stringify((data as any)?.error ?? data);
+    throw new Error(`Gemini HTTP ${res.status}: ${errDetail}`);
   }
 
   const text = (data as any)?.candidates?.[0]?.content?.parts?.[0]?.text;
-  return typeof text === "string" && text.length > 0 ? text : null;
+  if (!text || typeof text !== "string") {
+    throw new Error(`Gemini empty response: ${JSON.stringify((data as any)?.candidates?.[0]).slice(0, 200)}`);
+  }
+  return text;
 }
 
 // ── channel_dna_narrative ─────────────────────────────────────────────────────

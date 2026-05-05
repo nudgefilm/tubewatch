@@ -186,22 +186,21 @@ export async function generateNextTrendPlan(
   }
 
   if (!res.ok) {
-    console.error("[next-trend-plan] HTTP error:", res.status, (data as any)?.error);
-    return null;
+    const errDetail = JSON.stringify((data as any)?.error ?? data);
+    throw new Error(`Gemini HTTP ${res.status}: ${errDetail}`);
   }
 
   // thinking 모드 응답은 parts 배열 마지막에 실제 JSON이 위치함
   const parts: unknown[] = (data as any)?.candidates?.[0]?.content?.parts ?? [];
   const text = (parts[parts.length - 1] as any)?.text;
   if (!text || typeof text !== "string") {
-    console.error("[next-trend-plan] empty or invalid response");
-    return null;
+    const detail = JSON.stringify((data as any)?.candidates?.[0] ?? data);
+    throw new Error(`Gemini empty response: ${detail.slice(0, 300)}`);
   }
 
   try {
     return JSON.parse(text) as NextTrendAIPlan;
   } catch (e) {
-    console.error("[next-trend-plan] plan JSON parse error:", e, "text(first 200):", text.slice(0, 200));
-    return null;
+    throw new Error(`JSON parse error: ${text.slice(0, 200)}`);
   }
 }

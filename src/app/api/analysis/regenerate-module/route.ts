@@ -153,13 +153,13 @@ export async function POST(req: NextRequest) {
         if (execution_hints) moduleResult = { execution_hints };
       }
     } catch (e) {
-      const errMsg = e instanceof Error ? e.message : "unknown";
+      const errMsg = e instanceof Error ? e.message : String(e);
       console.error("[regenerate-module]", { channelId, moduleKey, snapshotId, error: errMsg });
       await supabaseAdmin.from("analysis_module_results").upsert(
         { user_id: user.id, channel_id: channelId, snapshot_id: snapshotId, module_key: moduleKey, result: existingResult, status: "failed", error_message: errMsg, analyzed_at: now },
         { onConflict: "snapshot_id,module_key" }
       );
-      return NextResponse.json({ error: "생성 실패" }, { status: 502 });
+      return NextResponse.json({ error: `생성 실패: ${errMsg}` }, { status: 502 });
     }
 
     if (!moduleResult) {
@@ -168,7 +168,7 @@ export async function POST(req: NextRequest) {
         { user_id: user.id, channel_id: channelId, snapshot_id: snapshotId, module_key: moduleKey, result: existingResult, status: "failed", error_message: "empty_response", analyzed_at: now },
         { onConflict: "snapshot_id,module_key" }
       );
-      return NextResponse.json({ error: "생성 실패" }, { status: 502 });
+      return NextResponse.json({ error: "생성 실패: empty_response (Gemini가 빈 응답 반환)" }, { status: 502 });
     }
 
     const completedAt = new Date().toISOString();
