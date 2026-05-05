@@ -34,7 +34,7 @@ export function ExecutionHintDocument({ markdown, channelId }: ExecutionHintDocu
       if (!res.ok) {
         setRetryError(
           data.error === "GEMINI_OVERLOADED"
-            ? "현재 AI 서비스에 일시적인 과부하가 발생했습니다. 약 30분 후 다시 시도해 주세요."
+            ? "현재 외부 API 접속량이 몰려 과부하가 발생하고 있습니다. 채널진단 데이터 컨설팅 > 내 채널 > '월간 리포트 신청'을 통해 종합 진단 리포트를 먼저 받아보세요."
             : (data.error ?? "재생성 실패")
         )
         return

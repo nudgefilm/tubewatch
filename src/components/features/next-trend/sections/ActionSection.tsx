@@ -100,7 +100,7 @@ function ActionCard({ action, channelId }: { action: ExecutionAction; channelId?
         setRetryDone(true)
         router.refresh()
       } else if (data.error === "GEMINI_OVERLOADED") {
-        setRetryError("현재 AI 서비스에 일시적인 과부하가 발생했습니다. 약 30분 후 다시 시도해 주세요.")
+        setRetryError("현재 외부 API 접속량이 몰려 과부하가 발생하고 있습니다. 채널진단 데이터 컨설팅 > 내 채널 > '월간 리포트 신청'을 통해 종합 진단 리포트를 먼저 받아보세요.")
       } else {
         setRetryError(data.error ?? "재생성에 실패했습니다. 잠시 후 다시 시도해주세요.")
       }
