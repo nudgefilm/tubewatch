@@ -1,12 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import {
   DEFAULT_POST_LOGIN_PATH,
   getSafeOAuthReturnPath,
 } from "@/lib/auth/safe-return-path";
 import { createClient } from "@/lib/supabase/client";
+
+function detectInAppBrowser(): boolean {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent;
+  return /KAKAOTALK|kakaotalk|Instagram|FBAN|FBAV|Line\/|NAVER|DaumApps|Twitter|MicroMessenger|Snapchat/i.test(ua);
+}
 
 type GoogleLoginButtonProps = {
   className?: string;
@@ -25,6 +31,19 @@ export function GoogleLoginButton({
 }: GoogleLoginButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(hasError ? "로그인에 실패했습니다. 다시 시도해주세요." : null);
+  const [isInApp, setIsInApp] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    setIsInApp(detectInAppBrowser());
+  }, []);
+
+  function handleCopyUrl() {
+    void navigator.clipboard.writeText(window.location.href).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
 
   async function handleLogin(): Promise<void> {
     if (isLoading) return;
@@ -71,6 +90,26 @@ export function GoogleLoginButton({
       setError("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
       setIsLoading(false);
     }
+  }
+
+  if (isInApp) {
+    return (
+      <div className="w-full rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 space-y-3 dark:border-amber-800 dark:bg-amber-950/30">
+        <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
+          카카오톡·인스타그램 등 앱 내 브라우저에서는 Google 로그인이 차단됩니다.
+        </p>
+        <p className="text-xs text-amber-700 dark:text-amber-400">
+          아래 버튼으로 주소를 복사한 뒤 <strong>Chrome</strong> 또는 <strong>Safari</strong>에서 열어주세요.
+        </p>
+        <button
+          type="button"
+          onClick={handleCopyUrl}
+          className="flex items-center gap-2 rounded-lg border border-amber-400 bg-white px-4 py-2 text-sm font-medium text-amber-800 hover:bg-amber-100 transition-colors dark:bg-amber-950 dark:text-amber-300"
+        >
+          {copied ? "복사됐습니다 ✓" : "주소 복사하기"}
+        </button>
+      </div>
+    );
   }
 
   return (
