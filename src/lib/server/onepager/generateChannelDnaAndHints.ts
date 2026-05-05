@@ -1,12 +1,11 @@
 import type { ActionExecutionHint } from "@/lib/ai/getGeminiConfig";
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
-// gemini-2.5-flash-lite with thinkingBudget:0 — fast, no reasoning needed for these fields
-const MODEL = "gemini-2.5-flash-lite";
+// gemini-2.0-flash-lite — fast, no reasoning needed for these fields
+const MODEL = "gemini-2.0-flash-lite";
 const GENERATION_CONFIG = {
   temperature: 0.4,
   maxOutputTokens: 2048,
-  thinkingConfig: { thinkingBudget: 0 },
 };
 const TIMEOUT_MS = 20_000;
 

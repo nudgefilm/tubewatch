@@ -1,7 +1,7 @@
 import { NEXT_TREND_PLAN_SCHEMA, type NextTrendAIPlan } from "@/lib/ai/getGeminiConfig";
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
-const MODEL = "gemini-2.5-flash"; // thinking ON — quality critical path
+const MODEL = "gemini-2.5-flash-preview-05-20"; // thinking ON — quality critical path
 const TIMEOUT_MS = 100_000;
 
 const SYSTEM_TEXT =
