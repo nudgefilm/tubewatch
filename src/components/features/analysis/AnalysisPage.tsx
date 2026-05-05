@@ -174,7 +174,7 @@ export function ChannelAnalysisPage({ channelId: _channelId = "", viewModel, isS
       }
       if (result.code === "OVERLOAD_QUEUED") {
         console.warn("[AnalysisPage/reanalyze] Gemini overloaded (503)")
-        setRequestError("현재 외부 API 접속량이 몰려 과부하가 발생하고 있습니다. 채널진단 데이터 컨설팅 > 내 채널 > '월간 리포트 신청'을 통해 종합 진단 리포트를 먼저 받아보세요.")
+        setRequestError("현재 외부 API 접속량이 몰려 사용량이 증가하고 있습니다. 채널진단 데이터 컨설팅 > 내 채널 > '월간 리포트 신청'을 통해 종합 진단 리포트를 먼저 받아보세요.")
         return
       }
       if (!result.ok) {
