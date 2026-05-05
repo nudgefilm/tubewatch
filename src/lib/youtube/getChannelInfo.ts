@@ -28,6 +28,7 @@ interface ChannelsResponseItem {
     title?: string;
     description?: string;
     publishedAt?: string;
+    customUrl?: string;
     thumbnails?: {
       default?: { url?: string };
       medium?: { url?: string };
@@ -141,6 +142,11 @@ async function fetchChannelInfoById(
     thumbnails?.default?.url ??
     null;
 
+  const rawHandle = item.snippet?.customUrl ?? null;
+  const channel_handle = rawHandle
+    ? (rawHandle.startsWith("@") ? rawHandle : `@${rawHandle}`)
+    : null;
+
   return {
     channel_id: item.id,
     channel_title: safeString(item.snippet?.title) || "Untitled Channel",
@@ -150,6 +156,7 @@ async function fetchChannelInfoById(
     video_count: toNumber(item.statistics?.videoCount),
     view_count: toNumber(item.statistics?.viewCount),
     thumbnail_url: thumbnailUrl,
+    channel_handle,
   };
 }
 

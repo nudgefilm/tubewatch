@@ -235,6 +235,7 @@ export async function POST(request: Request) {
     user_id: user.id,
     channel_url: canonicalUrl,
     channel_id: info.channel_id,
+    channel_handle: info.channel_handle ?? null,
     channel_title: info.channel_title,
     thumbnail_url: info.thumbnail_url,
     subscriber_count: info.subscriber_count,

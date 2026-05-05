@@ -20,6 +20,7 @@ type ChannelRow = {
   channel_title: string | null;
   channel_url: string | null;
   channel_id: string | null;
+  channel_handle: string | null;
   thumbnail_url: string | null;
 };
 
@@ -176,9 +177,11 @@ export default function SettingsView({ email, displayName, avatarUrl, planId, ch
                         <p className="text-sm font-medium truncate">
                           {ch.channel_title ?? ch.channel_id ?? "채널"}
                         </p>
-                        {ch.channel_url ? (
+                        {(ch.channel_handle || ch.channel_url) ? (
                           <p className="text-sm text-muted-foreground truncate">
-                            {ch.channel_url}
+                            {ch.channel_handle
+                              ? `www.youtube.com/${ch.channel_handle}`
+                              : ch.channel_url}
                           </p>
                         ) : null}
                       </div>

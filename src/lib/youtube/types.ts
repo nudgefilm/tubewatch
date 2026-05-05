@@ -35,6 +35,7 @@ export interface ChannelInfo {
   video_count: number | null;
   view_count: number | null;
   thumbnail_url: string | null;
+  channel_handle: string | null;
 }
 
 export interface VideoInfo {
