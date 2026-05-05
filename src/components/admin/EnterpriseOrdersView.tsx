@@ -381,7 +381,7 @@ function OrderRow({ order, onRefresh }: { order: EnterpriseOrder; onRefresh: () 
 
 // ─── B2B 문의 리포트 링크 ─────────────────────────────────────────────────────
 
-function InquiryReportLinks({ inquiry, onRefresh }: { inquiry: B2BInquiry; onRefresh: () => void }) {
+function InquiryReportLinks({ inquiry, reportByToken, onRefresh }: { inquiry: B2BInquiry; reportByToken: Record<string, ManusReportRow>; onRefresh: () => void }) {
   const tokens: string[] = inquiry.report_tokens ?? [];
   const [showInput, setShowInput] = useState(false);
   const [inputVal, setInputVal] = useState("");
@@ -430,25 +430,36 @@ function InquiryReportLinks({ inquiry, onRefresh }: { inquiry: B2BInquiry; onRef
   }
 
   return (
-    <div className="flex flex-col gap-1.5">
-      {tokens.map((token) => (
-        <div key={token} className="flex items-center gap-1.5 rounded-md bg-foreground/[0.03] px-2 py-1">
-          <a
-            href={`https://channelreport.net/${token}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 truncate font-mono text-[10px] text-muted-foreground hover:text-foreground hover:underline"
-          >
-            channelreport.net/{token.slice(0, 16)}…
-          </a>
-          <button onClick={() => copyUrl(token)} className="text-muted-foreground hover:text-foreground" title="URL 복사">
-            {copied === token ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
-          </button>
-          <button onClick={() => void handleUnlink(token)} className="text-muted-foreground hover:text-destructive" title="연결 해제">
-            <X className="h-3 w-3" />
-          </button>
-        </div>
-      ))}
+    <div className="flex flex-col gap-2">
+      {tokens.map((token) => {
+        const r = reportByToken[token];
+        return (
+          <div key={token} className="flex flex-col gap-0.5 rounded-md border border-foreground/10 bg-foreground/[0.02] px-2 py-1.5">
+            <div className="flex items-center gap-1.5">
+              <a
+                href={`https://channelreport.net/${token}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 truncate font-mono text-xs text-foreground hover:underline"
+              >
+                channelreport.net/{token}
+              </a>
+              <button onClick={() => copyUrl(token)} className="shrink-0 text-muted-foreground hover:text-foreground" title="URL 복사">
+                {copied === token ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+              </button>
+              <button onClick={() => void handleUnlink(token)} className="shrink-0 text-muted-foreground hover:text-destructive" title="연결 해제">
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+            {r && (
+              <span className="text-[11px] text-muted-foreground">
+                {r.status === "completed" ? "✓ 완료" : r.status === "processing" ? "생성 중" : r.status}
+                {r.year_month ? ` · ${r.year_month}` : ""}
+              </span>
+            )}
+          </div>
+        );
+      })}
       {showInput ? (
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-1">
@@ -471,7 +482,7 @@ function InquiryReportLinks({ inquiry, onRefresh }: { inquiry: B2BInquiry; onRef
               <X className="h-4 w-4" />
             </button>
           </div>
-          {linkError && <p className="text-[10px] text-destructive">{linkError}</p>}
+          {linkError && <p className="text-xs text-destructive">{linkError}</p>}
         </div>
       ) : (
         <button
@@ -564,7 +575,7 @@ function InquiryRow({ inquiry, reportByToken, onRefresh }: { inquiry: B2BInquiry
               )}
             </Button>
           )}
-          <InquiryReportLinks inquiry={inquiry} onRefresh={onRefresh} />
+          <InquiryReportLinks inquiry={inquiry} reportByToken={reportByToken} onRefresh={onRefresh} />
         </div>
       </td>
     </tr>
