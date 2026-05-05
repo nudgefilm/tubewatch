@@ -24,44 +24,31 @@ function parseRawJson(row: Record<string, unknown>): Record<string, unknown> {
   }
 }
 
-async function callGeminiText(prompt: string, systemText: string): Promise<string | null> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
-
-  let res: Response;
-  try {
-    res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        signal: controller.signal,
-        body: JSON.stringify({
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          systemInstruction: { parts: [{ text: systemText }] },
-          generationConfig: GENERATION_CONFIG,
-        }),
-      }
-    );
-  } catch (e) {
-    clearTimeout(timeout);
-    console.error("[channel-dna-hints] fetch error:", e);
-    return null;
-  } finally {
-    clearTimeout(timeout);
-  }
+async function callGeminiOnce(prompt: string, systemText: string, signal: AbortSignal): Promise<string> {
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal,
+      body: JSON.stringify({
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        systemInstruction: { parts: [{ text: systemText }] },
+        generationConfig: GENERATION_CONFIG,
+      }),
+    }
+  );
 
   let data: unknown;
-  try {
-    data = await res.json();
-  } catch {
-    console.error("[channel-dna-hints] response JSON parse error, status:", res.status);
-    return null;
+  try { data = await res.json(); } catch {
+    throw new Error(`response parse error, status: ${res.status}`);
   }
 
   if (!res.ok) {
     const errDetail = JSON.stringify((data as any)?.error ?? data);
-    throw new Error(`Gemini HTTP ${res.status}: ${errDetail}`);
+    const err = new Error(`Gemini HTTP ${res.status}: ${errDetail}`);
+    (err as any).status = res.status;
+    throw err;
   }
 
   const text = (data as any)?.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -69,6 +56,29 @@ async function callGeminiText(prompt: string, systemText: string): Promise<strin
     throw new Error(`Gemini empty response: ${JSON.stringify((data as any)?.candidates?.[0]).slice(0, 200)}`);
   }
   return text;
+}
+
+async function callGeminiText(prompt: string, systemText: string): Promise<string | null> {
+  const MAX_RETRIES = 3;
+  const RETRY_DELAY_MS = 5000;
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    try {
+      const result = await callGeminiOnce(prompt, systemText, controller.signal);
+      clearTimeout(timeout);
+      return result;
+    } catch (e) {
+      clearTimeout(timeout);
+      const status = (e as any)?.status as number | undefined;
+      const isRetryable = status === 503 || status === 429 || (e instanceof Error && e.name === "AbortError");
+      console.error(`[channel-dna-hints] attempt ${attempt}/${MAX_RETRIES}:`, e instanceof Error ? e.message : e);
+      if (!isRetryable || attempt === MAX_RETRIES) throw e;
+      await new Promise((r) => setTimeout(r, RETRY_DELAY_MS * attempt));
+    }
+  }
+  return null;
 }
 
 // ── channel_dna_narrative ─────────────────────────────────────────────────────

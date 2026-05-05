@@ -141,66 +141,74 @@ ${videoSampleBlock}
 - execution_hint_document: 제목·훅·썸네일 원페이퍼. 3섹션(## 제목 후보 / ## 훅 설계 / ## 썸네일 방향). 300자 내외. 빈 문자열 금지.`.trim();
 }
 
+async function callGeminiOnce(prompt: string, signal: AbortSignal): Promise<NextTrendAIPlan> {
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal,
+      body: JSON.stringify({
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        systemInstruction: { parts: [{ text: SYSTEM_TEXT }] },
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 8192,
+          responseMimeType: "application/json",
+          responseSchema: NEXT_TREND_PLAN_SCHEMA,
+        },
+      }),
+    }
+  );
+
+  let data: unknown;
+  try { data = await res.json(); } catch {
+    throw new Error(`response parse error, status: ${res.status}`);
+  }
+
+  if (!res.ok) {
+    const errDetail = JSON.stringify((data as any)?.error ?? data);
+    const err = new Error(`Gemini HTTP ${res.status}: ${errDetail}`);
+    (err as any).status = res.status;
+    throw err;
+  }
+
+  const parts: unknown[] = (data as any)?.candidates?.[0]?.content?.parts ?? [];
+  const text = (parts[parts.length - 1] as any)?.text;
+  if (!text || typeof text !== "string") {
+    throw new Error(`Gemini empty response: ${JSON.stringify((data as any)?.candidates?.[0]).slice(0, 300)}`);
+  }
+
+  try {
+    return JSON.parse(text) as NextTrendAIPlan;
+  } catch {
+    throw new Error(`JSON parse error: ${text.slice(0, 200)}`);
+  }
+}
+
 export async function generateNextTrendPlan(
   row: Record<string, unknown>
 ): Promise<NextTrendAIPlan | null> {
   const prompt = buildNextTrendPlanPrompt(row);
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const MAX_RETRIES = 3;
+  const RETRY_DELAY_MS = 5000;
 
-  let res: Response;
-  try {
-    res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        signal: controller.signal,
-        body: JSON.stringify({
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          systemInstruction: { parts: [{ text: SYSTEM_TEXT }] },
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 8192,
-            responseMimeType: "application/json",
-            responseSchema: NEXT_TREND_PLAN_SCHEMA,
-          },
-        }),
-      }
-    );
-  } catch (e) {
-    clearTimeout(timeout);
-    console.error("[next-trend-plan] fetch error:", e);
-    return null;
-  } finally {
-    clearTimeout(timeout);
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    try {
+      const result = await callGeminiOnce(prompt, controller.signal);
+      clearTimeout(timeout);
+      return result;
+    } catch (e) {
+      clearTimeout(timeout);
+      const status = (e as any)?.status as number | undefined;
+      const isRetryable = status === 503 || status === 429 || (e instanceof Error && e.name === "AbortError");
+      console.error(`[next-trend-plan] attempt ${attempt}/${MAX_RETRIES}:`, e instanceof Error ? e.message : e);
+      if (!isRetryable || attempt === MAX_RETRIES) throw e;
+      await new Promise((r) => setTimeout(r, RETRY_DELAY_MS * attempt));
+    }
   }
-
-  let data: unknown;
-  try {
-    data = await res.json();
-  } catch {
-    console.error("[next-trend-plan] response JSON parse error, status:", res.status);
-    return null;
-  }
-
-  if (!res.ok) {
-    const errDetail = JSON.stringify((data as any)?.error ?? data);
-    throw new Error(`Gemini HTTP ${res.status}: ${errDetail}`);
-  }
-
-  // thinking 모드 응답은 parts 배열 마지막에 실제 JSON이 위치함
-  const parts: unknown[] = (data as any)?.candidates?.[0]?.content?.parts ?? [];
-  const text = (parts[parts.length - 1] as any)?.text;
-  if (!text || typeof text !== "string") {
-    const detail = JSON.stringify((data as any)?.candidates?.[0] ?? data);
-    throw new Error(`Gemini empty response: ${detail.slice(0, 300)}`);
-  }
-
-  try {
-    return JSON.parse(text) as NextTrendAIPlan;
-  } catch (e) {
-    throw new Error(`JSON parse error: ${text.slice(0, 200)}`);
-  }
+  return null;
 }
