@@ -12,15 +12,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "inquiryId, token 필요" }, { status: 400 });
   }
 
+  // access_token 또는 report id(uuid) 둘 다 허용
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(token);
   const { data: report } = await supabaseAdmin
     .from("manus_reports")
-    .select("id")
-    .eq("access_token", token)
+    .select("id, access_token")
+    .eq(isUuid ? "id" : "access_token", token)
     .maybeSingle();
 
   if (!report) {
-    return NextResponse.json({ error: "존재하지 않는 리포트 토큰입니다." }, { status: 404 });
+    console.error("[link-inquiry-report] token not found:", { token, isUuid });
+    return NextResponse.json({
+      error: "존재하지 않는 리포트 토큰입니다.",
+      received: token.slice(0, 32),
+    }, { status: 404 });
   }
+
+  // 실제 access_token을 저장 (uuid로 조회했을 경우 치환)
+  const resolvedToken = report.access_token;
 
   const { data: inquiry } = await supabaseAdmin
     .from("b2b_inquiries")
@@ -33,11 +42,11 @@ export async function POST(request: Request) {
   }
 
   const existing: string[] = inquiry.report_tokens ?? [];
-  if (existing.includes(token)) {
+  if (existing.includes(resolvedToken)) {
     return NextResponse.json({ ok: true, tokens: existing, skipped: true });
   }
 
-  const updated = [...existing, token];
+  const updated = [...existing, resolvedToken];
 
   const { error } = await supabaseAdmin
     .from("b2b_inquiries")

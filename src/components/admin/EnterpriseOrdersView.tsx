@@ -407,7 +407,7 @@ function InquiryReportLinks({ inquiry, onRefresh }: { inquiry: B2BInquiry; onRef
       });
       const data = await res.json();
       if (data.ok) { setInputVal(""); setShowInput(false); onRefresh(); }
-      else setLinkError(data.error ?? "연결 실패");
+      else setLinkError(`${data.error ?? "연결 실패"}${data.received ? ` (받은 값: ${data.received})` : ""}`);
     } finally { setLinkLoading(false); }
   }
 
