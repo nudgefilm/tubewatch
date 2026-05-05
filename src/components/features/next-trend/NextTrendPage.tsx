@@ -1,7 +1,6 @@
 "use client"
 
 import { NextTrendFormatSection } from "./sections/FormatSection"
-import { ExecutionHintDocument } from "./sections/ExecutionHintsSection"
 import { NextTrendActionSection } from "./sections/ActionSection"
 import { NextTrendDataInsightsSection } from "./sections/DataInsightsSection"
 import { NextTrendEmptyState } from "./sections/EmptyState"
@@ -9,7 +8,7 @@ import { TopicCandidatesSection } from "./sections/TopicCandidatesSection"
 import { ChannelContextHeader, type ChannelContext } from "@/components/features/shared/ChannelContextHeader"
 import { FeaturePaywallBlock } from "@/components/features/shared/FeaturePaywallBlock"
 import { SegmentGauge } from "@/components/ui/SegmentGauge"
-import { AlertCircle, ArrowRight, TrendingUp, Lightbulb, Video, FlaskConical, Zap, FileText } from "lucide-react"
+import { AlertCircle, ArrowRight, TrendingUp, Lightbulb, Video, FlaskConical, FileText } from "lucide-react"
 import type { NextTrendPageViewModel } from "@/lib/next-trend/nextTrendPageViewModel"
 import { buildNextTrendPageSections, SIGNAL_STRENGTH_BADGE } from "@/lib/engines/nextTrendPageEngine"
 import { IntegratedSummaryButton } from "@/components/features/shared/IntegratedSummaryButton"
@@ -27,7 +26,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
   if (viewModel) {
     const {
       topCandidates, visibleCandidates: candidates, hasLockedCandidates,
-      formats, executionHintDocument, actions, riskSignal,
+      formats, actions, riskSignal,
     } = buildNextTrendPageSections(viewModel, isStarterPlan)
 
     return (
@@ -178,16 +177,7 @@ export function NextTrendPage({ channelId = "", channelContext, viewModel, isSta
                     </section>
                   )}
 
-                  {/* [4] 실행 힌트 */}
-                  <section className="space-y-4">
-                    <div className="border-l-4 border-primary pl-3">
-                      <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight"><Zap className="size-5 shrink-0 text-amber-400" fill="currentColor" />실행 힌트</h2>
-                      <p className="text-xs text-muted-foreground mt-0.5">제목·훅·썸네일 통합 원페이퍼</p>
-                    </div>
-                    <ExecutionHintDocument markdown={executionHintDocument} channelId={(viewModel.selectedChannelId ?? channelId) || undefined} />
-                  </section>
-
-                  {/* [5] 영상 기획안 */}
+                  {/* [4] 영상 기획안 */}
                   {actions.length > 0 && (
                     <section className="space-y-4">
                       <div className="border-l-4 border-primary pl-3">
