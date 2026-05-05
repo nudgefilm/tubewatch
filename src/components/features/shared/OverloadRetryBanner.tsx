@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { AlertCircle } from "lucide-react"
 
-const OVERLOAD_KEYWORDS = ["high demand", "폭주", "UNAVAILABLE", "503", "overloaded"]
+const OVERLOAD_KEYWORDS = ["high demand", "폭주", "UNAVAILABLE", "503", "overloaded", "과부하"]
 const AUTO_RETRY_SEC = 60
 
 export function isOverloadError(msg: string): boolean {
