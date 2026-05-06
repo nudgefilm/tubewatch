@@ -2,6 +2,7 @@ import type { AdminDashboardData } from "./types";
 import AdminStatCard from "./AdminStatCard";
 import AdminQueueTable from "./AdminQueueTable";
 import AdminFailureTable from "./AdminFailureTable";
+import TrafficChart from "./TrafficChart";
 
 type AdminDashboardViewProps = {
   data: AdminDashboardData;
@@ -10,7 +11,7 @@ type AdminDashboardViewProps = {
 export default function AdminDashboardView({
   data,
 }: AdminDashboardViewProps): JSX.Element {
-  const { kpi, queueRows, failureRows } = data;
+  const { kpi, queueRows, failureRows, trafficRows } = data;
 
   return (
     <div className="space-y-8">
@@ -66,6 +67,11 @@ export default function AdminDashboardView({
       {/* Failure Log */}
       <section>
         <AdminFailureTable rows={failureRows} />
+      </section>
+
+      {/* Traffic Chart */}
+      <section>
+        <TrafficChart data={trafficRows} />
       </section>
     </div>
   );

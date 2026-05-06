@@ -4,6 +4,7 @@ import type {
   AdminDashboardKpi,
   AdminQueueRow,
   AdminFailureRow,
+  TrafficDayRow,
 } from "@/components/admin/types";
 
 type JobDbRow = {
@@ -30,6 +31,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
   const KST = 9 * 60 * 60 * 1000;
   const todayKST = new Date(Date.now() + KST).toISOString().slice(0, 10);
   const tomorrowKST = new Date(Date.now() + KST + 86_400_000).toISOString().slice(0, 10);
+  const thirtyDaysAgoKST = new Date(Date.now() + KST - 30 * 86_400_000).toISOString().slice(0, 10);
   // KST 자정 기준 UTC 타임스탬프 (timestamptz 컬럼 범위 쿼리용)
   const todayKSTStart = `${todayKST}T00:00:00+09:00`;
   const tomorrowKSTStart = `${tomorrowKST}T00:00:00+09:00`;
@@ -48,6 +50,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     todayPaymentsRes,
     consultingTodayRes,
     consultingTotalRes,
+    trafficRes,
   ] = await Promise.all([
     supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1 }),
     supabaseAdmin.from("user_channels").select("*", { count: "exact", head: true }),
@@ -105,6 +108,12 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     supabaseAdmin
       .from("b2c_consulting_inquiries")
       .select("*", { count: "exact", head: true }),
+    supabaseAdmin
+      .from("site_visits")
+      .select("visit_date")
+      .gte("visit_date", thirtyDaysAgoKST)
+      .lte("visit_date", todayKST)
+      .order("visit_date", { ascending: true }),
   ]);
 
   const kpi: AdminDashboardKpi = {
@@ -152,5 +161,17 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     created_at: r.created_at,
   }));
 
-  return { kpi, queueRows, failureRows };
+  // 날짜별 방문자 수 집계 (site_visits 1행 = 1 unique visitor/day)
+  const visitMap = new Map<string, number>();
+  for (const row of (trafficRes.data ?? []) as { visit_date: string }[]) {
+    visitMap.set(row.visit_date, (visitMap.get(row.visit_date) ?? 0) + 1);
+  }
+  const trafficRows: TrafficDayRow[] = Array.from({ length: 30 }, (_, i) => {
+    const date = new Date(Date.now() + KST - (29 - i) * 86_400_000)
+      .toISOString()
+      .slice(0, 10);
+    return { date, visitors: visitMap.get(date) ?? 0 };
+  });
+
+  return { kpi, queueRows, failureRows, trafficRows };
 }

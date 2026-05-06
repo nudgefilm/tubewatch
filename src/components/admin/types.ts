@@ -30,10 +30,16 @@ export type AdminFailureRow = {
   created_at: string | null;
 };
 
+export type TrafficDayRow = {
+  date: string;   // "YYYY-MM-DD"
+  visitors: number;
+};
+
 export type AdminDashboardData = {
   kpi: AdminDashboardKpi;
   queueRows: AdminQueueRow[];
   failureRows: AdminFailureRow[];
+  trafficRows: TrafficDayRow[];
 };
 
 // ── Users ──────────────────────────────────────────────
