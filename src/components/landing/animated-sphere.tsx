@@ -82,6 +82,8 @@ export function AnimatedSphere() {
     resize();
     window.addEventListener("resize", resize);
 
+    let running = false;
+
     const render = () => {
       const rect = canvas.getBoundingClientRect();
       ctx.clearRect(0, 0, rect.width, rect.height);
@@ -138,11 +140,25 @@ export function AnimatedSphere() {
       frameRef.current = requestAnimationFrame(render);
     };
 
-    render();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries[0]?.isIntersecting ?? false;
+        if (visible && !running) {
+          running = true;
+          frameRef.current = requestAnimationFrame(render);
+        } else if (!visible && running) {
+          running = false;
+          cancelAnimationFrame(frameRef.current);
+        }
+      },
+      { threshold: 0 }
+    );
+    observer.observe(canvas);
 
     return () => {
       window.removeEventListener("resize", resize);
       cancelAnimationFrame(frameRef.current);
+      observer.disconnect();
     };
   }, []);
 

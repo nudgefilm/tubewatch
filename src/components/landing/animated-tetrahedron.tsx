@@ -27,6 +27,8 @@ export function AnimatedTetrahedron() {
     resize();
     window.addEventListener("resize", resize);
 
+    let running = false;
+
     // Tetrahedron vertices
     const vertices = [
       { x: 0, y: 1, z: 0 },           // Top
@@ -157,11 +159,25 @@ export function AnimatedTetrahedron() {
       frameRef.current = requestAnimationFrame(render);
     };
 
-    render();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries[0]?.isIntersecting ?? false;
+        if (visible && !running) {
+          running = true;
+          frameRef.current = requestAnimationFrame(render);
+        } else if (!visible && running) {
+          running = false;
+          cancelAnimationFrame(frameRef.current);
+        }
+      },
+      { threshold: 0 }
+    );
+    observer.observe(canvas);
 
     return () => {
       window.removeEventListener("resize", resize);
       cancelAnimationFrame(frameRef.current);
+      observer.disconnect();
     };
   }, []);
 
