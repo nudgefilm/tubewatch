@@ -183,7 +183,7 @@ export function TimerCtaSection() {
 
           {/* 서브텍스트 */}
           <p className={`mx-auto mb-12 max-w-2xl text-center text-base leading-relaxed text-muted-foreground transition-all duration-700 delay-200 lg:text-lg ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-            신청 완료 후 이메일로 결제 안내가 발송됩니다. 채널 분석·진단 완료 후 최대 24시간 이내 전용 리포트 URL이 전달됩니다.
+            신청 완료 후 이메일로 결제 안내가 발송됩니다. 채널 분석·진단 완료 후 최대 24시간 이내 전용 리포트 URL과 진단 보고서가 전달됩니다.
           </p>
 
           {/* 타이머 */}
