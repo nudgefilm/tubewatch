@@ -219,12 +219,9 @@ export default function ChannelReportLanding() {
           >
             Channel Report
           </button>
-          <div className="flex items-center gap-2 text-right text-xs text-muted-foreground">
-            <span className="hidden sm:inline">유튜브 채널 분석 진단 솔루션</span>
-            <span className="hidden sm:inline text-foreground/20">|</span>
-            <span className="font-mono text-[10px]">
-              <span className="text-orange-500/80">특허출원 제10-2026-0075318호</span>
-              <span className="text-muted-foreground/70">&nbsp;&nbsp;2026.04 발행</span>
+          <div className="text-right text-xs text-muted-foreground">
+            <span className="hidden sm:inline font-mono text-[10px]">
+              유튜브 채널 분석 진단 솔루션 &apos;튜브워치&apos; | 특허출원 제10-2026-0075318호 | 컴퓨터 프로그램 저작물 저작권 등록번호 : 제C-2026-025022호
             </span>
           </div>
         </div>
