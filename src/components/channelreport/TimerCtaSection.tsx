@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-const TOTAL_SECONDS = 12 * 60 * 60;
+const TOTAL_SECONDS = 24 * 60 * 60;
 
 function useCountdown() {
   const [timeLeft, setTimeLeft] = useState(TOTAL_SECONDS);
