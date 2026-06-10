@@ -327,7 +327,17 @@ export default function ChannelReportLanding() {
 
       {/* 푸터 */}
       <footer className="border-t border-foreground/10 py-8 text-center text-xs text-muted-foreground">
-        © 2026 Channel Report. All rights reserved.
+        <p>© 2026 Channel Report. All rights reserved.</p>
+        <p className="mt-3 leading-relaxed">
+          <a href="https://www.tubewatch.kr/" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">TubeWatch™</a>
+          {" · "}언폴드랩(UNFOLD LAB) · 대표: 정재우 · 사업자등록번호: 136-11-23540
+        </p>
+        <p className="mt-1 leading-relaxed">
+          통신판매업신고: 제 2026-서울강남-XXXX 호 · 주소: 서울특별시 강남구 압구정로2길 46, 214-S46호
+        </p>
+        <p className="mt-1 leading-relaxed">
+          연락처: 02-518-2022 · 이메일: nudgefilm@gmail.com
+        </p>
       </footer>
 
       {modalOpen && <B2BInquiryModal onClose={() => setModalOpen(false)} />}
