@@ -14,7 +14,7 @@ export async function GET() {
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
   const { data, error: queryError } = await supabaseAdmin
-    .from("manus_reports")
+    .from("reports")
     .select("id, user_channel_id, status, access_token, created_at")
     .eq("user_id", user.id)
     .gte("created_at", thirtyDaysAgo)

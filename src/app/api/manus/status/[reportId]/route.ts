@@ -17,7 +17,7 @@ export async function GET(
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { data: report } = await supabaseAdmin
-    .from("manus_reports")
+    .from("reports")
     .select("id, status, access_token, error_message, created_at, updated_at")
     .eq("id", reportId)
     .eq("user_id", user.id)

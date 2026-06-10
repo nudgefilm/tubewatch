@@ -17,7 +17,7 @@ export async function POST(req: Request) {
 
   // access_token으로 리포트 조회 (processing 상태만)
   const { data: report } = await supabaseAdmin
-    .from("manus_reports")
+    .from("reports")
     .select("id, status, user_id, user_channel_id, snapshot_id, created_at, updated_at")
     .eq("access_token", accessToken)
     .maybeSingle();
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
 
   // 락 획득
   await supabaseAdmin
-    .from("manus_reports")
+    .from("reports")
     .update({ updated_at: new Date().toISOString() })
     .eq("id", report.id);
 
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
 
   if (!channel || !result) {
     await supabaseAdmin
-      .from("manus_reports")
+      .from("reports")
       .update({ status: "failed", error_message: "채널 또는 분석 데이터를 찾을 수 없습니다." })
       .eq("id", report.id);
     return NextResponse.json({ error: "Data missing" }, { status: 404 });
@@ -108,7 +108,7 @@ export async function POST(req: Request) {
   try {
     const resultJson = await generateReport(payload);
     const { error: saveError } = await supabaseAdmin
-      .from("manus_reports")
+      .from("reports")
       .update({ status: "completed", result_json: resultJson, error_message: null })
       .eq("id", report.id);
     if (saveError) throw new Error(`리포트 저장 실패: ${saveError.message}`);
@@ -116,7 +116,7 @@ export async function POST(req: Request) {
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     await supabaseAdmin
-      .from("manus_reports")
+      .from("reports")
       .update({ status: "failed", error_message: message })
       .eq("id", report.id);
     return NextResponse.json({ error: message }, { status: 500 });

@@ -35,7 +35,7 @@ export async function POST(req: Request) {
   const yearMonth = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 7);
 
   const { data: existing } = await supabaseAdmin
-    .from("manus_reports")
+    .from("reports")
     .select("id, status, access_token, created_at")
     .eq("user_channel_id", userChannelId)
     .gte("created_at", thirtyDaysAgo)
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
       }
     }
     // failed 또는 5분 초과 processing → 삭제 후 재생성
-    await supabaseAdmin.from("manus_reports").delete().eq("id", existing.id);
+    await supabaseAdmin.from("reports").delete().eq("id", existing.id);
   }
 
   // 분석 결과 존재 여부 확인
@@ -84,7 +84,7 @@ export async function POST(req: Request) {
 
   // DB에 processing 상태로 삽입 — Claude 호출은 /api/manus/stream에서 처리
   const { data: reportRow, error: insertError } = await supabaseAdmin
-    .from("manus_reports")
+    .from("reports")
     .insert({
       user_id: user.id,
       user_channel_id: userChannelId,
