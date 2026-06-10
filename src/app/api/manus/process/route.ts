@@ -4,7 +4,7 @@ export const maxDuration = 120;
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { generateReport } from "@/lib/claude/reportClient";
-import { buildReportPayload } from "@/lib/manus/prompt";
+import { buildReportPayload } from "@/lib/report/prompt";
 import type { NormalizedVideo } from "@/lib/analysis/engine/types";
 
 // POST /api/manus/process

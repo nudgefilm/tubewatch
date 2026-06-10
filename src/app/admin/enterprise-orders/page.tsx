@@ -32,12 +32,12 @@ export default async function EnterpriseOrdersPage() {
       reports={(reports ?? []).map((r) => ({
         ...r,
         user_channels: Array.isArray(r.user_channels) ? (r.user_channels[0] ?? null) : r.user_channels,
-      })) as ManusReportRow[]}
+      })) as ReportRow[]}
     />
   );
 }
 
-type ManusReportRow = {
+type ReportRow = {
   id: string;
   access_token: string;
   status: string;
@@ -47,4 +47,4 @@ type ManusReportRow = {
   user_channels: { channel_title: string | null; channel_url: string | null } | null;
 };
 
-export type { ManusReportRow };
+export type { ReportRow };

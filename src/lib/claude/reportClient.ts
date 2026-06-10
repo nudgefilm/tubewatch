@@ -1,14 +1,14 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { MANUS_PROJECT_INSTRUCTION } from "@/lib/manus/prompt";
-import type { ManusReportJson } from "@/lib/manus/types";
+import { REPORT_SYSTEM_PROMPT } from "@/lib/report/prompt";
+import type { ReportJson } from "@/lib/report/types";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-export function parseReportJson(text: string): ManusReportJson {
+export function parseReportJson(text: string): ReportJson {
   const start = text.indexOf("{");
   const end   = text.lastIndexOf("}");
   if (start === -1 || end < start) throw new Error("Claude 응답에서 JSON을 찾을 수 없음");
-  const resultJson = JSON.parse(text.slice(start, end + 1)) as ManusReportJson;
+  const resultJson = JSON.parse(text.slice(start, end + 1)) as ReportJson;
   if (!resultJson.section1_scorecard) {
     throw new Error("리포트 스키마 불일치: section1_scorecard 누락");
   }
@@ -16,12 +16,12 @@ export function parseReportJson(text: string): ManusReportJson {
 }
 
 // process route fallback용 동기 호출
-export async function generateReport(payload: string): Promise<ManusReportJson> {
+export async function generateReport(payload: string): Promise<ReportJson> {
   const response = await anthropic.messages.create({
     model: process.env.REPORT_MODEL ?? "claude-sonnet-4-6",
     max_tokens: 14000,
     temperature: 0,
-    system: MANUS_PROJECT_INSTRUCTION,
+    system: REPORT_SYSTEM_PROMPT,
     messages: [{ role: "user", content: payload }],
   });
 
@@ -36,7 +36,7 @@ export async function* streamReport(payload: string): AsyncGenerator<string> {
     model: process.env.REPORT_MODEL ?? "claude-sonnet-4-6",
     max_tokens: 14000,
     temperature: 0,
-    system: MANUS_PROJECT_INSTRUCTION,
+    system: REPORT_SYSTEM_PROMPT,
     messages: [{ role: "user", content: payload }],
     stream: true,
   });

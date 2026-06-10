@@ -3,7 +3,7 @@ export const maxDuration = 300; // Vercel Pro — 최대 5분
 
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { streamReport, parseReportJson } from "@/lib/claude/reportClient";
-import { buildReportPayload } from "@/lib/manus/prompt";
+import { buildReportPayload } from "@/lib/report/prompt";
 import type { NormalizedVideo } from "@/lib/analysis/engine/types";
 
 // GET /api/manus/stream?token=<access_token>

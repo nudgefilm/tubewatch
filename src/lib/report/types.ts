@@ -1,12 +1,10 @@
-// ---------- Manus 실제 출력 JSON 스키마 ----------
-
 export type ScoreBreakdownItem = {
   grade: string;
   score: number;
   comment?: string;
 };
 
-export type ManusReportJson = {
+export type ReportJson = {
   channel_info?: {
     channel_name?: string;
     channel_description?: string;
@@ -237,4 +235,3 @@ export type ManusReportJson = {
     }>;
   };
 };
-

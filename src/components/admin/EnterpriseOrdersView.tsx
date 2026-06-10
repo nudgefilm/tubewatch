@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
 
-type ManusReportRow = {
+type ReportRow = {
   id: string;
   access_token: string;
   status: string;
@@ -381,7 +381,7 @@ function OrderRow({ order, onRefresh }: { order: EnterpriseOrder; onRefresh: () 
 
 // ─── 자동 매칭 리포트 URL 표시 ────────────────────────────────────────────────
 
-function MatchedReportUrl({ report: r }: { report: ManusReportRow }) {
+function MatchedReportUrl({ report: r }: { report: ReportRow }) {
   const [copied, setCopied] = useState(false);
   const url = `https://channelreport.net/${r.access_token}`;
 
@@ -417,7 +417,7 @@ function MatchedReportUrl({ report: r }: { report: ManusReportRow }) {
 
 // ─── B2B 문의 리포트 링크 ─────────────────────────────────────────────────────
 
-function InquiryReportLinks({ inquiry, reportByToken, onRefresh }: { inquiry: B2BInquiry; reportByToken: Record<string, ManusReportRow>; onRefresh: () => void }) {
+function InquiryReportLinks({ inquiry, reportByToken, onRefresh }: { inquiry: B2BInquiry; reportByToken: Record<string, ReportRow>; onRefresh: () => void }) {
   const tokens: string[] = inquiry.report_tokens ?? [];
   const [showInput, setShowInput] = useState(false);
   const [inputVal, setInputVal] = useState("");
@@ -535,7 +535,7 @@ function InquiryReportLinks({ inquiry, reportByToken, onRefresh }: { inquiry: B2
 
 // ─── B2B 문의 행 ──────────────────────────────────────────────────────────────
 
-function InquiryRow({ inquiry, matchedReports, reportByToken, onRefresh }: { inquiry: B2BInquiry; matchedReports: ManusReportRow[]; reportByToken: Record<string, ManusReportRow>; onRefresh: () => void }) {
+function InquiryRow({ inquiry, matchedReports, reportByToken, onRefresh }: { inquiry: B2BInquiry; matchedReports: ReportRow[]; reportByToken: Record<string, ReportRow>; onRefresh: () => void }) {
   const [loading, setLoading] = useState(false);
 
   async function sendPaymentLink() {
@@ -828,7 +828,7 @@ export default function EnterpriseOrdersView({
   orders: EnterpriseOrder[];
   inquiries: B2BInquiry[];
   b2cInquiries?: B2CInquiry[];
-  reports?: ManusReportRow[];
+  reports?: ReportRow[];
 }) {
   const router = useRouter();
   const [tab, setTab] = useState<"orders" | "inquiries" | "b2c">("orders");
@@ -837,13 +837,13 @@ export default function EnterpriseOrdersView({
     router.refresh();
   }
 
-  const reportByToken: Record<string, ManusReportRow> = {};
+  const reportByToken: Record<string, ReportRow> = {};
   for (const r of reports) reportByToken[r.access_token] = r;
 
   function normalizeUrl(url: string) {
     return url.trim().toLowerCase().replace(/\/$/, "");
   }
-  const reportsByChannelUrl: Record<string, ManusReportRow[]> = {};
+  const reportsByChannelUrl: Record<string, ReportRow[]> = {};
   for (const r of reports) {
     const url = normalizeUrl(r.user_channels?.channel_url ?? "");
     if (url) (reportsByChannelUrl[url] ??= []).push(r);

@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { Check } from "lucide-react";
-import type { ManusReportJson } from "@/lib/manus/types";
+import type { ReportJson } from "@/lib/report/types";
 
-type Props = { report: ManusReportJson; generatedAt: string; reportId?: string; isChannelReport?: boolean };
+type Props = { report: ReportJson; generatedAt: string; reportId?: string; isChannelReport?: boolean };
 
 const LIME   = "#AAFF00";
 const ORANGE = "#FF7A00";
@@ -143,10 +143,10 @@ function nextTargetScore(score: number): number | null {
 
 /* ══ SECTION 1: HERO ══════════════════════════════════════════ */
 function HeroSection({ info, scorecard, growth, signals, date }: {
-  info: ManusReportJson["channel_info"];
-  scorecard: ManusReportJson["section1_scorecard"];
-  growth: ManusReportJson["section2_growth_metrics"];
-  signals: ManusReportJson["section3_data_signals"];
+  info: ReportJson["channel_info"];
+  scorecard: ReportJson["section1_scorecard"];
+  growth: ReportJson["section2_growth_metrics"];
+  signals: ReportJson["section3_data_signals"];
   date: string;
 }) {
   const score = scorecard?.overall_score ?? 0;
@@ -317,7 +317,7 @@ function HeroSection({ info, scorecard, growth, signals, date }: {
 }
 
 /* ══ SECTION 2: 9개 성장 지표 ═════════════════════════════════ */
-function GrowthSection({ data, scorecard }: { data: ManusReportJson["section2_growth_metrics"]; scorecard: ManusReportJson["section1_scorecard"] }) {
+function GrowthSection({ data, scorecard }: { data: ReportJson["section2_growth_metrics"]; scorecard: ReportJson["section1_scorecard"] }) {
   if (!data) return null;
   const trend = data.growth_trend;
   const stats = data.view_statistics;
@@ -379,9 +379,9 @@ function GrowthSection({ data, scorecard }: { data: ManusReportJson["section2_gr
 
 /* ══ SECTION 3: 데이터 시그널 ═════════════════════════════════ */
 function DataSignalsSection({ data, growth, patterns }: {
-  data: ManusReportJson["section3_data_signals"];
-  growth: ManusReportJson["section2_growth_metrics"];
-  patterns: ManusReportJson["section4_channel_patterns"];
+  data: ReportJson["section3_data_signals"];
+  growth: ReportJson["section2_growth_metrics"];
+  patterns: ReportJson["section4_channel_patterns"];
 }) {
   if (!data) return null;
   const high   = data.high_performance_patterns ?? [];
@@ -481,7 +481,7 @@ function DataSignalsSection({ data, growth, patterns }: {
 }
 
 /* ══ SECTION 4: 채널 운영 패턴 ═══════════════════════════════ */
-function ChannelPatternsSection({ data }: { data: ManusReportJson["section4_channel_patterns"] }) {
+function ChannelPatternsSection({ data }: { data: ReportJson["section4_channel_patterns"] }) {
   if (!data) return null;
   const upload = data.upload_patterns;
   const thumb  = data.thumbnail_and_title_patterns;
@@ -578,7 +578,7 @@ function ChannelPatternsSection({ data }: { data: ManusReportJson["section4_chan
 }
 
 /* ══ SECTION 5: Channel DNA ══════════════════════════════════ */
-function ChannelDNASection({ data, scorecard }: { data: ManusReportJson["section5_channel_dna"]; scorecard: ManusReportJson["section1_scorecard"] }) {
+function ChannelDNASection({ data, scorecard }: { data: ReportJson["section5_channel_dna"]; scorecard: ReportJson["section1_scorecard"] }) {
   if (!data) return null;
   const signals = scorecard ? [
     ["signals",  "30",  "v", "// 데이터 시그널 추출 완료"],
@@ -700,8 +700,8 @@ function ChannelDNASection({ data, scorecard }: { data: ManusReportJson["section
 
 /* ══ SECTION 6: 완성형 콘텐츠 기획안 ═════════════════════════ */
 function ContentPlansSection({ data, signals }: {
-  data: ManusReportJson["section6_content_plans"];
-  signals: ManusReportJson["section3_data_signals"];
+  data: ReportJson["section6_content_plans"];
+  signals: ReportJson["section3_data_signals"];
 }) {
   if (!data) return null;
   const opps   = [...(data.immediate_opportunities ?? [])].sort((a, b) => (a.priority ?? 99) - (b.priority ?? 99)).slice(0, 2);
@@ -843,7 +843,7 @@ function ContentPlansSection({ data, signals }: {
 }
 
 /* ══ SECTION 7: 30일 실행 계획 (4탭) ════════════════════════ */
-function ActionPlanSection({ report }: { report: ManusReportJson }) {
+function ActionPlanSection({ report }: { report: ReportJson }) {
   const [activeTab, setActiveTab] = useState<0 | 1 | 2>(0);
   const data = report.section7_action_plan;
   if (!data) return null;
@@ -1026,7 +1026,7 @@ function truncTitle(s: string, n = 52): string {
   return (cut.endsWith('…') || cut.endsWith('...')) ? cut : cut + '…';
 }
 
-function NextTrendSection({ report }: { report: ManusReportJson }) {
+function NextTrendSection({ report }: { report: ReportJson }) {
   const [data, setData]       = useState<NaverTrendsData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -1208,7 +1208,7 @@ function NextTrendSection({ report }: { report: ManusReportJson }) {
 }
 
 /* ══ 다음달 리포트 예고 ════════════════════════════════════════ */
-function NextMonthSection({ report, date, generatedAt, isChannelReport = false }: { report: ManusReportJson; date: string; generatedAt: string; isChannelReport?: boolean }) {
+function NextMonthSection({ report, date, generatedAt, isChannelReport = false }: { report: ReportJson; date: string; generatedAt: string; isChannelReport?: boolean }) {
   const nextAvailable = (() => {
     const d = new Date(generatedAt);
     d.setDate(d.getDate() + 30);

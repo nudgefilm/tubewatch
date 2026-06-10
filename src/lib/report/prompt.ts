@@ -1,6 +1,6 @@
 import type { NormalizedVideo } from "@/lib/analysis/engine/types";
 
-export const MANUS_PROJECT_INSTRUCTION = `당신은 '튜브워치(TubeWatch)'의 수석 채널 분석가입니다. 제공된 YouTube 채널 데이터를 심층 분석하여, 정해진 7개 카테고리 구조에 맞게 완벽한 JSON 포맷으로 리포트를 생성해야 합니다.
+export const REPORT_SYSTEM_PROMPT = `당신은 '튜브워치(TubeWatch)'의 수석 채널 분석가입니다. 제공된 YouTube 채널 데이터를 심층 분석하여, 정해진 7개 카테고리 구조에 맞게 완벽한 JSON 포맷으로 리포트를 생성해야 합니다.
 
 [절대 규칙 — 반드시 준수]
 - 파일을 생성하거나 저장하지 마세요. write_file, create_file 등 어떤 파일 시스템 도구도 사용하지 마세요.
@@ -249,7 +249,6 @@ export function buildReportPayload(data: {
   lines.push(`분석 기준일: ${data.analysisDate}  ← channel_info.analysis_date에 이 날짜를 그대로 사용하세요.`);
   lines.push("");
 
-  // 채널 기본 정보
   lines.push("[채널 기본 정보]");
   lines.push(`채널명: ${data.channelName}`);
   lines.push(`채널 설명: ${data.channelDescription || "(없음)"}`);
@@ -259,7 +258,6 @@ export function buildReportPayload(data: {
   lines.push(`총 조회수: ${data.totalViewCount.toLocaleString()}회`);
   lines.push("");
 
-  // 채널 지표
   lines.push("[채널 지표 (최근 50개 영상 기준)]");
   lines.push(`평균 조회수: ${Math.round(data.metrics.avgViewCount).toLocaleString()}회`);
   lines.push(`중앙값 조회수: ${Math.round(data.metrics.medianViewCount).toLocaleString()}회`);
@@ -272,7 +270,6 @@ export function buildReportPayload(data: {
   lines.push(`평균 태그 수: ${data.metrics.avgTagCount.toFixed(1)}개`);
   lines.push("");
 
-  // 영상 데이터
   lines.push("[영상 데이터 (최근 50개)]");
   lines.push("순번|제목|조회수|좋아요|댓글|업로드일|길이(초)|참여율");
   data.videos.slice(0, 50).forEach((v, i) => {
@@ -283,7 +280,6 @@ export function buildReportPayload(data: {
   });
   lines.push("");
 
-  // 기존 모듈 분석 결과
   if (data.channelDna) {
     lines.push("[기존 Channel DNA 분석]");
     const dna = data.channelDna;
