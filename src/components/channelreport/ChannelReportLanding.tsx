@@ -176,7 +176,7 @@ const HERO_STATS = [
   { value: "50", unit: "개", label: "영상 전수 분석" },
   { value: "30", unit: "개", label: "채널 시그널" },
   { value: "30", unit: "일", label: "실행 로드맵" },
-  { value: "3", unit: "회", label: "정기 전략 리포트" },
+  { value: "24", unit: "h", label: "리포트 전달" },
 ];
 
 // ─── 메인 랜딩 ────────────────────────────────────────────────────────────────
@@ -249,25 +249,25 @@ export default function ChannelReportLanding() {
             <div className="min-w-0 flex-1">
               <div className={`transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
                 <span className="mb-8 inline-flex items-center gap-2 rounded-lg border border-foreground/20 bg-foreground/5 px-3 py-1 text-xs font-mono tracking-widest text-foreground">
-                  유튜브 채널 전략 컨설팅
+                  유튜브 채널 진단 리포트
                 </span>
               </div>
 
               <h1 className={`font-heading font-bold leading-[1.1] tracking-[-0.04em] transition-all duration-1000 delay-100 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
                 <span className="block whitespace-nowrap text-[clamp(2.4rem,4.8vw,3.8rem)] text-foreground">
-                  클라이언트 채널의
+                  내 채널, 지금
                 </span>
                 <span className="block whitespace-nowrap text-[clamp(2.2rem,4vw,3.4rem)] text-foreground">
-                  <span className="text-orange-500">불확실성</span>,
+                  어디서 <span className="text-orange-500">막히고</span> 있는지
                 </span>
                 <span className="block whitespace-nowrap text-[clamp(1.5rem,2.8vw,2.4rem)] text-foreground">
-                  데이터로 제거합니다.
+                  알고 싶다면.
                 </span>
               </h1>
 
               <p className={`mt-5 max-w-lg text-base leading-relaxed text-muted-foreground transition-all duration-700 delay-150 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
                 최근 영상 <span className="font-semibold text-orange-500">50</span>개와 채널 데이터를{" "}
-                <span className="font-medium"><span className="font-semibold text-orange-500">30</span>개 시그널 · <span className="font-semibold text-orange-500">9</span>개 성장 지표 · <span className="font-semibold text-orange-500">7</span>개 운영 패턴</span>으로 정밀 분석하여 다음 성장 전략을 제시합니다.
+                <span className="font-medium"><span className="font-semibold text-orange-500">30</span>개 시그널 · <span className="font-semibold text-orange-500">9</span>개 성장 지표 · <span className="font-semibold text-orange-500">7</span>개 운영 패턴</span>으로 분석해, 내 채널의 병목과 다음 액션을 데이터로 짚어드립니다.
               </p>
 
               <div className={`mt-8 flex flex-col gap-2 transition-all duration-700 delay-[250ms] ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
@@ -275,10 +275,10 @@ export default function ChannelReportLanding() {
                   onClick={() => setModalOpen(true)}
                   className="inline-flex w-fit animate-float-half items-center gap-2 rounded-xl bg-foreground px-7 py-3.5 text-sm font-semibold text-background shadow-lg shadow-foreground/10 transition-colors hover:bg-foreground/85"
                 >
-                  데이터 컨설팅 채널 등록
+                  채널 진단 신청하기
                   <ArrowRight className="h-4 w-4" />
                 </button>
-                <span className="text-xs text-muted-foreground">₩330,000 (VAT 포함, 3개월 정기 발행)</span>
+                <span className="text-xs text-muted-foreground">₩99,000 (VAT 포함) · 1회 진단 · 최대 24시간 이내 리포트 전달</span>
               </div>
 
               {/* 스탯 */}

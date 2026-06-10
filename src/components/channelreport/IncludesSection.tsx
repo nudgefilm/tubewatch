@@ -24,19 +24,19 @@ const features = [
   {
     id: "roadmap",
     title: "30일 콘텐츠 로드맵",
-    description: "향후 30일 콘텐츠 실행 계획 제시",
+    description: "진단 결과 기반 다음 영상 방향 및 30일 실행 계획 제시",
     icon: "roadmap",
   },
   {
     id: "report",
     title: "전용 리포트 URL",
-    description: "제안서 · 보고서에 바로 삽입 가능",
+    description: "본인 채널 전용 리포트 URL로 언제든 열람 가능",
     icon: "link",
   },
   {
     id: "monthly",
-    title: "월간 정기 발행",
-    description: "3개월간 전략 리포트 정기 제공",
+    title: "진단 결과 리포트",
+    description: "분석 완료 후 최대 24시간 이내 리포트 전달",
     icon: "calendar",
   },
 ];
@@ -308,7 +308,7 @@ export function IncludesSection() {
             포함 내용
           </h2>
           <p className={`mx-auto mt-4 max-w-2xl text-lg text-muted-foreground transition-all duration-700 delay-100 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-            3개월 동안 제공되는 전문가 진단 서비스
+            1회 진단에 포함되는 전문가 분석 서비스
           </p>
         </div>
 

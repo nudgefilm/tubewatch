@@ -166,7 +166,7 @@ export function TimerCtaSection() {
             }`}>
               <ClockIcon isUrgent={isUrgent} />
               <span className={`font-mono text-sm transition-colors duration-300 ${isUrgent ? "text-foreground" : "text-muted-foreground"}`}>
-                {isUrgent ? "마감 임박" : "파트너십 전용"}
+                {isUrgent ? "마감 임박" : "채널 운영자 전용"}
               </span>
             </span>
           </div>
@@ -174,16 +174,16 @@ export function TimerCtaSection() {
           {/* 헤딩 */}
           <h2 className={`mb-4 text-center tracking-tight transition-all duration-700 delay-100 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
             <span className="mb-2 block text-4xl font-bold lg:text-6xl xl:text-7xl">
-              귀사의 전문성을
+              내 채널의 다음 성장,
             </span>
             <span className="block text-2xl lg:text-4xl xl:text-5xl text-foreground/80">
-              <span className="text-orange-500">데이터</span>로 증명할 준비가 되셨나요?
+              <span className="text-orange-500">데이터</span>로 찾아드립니다.
             </span>
           </h2>
 
           {/* 서브텍스트 */}
           <p className={`mx-auto mb-12 max-w-2xl text-center text-base leading-relaxed text-muted-foreground transition-all duration-700 delay-200 lg:text-lg ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-            신청 접수 후 담당자 이메일로 결제 경로가 즉시 안내되며, 채널 분석과 진단, 전략 보고서 작성 후 최대 12시간 이내에 리포트가 전달될 예정입니다.
+            신청 완료 후 이메일로 결제 안내가 발송됩니다. 채널 분석·진단 완료 후 최대 24시간 이내 전용 리포트 URL이 전달됩니다.
           </p>
 
           {/* 타이머 */}
@@ -221,7 +221,7 @@ export function TimerCtaSection() {
               rel="noopener noreferrer"
               className="inline-flex animate-float-half items-center rounded-lg border border-foreground/20 bg-foreground/[0.04] px-7 py-3.5 text-sm font-medium text-foreground/80 transition-colors hover:border-foreground/40 hover:bg-foreground/[0.08] hover:text-foreground"
             >
-              데이터 진단 컨설팅 협업 신청
+              채널 진단 신청하기
             </a>
           </div>
 
