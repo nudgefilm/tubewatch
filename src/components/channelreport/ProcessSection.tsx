@@ -12,7 +12,7 @@ const steps = [
   },
   {
     number: "02",
-    title: "전문가 진단 분석",
+    title: "진단 분석",
     description:
       "최근 영상 50개와 30개 시그널을 진단 분석합니다. 조회수·구독 전환·이탈 구간의 병목을 정밀 진단합니다.",
     icon: "analyze",
