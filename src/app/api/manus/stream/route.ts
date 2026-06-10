@@ -29,7 +29,7 @@ export async function GET(req: Request) {
       try {
         // 리포트 조회
         const { data: report } = await supabaseAdmin
-          .from("reports")
+          .from("tubewatch_reports")
           .select("id, status, user_id, user_channel_id, snapshot_id, created_at, updated_at")
           .eq("access_token", accessToken)
           .maybeSingle();
@@ -67,7 +67,7 @@ export async function GET(req: Request) {
           while (Date.now() - pollStart < 280_000) {
             await new Promise<void>((resolve) => setTimeout(resolve, 5000));
             const { data: latest } = await supabaseAdmin
-              .from("reports")
+              .from("tubewatch_reports")
               .select("status")
               .eq("id", report.id)
               .single();
@@ -90,14 +90,14 @@ export async function GET(req: Request) {
 
         // 락 획득
         await supabaseAdmin
-          .from("reports")
+          .from("tubewatch_reports")
           .update({ updated_at: new Date().toISOString() })
           .eq("id", report.id);
 
         // 60초마다 락 갱신 (process route가 가로채지 않도록)
         lockInterval = setInterval(async () => {
           await supabaseAdmin
-            .from("reports")
+            .from("tubewatch_reports")
             .update({ updated_at: new Date().toISOString() })
             .eq("id", report.id);
         }, 60_000);
@@ -120,7 +120,7 @@ export async function GET(req: Request) {
 
         if (!channel || !result) {
           await supabaseAdmin
-            .from("reports")
+            .from("tubewatch_reports")
             .update({ status: "failed", error_message: "채널 또는 분석 데이터를 찾을 수 없습니다." })
             .eq("id", report.id);
           send(controller, { type: "error", message: "채널 데이터를 찾을 수 없습니다." });
@@ -191,7 +191,7 @@ export async function GET(req: Request) {
         // JSON 파싱 & 저장
         const resultJson = parseReportJson(fullText);
         const { error: saveError } = await supabaseAdmin
-          .from("reports")
+          .from("tubewatch_reports")
           .update({ status: "completed", result_json: resultJson, error_message: null })
           .eq("id", report.id);
 
@@ -202,7 +202,7 @@ export async function GET(req: Request) {
         const message = err instanceof Error ? err.message : "Unknown error";
         if (reportId) {
           await supabaseAdmin
-            .from("reports")
+            .from("tubewatch_reports")
             .update({ status: "failed", error_message: message })
             .eq("id", reportId);
         }

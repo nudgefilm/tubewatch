@@ -18,7 +18,7 @@ export default async function EnterpriseOrdersPage() {
       .select("*")
       .order("created_at", { ascending: false }),
     supabaseAdmin
-      .from("reports")
+      .from("tubewatch_reports")
       .select("id, access_token, status, year_month, created_at, user_channel_id, user_channels(channel_title, channel_url)")
       .order("created_at", { ascending: false })
       .limit(100),

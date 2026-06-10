@@ -13,7 +13,7 @@ type Props = { params: Promise<{ token: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { token } = await params;
   const { data } = await supabaseAdmin
-    .from("reports")
+    .from("tubewatch_reports")
     .select("result_json")
     .eq("access_token", token)
     .eq("status", "completed")
@@ -32,7 +32,7 @@ export default async function ReportPage({ params }: Props) {
   const { token } = await params;
 
   const { data } = await supabaseAdmin
-    .from("reports")
+    .from("tubewatch_reports")
     .select("id, status, result_json, error_message, created_at")
     .eq("access_token", token)
     .maybeSingle();

@@ -14,7 +14,7 @@ export async function POST(request: Request) {
 
   // token 유효성 확인 (manus_reports에 존재하는지)
   const { data: report } = await supabaseAdmin
-    .from("reports")
+    .from("tubewatch_reports")
     .select("id, status")
     .eq("access_token", token)
     .maybeSingle();

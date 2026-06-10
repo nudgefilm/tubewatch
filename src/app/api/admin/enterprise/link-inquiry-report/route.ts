@@ -15,7 +15,7 @@ export async function POST(request: Request) {
   // access_token 또는 report id(uuid) 둘 다 허용
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(token);
   const { data: report } = await supabaseAdmin
-    .from("reports")
+    .from("tubewatch_reports")
     .select("id, access_token")
     .eq(isUuid ? "id" : "access_token", token)
     .maybeSingle();

@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   }
 
   const { data: report } = await supabaseAdmin
-    .from("reports")
+    .from("tubewatch_reports")
     .select("id")
     .eq("access_token", token)
     .maybeSingle();
